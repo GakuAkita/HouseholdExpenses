@@ -1,36 +1,27 @@
 package gaku.original.myapplication.ui.theme
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import gaku.original.myapplication.R
 
 data class BottomNavigationItem(
     val title:String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon:ImageVector,
+    val icon:Painter
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,24 +43,20 @@ fun BottomBarView(){
     var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
     val bottomNavigationItems = listOf(
         BottomNavigationItem(
-            "Home",
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Filled.Home
+            title="Home",
+            icon= painterResource(id = R.drawable.baseline_home_24)
         ),
         BottomNavigationItem(
-            "Graph",
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Filled.Home
+            title="Graph",
+            icon= painterResource(id = R.drawable.baseline_pie_chart_24)
         ),
         BottomNavigationItem(
-            "Not Categoriezed",
-            selectedIcon = Icons.Filled.Notifications,
-            unselectedIcon = Icons.Filled.Notifications
+            title="Not-Categoriezed",
+            icon= painterResource(id = R.drawable.baseline_category_24)
         ),
         BottomNavigationItem(
-            "Settings",
-            selectedIcon = Icons.Filled.Settings,
-            unselectedIcon = Icons.Filled.Settings
+            title="Settings",
+            icon= painterResource(id = R.drawable.baseline_settings_24)
         )
     )
 
@@ -83,10 +70,11 @@ fun BottomBarView(){
                 },
                 icon = {
                     Icon(
-                        imageVector = if(index==selectedItemIndex)item.selectedIcon else item.unselectedIcon,
+                        painter = item.icon,
                         contentDescription = item.title
                     )
-                }
+                },
+                label = { Text(item.title) }
             )
         }
     }
