@@ -23,7 +23,7 @@ fun MainView(){
 
     Scaffold(
         topBar = {
-            AppBarView(topBarName)
+            TopBarView(topBarName)
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -35,7 +35,8 @@ fun MainView(){
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
             }
-        }
+        },
+        bottomBar = { BottomBarView() }
     ){
         innerPadding ->
         //カレンダー
