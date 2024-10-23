@@ -9,8 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 27//ここを上げる。上げないとkizitonwoseが使いづらくなる
         versionCode = 1
         versionName = "1.0"
 
@@ -50,6 +49,9 @@ android {
 }
 
 dependencies {
+    //外部のライブラリいただく
+    // The compose calendar library for Android
+    implementation("com.kizitonwose.calendar:compose:2.6.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
