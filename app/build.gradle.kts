@@ -53,6 +53,9 @@ dependencies {
     // The compose calendar library for Android
     implementation("com.kizitonwose.calendar:compose:2.6.0")
 
+    //LazyColumnのスクロールバーのため
+    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:2.2.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
