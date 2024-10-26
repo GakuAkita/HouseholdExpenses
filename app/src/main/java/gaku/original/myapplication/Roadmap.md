@@ -1,0 +1,7 @@
+- 何年何月のカレンダーなのかわかるように
+- Navigation(ルートだけ作っておく。BottomBar+Add)
+- ArrayとしてexpensesのDBを模擬的に再現
+- Add画面の作成→Arrayに追加
+- Daoでローカルにデータを保存する
+- カレンダーの日付に総額を記載
+- 
