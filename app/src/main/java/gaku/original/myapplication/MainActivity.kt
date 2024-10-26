@@ -23,8 +23,7 @@ class MainActivity : ComponentActivity() {
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Surface(modifier = Modifier.padding(innerPadding)) {
-                        //ここにいろいろ作っていく
-                        MainView()
+                        Navigation()
                     }
                 }
             }

@@ -49,12 +49,23 @@ android {
 }
 
 dependencies {
+    val calendar_version="2.6.0"
+    val scrollbar_version="2.2.0"
+    val viewModel_version="2.8.5"
+    val nav_version="2.7.5"
+
     //外部のライブラリいただく
     // The compose calendar library for Android
-    implementation("com.kizitonwose.calendar:compose:2.6.0")
+    implementation("com.kizitonwose.calendar:compose:${calendar_version}")
 
     //LazyColumnのスクロールバーのため
-    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:2.2.0")
+    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:${scrollbar_version}")
+
+    //ViewModel
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:${viewModel_version}")
+
+    //Navigation
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
