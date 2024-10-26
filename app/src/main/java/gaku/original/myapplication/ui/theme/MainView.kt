@@ -55,7 +55,7 @@ fun MainView(viewModel: ExpenseViewModel){
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
             Text("2024-10")
             Row(modifier = Modifier.fillMaxWidth()){
-                CalendarDisplay(2024,10)
+                CalendarDisplay(viewModel.calendarYear,viewModel.calendarMonth)
             }
 
             //スペースちょっとあける。

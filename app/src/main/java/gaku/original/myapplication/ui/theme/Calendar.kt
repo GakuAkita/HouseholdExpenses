@@ -25,11 +25,11 @@ import java.util.Locale
 @Composable
 fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ) {
     // 現在の年月
-    val calendarYearMonth = remember { YearMonth.of(calendarYear,calendarMonth) }
+    val calendarYearMonth =  remember { YearMonth.of(calendarYear,calendarMonth) }
     // 現在より前の年月
-    val startMonth = remember { calendarYearMonth.minusMonths(100) }
+    val startMonth = remember { calendarYearMonth.minusMonths(2) }
     // 現在より後の年月
-    val endMonth = remember { calendarYearMonth.plusMonths(100) }
+    val endMonth = remember { calendarYearMonth.plusMonths(2) }
     // 曜日
     val daysOfWeek = remember { daysOfWeek() }
     // カレンダーの状態を持つ
@@ -40,6 +40,7 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ) {
         firstDayOfWeek = daysOfWeek.first(),
         outDateStyle = OutDateStyle.EndOfGrid
     )
+    Text("${endMonth}")
 
     // 横スクロールのカレンダーを作成するためのComposable関数
     // 縦スクロールのVerticalなどもある
