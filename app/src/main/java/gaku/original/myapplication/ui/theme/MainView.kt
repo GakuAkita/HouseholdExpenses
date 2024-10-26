@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import org.w3c.dom.Text
 
 
@@ -66,20 +68,20 @@ fun MainView(){
             Spacer(modifier=Modifier.padding(10.dp))
 
             Row (modifier=Modifier.fillMaxWidth()){
-                LazyColumn(
+                LazyColumnScrollbar(//外部ライブラリ
                     state=listState,
-                    modifier=Modifier
-                        .fillMaxWidth()
-                        .verticalScrollbar(
-                            listState,
-                            barTint = Color.Gray,
-                            backgroundColor = Color.LightGray
-                        ),
-                    userScrollEnabled = true
+                    settings = ScrollbarSettings.Default
+                ) {
+                    LazyColumn(
+                        state=listState,
+                        modifier=Modifier
+                            .fillMaxWidth(),
+                        userScrollEnabled = true
                     ){
-                    items(DummyExpenses.expensesList){
-                            expense ->
-                        ExpenseItem(expense = expense, onEdit = {})
+                        items(DummyExpenses.expensesList){
+                                expense ->
+                            ExpenseItem(expense = expense, onEdit = {})
+                        }
                     }
                 }
             }
@@ -108,45 +110,3 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
         )
     }
 }
-
-
-//スクロールバーの実装。以下のURLを丸パクリ
-//https://gaprot.jp/2024/07/22/jetpack-compose-lazylist-scrollbar/
-@Composable
-fun Modifier.verticalScrollbar(
-    state: LazyListState,
-    width: Float = 12f,
-    barTint: Color = Color.Blue,
-    backgroundColor: Color = Color.Gray,
-): Modifier {
-    return drawWithContent {
-        drawContent()
-
-        val firstVisibleElementIndex = state.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-
-        firstVisibleElementIndex?.let {
-            val scrollableItems = state.layoutInfo.totalItemsCount - state.layoutInfo.visibleItemsInfo.size
-            val scrollbarHeight = this.size.height / scrollableItems
-            val offsetY = ((this.size.height - scrollbarHeight) * it) / scrollableItems
-
-            // スクロールバーの背景部分
-            drawRoundRect(
-                color = backgroundColor,
-                topLeft = Offset(x = this.size.width - width, y = 0f),
-                size = Size(width, this.size.height),
-                cornerRadius = CornerRadius(width / 2, width / 2),
-                alpha = 1f
-            )
-
-            // スクロールバーの本体部分
-            drawRoundRect(
-                color = barTint,
-                topLeft = Offset(x = this.size.width - width, y = offsetY),
-                size = Size(width, scrollbarHeight - 60f),
-                cornerRadius = CornerRadius(width / 2, width / 2),
-                alpha = 1f
-            )
-        }
-    }
-}
-
