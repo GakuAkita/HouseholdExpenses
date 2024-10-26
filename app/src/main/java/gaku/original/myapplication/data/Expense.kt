@@ -1,7 +1,5 @@
 package gaku.original.myapplication.data
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.time.LocalDateTime
 
 data class Expense(
@@ -13,11 +11,10 @@ data class Expense(
 )
 
 object DummyExpenses{
-    @RequiresApi(Build.VERSION_CODES.O)
     val expensesList= listOf(
         Expense(
             id="1",
-            datetime = LocalDateTime.now(),
+            datetime = LocalDateTime.of(2023,10,1,0,0,0),
             expense=1000,
             category="necessities",
             note=""
@@ -38,6 +35,27 @@ object DummyExpenses{
         ),
         Expense(
             id="4",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="5",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="6",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="7",
             datetime = LocalDateTime.now(),
             expense=2000,
             category="Amazon",
