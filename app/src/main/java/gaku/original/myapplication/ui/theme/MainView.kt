@@ -28,15 +28,15 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import org.w3c.dom.Text
 
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel){
+fun MainView(){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState() // 追加
 
