@@ -33,6 +33,10 @@ class ExpenseViewModel():ViewModel() {
         monthOffset.value=0
     }
 
+    fun updateMonthOffset(offset:Int){
+        monthOffset.value=offset
+    }
+
     fun incrementMonth(){
         monthOffset.value++
     }

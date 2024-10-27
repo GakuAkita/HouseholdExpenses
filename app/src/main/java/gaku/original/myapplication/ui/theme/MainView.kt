@@ -1,7 +1,5 @@
 package gaku.original.myapplication.ui.theme
 
-import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -34,14 +31,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import gaku.original.myapplication.ExpenseViewModel
-import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
-import java.time.LocalDate
-import java.time.LocalTime
-
 
 @Composable
 fun MainView(viewModel: ExpenseViewModel){
@@ -49,7 +42,8 @@ fun MainView(viewModel: ExpenseViewModel){
     val listState = rememberLazyListState() // 追加
 
     //カレンダー横スクロールのため
-    val calendarPagerState= rememberPagerState(initialPage = 1){ 3 }
+    val calendarHorizontalInitialPage = 12
+    val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
 
     Scaffold(
@@ -75,6 +69,7 @@ fun MainView(viewModel: ExpenseViewModel){
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
                 ){
                 Text("${viewModel.getCalendarYear()}-${viewModel.getCalendarMonth()}")
+                Text("Page:${calendarPagerState.currentPage}　previous Page:${previousCalendarPage}")
             }
 
             //Recompositionされたかどうかのチェック
@@ -85,27 +80,32 @@ fun MainView(viewModel: ExpenseViewModel){
                 HorizontalPager(
                     state = calendarPagerState,
                     modifier = Modifier.weight(1f)
-                ) {
-                    CalendarDisplay(viewModel.getCalendarYear(),viewModel.getCalendarMonth())
+                ) {page->
+//                    val monthOffset = page-12
+                    CalendarDisplay(
+                        calendarYear = viewModel.getCalendarYear(),
+                        calendarMonth = viewModel.getCalendarMonth())
                 }
             }
 
             /**************************************************/
-            //カレンダーをスクロールしたときにviewModel内の日付を変更する
+            /*カレンダーをスクロールしたときにviewModel内の日付を変更する*/
             /**************************************************/
             LaunchedEffect(calendarPagerState) {
                 snapshotFlow { calendarPagerState.currentPage }
                     .distinctUntilChanged()
-                    .collect{
-                    currentPage->
-                        if(currentPage>previousCalendarPage){
-                            Log.d("Akita","Scrolled to right")
-                            viewModel.incrementMonth()
-                        }else if (currentPage<previousCalendarPage) {
-                            Log.d("Akita","Scrolled to left")
-                            viewModel.decrementMonth()
+                    .collect{ currentPage->
+                        when{
+                            currentPage > previousCalendarPage -> viewModel.incrementMonth()
+                            currentPage < previousCalendarPage -> viewModel.decrementMonth()
                         }
                         previousCalendarPage=currentPage
+//
+//                        //ページが範囲を超えた場合、カレンダーをリセット
+//                        if (currentPage <= 0 || currentPage >= 2*calendarHorizontalInitialPage ){
+//                            viewModel.resetMonthOffset()
+//                            calendarPagerState.scrollToPage(calendarHorizontalInitialPage)
+//                        }
                 }
             }
 
