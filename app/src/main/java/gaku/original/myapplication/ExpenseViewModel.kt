@@ -29,6 +29,10 @@ class ExpenseViewModel():ViewModel() {
         return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
     }
 
+    fun resetMonthOffset(){
+        monthOffset.value=0
+    }
+
     fun incrementMonth(){
         monthOffset.value++
     }
