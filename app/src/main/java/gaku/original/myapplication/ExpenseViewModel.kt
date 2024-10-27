@@ -2,6 +2,8 @@ package gaku.original.myapplication
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import gaku.original.myapplication.data.DummyExpenses
+import gaku.original.myapplication.data.Expense
 import java.time.LocalDate
 
 /*
@@ -32,5 +34,13 @@ class ExpenseViewModel():ViewModel() {
 
     fun decrementMonth(){
         calendarDate.value = calendarDate.value.minusMonths(1)
+    }
+
+    //MainViewもLazyColumnに表示する
+    fun getMonthExpenses():List<Expense>{
+        return DummyExpenses.expensesList.filter {
+            it.datetime.year == calendarDate.value.year &&
+                    it.datetime.month == calendarDate.value.month
+        }
     }
 }

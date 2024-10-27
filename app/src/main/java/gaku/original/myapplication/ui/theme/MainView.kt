@@ -65,7 +65,10 @@ fun MainView(viewModel: ExpenseViewModel){
 
             //Recompositionされたかどうかのチェック
             Log.d("Check Recomposition","Calendar Recomposition: ${LocalTime.now()}")
-            Row(modifier = Modifier.fillMaxWidth()){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+
+            ){
                 CalendarDisplay(viewModel.getCalendarYear(),viewModel.getCalendarMonth())
             }
 
@@ -83,7 +86,7 @@ fun MainView(viewModel: ExpenseViewModel){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        items(DummyExpenses.expensesList){
+                        items(viewModel.getMonthExpenses()){
                                 expense ->
                             ExpenseItem(expense = expense, onEdit = {})
                         }
