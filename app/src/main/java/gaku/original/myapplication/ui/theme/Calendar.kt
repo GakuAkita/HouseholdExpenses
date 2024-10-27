@@ -27,9 +27,9 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
-    val startMonth =  calendarYearMonth.minusMonths(10)
+    val startMonth =  calendarYearMonth.minusMonths(0)
     // 現在より後の年月
-    val endMonth = calendarYearMonth.plusMonths(10)
+    val endMonth = calendarYearMonth.plusMonths(0)
     // 曜日
     val daysOfWeek =  daysOfWeek()
     // カレンダーの状態を持つ

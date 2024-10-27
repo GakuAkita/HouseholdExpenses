@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -20,6 +23,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
+import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.time.LocalDate
@@ -37,6 +47,10 @@ import java.time.LocalTime
 fun MainView(viewModel: ExpenseViewModel){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState() // 追加
+
+    //カレンダー横スクロールのため
+    val calendarPagerState= rememberPagerState(initialPage = 1){ 3 }
+    var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
 
     Scaffold(
         topBar = {
@@ -64,12 +78,35 @@ fun MainView(viewModel: ExpenseViewModel){
             }
 
             //Recompositionされたかどうかのチェック
-            Log.d("Check Recomposition","Calendar Recomposition: ${LocalTime.now()}")
+            //Log.d("Check Recomposition","Calendar Recomposition: ${LocalTime.now()}")
             Row(
                 modifier = Modifier.fillMaxWidth(),
-
             ){
-                CalendarDisplay(viewModel.getCalendarYear(),viewModel.getCalendarMonth())
+                HorizontalPager(
+                    state = calendarPagerState,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    CalendarDisplay(viewModel.getCalendarYear(),viewModel.getCalendarMonth())
+                }
+            }
+
+            /**************************************************/
+            //カレンダーをスクロールしたときにviewModel内の日付を変更する
+            /**************************************************/
+            LaunchedEffect(calendarPagerState) {
+                snapshotFlow { calendarPagerState.currentPage }
+                    .distinctUntilChanged()
+                    .collect{
+                    currentPage->
+                        if(currentPage>previousCalendarPage){
+                            Log.d("Akita","Scrolled to right")
+                            viewModel.incrementMonth()
+                        }else if (currentPage<previousCalendarPage) {
+                            Log.d("Akita","Scrolled to left")
+                            viewModel.decrementMonth()
+                        }
+                        previousCalendarPage=currentPage
+                }
             }
 
             //スペースちょっとあける。
