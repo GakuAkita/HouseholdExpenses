@@ -1,5 +1,7 @@
 package gaku.original.myapplication.ui.theme
 
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +29,8 @@ import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import java.time.LocalDate
+import java.time.LocalTime
 
 
 @Composable
@@ -53,9 +57,16 @@ fun MainView(viewModel: ExpenseViewModel){
     ){
         innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
-            Text("${viewModel.calendarYear}年${viewModel.calendarMonth}月")
+            Row (
+                modifier = Modifier.fillMaxWidth().padding(start=10.dp),
+                ){
+                Text("${viewModel.getCalendarYear()}-${viewModel.getCalendarMonth()}")
+            }
+
+            //Recompositionされたかどうかのチェック
+            Log.d("Check Recomposition","Calendar Recomposition: ${LocalTime.now()}")
             Row(modifier = Modifier.fillMaxWidth()){
-                CalendarDisplay(viewModel.calendarYear,viewModel.calendarMonth)
+                CalendarDisplay(viewModel.getCalendarYear(),viewModel.getCalendarMonth())
             }
 
             //スペースちょっとあける。
@@ -79,7 +90,6 @@ fun MainView(viewModel: ExpenseViewModel){
                     }
                 }
             }
-            Text("End")
         }
     }
 }
