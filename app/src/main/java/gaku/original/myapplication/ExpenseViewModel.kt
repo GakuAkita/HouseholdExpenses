@@ -18,29 +18,33 @@ rememberとViewModelは違う。
  */
 
 class ExpenseViewModel():ViewModel() {
-    private val calendarDate = mutableStateOf(LocalDate.now())
+    private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
+    private val monthOffset = mutableStateOf(0)
 
     fun getCalendarYear(): Int {
-        return calendarDate.value.year
+        return calendarDate.plusMonths(monthOffset.value.toLong()).year
     }
 
     fun getCalendarMonth():Int{
-        return calendarDate.value.monthValue
+        return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
     }
 
     fun incrementMonth(){
-        calendarDate.value = calendarDate.value.plusMonths(1)
+        monthOffset.value++
     }
 
     fun decrementMonth(){
-        calendarDate.value = calendarDate.value.minusMonths(1)
+        monthOffset.value--
     }
 
     //MainViewもLazyColumnに表示する
     fun getMonthExpenses():List<Expense>{
+        val calendarYear=getCalendarYear()
+        val calendarMonth=getCalendarMonth()
+
         return DummyExpenses.expensesList.filter {
-            it.datetime.year == calendarDate.value.year &&
-                    it.datetime.month == calendarDate.value.month
+            it.datetime.year == calendarYear &&
+                    it.datetime.monthValue == calendarMonth
         }
     }
 }
