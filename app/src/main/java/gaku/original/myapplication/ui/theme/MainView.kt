@@ -42,9 +42,12 @@ fun MainView(viewModel: ExpenseViewModel){
     val listState = rememberLazyListState() // 追加
 
     //カレンダー横スクロールのため
-    val calendarHorizontalInitialPage = 12
+    val calendarHorizontalInitialPage = 2
+    var resetPagerState by remember { mutableStateOf(false) }
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
+
     var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
+    //スクロールの端まで来たときにHorizontalPagerを再構成するためのトリガー
 
     Scaffold(
         topBar = {
@@ -100,12 +103,13 @@ fun MainView(viewModel: ExpenseViewModel){
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
                         }
                         previousCalendarPage=currentPage
-//
-//                        //ページが範囲を超えた場合、カレンダーをリセット
-//                        if (currentPage <= 0 || currentPage >= 2*calendarHorizontalInitialPage ){
-//                            viewModel.resetMonthOffset()
-//                            calendarPagerState.scrollToPage(calendarHorizontalInitialPage)
-//                        }
+/
+                        //ページが範囲を超えた場合、カレンダーをリセット
+                        if (currentPage <= 0 || currentPage >= 2*calendarHorizontalInitialPage ){
+                            //HorizontalPagerを再構成する
+                            //かつ、最初のページがこのときのmonthOffsetであるように
+                            resetPagerState=true
+                        }
                 }
             }
 
