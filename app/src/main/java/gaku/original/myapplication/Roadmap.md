@@ -1,4 +1,4 @@
-- 何年何月のカレンダーなのかわかるように
+- 何年何月のカレンダーなのかわかるように。viewModelで保存する
 - Navigation(ルートだけ作っておく。BottomBar+Add)
 - ArrayとしてexpensesのDBを模擬的に再現
 - Add画面の作成→Arrayに追加
