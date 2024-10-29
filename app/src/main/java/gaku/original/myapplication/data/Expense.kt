@@ -61,6 +61,20 @@ object DummyExpenses{
             category="Amazon",
             note=""
         ),
+        Expense(
+            id="8",
+            datetime = LocalDateTime.of(2024,10,1,0,0,0),
+            expense=1000,
+            category="necessities",
+            note=""
+        ),
+        Expense(
+            id="9",
+            datetime = LocalDateTime.of(2024,10,1,0,0,0),
+            expense=1000,
+            category="necessities",
+            note=""
+        ),
     )
 
 }

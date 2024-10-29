@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.data.Expense
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -37,17 +39,14 @@ import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel){
+fun MainView(viewModel: ExpenseViewModel,navController:NavController){
     val topBarName ="What is essential is invisible to the eye"
-    val listState = rememberLazyListState() // 追加
+    val listState = rememberLazyListState()
 
     //カレンダー横スクロールのため
-    val calendarHorizontalInitialPage = 2
+    val calendarHorizontalInitialPage = 12
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
-
     var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
-    //スクロールの端まで来たときにHorizontalPagerを再構成するためのトリガー
-    var resetPagerTrigger by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -64,7 +63,7 @@ fun MainView(viewModel: ExpenseViewModel){
                 Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
             }
         },
-        bottomBar = { BottomBarView() }
+        bottomBar = { BottomBarView(navController)}
     ){
         innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
@@ -72,7 +71,6 @@ fun MainView(viewModel: ExpenseViewModel){
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
                 ){
                 Text("${viewModel.getCalendarYear()}-${viewModel.getCalendarMonth()}")
-                Text("Page:${calendarPagerState.currentPage}　previous Page:${previousCalendarPage}")
             }
 
             //Recompositionされたかどうかのチェック

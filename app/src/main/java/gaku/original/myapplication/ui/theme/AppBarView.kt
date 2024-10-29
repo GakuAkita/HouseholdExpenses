@@ -17,17 +17,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import gaku.original.myapplication.R
+import gaku.original.myapplication.Screen
 
 data class BottomNavigationItem(
     val title:String,
-    val icon:Painter
+    val icon:Painter,
+    val route:String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarView(
-    title:String
+    title:String,
 ){
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -39,24 +42,30 @@ fun TopBarView(
 }
 
 @Composable
-fun BottomBarView(){
+fun BottomBarView(
+    navController: NavController
+){
     var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
     val bottomNavigationItems = listOf(
         BottomNavigationItem(
-            title="Home",
-            icon= painterResource(id = R.drawable.baseline_home_24)
+            title="Main",
+            icon= painterResource(id = R.drawable.baseline_home_24),
+            route=Screen.MainScreen.route
         ),
         BottomNavigationItem(
             title="Graph",
-            icon= painterResource(id = R.drawable.baseline_pie_chart_24)
+            icon= painterResource(id = R.drawable.baseline_pie_chart_24),
+            route=Screen.GraphScreen.route
         ),
         BottomNavigationItem(
             title="Not-Categoriezed",
-            icon= painterResource(id = R.drawable.baseline_category_24)
+            icon= painterResource(id = R.drawable.baseline_category_24),
+            route=Screen.NotCategorizedScreen.route
         ),
         BottomNavigationItem(
             title="Settings",
-            icon= painterResource(id = R.drawable.baseline_settings_24)
+            icon= painterResource(id = R.drawable.baseline_settings_24),
+            route=Screen.SettingScreen.route
         )
     )
 
@@ -66,7 +75,7 @@ fun BottomBarView(){
                 selected = selectedItemIndex == index,
                 onClick = {
                     selectedItemIndex = index
-                    //navigation....
+                    navController.navigate(item.route)
                 },
                 icon = {
                     Icon(

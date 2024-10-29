@@ -22,11 +22,11 @@ fun Navigation(
     ){
         //Mainスクリーン
         composable(Screen.MainScreen.route){
-            MainView(viewModel)
+            MainView(viewModel,navController)
         }
 
         composable(Screen.GraphScreen.route){
-            GraphView()
+            GraphView(navController)
         }
 
         composable(Screen.NotCategorizedScreen.route){
