@@ -1,5 +1,7 @@
 package gaku.original.myapplication.ui.theme
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -23,8 +25,9 @@ fun GraphView(navController: NavController)
         },
 
         bottomBar = { BottomBarView(navController)}
-    ){
-        innerPadding ->
-        Text("${innerPadding}")
+    ){ innerPadding ->
+        Column(modifier=Modifier.fillMaxSize()) {
+            Text("${innerPadding}")
+        }
     }
 }

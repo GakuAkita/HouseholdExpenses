@@ -30,11 +30,11 @@ fun Navigation(
         }
 
         composable(Screen.NotCategorizedScreen.route){
-            NotCategorizedView()
+            NotCategorizedView(navController)
         }
 
         composable(Screen.SettingScreen.route){
-            SettingsView()
+            SettingsView(navController)
         }
     }
 }

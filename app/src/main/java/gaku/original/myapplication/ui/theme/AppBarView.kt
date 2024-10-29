@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 
@@ -45,7 +47,6 @@ fun TopBarView(
 fun BottomBarView(
     navController: NavController
 ){
-    var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
     val bottomNavigationItems = listOf(
         BottomNavigationItem(
             title="Main",
@@ -70,12 +71,21 @@ fun BottomBarView(
     )
 
     NavigationBar {
-        bottomNavigationItems.forEachIndexed{index,item ->
+        val navBackStateEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStateEntry?.destination?.route
+
+        bottomNavigationItems.forEach{item ->
             NavigationBarItem(
-                selected = selectedItemIndex == index,
+                selected = currentRoute == item.route,
                 onClick = {
-                    selectedItemIndex = index
-                    navController.navigate(item.route)
+                    navController.navigate(item.route){
+                        //スタックが積み重なるのを防ぐ？らしい。でも遷移がうまくいかんからいいや。
+//                        popUpTo(navController.graph.findStartDestination().id) {
+//                            saveState = true
+//                        }
+//                        restoreState = true
+//                        launchSingleTop = true
+                    }
                 },
                 icon = {
                     Icon(
