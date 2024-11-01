@@ -31,15 +31,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.data.Expense
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import gaku.original.myapplication.Screen
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel,navController:NavController){
+fun MainView(viewModel: ExpenseViewModel,bottomBarNavController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
@@ -48,13 +53,17 @@ fun MainView(viewModel: ExpenseViewModel,navController:NavController){
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
 
+    val innerNavController = rememberNavController()
+
     Scaffold(
         topBar = {
             TopBarView(topBarName)
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* 支出を加える */ },
+                onClick = {
+                    innerNavController.navigate(Screen.MainScreen.Add.route)
+                },
                 containerColor = Color.LightGray,
                 contentColor = Color.Black,
                 shape = CircleShape,
@@ -63,7 +72,7 @@ fun MainView(viewModel: ExpenseViewModel,navController:NavController){
                 Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
             }
         },
-        bottomBar = { BottomBarView(navController)}
+        bottomBar = { BottomBarView(bottomBarNavController)}
     ){
         innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
@@ -124,6 +133,18 @@ fun MainView(viewModel: ExpenseViewModel,navController:NavController){
                     }
                 }
             }
+        }
+    }
+
+    //中身は空でよいのか？
+    NavHost(
+        navController=innerNavController,
+        startDestination = Screen.MainScreen.Content.route
+    ){
+        composable(Screen.MainScreen.Content.route){
+        }
+        composable(Screen.MainScreen.Add.route){
+            AddEditView(innerNavController,bottomBarNavController)
         }
     }
 }

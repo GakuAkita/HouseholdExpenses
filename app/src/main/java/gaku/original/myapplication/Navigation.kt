@@ -14,27 +14,27 @@ import gaku.original.myapplication.ui.theme.SettingsView
 @Composable
 fun Navigation(
     viewModel: ExpenseViewModel = viewModel(),
-    navController: NavHostController = rememberNavController()
+    bottomBarNavController: NavHostController = rememberNavController()
 ){
     NavHost(
-        navController = navController,
-        startDestination = Screen.MainScreen.route
+        navController = bottomBarNavController,
+        startDestination = Screen.MainScreen.Content.route
     ){
         //Mainスクリーン
-        composable(Screen.MainScreen.route){
-            MainView(viewModel,navController)
+        composable(Screen.MainScreen.Content.route){
+            MainView(viewModel,bottomBarNavController)
         }
 
         composable(Screen.GraphScreen.route){
-            GraphView(navController)
+            GraphView(bottomBarNavController)
         }
 
         composable(Screen.NotCategorizedScreen.route){
-            NotCategorizedView(navController)
+            NotCategorizedView(bottomBarNavController)
         }
 
         composable(Screen.SettingScreen.route){
-            SettingsView(navController)
+            SettingsView(bottomBarNavController)
         }
     }
 }
