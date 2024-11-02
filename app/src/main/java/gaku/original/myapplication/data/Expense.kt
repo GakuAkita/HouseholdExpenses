@@ -75,6 +75,55 @@ object DummyExpenses{
             category="necessities",
             note=""
         ),
+        Expense(
+            id="9",
+            datetime = LocalDateTime.of(2024,10,1,0,0,0),
+            expense=1000,
+            category="necessities",
+            note=""
+        ),
+        Expense(
+            id="10",
+            datetime = LocalDateTime.of(2024,10,1,0,0,0),
+            expense=1000,
+            category="necessities",
+            note=""
+        ),
+        Expense(
+            id="11",
+            datetime = LocalDateTime.of(2024,10,1,0,0,0),
+            expense=1000,
+            category="necessities",
+            note=""
+        ),
+        Expense(
+            id="12",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="13",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="14",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
+        Expense(
+            id="15",
+            datetime = LocalDateTime.now(),
+            expense=2000,
+            category="Amazon",
+            note=""
+        ),
     )
 
 }

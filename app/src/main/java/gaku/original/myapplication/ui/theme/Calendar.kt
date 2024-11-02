@@ -1,21 +1,26 @@
 package gaku.original.myapplication.ui.theme
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
+import gaku.original.myapplication.Screen
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -23,7 +28,7 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ) {
+fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ,navController: NavController) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
@@ -46,7 +51,7 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ) {
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = {Day(it)},
+        dayContent = {Day(it,navController)},
         // カレンダーのヘッダー
         monthHeader = {DaysOfWeekTitle(daysOfWeek = daysOfWeek)},
         //ユーザーのスクロール
@@ -71,16 +76,22 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay) {
+fun Day(day: CalendarDay , navController: NavController) {
     Box(
         modifier = Modifier
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .clickable {
+                navController.navigate(Screen.MainScreen.AddEdit.route)
+            }
+        ,
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = day.date.dayOfMonth.toString(),
             // ここで今月でないものの日付をグレーアウトさせている
-            color = if (day.position == DayPosition.MonthDate) Color.Black else Color.Gray
+            color =
+            if (day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.onBackground
+            else MaterialTheme.colorScheme.outline
         )
     }
 }

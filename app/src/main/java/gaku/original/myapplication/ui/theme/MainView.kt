@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,8 +59,8 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 onClick = {
                     navController.navigate(Screen.MainScreen.AddEdit.route)
                 },
-                containerColor = Color.LightGray.copy(alpha=0.7f),
-                contentColor = Color.Black,
+                containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                contentColor = MaterialTheme.colorScheme.onSecondary,
                 shape = CircleShape,
                 modifier=Modifier.size(80.dp),
                 elevation = FloatingActionButtonDefaults.elevation(0.dp)//デフォルトだとElevationがついているっぽい。
@@ -88,7 +89,9 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 ) {
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
-                        calendarMonth = viewModel.getCalendarMonth())
+                        calendarMonth = viewModel.getCalendarMonth(),
+                        navController=navController
+                    )
                 }
             }
 
@@ -113,7 +116,11 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             Row (modifier=Modifier.fillMaxWidth()){
                 LazyColumnScrollbar(//外部ライブラリ
                     state=listState,
-                    settings = ScrollbarSettings.Default
+                    settings = ScrollbarSettings.Default.copy(
+                        alwaysShowScrollbar = true,
+                        thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+                        thumbSelectedColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     LazyColumn(
                         state=listState,

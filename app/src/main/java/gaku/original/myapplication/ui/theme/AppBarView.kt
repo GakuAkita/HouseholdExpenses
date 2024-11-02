@@ -46,12 +46,13 @@ fun TopBarView(
                 val navBackStateEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStateEntry?.destination?.route
                 //AddEditViewからMainScreenContentに戻るとき
+                //AddEditViewだけ表示する
                 if(currentRoute==Screen.MainScreen.AddEdit.route){
                     IconButton(onClick = onBackNavClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                             contentDescription = "back",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -78,7 +79,7 @@ fun BottomBarView(
             route=Screen.GraphScreen.route
         ),
         BottomNavigationItem(
-            title="Not-Categoriezed",
+            title="Not-Categorized",
             icon= painterResource(id = R.drawable.baseline_category_24),
             route=Screen.NotCategorizedScreen.route
         ),
@@ -90,8 +91,7 @@ fun BottomBarView(
     )
 
     NavigationBar (
-//        containerColor = MaterialTheme.colorScheme.primary,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary
     ){
         val navBackStateEntry by navController.currentBackStackEntryAsState()
@@ -113,10 +113,11 @@ fun BottomBarView(
                 icon = {
                     Icon(
                         painter = item.icon,
-                        contentDescription = item.title
+                        contentDescription = item.title,
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 },
-                label = { Text(item.title) }
+                label = { Text(item.title,color=MaterialTheme.colorScheme.onPrimary)},
             )
         }
     }
