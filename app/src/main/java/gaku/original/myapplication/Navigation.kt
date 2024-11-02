@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
 import gaku.original.myapplication.ui.theme.AddEditView
 import gaku.original.myapplication.ui.theme.GraphView
 import gaku.original.myapplication.ui.theme.MainView

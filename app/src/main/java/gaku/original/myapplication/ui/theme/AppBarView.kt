@@ -1,11 +1,10 @@
 package gaku.original.myapplication.ui.theme
 
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -13,15 +12,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
@@ -41,8 +36,8 @@ fun TopBarView(
 ){
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.DarkGray,
-            titleContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         title={Text(text=title, fontSize = 16.sp)},
         navigationIcon = {
@@ -94,7 +89,11 @@ fun BottomBarView(
         )
     )
 
-    NavigationBar {
+    NavigationBar (
+//        containerColor = MaterialTheme.colorScheme.primary,
+        containerColor = Color.White,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+    ){
         val navBackStateEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStateEntry?.destination?.route
 

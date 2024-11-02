@@ -1,4 +1,4 @@
-- Navigation(ルートだけ作っておく。BottomBar+Add)
+- done:Navigation(ルートだけ作っておく。BottomBar+Add)
 - Add画面の作成→Arrayに追加
 - アプリが立ち上がるときの画面のデザイン(splash screen?)
 - ArrayとしてexpensesのDBを模擬的に再現
