@@ -13,13 +13,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import gaku.original.myapplication.Screen
 
 @Composable
 fun AddEditView(navController: NavController){
 
     Scaffold(
         topBar = {
-            TopBarView("AddEditView作成中")
+            //悩みどころだが、BackだとGraphから来たときにGraphに戻る可能性があるので
+            //強制的にMainScreenに行くことにする。しっかり設計しないとヒューマンエラー起きそうだな
+            TopBarView(
+                title = "AddEditView作成中",
+                onBackNavClicked = {
+                    navController.navigate(Screen.MainScreen.Content.route)
+                },
+                navController=navController
+            )
         },
         bottomBar = { BottomBarView(navController)}
     ){

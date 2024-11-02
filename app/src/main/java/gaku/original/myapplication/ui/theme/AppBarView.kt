@@ -1,8 +1,11 @@
 package gaku.original.myapplication.ui.theme
 
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -33,13 +36,32 @@ data class BottomNavigationItem(
 @Composable
 fun TopBarView(
     title:String,
+    onBackNavClicked: () -> Unit = {},
+    navController: NavController ?= null
 ){
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.DarkGray,
             titleContentColor = Color.White
         ),
-        title={Text(text=title, fontSize = 16.sp)}
+        title={Text(text=title, fontSize = 16.sp)},
+        navigationIcon = {
+            if(navController != null){
+                //現在のルートを取得
+                val navBackStateEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStateEntry?.destination?.route
+                //AddEditViewからMainScreenContentに戻るとき
+                if(currentRoute==Screen.MainScreen.AddEdit.route){
+                    IconButton(onClick = onBackNavClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                            contentDescription = "back",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
     )
 }
 

@@ -26,7 +26,7 @@ fun Navigation(
         composable(Screen.MainScreen.Content.route){
             MainView(viewModel,navController)
         }
-        composable(Screen.MainScreen.Add.route){
+        composable(Screen.MainScreen.AddEdit.route){
             AddEditView(navController)
         }
 

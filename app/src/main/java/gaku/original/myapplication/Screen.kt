@@ -5,7 +5,7 @@ sealed class Screen(val route:String){
     //Mainスクリーン関連
     object MainScreen: Screen("main"){
         object Content:Screen("main/content")
-        object Add:Screen("main/add")
+        object AddEdit:Screen("main/add_edit")
     }
 
     //bottom barのその他

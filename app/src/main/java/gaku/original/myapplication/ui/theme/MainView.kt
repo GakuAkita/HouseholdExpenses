@@ -55,8 +55,6 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
 
-    val innerNavController = rememberNavController()
-
     Scaffold(
         topBar = {
             TopBarView(topBarName)
@@ -64,7 +62,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.MainScreen.Add.route)
+                    navController.navigate(Screen.MainScreen.AddEdit.route)
                 },
                 containerColor = Color.LightGray.copy(alpha=0.7f),
                 contentColor = Color.Black,
