@@ -51,7 +51,9 @@ fun BottomBarView(
         BottomNavigationItem(
             title="Main",
             icon= painterResource(id = R.drawable.baseline_home_24),
-            route=Screen.MainScreen.route
+            //@Todo できればAddEditViewのとき別のbottomBarViewに移動したときに戻った際に入力結果を保存してかつ、AddEditViewに戻ってほしい
+            //viewModelに保存しておくのがまるいか？
+            route=Screen.MainScreen.Content.route
         ),
         BottomNavigationItem(
             title="Graph",

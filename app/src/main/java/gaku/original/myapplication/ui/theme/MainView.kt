@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
@@ -44,7 +46,7 @@ import androidx.navigation.compose.composable
 import gaku.original.myapplication.Screen
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel,bottomBarNavController: NavHostController){
+fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
@@ -62,17 +64,18 @@ fun MainView(viewModel: ExpenseViewModel,bottomBarNavController: NavHostControll
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    innerNavController.navigate(Screen.MainScreen.Add.route)
+                    navController.navigate(Screen.MainScreen.Add.route)
                 },
-                containerColor = Color.LightGray,
+                containerColor = Color.LightGray.copy(alpha=0.7f),
                 contentColor = Color.Black,
                 shape = CircleShape,
-                modifier=Modifier.size(80.dp)
+                modifier=Modifier.size(80.dp),
+                elevation = FloatingActionButtonDefaults.elevation(0.dp)//デフォルトだとElevationがついているっぽい。
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
             }
         },
-        bottomBar = { BottomBarView(bottomBarNavController)}
+        bottomBar = { BottomBarView(navController)}
     ){
         innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
