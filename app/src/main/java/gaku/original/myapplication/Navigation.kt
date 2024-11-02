@@ -6,6 +6,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
+import gaku.original.myapplication.ui.theme.AddEditView
 import gaku.original.myapplication.ui.theme.GraphView
 import gaku.original.myapplication.ui.theme.MainView
 import gaku.original.myapplication.ui.theme.NotCategorizedView
@@ -14,27 +16,33 @@ import gaku.original.myapplication.ui.theme.SettingsView
 @Composable
 fun Navigation(
     viewModel: ExpenseViewModel = viewModel(),
-    bottomBarNavController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController()
 ){
     NavHost(
-        navController = bottomBarNavController,
+        navController = navController,
         startDestination = Screen.MainScreen.Content.route
     ){
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route){
-            MainView(viewModel,bottomBarNavController)
+            MainView(viewModel,navController)
+        }
+        composable(Screen.MainScreen.Add.route){
+            AddEditView(navController)
         }
 
+        //Graphスクリーン
         composable(Screen.GraphScreen.route){
-            GraphView(bottomBarNavController)
+            GraphView(navController)
         }
 
+        //NotCategorizedスクリーン
         composable(Screen.NotCategorizedScreen.route){
-            NotCategorizedView(bottomBarNavController)
+            NotCategorizedView(navController)
         }
 
+        //Settingsスクリーン
         composable(Screen.SettingScreen.route){
-            SettingsView(bottomBarNavController)
+            SettingsView(navController)
         }
     }
 }

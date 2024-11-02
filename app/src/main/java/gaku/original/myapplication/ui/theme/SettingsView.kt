@@ -16,5 +16,6 @@ fun SettingsView(navController: NavController){
     ){
             innerPadding ->
         Text("${innerPadding}")
+        Text("This App will never be completed. It will continue to grow as long as there is imagination left in the world.")
     }
 }

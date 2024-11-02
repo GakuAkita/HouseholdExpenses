@@ -135,18 +135,6 @@ fun MainView(viewModel: ExpenseViewModel,bottomBarNavController: NavHostControll
             }
         }
     }
-
-    //中身は空でよいのか？
-    NavHost(
-        navController=innerNavController,
-        startDestination = Screen.MainScreen.Content.route
-    ){
-        composable(Screen.MainScreen.Content.route){
-        }
-        composable(Screen.MainScreen.Add.route){
-            AddEditView(innerNavController,bottomBarNavController)
-        }
-    }
 }
 
 @Composable

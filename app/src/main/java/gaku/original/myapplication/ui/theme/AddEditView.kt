@@ -15,14 +15,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun AddEditView(navController: NavController,bottomBarNavController: NavController){
+fun AddEditView(navController: NavController){
+
     Scaffold(
         topBar = {
             TopBarView("AddEditView作成中")
         },
-        bottomBar = { BottomBarView(bottomBarNavController)}
+        bottomBar = { BottomBarView(navController)}
     ){
         innerPadding ->
         Text("${innerPadding}")
+        Text("This App will never be completed. It will continue to grow as long as there is imagination left in the world.")
     }
 }
