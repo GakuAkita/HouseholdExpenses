@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.theme
 
 import android.util.Log
+import android.widget.Space
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,52 +73,58 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 TextField(
                     value = viewModel.expenseData.datetime.format(dateFormat),
                     onValueChange = {},
-                    label= {Text(text="日付")},
+                    label= {Text(text="Date")},
                     modifier=Modifier.width(150.dp)
                 )
 
-                Spacer(modifier=Modifier.padding(10.dp))
+                Spacer(modifier=Modifier.padding(8.dp))
                 TextField(
                     value = viewModel.expenseData.datetime.format(timeFormat),
                     onValueChange = {},
-                    label= {Text(text="時間")},
+                    label= {Text(text="Time")},
                     modifier=Modifier.width(100.dp)
                 )
             }
 
+            Spacer(modifier=Modifier.padding(8.dp))
+
             Row(
                 modifier=Modifier.fillMaxWidth()
             ) {
-                Text("金額:")
-
-                //金額
-                Text(
-                    "${viewModel.expenseData.expense}",
-                    modifier=Modifier.clickable {
-                        Log.d("AddEdit","Money Clicked")
-                    }
+                TextField(
+                    //数値だけ受け付ける感じにしたい
+                    value = "${viewModel.expenseData.expense}",
+                    onValueChange = {},
+                    label= {Text(text="Expense")},
+                    modifier=Modifier.width(260.dp)
                 )
             }
+
+            Spacer(modifier=Modifier.padding(8.dp))
 
             Row(
                 modifier=Modifier.fillMaxWidth()
             ){
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
-                Text(
-                    "${viewModel.expenseData.category}",
-                    modifier=Modifier.clickable {
-                    }
+                TextField(
+                    value="${viewModel.expenseData.category}",
+                    onValueChange = {},
+                    modifier=Modifier.width(260.dp),
+                    label={Text(text="Category")}
                 )
             }
+
+            Spacer(modifier=Modifier.padding(8.dp))
 
             Row(
                 modifier=Modifier.fillMaxWidth()
             ){
                 //メモ
-                Text(
-                    "${viewModel.expenseData.note}",
-                    modifier = Modifier.clickable {
-                    }
+                TextField(
+                    value="${viewModel.expenseData.note}",
+                    onValueChange = {},
+                    modifier=Modifier.width(260.dp),
+                    label={Text(text="Note")}
                 )
             }
 
