@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.AddEditViewModel
@@ -65,33 +66,35 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
             Row (
                 modifier=Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Absolute.Left
             ){
                 Text("日時:")
                 Spacer(modifier = Modifier.padding(10.dp))
 
-//                //日付
+                //日付
 //                Text(
 //                    text=viewModel.expenseData.datetime.format(dateFormat),
+//                    textDecoration = TextDecoration.Underline,
 //                    modifier=Modifier.clickable {
 //                        //日付ボタンをクリックしたらカレンダーポップアップから日付を選択
 //                        Log.d("AddEdit","Date Clicked")
 //                    }
 //                )
-                BasicTextField(
-                    value=viewModel.expenseData.datetime.format(dateFormat),
-                    onValueChange = {
-                        //本当はダイアログで選びたい
-                    },
-                    textStyle = TextStyle(
-                        color=MaterialTheme.colorScheme.onBackground
-                    )
-                )
+//                BasicTextField(
+//                    value=viewModel.expenseData.datetime.format(dateFormat),
+//                    onValueChange = {
+//                        //本当はダイアログで選びたい
+//                    },
+//                    textStyle = TextStyle(
+//                        color=MaterialTheme.colorScheme.onBackground
+//                    )
+//                )
 
                 Spacer(modifier=Modifier.padding(10.dp))
                 //時間
                 Text(
                     text=viewModel.expenseData.datetime.format(timeFormat),
+                    textDecoration = TextDecoration.Underline,
                     modifier=Modifier.clickable {
                         //時間を選択
                         Log.d("AddEdit","Time Clicked")
