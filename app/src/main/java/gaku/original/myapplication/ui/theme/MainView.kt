@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.ExpenseClass
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -57,6 +57,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    /* Addに飛ぶ */
                     navController.navigate(Screen.MainScreen.AddEdit.route)
                 },
                 containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
@@ -140,7 +141,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 }
 
 @Composable
-fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
+fun ExpenseItem(expense:ExpenseClass, onEdit: () -> Unit){
     Row(modifier = Modifier.fillMaxWidth().padding(8.dp)){
         Text(
             text = "${expense.datetime.dayOfMonth}日",
@@ -153,7 +154,7 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
             textAlign = TextAlign.Left
         )
         Text(
-            text=expense.category,
+            text="${expense.category}",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )

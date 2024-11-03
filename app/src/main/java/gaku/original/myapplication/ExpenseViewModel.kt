@@ -3,7 +3,7 @@ package gaku.original.myapplication
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.DummyExpenses
-import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.ExpenseClass
 import java.time.LocalDate
 
 /*
@@ -46,7 +46,7 @@ class ExpenseViewModel():ViewModel() {
     }
 
     //MainViewもLazyColumnに表示する
-    fun getMonthExpenses():List<Expense>{
+    fun getMonthExpenses():List<ExpenseClass>{
         val calendarYear=getCalendarYear()
         val calendarMonth=getCalendarMonth()
 

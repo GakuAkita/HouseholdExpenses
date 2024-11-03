@@ -1,5 +1,5 @@
 - done:Navigation(ルートだけ作っておく。BottomBar+Add)
-- アプリが立ち上がるときの画面のデザイン(splash screen?)
+- 保留:アプリが立ち上がるときの画面のデザイン(splash screen?)
 - Add画面の作成→Arrayに追加
 - ArrayとしてexpensesのDBを模擬的に再現
 - 中身の編集、削除も可能にする
