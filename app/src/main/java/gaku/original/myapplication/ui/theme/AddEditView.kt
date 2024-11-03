@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -68,37 +69,19 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 modifier=Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
-                Text("日時:")
-                Spacer(modifier = Modifier.padding(10.dp))
-
-                //日付
-//                Text(
-//                    text=viewModel.expenseData.datetime.format(dateFormat),
-//                    textDecoration = TextDecoration.Underline,
-//                    modifier=Modifier.clickable {
-//                        //日付ボタンをクリックしたらカレンダーポップアップから日付を選択
-//                        Log.d("AddEdit","Date Clicked")
-//                    }
-//                )
-//                BasicTextField(
-//                    value=viewModel.expenseData.datetime.format(dateFormat),
-//                    onValueChange = {
-//                        //本当はダイアログで選びたい
-//                    },
-//                    textStyle = TextStyle(
-//                        color=MaterialTheme.colorScheme.onBackground
-//                    )
-//                )
+                TextField(
+                    value = viewModel.expenseData.datetime.format(dateFormat),
+                    onValueChange = {},
+                    label= {Text(text="日付")},
+                    modifier=Modifier.width(150.dp)
+                )
 
                 Spacer(modifier=Modifier.padding(10.dp))
-                //時間
-                Text(
-                    text=viewModel.expenseData.datetime.format(timeFormat),
-                    textDecoration = TextDecoration.Underline,
-                    modifier=Modifier.clickable {
-                        //時間を選択
-                        Log.d("AddEdit","Time Clicked")
-                    }
+                TextField(
+                    value = viewModel.expenseData.datetime.format(timeFormat),
+                    onValueChange = {},
+                    label= {Text(text="時間")},
+                    modifier=Modifier.width(100.dp)
                 )
             }
 
