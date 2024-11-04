@@ -2,13 +2,15 @@ package gaku.original.myapplication
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import gaku.original.myapplication.`interface`.ExpenseDBControl
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class AddEditViewModel(): ViewModel() {
+class AddEditViewModel(): ViewModel(), ExpenseDBControl {
+    val id = mutableStateOf<String?>(null)
     val datetime = mutableStateOf(LocalDateTime.now())
-    val expense = mutableStateOf<Int?>(null)
+    val expense = mutableStateOf<Long?>(null)
     val category = mutableStateOf<String?>(null)
     val note = mutableStateOf<String?>(null)
 
@@ -30,7 +32,7 @@ class AddEditViewModel(): ViewModel() {
 
     //expenseの更新
     fun expenseUpdate(newExpense: String) {
-        val numericExpense = newExpense.toIntOrNull()
+        val numericExpense = newExpense.toLongOrNull()
         if(numericExpense!=null) {
             expense.value = numericExpense
         }
@@ -45,4 +47,7 @@ class AddEditViewModel(): ViewModel() {
     fun noteUpdate(newNote: String) {
         note.value = newNote
     }
+
+    //idがDB内にあるかどうかで追加か更新かが決まる
+
 }

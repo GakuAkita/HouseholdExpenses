@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.AddEditViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.ExpenseClass
 import java.time.format.DateTimeFormatter
 
 /*
@@ -132,17 +135,54 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
             Button(
                 onClick = {
-                    Log.d("AddEdit","Button Clicked")
+                    //idが空なら新規作成ってこと
+                    if(viewModel.id.value==null){
+                        //新たに追加するExpense
+                        val newExpense=ExpenseClass(
+                            id=viewModel.generateId(),
+                            datetime = viewModel.datetime.value,
+                            expense = viewModel.expense.value,
+                            category = viewModel.category.value,
+                            note = viewModel.note.value,
+                            generatedType = "manual"
+                        )
+                        //追加して
+                        viewModel.addExpense(newExpense)
+                        //リセットして
+                        viewModel.resetExpenseParams()
+
+                        //メインコンテンツに戻る
+                        navController.navigate(Screen.MainScreen.Content.route)
+                    } else{//idがなにか入ってたら編集
+
+                    }
                 },
-                modifier=Modifier.fillMaxWidth()
+                modifier=Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
-                Text("ボタン")
+                Text("Save")
+            }
+
+            Button(
+                onClick = {
+                    //リセット
+                    viewModel.resetExpenseParams()
+                },
+                modifier=Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ){
+                Text("Reset")
             }
         }
 
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
