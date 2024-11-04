@@ -1,8 +1,11 @@
 package gaku.original.myapplication.ui.theme
 
+import android.app.TimePickerDialog
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,8 +24,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +39,10 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.AddEditViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.ExpenseClass
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /*
@@ -42,6 +54,20 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 @Composable
 fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
     val context= LocalContext.current
+    var isDatePickerVisible by remember { mutableStateOf(false) }
+    var isTimePickerVisible by remember { mutableStateOf(false) }
+
+    //enabled=falseにしても同じ色のスタイルを保持したい。色のセットを保存しておく
+    val enabledTextFiledColorSet=TextFieldDefaults.colors(
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant, // 無効化時のインジケーター色を変更
+        disabledTextColor = MaterialTheme.colorScheme.onSurface, // テキスト色を維持
+        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
     Scaffold(
         topBar = {
@@ -75,17 +101,49 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 TextField(
                     value = viewModel.datetime.value.format(dateFormat),
                     onValueChange = {},
+                    enabled = false,
+                    readOnly = true,
                     label= {Text(text="Date")},
-                    modifier=Modifier.width(150.dp)
+                    modifier=Modifier
+                        .width(150.dp)
+                        .clickable {
+                            isDatePickerVisible=true
+                        },
+                    colors= enabledTextFiledColorSet
                 )
+                /* 日付をクリックしたときにどうなるか */
+                if (isDatePickerVisible) {
+                    DatePickerModal(
+                        onDateSelected = { dateMillis ->
+                            // 現在の時間を保持。時間は変えたくないので
+                            val currentTime = viewModel.datetime.value.toLocalTime()
+
+                            // 選択された日付に現在の時間を組み合わせる
+                            viewModel.datetime.value = dateMillis?.let {
+                                LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()).withHour(currentTime.hour).withMinute(currentTime.minute).withSecond(currentTime.second)
+                            } ?: LocalDateTime.now() // 日付が選択されなかった場合は現在の日時を設定
+                            isDatePickerVisible = false
+                        },
+                        onDismiss = { isDatePickerVisible = false }
+                    )
+                }
 
                 Spacer(modifier=Modifier.padding(8.dp))
+
                 TextField(
                     value = viewModel.datetime.value.format(timeFormat),
                     onValueChange = {},
-                    label= {Text(text="Time")},
-                    modifier=Modifier.width(100.dp)
+                    enabled=false,
+                    readOnly = true,
+                    label= { Text(text="Time") },
+                    modifier=Modifier
+                        .width(100.dp)
+                        .clickable {
+                            Toast.makeText(context,"時間を選択してください",Toast.LENGTH_SHORT).show()
+                        },
+                    colors=enabledTextFiledColorSet
                 )
+
             }
 
             Spacer(modifier=Modifier.padding(8.dp))
