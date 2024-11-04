@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 class AddEditViewModel(): ViewModel(), ExpenseDBControl {
+    //privateにしなくていいか。
     val id = mutableStateOf<String?>(null)
     val datetime = mutableStateOf(LocalDateTime.now())
     val expense = mutableStateOf<Long?>(null)

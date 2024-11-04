@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.theme
 
 import android.app.TimePickerDialog
 import android.util.Log
+import android.widget.TimePicker
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -25,7 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +56,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 カレンダーの日付を叩いてきたときはその日付と時間(今の時間)をデフォルトでいれる
  */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
     val context= LocalContext.current
@@ -139,12 +145,29 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                     modifier=Modifier
                         .width(100.dp)
                         .clickable {
-                            Toast.makeText(context,"時間を選択してください",Toast.LENGTH_SHORT).show()
+                            isTimePickerVisible=true
                         },
                     colors=enabledTextFiledColorSet
                 )
 
+                //時間をタップしたらダイアログを表示して選択させる
+                //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
+                if(isTimePickerVisible){
+                    DialWithDialog(
+                        onConfirm = {selectedTime->
+                            //選択した時間をviewModelのいれる
+                            viewModel.datetime.value=viewModel.datetime.value.withHour(selectedTime.hour).withMinute(selectedTime.minute)
+                            isTimePickerVisible=false
+                        },
+                        onDismiss = {
+                            isTimePickerVisible=false
+                        },
+                        initialDateTime = viewModel.datetime.value
+                    )
+                }
+
             }
+
 
             Spacer(modifier=Modifier.padding(8.dp))
 
@@ -297,4 +320,49 @@ fun DatePickerModal(
     ) {
         DatePicker(state = datePickerState)
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DialWithDialog(
+    onConfirm: (TimePickerState) -> Unit,
+    onDismiss: () -> Unit,
+    initialDateTime:LocalDateTime//viewModelの値をそのままいれたい
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialDateTime.hour,
+        initialMinute = initialDateTime.minute,
+        is24Hour = true,
+    )
+
+    TimePickerDialog(
+        onDismiss = { onDismiss() },
+        onConfirm = { onConfirm(timePickerState) }
+    ) {
+        TimePicker(
+            state = timePickerState,
+        )
+    }
+}
+
+@Composable
+fun TimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Dismiss")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm() }) {
+                Text("OK")
+            }
+        },
+        text = { content() }
+    )
 }
