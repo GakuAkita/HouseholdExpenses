@@ -92,7 +92,8 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                     },
                     label= {Text(text="Expense")},
                     modifier=Modifier.width(260.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
                 )
             }
 
@@ -102,7 +103,7 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 modifier=Modifier.fillMaxWidth()
             ){
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
-                //タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
+                //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                 TextField(
                     value=viewModel.category.value?:"",
                     onValueChange = {
@@ -120,9 +121,12 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 //メモ
                 TextField(
                     value=viewModel.note.value?:"",
-                    onValueChange = {},
+                    onValueChange = {
+                        viewModel.noteUpdate(it)
+                    },
                     modifier=Modifier.width(260.dp),
-                    label={Text(text="Note")}
+                    label={Text(text="Note")},
+                    singleLine = false
                 )
             }
 
