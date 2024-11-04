@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.theme
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -39,6 +41,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 
 @Composable
 fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
+    val context= LocalContext.current
 
     Scaffold(
         topBar = {
@@ -62,6 +65,9 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
             val dateFormat=DateTimeFormatter.ofPattern("yyyy/MM/dd")
             val timeFormat=DateTimeFormatter.ofPattern("HH:mm")
 
+            /*************************************************/
+            /* 日付の項目 */
+            /*************************************************/
             Row (
                 modifier=Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
@@ -84,6 +90,9 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
             Spacer(modifier=Modifier.padding(8.dp))
 
+            /*************************************************/
+            /* 費用の項目 */
+            /*************************************************/
             Row(
                 modifier=Modifier.fillMaxWidth()
             ) {
@@ -102,6 +111,9 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
             Spacer(modifier=Modifier.padding(8.dp))
 
+            /*************************************************/
+            /* カテゴリーの項目 */
+            /*************************************************/
             Row(
                 modifier=Modifier.fillMaxWidth()
             ){
@@ -118,6 +130,9 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
             Spacer(modifier=Modifier.padding(8.dp))
 
+            /*************************************************/
+            /* Noteの項目 */
+            /*************************************************/
             Row(
                 modifier=Modifier.fillMaxWidth()
             ){
@@ -133,28 +148,42 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 )
             }
 
+            /*************************************************/
+            /* 保存ボタンの実装 */
+            /*************************************************/
             Button(
                 onClick = {
-                    //idが空なら新規作成ってこと
-                    if(viewModel.id.value==null){
-                        //新たに追加するExpense
-                        val newExpense=ExpenseClass(
-                            id=viewModel.generateId(),
-                            datetime = viewModel.datetime.value,
-                            expense = viewModel.expense.value,
-                            category = viewModel.category.value,
-                            note = viewModel.note.value,
-                            generatedType = "manual"
-                        )
-                        //追加して
-                        viewModel.addExpense(newExpense)
-                        //リセットして
-                        viewModel.resetExpenseParams()
+                    /* きちんと値が入っているかチェック */
+                    if(viewModel.expense.value!=null){
 
-                        //メインコンテンツに戻る
-                        navController.navigate(Screen.MainScreen.Content.route)
-                    } else{//idがなにか入ってたら編集
+                        //idが空なら新規作成ってこと
+                        if(viewModel.id.value==null){
+                            //新たに追加するExpense
+                            val newExpense=ExpenseClass(
+                                id=viewModel.generateId(),
+                                datetime = viewModel.datetime.value,
+                                expense = viewModel.expense.value,
+                                category = viewModel.category.value,
+                                note = viewModel.note.value,
+                                generatedType = "manual"
+                            )
+                            //追加して
+                            viewModel.addExpense(newExpense)
+                            //リセットして
+                            viewModel.resetExpenseParams()
+                            //メインコンテンツに戻る
+                            navController.navigate(Screen.MainScreen.Content.route)
+                        } else{//idがなにか入ってたら編集
 
+                        }
+                    }
+                    else{
+                        /*expenseが入っていないので弾く*/
+                        Toast.makeText(
+                            context,
+                            "Expenseが入力されていません。\n保存できません" ,
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 },
                 modifier=Modifier.fillMaxWidth(),

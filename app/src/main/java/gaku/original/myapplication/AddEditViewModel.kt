@@ -33,6 +33,7 @@ class AddEditViewModel(): ViewModel(), ExpenseDBControl {
     //expenseの更新
     fun expenseUpdate(newExpense: String) {
         val numericExpense = newExpense.toLongOrNull()
+        //桁数がギリギリのときの対応
         if(numericExpense!=null) {
             expense.value = numericExpense
         }
