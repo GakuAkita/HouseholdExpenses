@@ -1,34 +1,27 @@
 package gaku.original.myapplication.ui.theme
 
 import android.util.Log
-import android.widget.Space
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.AddEditViewModel
@@ -71,7 +64,7 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
                 TextField(
-                    value = viewModel.expenseData.datetime.format(dateFormat),
+                    value = viewModel.datetime.value.format(dateFormat),
                     onValueChange = {},
                     label= {Text(text="Date")},
                     modifier=Modifier.width(150.dp)
@@ -79,7 +72,7 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
 
                 Spacer(modifier=Modifier.padding(8.dp))
                 TextField(
-                    value = viewModel.expenseData.datetime.format(timeFormat),
+                    value = viewModel.datetime.value.format(timeFormat),
                     onValueChange = {},
                     label= {Text(text="Time")},
                     modifier=Modifier.width(100.dp)
@@ -93,10 +86,13 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
             ) {
                 TextField(
                     //数値だけ受け付ける感じにしたい
-                    value = "${viewModel.expenseData.expense}",
-                    onValueChange = {},
+                    value = "${viewModel.expense.value?:""}",
+                    onValueChange ={
+                        viewModel.expenseUpdate(it)
+                    },
                     label= {Text(text="Expense")},
-                    modifier=Modifier.width(260.dp)
+                    modifier=Modifier.width(260.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
 
@@ -106,9 +102,11 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
                 modifier=Modifier.fillMaxWidth()
             ){
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
+                //タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                 TextField(
-                    value="${viewModel.expenseData.category}",
-                    onValueChange = {},
+                    value=viewModel.category.value?:"",
+                    onValueChange = {
+                    },
                     modifier=Modifier.width(260.dp),
                     label={Text(text="Category")}
                 )
@@ -121,7 +119,7 @@ fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
             ){
                 //メモ
                 TextField(
-                    value="${viewModel.expenseData.note}",
+                    value=viewModel.note.value?:"",
                     onValueChange = {},
                     modifier=Modifier.width(260.dp),
                     label={Text(text="Note")}

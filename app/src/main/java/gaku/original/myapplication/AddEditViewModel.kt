@@ -1,25 +1,31 @@
 package gaku.original.myapplication
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import gaku.original.myapplication.data.ExpenseClass
 import java.time.LocalDateTime
 
 class AddEditViewModel(): ViewModel() {
-    var expenseData: ExpenseClass=ExpenseClass(
-        id=null,
-        datetime= LocalDateTime.now(),
-        expense=null,
-        category=null,
-        note=null
-    )
+    val datetime = mutableStateOf(LocalDateTime.now())
+    val expense = mutableStateOf<Int?>(null)
+    val category = mutableStateOf<String?>(null)
+    val note = mutableStateOf<String?>(null)
 
+    //初期化
     fun resetExpenseParams(){
-        expenseData=ExpenseClass(
-            id=null,
-            datetime= LocalDateTime.now(),
-            expense=null,
-            category=null,
-            note=null
-        )
+        datetime.value=LocalDateTime.now()
+        expense.value=null
+        category.value=null
+        note.value=null
     }
+
+    fun expenseUpdate(newExpense: String) {
+        val numericExpense = newExpense.toIntOrNull()
+        if(numericExpense!=null) {
+            expense.value = numericExpense
+        }
+        else{//nullだったら
+            expense.value = null
+        }
+    }
+
 }

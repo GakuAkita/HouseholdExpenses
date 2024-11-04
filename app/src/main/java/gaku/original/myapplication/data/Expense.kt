@@ -4,10 +4,15 @@ import java.time.LocalDateTime
 
 data class ExpenseClass(
     val id: String?,
-    val datetime:LocalDateTime,
-    val expense:Int?,
-    val category:String?,
-    val note:String?
+    var datetime:LocalDateTime,
+    var expense:Int?,
+    var category:String?,
+    var note:String?
+)
+
+data class CategoryClass(
+    val id:String?,
+    val name:String?
 )
 
 object DummyExpenses{
@@ -126,4 +131,21 @@ object DummyExpenses{
         ),
     )
 
+}
+
+object DummyCategory{
+    val categoryList= listOf(
+        CategoryClass(
+            id="1",
+            name="necessities"
+        ),
+        CategoryClass(
+            id="2",
+            name="waste"
+        ),
+        CategoryClass(
+            id="3",
+            name="Amazon"
+        )
+    )
 }
