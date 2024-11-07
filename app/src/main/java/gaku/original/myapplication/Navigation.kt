@@ -15,7 +15,6 @@ import gaku.original.myapplication.ui.theme.SettingsView
 @Composable
 fun Navigation(
     ExpenseViewModel: ExpenseViewModel = viewModel(),
-    AddEditViewModel: AddEditViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ){
     NavHost(
@@ -27,7 +26,7 @@ fun Navigation(
             MainView(ExpenseViewModel,navController)
         }
         composable(Screen.MainScreen.AddEdit.route){
-            AddEditView(AddEditViewModel,navController)
+            AddEditView(ExpenseViewModel,navController)
         }
 
         //Graphスクリーン

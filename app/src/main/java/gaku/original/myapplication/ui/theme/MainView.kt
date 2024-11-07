@@ -1,10 +1,13 @@
 package gaku.original.myapplication.ui.theme
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -142,7 +146,16 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 
 @Composable
 fun ExpenseItem(expense:ExpenseClass, onEdit: () -> Unit){
-    Row(modifier = Modifier.fillMaxWidth().padding(8.dp)){
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .height(32.dp)
+        .border(width=1.dp, color = MaterialTheme.colorScheme.onSecondary)
+        .clickable {
+            //viewModelに転写したいんだよな～
+
+        },
+        verticalAlignment = Alignment.CenterVertically
+    ){
         Text(
             text = "${expense.datetime.dayOfMonth}日",
             modifier=Modifier.weight(1f),

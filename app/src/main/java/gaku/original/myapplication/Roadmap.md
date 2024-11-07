@@ -1,8 +1,9 @@
 - done:::Navigation(ルートだけ作っておく。BottomBar+Add)
 - 保留:::アプリが立ち上がるときの画面のデザイン(splash screen?)
 - done:::Add画面の作成→Arrayに追加:interfaceでDB操作に関するものをまとめておく
+- done:::Add画面の作成:ポップアップで日付と時間を編集
+- AddEditViewをExpenseViewModelに統合
 - Add画面の作成:カテゴリーを選ぶときに右からスライドして選ばせる
-- Add画面の作成:ポップアップで日付と時間を編集
 - 中身の編集、削除も可能にする
 - ArrayとしてexpensesのDBを模擬的に再現
 - Daoでローカルにデータを保存する

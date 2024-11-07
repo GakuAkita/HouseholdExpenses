@@ -1,12 +1,8 @@
 package gaku.original.myapplication.ui.theme
 
-import android.app.TimePickerDialog
-import android.util.Log
-import android.widget.TimePicker
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,12 +37,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import gaku.original.myapplication.AddEditViewModel
+import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.ExpenseClass
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -58,7 +53,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditView(viewModel: AddEditViewModel,navController: NavController){
+fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
     val context= LocalContext.current
     var isDatePickerVisible by remember { mutableStateOf(false) }
     var isTimePickerVisible by remember { mutableStateOf(false) }

@@ -4,7 +4,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.`interface`.ExpenseDBControl
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 /*
 rememberの役割
@@ -17,7 +20,8 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel():ViewModel() {
+class ExpenseViewModel():ViewModel(), ExpenseDBControl {
+    /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
     private val monthOffset = mutableStateOf(0)
 
@@ -55,4 +59,51 @@ class ExpenseViewModel():ViewModel() {
                     it.datetime.monthValue == calendarMonth
         }
     }
+
+    /********************* AddEditView用*******************************/
+    //privateにしなくていいか。
+    val id = mutableStateOf<String?>(null)
+    val datetime = mutableStateOf(LocalDateTime.now())
+    val expense = mutableStateOf<Long?>(null)
+    val category = mutableStateOf<String?>(null)
+    val note = mutableStateOf<String?>(null)
+
+    //初期化
+    fun resetExpenseParams(){
+        datetime.value= LocalDateTime.now()
+        expense.value=null
+        category.value=null
+        note.value=null
+    }
+
+    fun dateUpdate(newDate: LocalDate) {
+
+    }
+
+    fun timeUpdate(newTime: LocalTime) {
+
+    }
+
+    //expenseの更新
+    fun expenseUpdate(newExpense: String) {
+        val numericExpense = newExpense.toLongOrNull()
+        //桁数がギリギリのときの対応
+        if(numericExpense!=null) {
+            expense.value = numericExpense
+        }
+        else{//nullだったら
+            expense.value = null
+        }
+    }
+
+    //categoryの更新
+
+    //noteの更新
+    fun noteUpdate(newNote: String) {
+        note.value = newNote
+    }
+
+    //idがDB内にあるかどうかで追加か更新かが決まる
+
+
 }

@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+/*
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.`interface`.ExpenseDBControl
@@ -51,5 +52,5 @@ class AddEditViewModel(): ViewModel(), ExpenseDBControl {
     }
 
     //idがDB内にあるかどうかで追加か更新かが決まる
-
 }
+*/
