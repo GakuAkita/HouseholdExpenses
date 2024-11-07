@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.DummyExpenses
@@ -20,33 +21,33 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel():ViewModel(), ExpenseDBControl {
+class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
-    private val monthOffset = mutableStateOf(0)
+    private val monthOffset = mutableIntStateOf(0)
 
     fun getCalendarYear(): Int {
-        return calendarDate.plusMonths(monthOffset.value.toLong()).year
+        return calendarDate.plusMonths(monthOffset.intValue.toLong()).year
     }
 
     fun getCalendarMonth():Int{
-        return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
+        return calendarDate.plusMonths(monthOffset.intValue.toLong()).monthValue
     }
 
     fun resetMonthOffset(){
-        monthOffset.value=0
+        monthOffset.intValue=0
     }
 
     fun updateMonthOffset(offset:Int){
-        monthOffset.value=offset
+        monthOffset.intValue=offset
     }
 
     fun incrementMonth(){
-        monthOffset.value++
+        monthOffset.intValue++
     }
 
     fun decrementMonth(){
-        monthOffset.value--
+        monthOffset.intValue--
     }
 
     //MainViewもLazyColumnに表示する
@@ -74,6 +75,15 @@ class ExpenseViewModel():ViewModel(), ExpenseDBControl {
         expense.value=null
         category.value=null
         note.value=null
+    }
+
+    //転写する
+    fun transferExpenseParams(Expense:ExpenseClass){
+        id.value=Expense.id
+        datetime.value=Expense.datetime
+        expense.value=Expense.expense
+        category.value=Expense.category
+        note.value=Expense.note
     }
 
     fun dateUpdate(newDate: LocalDate) {

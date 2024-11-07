@@ -135,7 +135,14 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     ){
                         items(viewModel.getMonthExpenses()){
                                 expense ->
-                            ExpenseItem(expense = expense, onEdit = {})
+                            ExpenseItem(
+                                expense = expense,
+                                onEdit = {
+                                    //viewModel内の値を転写
+                                    viewModel.transferExpenseParams(expense)
+                                    //AddEditViewに移動
+                                    navController.navigate(Screen.MainScreen.AddEdit.route)
+                                })
                         }
                     }
                 }
@@ -151,8 +158,7 @@ fun ExpenseItem(expense:ExpenseClass, onEdit: () -> Unit){
         .height(32.dp)
         .border(width=1.dp, color = MaterialTheme.colorScheme.onSecondary)
         .clickable {
-            //viewModelに転写したいんだよな～
-
+            onEdit()
         },
         verticalAlignment = Alignment.CenterVertically
     ){
