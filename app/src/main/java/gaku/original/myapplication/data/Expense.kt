@@ -8,7 +8,7 @@ data class ExpenseClass(
     var datetime:LocalDateTime,
     var expense:Long?,
     var category:String?,
-    var note:String?,
+    var note:String?
 )
 
 data class CategoryClass(

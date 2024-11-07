@@ -68,6 +68,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     val expense = mutableStateOf<Long?>(null)
     val category = mutableStateOf<String?>(null)
     val note = mutableStateOf<String?>(null)
+    val generatedType=mutableStateOf<String?>(null)
 
     //初期化
     fun resetExpenseParams(){

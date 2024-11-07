@@ -247,11 +247,24 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             viewModel.addExpense(newExpense)
                             //リセットして
                             viewModel.resetExpenseParams()
-                            //メインコンテンツに戻る
-                            navController.navigate(Screen.MainScreen.Content.route)
                         } else{//idがなにか入ってたら編集
-
+                            val edittedExpense=ExpenseClass(
+                                id=viewModel.id.value!!,
+                                datetime = viewModel.datetime.value,
+                                expense = viewModel.expense.value,
+                                category = viewModel.category.value,
+                                note = viewModel.note.value,
+                                generatedType = viewModel.generatedType.value
+                            )
+                            //このidのExpenseをupdateする
+                            viewModel.updateExpense(
+                                edittedExpense
+                            )
+                            //リセットして
+                            viewModel.resetExpenseParams()
                         }
+                        //メイン画面に戻る
+                        navController.navigate(Screen.MainScreen.Content.route)
                     }
                     else{
                         /*expenseが入っていないので弾く*/
