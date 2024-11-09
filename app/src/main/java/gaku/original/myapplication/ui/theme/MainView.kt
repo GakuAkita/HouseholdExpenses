@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.theme
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,8 @@ import gaku.original.myapplication.data.ExpenseClass
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
@@ -94,10 +97,17 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        onDayClicked = {
+                        onDayClicked = {day->
+                            val inputDate:LocalDate=day.date
+                            val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
                             //リセットして
                             viewModel.resetExpenseParams()
                             //日付を入力
+                            Log.d("Akita Debug","${inputDate}")
+                            viewModel.dateUpdate(inputDate)
+                            //時間を入力
+                            viewModel.timeUpdate(inputTime)
+                            //AddEditViewに移動
                             navController.navigate(Screen.MainScreen.AddEdit.route)
                         }
                     )

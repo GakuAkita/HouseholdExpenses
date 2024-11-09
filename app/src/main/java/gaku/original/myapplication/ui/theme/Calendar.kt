@@ -28,7 +28,7 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,onDayClicked: () -> Unit={}) {
+fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
@@ -76,12 +76,12 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay,onClicked: () -> Unit = {}) {
+fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clickable {
-                onClicked()
+                onClicked(day)
             }
         ,
         contentAlignment = Alignment.Center

@@ -89,11 +89,11 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     fun dateUpdate(newDate: LocalDate) {
-
+        datetime.value = datetime.value.withYear(newDate.year).withMonth(newDate.monthValue).withDayOfMonth(newDate.dayOfMonth)
     }
 
     fun timeUpdate(newTime: LocalTime) {
-
+        datetime.value = datetime.value.withHour(newTime.hour).withMinute(newTime.minute).withSecond(newTime.second)
     }
 
     //expenseの更新
