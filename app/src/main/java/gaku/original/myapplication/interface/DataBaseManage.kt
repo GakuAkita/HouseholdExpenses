@@ -1,5 +1,6 @@
 package gaku.original.myapplication.`interface`
 
+import android.util.Log
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.ExpenseClass
 import java.time.LocalDateTime
@@ -21,10 +22,17 @@ interface ExpenseDBControl {
     }
 
     //削除
-    fun deleteExpense(id:String){
-        for(i in DummyExpenses.expensesList.indices){
-            if(DummyExpenses.expensesList[i].id==id){
-                DummyExpenses.expensesList.removeAt(i)
+    fun deleteExpense(id:String?){
+        if(id==null)
+        {
+            Log.d("deleteExpense","id is null")
+        }
+        else
+        {
+            for(i in DummyExpenses.expensesList.indices){
+                if(DummyExpenses.expensesList[i].id==id){
+                    DummyExpenses.expensesList.removeAt(i)
+                }
             }
         }
     }

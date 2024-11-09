@@ -304,12 +304,13 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 //編集
                 Button(
                     onClick = {
+                        viewModel.deleteExpense("aaaaaaaaaaaaaaaaaaa")
                         //削除
-                        viewModel.deleteExpense(viewModel.id.value!!)
-                        //リセット
-                        viewModel.resetExpenseParams()
-                        //元に戻る
-                        navController.navigate(Screen.MainScreen.Content.route)
+//                        viewModel.deleteExpense(viewModel.id.value)
+//                        //リセット
+//                        viewModel.resetExpenseParams()
+//                        //元に戻る
+//                        navController.navigate(Screen.MainScreen.Content.route)
                     },
                     modifier=Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(
