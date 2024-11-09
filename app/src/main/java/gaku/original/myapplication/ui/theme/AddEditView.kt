@@ -181,7 +181,8 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     label= {Text(text="Expense")},
                     modifier=Modifier.width(260.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
+                    singleLine = true,
+                    colors = enabledTextFiledColorSet
                 )
             }
 
@@ -191,7 +192,8 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             /* カテゴリーの項目 */
             /*************************************************/
             Row(
-                modifier=Modifier.fillMaxWidth()
+                modifier=Modifier
+                    .fillMaxWidth()
             ){
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                 //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
@@ -199,8 +201,11 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     value=viewModel.category.value?:"",
                     onValueChange = {
                     },
+                    enabled = false,
+                    readOnly = true,
                     modifier=Modifier.width(260.dp),
-                    label={Text(text="Category")}
+                    label={Text(text="Category")},
+                    singleLine = false
                 )
             }
 
