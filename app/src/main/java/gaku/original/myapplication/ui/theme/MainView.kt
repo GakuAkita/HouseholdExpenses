@@ -151,9 +151,9 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     ){
                         //これだと再composeされるたびに順番を並び替えられるから無駄が多い。
                         //変更したときだけ順番変えるみたいな処理にできればしたいな。
-                        val sortedExpenses=monthExpensesList.sortedBy { it.datetime }
+                        val sortedMonthExpensesList=monthExpensesList.sortedByDescending { it.datetime }
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
-                        items(monthExpensesList,key={it.id.toString()}){
+                        items(sortedMonthExpensesList,key={it.id.toString()}){
                                 expense ->
                             ExpenseItem(
                                 expense = expense,

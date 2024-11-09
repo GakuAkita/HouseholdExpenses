@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.theme
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.kizitonwose.calendar.compose.HorizontalCalendar
@@ -95,12 +98,22 @@ fun Day(day: CalendarDay,monthExpenses:List<ExpenseClass>,onClicked: (day:Calend
         ,
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = day.date.dayOfMonth.toString()+"\n"+"${totalExpenseForDay}",
-            // ここで今月でないものの日付をグレーアウトさせている
-            color =
-            if (day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.onBackground
-            else MaterialTheme.colorScheme.outline
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Day number (e.g., 1, 2, 3, ...)
+            Text(
+                text = day.date.dayOfMonth.toString(),
+                color = if (day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.onBackground
+                else MaterialTheme.colorScheme.outline,
+                style = MaterialTheme.typography.bodyLarge // Standard text style for the day
+            )
+            // Expense amount (money) with custom styling
+            Text(
+                text = "¥${totalExpenseForDay}", // Display the total expense amount
+                color = MaterialTheme.colorScheme.primary, // Set text color
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }

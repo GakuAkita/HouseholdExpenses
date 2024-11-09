@@ -20,7 +20,7 @@ fun GraphView(navController: NavController)
         bottomBar = { BottomBarView(navController)}
     ){ innerPadding ->
         Column(modifier=Modifier.fillMaxSize().padding(innerPadding)) {
-            Text("This App will never be completed. \nIt will continue to grow as long as there is imagination left in the world.")
+            Text("The App will never be completed. \nIt will continue to grow as long as there is imagination left in the world.")
         }
     }
 }

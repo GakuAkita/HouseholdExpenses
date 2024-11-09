@@ -56,6 +56,8 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
         val calendarYear=getCalendarYear()
         val calendarMonth=getCalendarMonth()
 
+        Log.d("<Akita Debug>Recomp Check","executed getMonthExpenses")
+
         return DummyExpenses.expensesList.filter {
             it.datetime.year == calendarYear &&
                     it.datetime.monthValue == calendarMonth

@@ -22,7 +22,7 @@ fun SettingsView(navController: NavController){
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            Text("This App will never be completed. \n" +
+            Text("The App will never be completed. \n" +
                     "It will continue to grow as long as there is imagination left in the world.")
         }
     }
