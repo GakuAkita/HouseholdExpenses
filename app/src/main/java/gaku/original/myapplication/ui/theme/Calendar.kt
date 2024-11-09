@@ -21,6 +21,7 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.ExpenseClass
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -28,7 +29,7 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
+fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<ExpenseClass>,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
@@ -51,7 +52,7 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,onDayClicked: (day:Calen
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = {Day(it,onDayClicked)},
+        dayContent = {Day(it,monthExpenses,onDayClicked)},
         // カレンダーのヘッダー
         monthHeader = {DaysOfWeekTitle(daysOfWeek = daysOfWeek)},
         //ユーザーのスクロール
@@ -76,7 +77,15 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> },totalExpense:Long=0) {
+fun Day(day: CalendarDay,monthExpenses:List<ExpenseClass>,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
+    // Calculate the total amount of expenses for this day
+    val totalExpenseForDay = monthExpenses.filter { Expense ->
+        Expense.datetime.toLocalDate() == day.date // Filter expenses by matching the date
+    }.mapNotNull { Expense ->
+        // Convert the expense amount to a numeric type, assuming it might be String or nullable.
+        Expense.expense
+    }.sum()
+
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -87,12 +96,11 @@ fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> },totalEx
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = day.date.dayOfMonth.toString(),
+            text = day.date.dayOfMonth.toString()+"\n"+"${totalExpenseForDay}",
             // ここで今月でないものの日付をグレーアウトさせている
             color =
             if (day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.onBackground
             else MaterialTheme.colorScheme.outline
         )
-        Text(text="${totalExpense}")
     }
 }

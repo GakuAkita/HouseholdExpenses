@@ -50,6 +50,7 @@ import java.time.LocalTime
 fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
+    val monthExpensesList=viewModel.getMonthExpenses()
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
@@ -97,6 +98,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
+                        monthExpenses = monthExpensesList,//これを渡すことでカレンダーのマスに金額を表示
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
@@ -147,8 +149,11 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
+                        //これだと再composeされるたびに順番を並び替えられるから無駄が多い。
+                        //変更したときだけ順番変えるみたいな処理にできればしたいな。
+                        val sortedExpenses=monthExpensesList.sortedBy { it.datetime }
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
-                        items(viewModel.getMonthExpenses(),key={it.id.toString()}){
+                        items(monthExpensesList,key={it.id.toString()}){
                                 expense ->
                             ExpenseItem(
                                 expense = expense,

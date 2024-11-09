@@ -92,7 +92,7 @@ object DummyExpenses{
             generatedType = "manual"
         ),
         ExpenseClass(
-            id="9",
+            id="9.1",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
             expense=1000,
             category="necessities",
