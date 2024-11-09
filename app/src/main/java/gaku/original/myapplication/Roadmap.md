@@ -5,7 +5,8 @@
 - done(案外簡単だった):::AddEditViewをExpenseViewModelに統合
 - done:::中身の編集を可能にする
 - done:::中身の削除を可能にする
-- カレンダーの日付をクリックしたらAddEditViewに日付を入力して表示
+- done:::カレンダーの日付をクリックしたらAddEditViewに日付を入力して表示
+- done:::カレンダーに各日にちの合計金額を表示
 - Add画面の作成:カテゴリーを選ぶときに右からスライドして選ばせる
 - ArrayとしてexpensesのDBを模擬的に再現
 - Daoでローカルにデータを保存する

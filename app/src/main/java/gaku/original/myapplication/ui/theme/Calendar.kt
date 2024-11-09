@@ -76,7 +76,7 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
+fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> },totalExpense:Long=0) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -93,5 +93,6 @@ fun Day(day: CalendarDay,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
             if (day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.onBackground
             else MaterialTheme.colorScheme.outline
         )
+        Text(text="${totalExpense}")
     }
 }
