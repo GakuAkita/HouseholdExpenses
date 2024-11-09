@@ -27,13 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -52,7 +51,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
-    var previousCalendarPage by remember { mutableStateOf(calendarPagerState.currentPage) }
+    var previousCalendarPage by remember { mutableIntStateOf(calendarPagerState.currentPage) }
 
     Scaffold(
         topBar = {
@@ -95,7 +94,12 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        navController=navController
+                        onDayClicked = {
+                            //リセットして
+                            viewModel.resetExpenseParams()
+                            //日付を入力
+                            navController.navigate(Screen.MainScreen.AddEdit.route)
+                        }
                     )
                 }
             }
@@ -133,7 +137,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        items(viewModel.getMonthExpenses()){
+                        items(viewModel.getMonthExpenses(),key={it.id.toString()}){
                                 expense ->
                             ExpenseItem(
                                 expense = expense,

@@ -3,7 +3,8 @@
 - done:::Add画面の作成→Arrayに追加:interfaceでDB操作に関するものをまとめておく
 - done:::Add画面の作成:ポップアップで日付と時間を編集
 - done(案外簡単だった):::AddEditViewをExpenseViewModelに統合
-- 中身の編集、削除も可能にする
+- done:::中身の編集を可能にする
+- 中身の削除を可能にする
 - Add画面の作成:カテゴリーを選ぶときに右からスライドして選ばせる
 - ArrayとしてexpensesのDBを模擬的に再現
 - Daoでローカルにデータを保存する

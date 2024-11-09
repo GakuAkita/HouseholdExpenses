@@ -28,7 +28,7 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ,navController: NavController) {
+fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,onDayClicked: () -> Unit={}) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
@@ -51,7 +51,7 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int ,navController: NavContr
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = {Day(it,navController)},
+        dayContent = {Day(it,onDayClicked)},
         // カレンダーのヘッダー
         monthHeader = {DaysOfWeekTitle(daysOfWeek = daysOfWeek)},
         //ユーザーのスクロール
@@ -76,12 +76,12 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay , navController: NavController) {
+fun Day(day: CalendarDay,onClicked: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clickable {
-                navController.navigate(Screen.MainScreen.AddEdit.route)
+                onClicked()
             }
         ,
         contentAlignment = Alignment.Center

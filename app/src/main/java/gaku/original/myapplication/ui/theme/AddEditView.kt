@@ -248,7 +248,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             //リセットして
                             viewModel.resetExpenseParams()
                         } else{//idがなにか入ってたら編集
-                            val edittedExpense=ExpenseClass(
+                            val editedExpense=ExpenseClass(
                                 id=viewModel.id.value!!,
                                 datetime = viewModel.datetime.value,
                                 expense = viewModel.expense.value,
@@ -258,7 +258,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             )
                             //このidのExpenseをupdateする
                             viewModel.updateExpense(
-                                edittedExpense
+                                editedExpense
                             )
                             //リセットして
                             viewModel.resetExpenseParams()
@@ -284,18 +284,41 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 Text("Save")
             }
 
-            Button(
-                onClick = {
-                    //リセット
-                    viewModel.resetExpenseParams()
-                },
-                modifier=Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(
+
+            if(viewModel.id.value==null){
+                //新規作成
+                Button(
+                    onClick = {
+                        //リセット
+                        viewModel.resetExpenseParams()
+                    },
+                    modifier=Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.onSecondary
-                )
-            ){
-                Text("Reset")
+                    )
+                ){
+                    Text("Reset")
+                }
+            } else{
+                //編集
+                Button(
+                    onClick = {
+                        //削除
+                        viewModel.deleteExpense(viewModel.id.value!!)
+                        //リセット
+                        viewModel.resetExpenseParams()
+                        //元に戻る
+                        navController.navigate(Screen.MainScreen.Content.route)
+                    },
+                    modifier=Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ){
+                    Text("Delete")
+                }
             }
         }
 

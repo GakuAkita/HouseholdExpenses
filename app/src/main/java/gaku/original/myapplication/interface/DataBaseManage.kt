@@ -21,8 +21,12 @@ interface ExpenseDBControl {
     }
 
     //削除
-    fun deleteExpense(Expense:ExpenseClass){
-        DummyExpenses.expensesList.remove(Expense)
+    fun deleteExpense(id:String){
+        for(i in DummyExpenses.expensesList.indices){
+            if(DummyExpenses.expensesList[i].id==id){
+                DummyExpenses.expensesList.removeAt(i)
+            }
+        }
     }
 
     //idを生成

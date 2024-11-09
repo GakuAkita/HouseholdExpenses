@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data
 
+import androidx.compose.runtime.mutableStateListOf
 import java.time.LocalDateTime
 
 data class ExpenseClass(
@@ -17,7 +18,7 @@ data class CategoryClass(
 )
 
 object DummyExpenses{
-    val expensesList= mutableListOf(
+    val expensesList= mutableStateListOf(
         ExpenseClass(
             id="1",
             datetime = LocalDateTime.of(2023,10,1,0,0,0),
@@ -147,7 +148,6 @@ object DummyExpenses{
             generatedType = "manual"
         ),
     )
-
 }
 
 object DummyCategory{
