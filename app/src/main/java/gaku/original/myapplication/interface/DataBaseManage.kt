@@ -14,10 +14,12 @@ interface ExpenseDBControl {
 
     //更新
     fun updateExpense(Expense:ExpenseClass){
-        for(i in DummyExpenses.expensesList.indices){
-            if(DummyExpenses.expensesList[i].id==Expense.id){
-                DummyExpenses.expensesList[i]=Expense
-            }
+        val index=DummyExpenses.expensesList.indexOfFirst { it.id==Expense.id }
+        if(index!=-1){
+            DummyExpenses.expensesList[index]=Expense
+        }
+        else{
+            Log.d("DataBaseManage.kt","Unable to find the id from the list")
         }
     }
 
@@ -29,11 +31,7 @@ interface ExpenseDBControl {
         }
         else
         {
-            for(i in DummyExpenses.expensesList.indices){
-                if(DummyExpenses.expensesList[i].id==id){
-                    DummyExpenses.expensesList.removeAt(i)
-                }
-            }
+            DummyExpenses.expensesList.removeIf { it.id == id }
         }
     }
 

@@ -137,6 +137,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
+                        //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
                         items(viewModel.getMonthExpenses(),key={it.id.toString()}){
                                 expense ->
                             ExpenseItem(
