@@ -66,7 +66,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
 
     /********************* AddEditView用*******************************/
     //privateにしなくていいか。
-    val id = mutableStateOf<String?>(null)
+    val id = mutableStateOf<String>("")
     val datetime = mutableStateOf(LocalDateTime.now())
     val expense = mutableStateOf<Long?>(null)
     val category = mutableStateOf<String?>(null)
@@ -75,6 +75,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
 
     //初期化
     fun resetExpenseParams(){
+        id.value=""
         datetime.value= LocalDateTime.now()
         expense.value=null
         category.value=null

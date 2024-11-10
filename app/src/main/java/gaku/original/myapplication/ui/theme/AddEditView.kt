@@ -89,7 +89,6 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
     )
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
-    val configuration= LocalConfiguration.current
 
     Scaffold(
         topBar = {
@@ -291,8 +290,8 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     /* きちんと値が入っているかチェック */
                     if(viewModel.expense.value!=null){
 
-                        //idが空なら新規作成ってこと
-                        if(viewModel.id.value==null){
+                        //idが""なら新規作成ってこと
+                        if(viewModel.id.value==""){
                             //新たに追加するExpense
                             val newExpense=ExpenseClass(
                                 id=viewModel.generateId(),
@@ -344,7 +343,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             }
 
 
-            if(viewModel.id.value==null){
+            if(viewModel.id.value==""){
                 //新規作成のとき。リセット
                 Button(
                     onClick = {

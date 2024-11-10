@@ -4,12 +4,29 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+
+class Converters {
+    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
+    @TypeConverter
+    fun fromLocalDateTime(dateTime: LocalDateTime?): String? {
+        return dateTime?.format(formatter)
+    }
+
+    @TypeConverter
+    fun toLocalDateTime(dateTimeString: String?): LocalDateTime? {
+        return dateTimeString?.let { LocalDateTime.parse(it, formatter) }
+    }
+}
 
 @Entity(tableName="Expense-table")
 data class ExpenseClass(
     @PrimaryKey
-    val id: String?,
+    val id: String,
     @ColumnInfo(name="Expense-generated_type")
     val generatedType:String?,//自動生成なのか手動生成なのか
     @ColumnInfo(name="Expense-datetime")
