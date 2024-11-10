@@ -64,6 +64,8 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    //必ずAddなのでリセットで
+                    viewModel.resetExpenseParams()
                     /* Addに飛ぶ */
                     navController.navigate(Screen.MainScreen.AddEdit.route)
                 },

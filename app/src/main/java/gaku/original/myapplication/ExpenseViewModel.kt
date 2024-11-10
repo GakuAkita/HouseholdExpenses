@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.ExpenseClass
-import gaku.original.myapplication.`interface`.ExpenseDBControl
+import gaku.original.myapplication.interfaces.ExpenseDBControl
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime

@@ -90,7 +90,6 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
     val configuration= LocalConfiguration.current
-    val screenWidth=configuration.screenWidthDp.dp
 
     Scaffold(
         topBar = {
@@ -228,6 +227,8 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
 
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                 //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
+                //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
+                //カテゴリーの編集画面もほしいし
                 TextField(
                     value=viewModel.category.value?:"",
                     onValueChange = {
@@ -344,7 +345,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
 
 
             if(viewModel.id.value==null){
-                //新規作成
+                //新規作成のとき。リセット
                 Button(
                     onClick = {
                         //リセット
