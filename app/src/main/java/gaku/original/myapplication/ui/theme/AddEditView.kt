@@ -1,11 +1,17 @@
 package gaku.original.myapplication.ui.theme
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,10 +38,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
@@ -54,7 +63,10 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
+    //Toastとか用
     val context= LocalContext.current
+
+    //日付、時間の選択肢用
     var isDatePickerVisible by remember { mutableStateOf(false) }
     var isTimePickerVisible by remember { mutableStateOf(false) }
 
@@ -69,6 +81,10 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
         disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+
+    var categoryOptionsVisible by remember { mutableStateOf(false) }
+    val configuration= LocalConfiguration.current
+    val screenWidth=configuration.screenWidthDp.dp
 
     Scaffold(
         topBar = {
@@ -181,8 +197,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     label= {Text(text="Expense")},
                     modifier=Modifier.width(260.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = enabledTextFiledColorSet
+                    singleLine = true
                 )
             }
 
@@ -203,11 +218,37 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     },
                     enabled = false,
                     readOnly = true,
-                    modifier=Modifier.width(260.dp),
+                    modifier=Modifier.width(260.dp).clickable {
+                        categoryOptionsVisible=true
+                    },
                     label={Text(text="Category")},
-                    singleLine = false
+                    singleLine = true,
+                    colors = enabledTextFiledColorSet
                 )
             }
+
+            AnimatedVisibility(
+                visible = categoryOptionsVisible,
+                enter = slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth } // 中央までスライドイン
+                ),
+                exit = slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth/2 } // 右へスライドアウト
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(screenWidth / 2) // Use half of the screen width
+                        .background(MaterialTheme.colorScheme.onPrimary)
+                        .padding(16.dp)
+                        //.align(Alignment.TopEnd) // Align the box to the top right
+                        .zIndex(1f) // Make sure it's above other elements
+                ) {
+                    Text("Category Options")
+                }
+            }
+
 
             Spacer(modifier=Modifier.padding(8.dp))
 
