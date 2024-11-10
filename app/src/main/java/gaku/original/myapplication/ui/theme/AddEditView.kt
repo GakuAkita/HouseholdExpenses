@@ -1,9 +1,12 @@
 package gaku.original.myapplication.ui.theme
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +25,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +53,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.DummyCategory
 import gaku.original.myapplication.data.ExpenseClass
 import java.time.Instant
 import java.time.LocalDateTime
@@ -82,7 +88,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
-    var categoryOptionsVisible by remember { mutableStateOf(false) }
+    var categoryOptionsExpanded by remember { mutableStateOf(false) }
     val configuration= LocalConfiguration.current
     val screenWidth=configuration.screenWidthDp.dp
 
@@ -206,10 +212,20 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
-            Row(
-                modifier=Modifier
-                    .fillMaxWidth()
-            ){
+//            Row(
+//                modifier=Modifier
+//                    .fillMaxWidth()
+//            ){
+//
+//            }
+
+            ExposedDropdownMenuBox(
+                expanded=categoryOptionsExpanded,
+                onExpandedChange = {
+                    categoryOptionsExpanded= !categoryOptionsExpanded
+                }
+            ) {
+
                 //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                 //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                 TextField(
@@ -218,36 +234,32 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     },
                     enabled = false,
                     readOnly = true,
-                    modifier=Modifier.width(260.dp).clickable {
-                        categoryOptionsVisible=true
-                    },
+                    modifier=Modifier
+                        .width(260.dp)
+                        .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
                     label={Text(text="Category")},
                     singleLine = true,
-                    colors = enabledTextFiledColorSet
+                    colors = enabledTextFiledColorSet,
                 )
+
+                ExposedDropdownMenu(
+                    expanded=categoryOptionsExpanded,
+                    onDismissRequest = { categoryOptionsExpanded=false }
+                ) {
+                    DummyCategory.categoryList.forEachIndexed{
+                            index,category->
+                        DropdownMenuItem(
+                            text = { Text(text = category.name.toString()) },
+                            onClick = {
+                                viewModel.category.value=category.name
+                                categoryOptionsExpanded=false
+                            }
+                        )
+                    }
+                }
+
             }
 
-            AnimatedVisibility(
-                visible = categoryOptionsVisible,
-                enter = slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth } // 中央までスライドイン
-                ),
-                exit = slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth/2 } // 右へスライドアウト
-                )
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(screenWidth / 2) // Use half of the screen width
-                        .background(MaterialTheme.colorScheme.onPrimary)
-                        .padding(16.dp)
-                        //.align(Alignment.TopEnd) // Align the box to the top right
-                        .zIndex(1f) // Make sure it's above other elements
-                ) {
-                    Text("Category Options")
-                }
-            }
 
 
             Spacer(modifier=Modifier.padding(8.dp))

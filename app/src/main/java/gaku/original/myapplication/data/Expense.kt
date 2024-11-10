@@ -163,6 +163,30 @@ object DummyCategory{
         CategoryClass(
             id="3",
             name="Amazon"
+        ),
+        CategoryClass(
+            id="4",
+            name="Amazon2"
+        ),
+        CategoryClass(
+            id="5",
+            name="Amazon3"
+        ),
+        CategoryClass(
+            id="6",
+            name="Amazo4n"
+        ),
+        CategoryClass(
+            id="7",
+            name="Amazon5"
+        ),
+        CategoryClass(
+            id="8",
+            name="Amazon6"
+        ),
+        CategoryClass(
+            id="9",
+            name="Amazon7"
         )
     )
 }
