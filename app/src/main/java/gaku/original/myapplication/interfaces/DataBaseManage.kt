@@ -1,4 +1,4 @@
-package gaku.original.myapplication.`interface`
+package gaku.original.myapplication.interfaces
 
 import android.util.Log
 import gaku.original.myapplication.data.DummyExpenses

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    kotlin("kapt")//version宣言しなくて大丈夫かな。kotlin("kapt") version "2.0.21"だとエラーでからこの書き方だけど。
 }
 
 android {
@@ -53,6 +54,7 @@ dependencies {
     val scrollbar_version="2.2.0"
     val viewModel_version="2.8.5"
     val nav_version="2.7.5"
+    val room_version = "2.6.1"
 
     //外部のライブラリいただく
     // The compose calendar library for Android
@@ -69,6 +71,15 @@ dependencies {
 
     //Splash-screen用
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    /**************************Room DB用************************************/
+    // Roomのコアライブラリ
+    implementation("androidx.room:room-runtime:$room_version")
+    // Roomのアノテーションプロセッサ
+    kapt("androidx.room:room-compiler:$room_version")
+    // Roomのコルーチンサポート（必要に応じて）
+    implementation("androidx.room:room-ktx:$room_version")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

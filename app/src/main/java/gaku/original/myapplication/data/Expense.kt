@@ -1,14 +1,24 @@
 package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.time.LocalDateTime
 
+@Entity(tableName="Expense-table")
 data class ExpenseClass(
+    @PrimaryKey
     val id: String?,
+    @ColumnInfo(name="Expense-generated_type")
     val generatedType:String?,//自動生成なのか手動生成なのか
+    @ColumnInfo(name="Expense-datetime")
     var datetime:LocalDateTime,
+    @ColumnInfo(name="Expense-expense")
     var expense:Long?,
+    @ColumnInfo(name="Expense-category")
     var category:String?,
+    @ColumnInfo(name="Expense-note")
     var note:String?
 )
 
