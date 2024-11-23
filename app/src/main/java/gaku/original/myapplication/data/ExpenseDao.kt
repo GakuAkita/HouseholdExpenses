@@ -7,26 +7,28 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Dao
-abstract class ExpenseDao {
-    @Insert(onConflict=OnConflictStrategy.ABORT)//同じのがあったときにどうするか
-    abstract suspend  fun addExpense(ExpenseEntity: Expense)
+interface ExpenseDao{
 
-    // Loads all Expenses from the Expense-table
-    @Query("SELECT * FROM `Expense-table`")
-    abstract fun getAllExpenses(): Flow<List<Expense>>//Flow使っている場合はsuspendはなくて良いらしい
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addAExpense(EXpenseEntity:Expense)
 
     @Update
-    abstract suspend fun updateAExpense(ExpenseEntity: Expense)
+    suspend fun updateAExpense(ExpenseEntity:Expense)
 
     @Delete
-    abstract suspend fun deleteAExpense(ExpenseEntity: Expense)
+    suspend fun deleteAExpense(ExpenseEntity: Expense)
 
     @Query("SELECT * FROM `Expense-table` WHERE id=:id")
-    abstract fun getExpenseById(id:String):Flow<Expense>
+    fun getExpenseById(id:String): Flow<Expense>
 
     // Query expenses by year and month(GPTに作ってもらった)
     @Query("SELECT * FROM `Expense-table` WHERE strftime('%Y', `Expense-datetime`) = :year AND strftime('%m', `Expense-datetime`) = :month")
-    abstract fun getExpensesByYearAndMonth(year: String, month: String): Flow<List<Expense>>
+    fun getExpensesByYearMonth(year: String, month: String): Flow<List<Expense>>
+
+    @Query("SELECT * FROM `Expense-table`")
+    fun getAllExpenses(): Flow<List<Expense>>
 }
