@@ -67,16 +67,37 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
 
     /********************* AddEditView用*******************************/
     // 初期値として null もしくは適切なデフォルト値を設定
-    private val _expense = mutableStateOf<Expense?>(null)
+    private val _expense = mutableStateOf<Expense>(
+        Expense(
+            id = "",
+            datetime = LocalDateTime.now(),
+            amount = null,
+            category = null,
+            note = null,
+            generatedType = null
+        )
+    )
     val expense: State<Expense?> = _expense
 
-    //
-    fun getExpenseInstanceAmount():Long{
-        return _expense.value?.amount?:0
+
+    fun getExpenseInstanceId():String{
+        return _expense.value.id
+    }
+
+    fun getExpenseInstanceAmount():Long?{
+        return _expense.value.amount
     }
 
     fun getExpenseInstanceDateTime():LocalDateTime{
-        return _expense.value?.datetime?:LocalDateTime.now()
+        return _expense.value.datetime
+    }
+
+    fun getExpenseInstanceCategory():String?{
+        return _expense.value.category
+    }
+
+    fun getInstanceNote():String?{
+        return _expense.value.note
     }
 
     // Expense のインスタンスを更新するメソッド
@@ -86,7 +107,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
 
     // 日付のみを更新する
     fun updateExpenseInstanceDate(newDate: LocalDate) {
-        _expense.value?.let {
+        _expense.value.let {
             _expense.value = it.copy(
                 datetime = it.datetime
                     .withYear(newDate.year)
@@ -98,7 +119,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
 
     //時間のみを更新する
     fun updateExpenseInstanceTime(newTime: LocalTime) {
-        _expense.value?.let { currentExpense ->
+        _expense.value.let { currentExpense ->
             _expense.value = currentExpense.copy(
                 datetime = currentExpense.datetime
                     .withHour(newTime.hour)
@@ -109,20 +130,20 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     // 各項目を個別に更新するメソッド
-    fun updateExpenseInstanceAmount(newAmount: Long) {
-        _expense.value?.let {
+    fun updateExpenseInstanceAmount(newAmount: Long?) {
+        _expense.value.let {
             _expense.value = it.copy(amount = newAmount)
         }
     }
 
     fun updateExpenseInstanceCategory(newCategory: String) {
-        _expense.value?.let {
+        _expense.value.let {
             _expense.value = it.copy(category = newCategory)
         }
     }
 
     fun updateExpenseInstanceNote(newNote: String) {
-        _expense.value?.let {
+        _expense.value.let {
             _expense.value = it.copy(note = newNote)
         }
     }

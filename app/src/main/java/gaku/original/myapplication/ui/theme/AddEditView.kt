@@ -57,6 +57,7 @@ import gaku.original.myapplication.data.DummyCategory
 import gaku.original.myapplication.data.Expense
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -120,7 +121,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
                 TextField(
-                    value = viewModel.datetime.value.format(dateFormat),
+                    value = viewModel.getExpenseInstanceDateTime().format(dateFormat),
                     onValueChange = {},
                     enabled = false,
                     readOnly = true,
@@ -137,13 +138,17 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     DatePickerModal(
                         onDateSelected = { dateMillis ->
                             // 現在の時間を保持。時間は変えたくないので
-                            val currentTime = viewModel.datetime.value.toLocalTime()
+//                            val currentTime = viewModel.getExpenseInstanceDateTime().toLocalTime()
 
-                            // 選択された日付に現在の時間を組み合わせる
-                            viewModel.datetime.value = dateMillis?.let {
-                                LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()).withHour(currentTime.hour).withMinute(currentTime.minute).withSecond(currentTime.second)
-                            } ?: LocalDateTime.now() // 日付が選択されなかった場合は現在の日時を設定
-                            isDatePickerVisible = false
+                            // 選択された日付を処理
+                            dateMillis?.let {
+                                val selectedDate = LocalDateTime
+                                    .ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
+                                    .toLocalDate() // 日付部分のみ取得
+
+                                // 選択された日付で Expense インスタンスを更新
+                                viewModel.updateExpenseInstanceDate(selectedDate)
+                            }
                         },
                         onDismiss = { isDatePickerVisible = false }
                     )
@@ -152,7 +157,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 Spacer(modifier=Modifier.padding(8.dp))
 
                 TextField(
-                    value = viewModel.datetime.value.format(timeFormat),
+                    value = viewModel.getExpenseInstanceDateTime().format(timeFormat),
                     onValueChange = {},
                     enabled=false,
                     readOnly = true,
@@ -170,14 +175,14 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 if(isTimePickerVisible){
                     DialWithDialog(
                         onConfirm = {selectedTime->
-                            //選択した時間をviewModelのいれる
-                            viewModel.datetime.value=viewModel.datetime.value.withHour(selectedTime.hour).withMinute(selectedTime.minute)
-                            isTimePickerVisible=false
+                            // 選択した時間を取得して ViewModel に更新
+                            val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
+                            viewModel.updateExpenseInstanceTime(newTime)
                         },
                         onDismiss = {
                             isTimePickerVisible=false
                         },
-                        initialDateTime = viewModel.datetime.value
+                        initialDateTime = viewModel.getExpenseInstanceDateTime()
                     )
                 }
 
@@ -194,9 +199,18 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             ) {
                 TextField(
                     //数値だけ受け付ける感じにしたい
-                    value = "${viewModel.expense.value?:""}",
+                    value = viewModel.getExpenseInstanceAmount()?.toString() ?: "",
                     onValueChange ={
-                        viewModel.expenseUpdate(it)
+                        if(it!="" && it.toLongOrNull()==null){
+                            Toast.makeText(
+                                context,
+                                "数値が大きすぎます。これ以上入力できません" ,
+                                Toast.LENGTH_LONG
+                            ).show()
+                            //viewModel.updateExpenseInstanceAmount(null)
+                        }else{
+                            viewModel.updateExpenseInstanceAmount(it.toLongOrNull())
+                        }
                     },
                     label= {Text(text="Expense")},
                     modifier=Modifier.width(260.dp),
@@ -228,9 +242,11 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                 //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
                 //カテゴリーの編集画面もほしいし
+                /*
                 TextField(
-                    value=viewModel.category.value?:"",
+                    value=viewModel.getExpenseInstanceCategory():"" ,
                     onValueChange = {
+                        viewModel.updateExpenseInstanceCategory(it)
                     },
                     enabled = false,
                     readOnly = true,
@@ -241,6 +257,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     singleLine = true,
                     colors = enabledTextFiledColorSet,
                 )
+
 
                 ExposedDropdownMenu(
                     expanded=categoryOptionsExpanded,
@@ -257,6 +274,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                         )
                     }
                 }
+                 */
 
             }
 
@@ -272,9 +290,9 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             ){
                 //メモ
                 TextField(
-                    value=viewModel.note.value?:"",
+                    value=viewModel.getInstanceNote()?:"",
                     onValueChange = {
-                        viewModel.noteUpdate(it)
+                        viewModel.updateExpenseInstanceNote(it)
                     },
                     modifier=Modifier.width(260.dp),
                     label={Text(text="Note")},
@@ -288,39 +306,29 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             Button(
                 onClick = {
                     /* きちんと値が入っているかチェック */
-                    if(viewModel.expense.value!=null){
+                    if(viewModel.getExpenseInstanceAmount() != null){
 
                         //idが""なら新規作成ってこと
-                        if(viewModel.id.value==""){
-                            //新たに追加するExpense
-                            val newExpense=Expense(
-                                id=viewModel.generateId(),
-                                datetime = viewModel.datetime.value,
-                                expense = viewModel.expense.value,
-                                category = viewModel.category.value,
-                                note = viewModel.note.value,
-                                generatedType = "manual"
-                            )
+                        if(viewModel.getExpenseInstanceId()==""){
+
                             //追加して
-                            viewModel.addExpense(newExpense)
-                            //リセットして
-                            viewModel.resetExpenseParams()
+//                            viewModel.addExpense(newExpense)
+                            Toast.makeText(
+                                context,
+                                "追加する" ,
+                                Toast.LENGTH_LONG
+                            ).show()
+
                         } else{//idがなにか入ってたら編集
-                            val editedExpense=Expense(
-                                id=viewModel.id.value!!,
-                                datetime = viewModel.datetime.value,
-                                expense = viewModel.expense.value,
-                                category = viewModel.category.value,
-                                note = viewModel.note.value,
-                                generatedType = viewModel.generatedType.value
-                            )
                             //このidのExpenseをupdateする
-                            viewModel.updateExpense(
-                                editedExpense
-                            )
-                            //リセットして
-                            viewModel.resetExpenseParams()
+                            Toast.makeText(
+                                context,
+                                "更新する" ,
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
+                        //リセットする
+                        viewModel.resetExpenseInstance()
                         //メイン画面に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     }
@@ -343,12 +351,12 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             }
 
 
-            if(viewModel.id.value==""){
+            if(viewModel.getExpenseInstanceId()==""){
                 //新規作成のとき。リセット
                 Button(
                     onClick = {
                         //リセット
-                        viewModel.resetExpenseParams()
+                        viewModel.resetExpenseInstance()
                     },
                     modifier=Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(
@@ -363,9 +371,9 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 Button(
                     onClick = {
                         //削除
-                        viewModel.deleteExpense(viewModel.id.value)
+
                         //リセット
-                        viewModel.resetExpenseParams()
+                        viewModel.resetExpenseInstance()
                         //元に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     },
