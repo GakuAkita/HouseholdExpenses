@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -174,7 +174,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 }
 
 @Composable
-fun ExpenseItem(expense:ExpenseClass, onEdit: () -> Unit){
+fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
     Row(modifier = Modifier
         .fillMaxWidth()
         .height(32.dp)

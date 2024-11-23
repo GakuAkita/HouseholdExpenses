@@ -2,18 +2,18 @@ package gaku.original.myapplication.interfaces
 
 import android.util.Log
 import gaku.original.myapplication.data.DummyExpenses
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 interface ExpenseDBControl {
     //追加
-    fun addExpense(Expense:ExpenseClass){
+    fun addExpense(Expense:Expense){
         DummyExpenses.expensesList.add(Expense)
     }
 
     //更新
-    fun updateExpense(Expense:ExpenseClass){
+    fun updateExpense(Expense:Expense){
         val index=DummyExpenses.expensesList.indexOfFirst { it.id==Expense.id }
         if(index!=-1){
             DummyExpenses.expensesList[index]=Expense

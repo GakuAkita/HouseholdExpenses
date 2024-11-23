@@ -54,7 +54,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.DummyCategory
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -293,7 +293,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                         //idが""なら新規作成ってこと
                         if(viewModel.id.value==""){
                             //新たに追加するExpense
-                            val newExpense=ExpenseClass(
+                            val newExpense=Expense(
                                 id=viewModel.generateId(),
                                 datetime = viewModel.datetime.value,
                                 expense = viewModel.expense.value,
@@ -306,7 +306,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             //リセットして
                             viewModel.resetExpenseParams()
                         } else{//idがなにか入ってたら編集
-                            val editedExpense=ExpenseClass(
+                            val editedExpense=Expense(
                                 id=viewModel.id.value!!,
                                 datetime = viewModel.datetime.value,
                                 expense = viewModel.expense.value,

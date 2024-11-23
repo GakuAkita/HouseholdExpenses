@@ -1,11 +1,12 @@
 package gaku.original.myapplication
 
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.DummyExpenses
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.interfaces.ExpenseDBControl
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -52,7 +53,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     //MainViewもLazyColumnに表示する
-    fun getMonthExpenses():List<ExpenseClass>{
+    fun getMonthExpenses():List<Expense>{
         val calendarYear=getCalendarYear()
         val calendarMonth=getCalendarMonth()
 
@@ -65,6 +66,34 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     /********************* AddEditView用*******************************/
+    // 初期値として null もしくは適切なデフォルト値を設定
+    private val _expense = mutableStateOf<Expense?>(null)
+    val expense: State<Expense?> = _expense
+
+    // Expense のインスタンスを更新するメソッド
+    fun updateExpenseInstance(newExpense: Expense) {
+        _expense.value = newExpense
+    }
+
+    // 各項目を個別に更新するメソッド
+    fun updateExpenseAmount(newAmount: Long) {
+        _expense.value?.let {
+            _expense.value = it.copy(amount = newAmount)
+        }
+    }
+
+    fun updateExpenseCategory(newCategory: String) {
+        _expense.value?.let {
+            _expense.value = it.copy(category = newCategory)
+        }
+    }
+
+    fun updateExpenseNote(newNote: String) {
+        _expense.value?.let {
+            _expense.value = it.copy(note = newNote)
+        }
+    }
+
     //privateにしなくていいか。
     val id = mutableStateOf<String>("")
     val datetime = mutableStateOf(LocalDateTime.now())
@@ -83,7 +112,7 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     //転写する
-    fun transferExpenseParams(Expense:ExpenseClass){
+    fun transferExpenseParams(Expense:Expense){
         id.value=Expense.id
         datetime.value=Expense.datetime
         expense.value=Expense.expense
