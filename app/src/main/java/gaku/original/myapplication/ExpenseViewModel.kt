@@ -70,6 +70,15 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     private val _expense = mutableStateOf<Expense?>(null)
     val expense: State<Expense?> = _expense
 
+    //
+    fun getExpenseInstanceAmount():Long{
+        return _expense.value?.amount?:0
+    }
+
+    fun getExpenseInstanceDateTime():LocalDateTime{
+        return _expense.value?.datetime?:LocalDateTime.now()
+    }
+
     // Expense のインスタンスを更新するメソッド
     fun updateExpenseInstance(newExpense: Expense) {
         _expense.value = newExpense
@@ -118,5 +127,16 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
         }
     }
 
-    //idがDB内にあるかどうかで追加か更新かが決まる
+    //ExpenseInstanceを一旦リセットする
+    fun resetExpenseInstance(){
+        val emptyExpense=Expense(
+            id="",
+            datetime=LocalDateTime.now(),
+            amount=null,
+            category=null,
+            note=null,
+            generatedType = null
+        )
+        updateExpenseInstance(emptyExpense)
+    }
 }

@@ -86,7 +86,7 @@ fun Day(day: CalendarDay,monthExpenses:List<Expense>,onClicked: (day:CalendarDay
         Expense.datetime.toLocalDate() == day.date // Filter expenses by matching the date
     }.mapNotNull { Expense ->
         // Convert the expense amount to a numeric type, assuming it might be String or nullable.
-        Expense.expense
+        Expense.amount
     }.sum()
 
     Box(

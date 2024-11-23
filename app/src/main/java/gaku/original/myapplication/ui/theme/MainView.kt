@@ -65,7 +65,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             FloatingActionButton(
                 onClick = {
                     //必ずAddなのでリセットで
-                    viewModel.resetExpenseParams()
+                    viewModel.resetExpenseInstance()
                     /* Addに飛ぶ */
                     navController.navigate(Screen.MainScreen.AddEdit.route)
                 },
@@ -105,12 +105,12 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
                             //リセットして
-                            viewModel.resetExpenseParams()
+                            viewModel.resetExpenseInstance()
                             //日付を入力
                             Log.d("Akita Debug","${inputDate}")
-                            viewModel.dateUpdate(inputDate)
+                            viewModel.updateExpenseInstanceDate(inputDate)
                             //時間を入力
-                            viewModel.timeUpdate(inputTime)
+                            viewModel.updateExpenseInstanceTime(inputTime)
                             //AddEditViewに移動
                             navController.navigate(Screen.MainScreen.AddEdit.route)
                         }
@@ -155,13 +155,13 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         //変更したときだけ順番変えるみたいな処理にできればしたいな。
                         val sortedMonthExpensesList=monthExpensesList.sortedByDescending { it.datetime }
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
-                        items(sortedMonthExpensesList,key={it.id.toString()}){
+                        items(sortedMonthExpensesList,key={it.id}){
                                 expense ->
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {
                                     //viewModel内の値を転写
-                                    viewModel.transferExpenseParams(expense)
+                                    viewModel.updateExpenseInstance(expense)
                                     //AddEditViewに移動
                                     navController.navigate(Screen.MainScreen.AddEdit.route)
                                 })
@@ -190,7 +190,7 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
-            text="${expense.expense}",
+            text="${expense.amount}",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
