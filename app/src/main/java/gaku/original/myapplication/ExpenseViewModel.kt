@@ -1,12 +1,18 @@
 package gaku.original.myapplication
 
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.DummyExpenses
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.interfaces.ExpenseDBControl
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -22,7 +28,9 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel:ViewModel(), ExpenseDBControl {
+class ExpenseViewModel(
+    private val expenseRepository: ExpenseRepository
+):ViewModel() {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
     private val monthOffset = mutableIntStateOf(0)
@@ -52,7 +60,8 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     //MainViewもLazyColumnに表示する
-    fun getMonthExpenses():List<ExpenseClass>{
+    /*
+    fun getMonthExpenses():List<Expense>{
         val calendarYear=getCalendarYear()
         val calendarMonth=getCalendarMonth()
 
@@ -62,10 +71,17 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
             it.datetime.year == calendarYear &&
                     it.datetime.monthValue == calendarMonth
         }
-    }
+    }*/
 
     /********************* AddEditView用*******************************/
     //privateにしなくていいか。
+    // 初期値として null もしくは適切なデフォルト値を設定
+    private val _expense = mutableStateOf<Expense?>(null)
+    val expense: State<Expense?> = _expense
+
+
+
+/*
     val id = mutableStateOf<String>("")
     val datetime = mutableStateOf(LocalDateTime.now())
     val expense = mutableStateOf<Long?>(null)
@@ -83,10 +99,10 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     //転写する
-    fun transferExpenseParams(Expense:ExpenseClass){
+    fun transferExpenseParams(Expense:Expense){
         id.value=Expense.id
         datetime.value=Expense.datetime
-        expense.value=Expense.expense
+        expense.value=Expense.amount
         category.value=Expense.category
         note.value=Expense.note
     }
@@ -117,8 +133,51 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     fun noteUpdate(newNote: String) {
         note.value = newNote
     }
+*/
 
-    //idがDB内にあるかどうかで追加か更新かが決まる
+    /*********************Dao Repository******************************/
+    /* 本当はinterfaceにしたいけど、行けるかわからないので、とりあえずviewModelにかく */
+    /* これ名前がめっちゃかぶるな */
+    lateinit var getAllExpenses: Flow<List<Expense>>
+
+    init {
+        viewModelScope.launch{
+            getAllExpenses=expenseRepository.getExpenses()
+        }
+    }
+
+    lateinit var getMonthExpenses: Flow<List<Expense>>
+
+    fun getMonthExpenses() {
+        val year = getCalendarYear().toString()
+        val month = getCalendarMonth().toString().padStart(2, '0')
+        viewModelScope.launch {
+            getMonthExpenses = expenseRepository.getMonthExpenses(year, month)
+        }
+    }
+
+    fun addExpense(Expense: Expense){
+        viewModelScope.launch(Dispatchers.IO) {
+            expenseRepository.addExpense(Expense)
+        }
+    }
+
+    fun getAExpenseById(id:String):Flow<Expense>{
+        return expenseRepository.getAExpenseById(id)
+    }
+
+    fun updateExpense(Expense: Expense){
+        viewModelScope.launch(Dispatchers.IO) {
+            expenseRepository.updateAExpense(Expense)
+        }
+    }
+
+    fun deleteEXpense(Expense: Expense){
+        viewModelScope.launch(Dispatchers.IO) {
+            expenseRepository.deleteAExpense(Expense)
+        }
+    }
+
 
 
 }

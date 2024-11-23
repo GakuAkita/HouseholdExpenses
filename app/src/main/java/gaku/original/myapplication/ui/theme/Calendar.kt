@@ -24,7 +24,7 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.ExpenseClass
+import gaku.original.myapplication.data.Expense
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -32,7 +32,7 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<ExpenseClass>,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
+fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<Expense>,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
     // 現在の年月
     val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
     // 現在より前の年月
@@ -80,7 +80,7 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay,monthExpenses:List<ExpenseClass>,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
+fun Day(day: CalendarDay,monthExpenses:List<Expense>,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
     // Calculate the total amount of expenses for this day
     val totalExpenseForDay = monthExpenses.filter { Expense ->
         Expense.datetime.toLocalDate() == day.date // Filter expenses by matching the date

@@ -24,15 +24,15 @@ class Converters {
 }
 
 @Entity(tableName="Expense-table")
-data class ExpenseClass(
+data class Expense(
     @PrimaryKey
     val id: String,
     @ColumnInfo(name="Expense-generated_type")
     val generatedType:String?,//自動生成なのか手動生成なのか
     @ColumnInfo(name="Expense-datetime")
     var datetime:LocalDateTime,
-    @ColumnInfo(name="Expense-expense")
-    var expense:Long?,
+    @ColumnInfo(name="Expense-amount")
+    var amount:Long?,
     @ColumnInfo(name="Expense-category")
     var category:String?,
     @ColumnInfo(name="Expense-note")
@@ -46,130 +46,130 @@ data class CategoryClass(
 
 object DummyExpenses{
     val expensesList= mutableStateListOf(
-        ExpenseClass(
+        Expense(
             id="1",
             datetime = LocalDateTime.of(2023,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="2",
             datetime = LocalDateTime.now(),
-            expense=120,
+            amount=120,
             category="waste",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="3",
             datetime = LocalDateTime.now(),
-            expense=1500,
+            amount=1500,
             category="Food",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="4",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="5",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="6",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="7",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="8",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="9",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="9.1",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="10",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="11",
             datetime = LocalDateTime.of(2024,10,1,0,0,0),
-            expense=1000,
+            amount=1000,
             category="necessities",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="12",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="13",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="14",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
         ),
-        ExpenseClass(
+        Expense(
             id="15",
             datetime = LocalDateTime.now(),
-            expense=2000,
+            amount=2000,
             category="Amazon",
             note="",
             generatedType = "manual"
@@ -201,7 +201,7 @@ object DummyCategory{
         ),
         CategoryClass(
             id="6",
-            name="Amazo4n"
+            name="Amazon"
         ),
         CategoryClass(
             id="7",
