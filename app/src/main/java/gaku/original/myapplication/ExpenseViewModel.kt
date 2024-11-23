@@ -75,79 +75,48 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
         _expense.value = newExpense
     }
 
+    // 日付のみを更新する
+    fun updateExpenseInstanceDate(newDate: LocalDate) {
+        _expense.value?.let {
+            _expense.value = it.copy(
+                datetime = it.datetime
+                    .withYear(newDate.year)
+                    .withMonth(newDate.monthValue)
+                    .withDayOfMonth(newDate.dayOfMonth)
+            )
+        }
+    }
+
+    //時間のみを更新する
+    fun updateExpenseInstanceTime(newTime: LocalTime) {
+        _expense.value?.let { currentExpense ->
+            _expense.value = currentExpense.copy(
+                datetime = currentExpense.datetime
+                    .withHour(newTime.hour)
+                    .withMinute(newTime.minute)
+                    .withSecond(newTime.second)
+            )
+        }
+    }
+
     // 各項目を個別に更新するメソッド
-    fun updateExpenseAmount(newAmount: Long) {
+    fun updateExpenseInstanceAmount(newAmount: Long) {
         _expense.value?.let {
             _expense.value = it.copy(amount = newAmount)
         }
     }
 
-    fun updateExpenseCategory(newCategory: String) {
+    fun updateExpenseInstanceCategory(newCategory: String) {
         _expense.value?.let {
             _expense.value = it.copy(category = newCategory)
         }
     }
 
-    fun updateExpenseNote(newNote: String) {
+    fun updateExpenseInstanceNote(newNote: String) {
         _expense.value?.let {
             _expense.value = it.copy(note = newNote)
         }
     }
 
-    //privateにしなくていいか。
-    val id = mutableStateOf<String>("")
-    val datetime = mutableStateOf(LocalDateTime.now())
-    val expense = mutableStateOf<Long?>(null)
-    val category = mutableStateOf<String?>(null)
-    val note = mutableStateOf<String?>(null)
-    val generatedType=mutableStateOf<String?>(null)
-
-    //初期化
-    fun resetExpenseParams(){
-        id.value=""
-        datetime.value= LocalDateTime.now()
-        expense.value=null
-        category.value=null
-        note.value=null
-    }
-
-    //転写する
-    fun transferExpenseParams(Expense:Expense){
-        id.value=Expense.id
-        datetime.value=Expense.datetime
-        expense.value=Expense.expense
-        category.value=Expense.category
-        note.value=Expense.note
-    }
-
-    fun dateUpdate(newDate: LocalDate) {
-        datetime.value = datetime.value.withYear(newDate.year).withMonth(newDate.monthValue).withDayOfMonth(newDate.dayOfMonth)
-    }
-
-    fun timeUpdate(newTime: LocalTime) {
-        datetime.value = datetime.value.withHour(newTime.hour).withMinute(newTime.minute).withSecond(newTime.second)
-    }
-
-    //expenseの更新
-    fun expenseUpdate(newExpense: String) {
-        val numericExpense = newExpense.toLongOrNull()
-        //桁数がギリギリのときの対応
-        if(numericExpense!=null) {
-            expense.value = numericExpense
-        }
-        else{//nullだったら
-            expense.value = null
-        }
-    }
-
-    //categoryの更新
-
-    //noteの更新
-    fun noteUpdate(newNote: String) {
-        note.value = newNote
-    }
-
     //idがDB内にあるかどうかで追加か更新かが決まる
-
-
 }
