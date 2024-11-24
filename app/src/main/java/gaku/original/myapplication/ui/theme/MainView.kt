@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -50,7 +51,7 @@ import java.time.LocalTime
 fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
-    val monthExpensesList=viewModel.getMonthExpenses()
+    val monthExpensesList=viewModel.getAllExpenses.collectAsState(initial = emptyList()).value
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
@@ -156,7 +157,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         val sortedMonthExpensesList=monthExpensesList.sortedByDescending { it.datetime }
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
                         items(sortedMonthExpensesList,key={it.id}){
-                                expense ->
+                            expense ->
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {
@@ -195,7 +196,7 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
             textAlign = TextAlign.Left
         )
         Text(
-            text="${expense.category}",
+            text=expense.category?:"",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )

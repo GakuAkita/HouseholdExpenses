@@ -26,7 +26,7 @@ class Converters {
 @Entity(tableName="Expense-table")
 data class Expense(
     @PrimaryKey
-    val id: String,
+    var id: String,
     @ColumnInfo(name="Expense-generated_type")
     val generatedType:String?,//自動生成なのか手動生成なのか
     @ColumnInfo(name="Expense-datetime")

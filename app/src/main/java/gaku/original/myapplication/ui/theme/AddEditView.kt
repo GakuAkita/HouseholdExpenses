@@ -1,20 +1,11 @@
 package gaku.original.myapplication.ui.theme
 
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,7 +16,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
@@ -43,18 +33,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.DummyCategory
-import gaku.original.myapplication.data.Expense
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -178,6 +163,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             // 選択した時間を取得して ViewModel に更新
                             val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
                             viewModel.updateExpenseInstanceTime(newTime)
+                            isTimePickerVisible=false
                         },
                         onDismiss = {
                             isTimePickerVisible=false
@@ -310,17 +296,17 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
 
                         //idが""なら新規作成ってこと
                         if(viewModel.getExpenseInstanceId()==""){
-
                             //追加して
-//                            viewModel.addExpense(newExpense)
+                            viewModel.addExpense(viewModel.expense.value,0)
                             Toast.makeText(
                                 context,
-                                "追加する" ,
+                                "追加しました" ,
                                 Toast.LENGTH_LONG
                             ).show()
 
                         } else{//idがなにか入ってたら編集
                             //このidのExpenseをupdateする
+                            viewModel.updateExpense(viewModel.expense.value)
                             Toast.makeText(
                                 context,
                                 "更新する" ,

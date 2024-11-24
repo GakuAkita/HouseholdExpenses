@@ -71,9 +71,9 @@ class ExpenseViewModel(
         return expenseRepository.getExpenseById(id)
     }
 
-    fun addExpense(expense:Expense){
+    fun addExpense(newExpense:Expense,num:Int){
         viewModelScope.launch(Dispatchers.IO){
-            expenseRepository.addAExpense(expense= expense)
+            expenseRepository.addAExpense(newExpense,num)
         }
     }
 
@@ -101,8 +101,7 @@ class ExpenseViewModel(
             generatedType = null
         )
     )
-    val expense: State<Expense?> = _expense
-
+    val expense: State<Expense> = _expense
 
     fun getExpenseInstanceId():String{
         return _expense.value.id

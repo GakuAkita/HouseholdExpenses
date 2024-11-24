@@ -5,8 +5,14 @@ import kotlinx.coroutines.flow.Flow
 
 class ExpenseRepository(private val expenseDao: ExpenseDao):idGeneration {
     //これでいいのかわからんが、id生成類はinterfaceにまとめておく
-    suspend fun addAExpense(expense: Expense){
-        expenseDao.addAExpense(expense)
+    suspend fun addAExpense(expense: Expense, num: Int){
+        //
+        if(expense.id==""){
+            expense.id=generateExpenseId(num)
+            expenseDao.addAExpense(expense)
+        }else{
+            Log.d("Akita Debug","addAExpense was called, but id is not \"\"")
+        }
     }
 
     fun getExpenseById(id:String): Flow<Expense> {
