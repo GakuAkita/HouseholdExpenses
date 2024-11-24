@@ -51,7 +51,6 @@ import java.time.LocalTime
 fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
-    val monthExpensesList=viewModel.getExpensesByYearMonth.collectAsState(initial = emptyList()).value
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
@@ -101,7 +100,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        monthExpenses = monthExpensesList,//これを渡すことでカレンダーのマスに金額を表示
+                        monthExpenses = viewModel.monthExpensesList.collectAsState().value,//これを渡すことでカレンダーのマスに金額を表示
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
@@ -146,15 +145,15 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         thumbSelectedColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
+                    //LazyColumnのそとにないとだめなのか。
+                    val sortedMonthExpensesList=viewModel.getAllExpenses.collectAsState(initial = emptyList()).value.sortedBy { it.datetime }
+
                     LazyColumn(
                         state=listState,
                         modifier=Modifier
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        //これだと再composeされるたびに順番を並び替えられるから無駄が多い。
-                        //変更したときだけ順番変えるみたいな処理にできればしたいな。
-                        val sortedMonthExpensesList=monthExpensesList.sortedByDescending { it.datetime }
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
                         items(sortedMonthExpensesList,key={it.id}){
                             expense ->

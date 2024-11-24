@@ -1,7 +1,9 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
@@ -10,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,8 +35,11 @@ class ExpenseViewModel(
 ):ViewModel() {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
-    private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
-    val monthOffset: StateFlow<Int> = _monthOffset
+
+    /*private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
+    val monthOffset: StateFlow<Int> = _monthOffset*/
+    private val _monthOffset = mutableStateOf(0)
+    val monthOffset: State<Int> = _monthOffset
 
     fun getCalendarYear(): Int {
         return calendarDate.plusMonths(monthOffset.value.toLong()).year
@@ -58,15 +65,46 @@ class ExpenseViewModel(
         _monthOffset.value--
     }
 
-    //MainViewもLazyColumnに表示する
-    /*lateinit var getAllExpenses: Flow<List<Expense>>
+    /* しばらくデータが溜まっていない限りはこれでいいか。 */
+    private val _allExpenses=MutableStateFlow<List<Expense>>(emptyList())
+    val allExpenses:StateFlow<List<Expense>> = _allExpenses
 
-    init {
+    private val _monthFilteredExpenses= MutableStateFlow<List<Expense>>(emptyList())
+    val monthExpensesList: StateFlow<List<Expense>> = _monthFilteredExpenses
+
+    lateinit var getAllExpenses: Flow<List<Expense>>
+
+    init {//GPTのパクっただけだけどこれでいいんかな。
         viewModelScope.launch {
-            getAllExpenses = expenseRepository.getAllExpenses()
+            getAllExpenses=expenseRepository.getAllExpenses()
         }
-    }*/
 
+        viewModelScope.launch {
+            // monthOffset の変更を監視
+            snapshotFlow { _monthOffset.value }
+                .distinctUntilChanged()
+                .collect {
+                    val expenses = getAllExpenses.first()//first()を使うのは全部取る必要がないからっぽい？
+                    updateMonthFilteredExpenses(expenses)
+                }
+        }
+    }
+
+    private fun updateMonthFilteredExpenses(expenses: List<Expense>) {
+        val year = getCalendarYear()
+        val month = getCalendarMonth()
+
+        _monthFilteredExpenses.value = expenses.filter { expense ->
+            expense.datetime.year == year && expense.datetime.monthValue == month
+        }
+    }
+
+    /*
+    A:AllExpensesを取って、それを月ごとに並べる。
+    B:前後12ヶ月分だけローカルに保存して、ローカルと変化があったときに同期させる
+    C:
+    */
+    /*
     lateinit var getExpensesByYearMonth: Flow<List<Expense>>
 
     init {
@@ -77,6 +115,7 @@ class ExpenseViewModel(
             )
         }
     }
+    */
 
     fun getAExpense(id:String):Flow<Expense>{
         return expenseRepository.getExpenseById(id)
