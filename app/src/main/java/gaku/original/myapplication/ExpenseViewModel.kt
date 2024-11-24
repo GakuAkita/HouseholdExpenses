@@ -36,10 +36,10 @@ class ExpenseViewModel(
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
-    /*private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
-    val monthOffset: StateFlow<Int> = _monthOffset*/
-    private val _monthOffset = mutableStateOf(0)
-    val monthOffset: State<Int> = _monthOffset
+    private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
+    val monthOffset: StateFlow<Int> = _monthOffset
+    /*private val _monthOffset = mutableStateOf(0)
+    val monthOffset: State<Int> = _monthOffset*/
 
     fun getCalendarYear(): Int {
         return calendarDate.plusMonths(monthOffset.value.toLong()).year
@@ -59,10 +59,12 @@ class ExpenseViewModel(
 
     fun incrementMonth(){
         _monthOffset.value++
+        Log.d("ExpenseViewModel","incrementMonth　monthOffset:${_monthOffset.value}")
     }
 
     fun decrementMonth(){
         _monthOffset.value--
+        Log.d("ExpenseViewModel","decrementMonth monthOffset:${_monthOffset.value}")
     }
 
     /* しばらくデータが溜まっていない限りはこれでいいか。 */
@@ -77,16 +79,6 @@ class ExpenseViewModel(
     init {//GPTのパクっただけだけどこれでいいんかな。
         viewModelScope.launch {
             getAllExpenses=expenseRepository.getAllExpenses()
-        }
-
-        viewModelScope.launch {
-            // monthOffset の変更を監視
-            snapshotFlow { _monthOffset.value }
-                .distinctUntilChanged()
-                .collect {
-                    val expenses = getAllExpenses.first()//first()を使うのは全部取る必要がないからっぽい？
-                    updateMonthFilteredExpenses(expenses)
-                }
         }
     }
 

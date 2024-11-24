@@ -57,6 +57,19 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableIntStateOf(calendarPagerState.currentPage) }
 
+    //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
+    val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
+
+    // monthOffsetが変更されたときに再実行する処理
+    LaunchedEffect(monthOffset) {
+        // monthOffsetが変更されたときに再実行する処理をここに書く
+        val currentPageMonth = viewModel.getCalendarMonth()
+        val currentPageYear = viewModel.getCalendarYear()
+    }
+
+    val currentPageMonth = viewModel.getCalendarMonth()
+    val currentPageYear = viewModel.getCalendarYear()
+
     Scaffold(
         topBar = {
             TopBarView(topBarName)
@@ -85,11 +98,9 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
                 ){
-                Text("${viewModel.getCalendarYear()}-${viewModel.getCalendarMonth()}")
+                Text("${currentPageYear}-${currentPageMonth}")
             }
 
-            //Recompositionされたかどうかのチェック
-            //Log.d("Check Recomposition","Calendar Recomposition: ${LocalTime.now()}")
             Row(
                 modifier = Modifier.fillMaxWidth(),
             ){
@@ -125,6 +136,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 snapshotFlow { calendarPagerState.currentPage }
                     .distinctUntilChanged()
                     .collect{ currentPage->
+                        Log.d("MainView","Calendar pager state changed: ${currentPage}")
                         when{
                             currentPage > previousCalendarPage -> viewModel.incrementMonth()
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
