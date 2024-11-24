@@ -27,7 +27,7 @@ interface ExpenseDao{
 
     // Query expenses by year and month(GPTに作ってもらった)
     @Query("SELECT * FROM `Expense-table` WHERE strftime('%Y', `Expense-datetime`) = :year AND strftime('%m', `Expense-datetime`) = :month")
-    fun getExpensesByYearMonth(year: String, month: String): Flow<List<Expense>>
+    fun getExpensesByYearMonth(year: Int, month: Int): Flow<List<Expense>>
 
     @Query("SELECT * FROM `Expense-table`")
     fun getAllExpenses(): Flow<List<Expense>>

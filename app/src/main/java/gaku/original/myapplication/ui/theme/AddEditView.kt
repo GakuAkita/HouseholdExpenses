@@ -122,9 +122,6 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 if (isDatePickerVisible) {
                     DatePickerModal(
                         onDateSelected = { dateMillis ->
-                            // 現在の時間を保持。時間は変えたくないので
-//                            val currentTime = viewModel.getExpenseInstanceDateTime().toLocalTime()
-
                             // 選択された日付を処理
                             dateMillis?.let {
                                 val selectedDate = LocalDateTime

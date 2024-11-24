@@ -51,7 +51,7 @@ import java.time.LocalTime
 fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
-    val monthExpensesList=viewModel.getAllExpenses.collectAsState(initial = emptyList()).value
+    val monthExpensesList=viewModel.getExpensesByYearMonth.collectAsState(initial = emptyList()).value
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12

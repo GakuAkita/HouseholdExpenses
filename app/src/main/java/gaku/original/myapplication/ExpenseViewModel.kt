@@ -1,16 +1,15 @@
 package gaku.original.myapplication
 
-import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -32,38 +31,50 @@ class ExpenseViewModel(
 ):ViewModel() {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
-    private val monthOffset = mutableIntStateOf(0)
+    private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
+    val monthOffset: StateFlow<Int> = _monthOffset
 
     fun getCalendarYear(): Int {
-        return calendarDate.plusMonths(monthOffset.intValue.toLong()).year
+        return calendarDate.plusMonths(monthOffset.value.toLong()).year
     }
 
     fun getCalendarMonth():Int{
-        return calendarDate.plusMonths(monthOffset.intValue.toLong()).monthValue
+        return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
     }
 
     fun resetMonthOffset(){
-        monthOffset.intValue=0
+        _monthOffset.value=0
     }
 
     fun updateMonthOffset(offset:Int){
-        monthOffset.intValue=offset
+        _monthOffset.value=offset
     }
 
     fun incrementMonth(){
-        monthOffset.intValue++
+        _monthOffset.value++
     }
 
     fun decrementMonth(){
-        monthOffset.intValue--
+        _monthOffset.value--
     }
 
     //MainViewもLazyColumnに表示する
-    lateinit var getAllExpenses: Flow<List<Expense>>
+    /*lateinit var getAllExpenses: Flow<List<Expense>>
 
     init {
         viewModelScope.launch {
             getAllExpenses = expenseRepository.getAllExpenses()
+        }
+    }*/
+
+    lateinit var getExpensesByYearMonth: Flow<List<Expense>>
+
+    init {
+        viewModelScope.launch {
+            getExpensesByYearMonth = expenseRepository.getExpensesByYearMonth(
+                year = getCalendarYear(),
+                month = getCalendarMonth()
+            )
         }
     }
 
