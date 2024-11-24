@@ -5,9 +5,13 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.interfaces.ExpenseDBControl
+import gaku.original.myapplication.data.ExpenseRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -23,7 +27,9 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel:ViewModel(), ExpenseDBControl {
+class ExpenseViewModel(
+    private val expenseRepository: ExpenseRepository = Graph.expenseRepository
+):ViewModel() {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
     private val monthOffset = mutableIntStateOf(0)
@@ -53,15 +59,33 @@ class ExpenseViewModel:ViewModel(), ExpenseDBControl {
     }
 
     //MainViewもLazyColumnに表示する
-    fun getMonthExpenses():List<Expense>{
-        val calendarYear=getCalendarYear()
-        val calendarMonth=getCalendarMonth()
+    lateinit var getAllExpenses: Flow<List<Expense>>
 
-        Log.d("<Akita Debug>Recomp Check","executed getMonthExpenses")
+    init {
+        viewModelScope.launch {
+            getAllExpenses = expenseRepository.getAllExpenses()
+        }
+    }
 
-        return DummyExpenses.expensesList.filter {
-            it.datetime.year == calendarYear &&
-                    it.datetime.monthValue == calendarMonth
+    fun getAExpense(id:String):Flow<Expense>{
+        return expenseRepository.getExpenseById(id)
+    }
+
+    fun addExpense(expense:Expense){
+        viewModelScope.launch(Dispatchers.IO){
+            expenseRepository.addAExpense(expense= expense)
+        }
+    }
+
+    fun updateExpense(expense:Expense){
+        viewModelScope.launch(Dispatchers.IO){
+            expenseRepository.updateAExpense(expense=expense)
+        }
+    }
+
+    fun deleteExpense(expense:Expense){
+        viewModelScope.launch() {
+            expenseRepository.deleteAExpense(expense=expense)
         }
     }
 

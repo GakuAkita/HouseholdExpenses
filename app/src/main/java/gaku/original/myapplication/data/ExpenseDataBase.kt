@@ -11,6 +11,6 @@ import androidx.room.TypeConverters
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract  class ExpenseDataBase:RoomDatabase() {
-    abstract fun ExpenseDao():ExpenseDao
+abstract  class ExpenseDatabase:RoomDatabase() {
+    abstract fun expenseDao():ExpenseDao
 }
