@@ -158,7 +158,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     )
                 ) {
                     //LazyColumnのそとにないとだめなのか。
-                    val sortedMonthExpensesList=viewModel.getAllExpenses.collectAsState(initial = emptyList()).value.sortedBy { it.datetime }
+                    val sortedMonthExpensesList=viewModel.monthExpensesList.collectAsState(emptyList()).value.sortedByDescending { it.datetime }
 
                     LazyColumn(
                         state=listState,

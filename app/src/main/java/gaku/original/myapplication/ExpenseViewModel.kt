@@ -2,6 +2,7 @@ package gaku.original.myapplication
 
 import android.util.Log
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -74,11 +75,19 @@ class ExpenseViewModel(
     private val _monthFilteredExpenses= MutableStateFlow<List<Expense>>(emptyList())
     val monthExpensesList: StateFlow<List<Expense>> = _monthFilteredExpenses
 
-    lateinit var getAllExpenses: Flow<List<Expense>>
-
-    init {//GPTのパクっただけだけどこれでいいんかな。
+    init {
         viewModelScope.launch {
-            getAllExpenses=expenseRepository.getAllExpenses()
+            expenseRepository.getAllExpenses().collect { expenses->
+                _allExpenses.value=expenses
+                updateMonthFilteredExpenses(expenses)
+            }
+        }
+
+        viewModelScope.launch {
+            // monthOffset の変更を監視して処理をトリガー
+            _monthOffset.collect { offset ->
+                updateMonthFilteredExpenses(_allExpenses.value)
+            }
         }
     }
 
@@ -92,21 +101,9 @@ class ExpenseViewModel(
     }
 
     /*
-    A:AllExpensesを取って、それを月ごとに並べる。
+    A:AllExpensesを取って、それを月ごとに抽出
     B:前後12ヶ月分だけローカルに保存して、ローカルと変化があったときに同期させる
     C:
-    */
-    /*
-    lateinit var getExpensesByYearMonth: Flow<List<Expense>>
-
-    init {
-        viewModelScope.launch {
-            getExpensesByYearMonth = expenseRepository.getExpensesByYearMonth(
-                year = getCalendarYear(),
-                month = getCalendarMonth()
-            )
-        }
-    }
     */
 
     fun getAExpense(id:String):Flow<Expense>{
