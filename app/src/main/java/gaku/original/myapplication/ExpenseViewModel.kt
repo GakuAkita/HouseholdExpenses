@@ -1,10 +1,7 @@
 package gaku.original.myapplication
 
-import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
@@ -13,8 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,12 +55,10 @@ class ExpenseViewModel(
 
     fun incrementMonth(){
         _monthOffset.value++
-        Log.d("ExpenseViewModel","incrementMonth　monthOffset:${_monthOffset.value}")
     }
 
     fun decrementMonth(){
         _monthOffset.value--
-        Log.d("ExpenseViewModel","decrementMonth monthOffset:${_monthOffset.value}")
     }
 
     /* しばらくデータが溜まっていない限りはこれでいいか。 */
