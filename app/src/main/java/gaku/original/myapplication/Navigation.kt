@@ -6,11 +6,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import gaku.original.myapplication.ui.theme.AddEditView
+import gaku.original.myapplication.ui.theme.MainScreen.AddEditView
 import gaku.original.myapplication.ui.theme.GraphView
-import gaku.original.myapplication.ui.theme.MainView
+import gaku.original.myapplication.ui.theme.MainScreen.MainView
 import gaku.original.myapplication.ui.theme.NotCategorizedView
 import gaku.original.myapplication.ui.theme.SettingsView
+import gaku.original.myapplication.ui.theme.StartScreen.LoginSignUpView
+import gaku.original.myapplication.ui.theme.StartScreen.StartView
 
 @Composable
 fun Navigation(
@@ -19,8 +21,21 @@ fun Navigation(
 ){
     NavHost(
         navController = navController,
-        startDestination = Screen.MainScreen.Content.route
+        startDestination = Screen.StartScreen.Start.route
     ){
+        //Startスクリーン
+        composable(Screen.StartScreen.Start.route){
+            StartView(navController)
+        }
+        composable(Screen.StartScreen.SignUp.route){
+            val isLogin = false
+            LoginSignUpView(navController,isLogin)
+        }
+        composable(Screen.StartScreen.Login.route){
+            val isLogin = true
+            LoginSignUpView(navController,isLogin)
+        }
+
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route){
             MainView(ExpenseViewModel,navController)

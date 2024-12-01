@@ -50,6 +50,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.auth.ktx)
     val calendar_version="2.6.0"
     val scrollbar_version="2.2.0"
     val viewModel_version="2.8.5"
@@ -79,6 +80,9 @@ dependencies {
     kapt("androidx.room:room-compiler:$room_version")
     // Roomのコルーチンサポート（必要に応じて）
     implementation("androidx.room:room-ktx:$room_version")
+
+    /************************** firebase ***********************************/
+    implementation("com.google.firebase:firebase-auth")
 
 
     implementation(libs.androidx.core.ktx)

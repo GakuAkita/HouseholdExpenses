@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.theme.MainScreen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.ui.theme.BottomBarView
+import gaku.original.myapplication.ui.theme.TopBarView
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -88,7 +90,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 navController=navController
             )
         },
-        bottomBar = { BottomBarView(navController)}
+        bottomBar = { BottomBarView(navController) }
     ){
         innerPadding ->
         Column(

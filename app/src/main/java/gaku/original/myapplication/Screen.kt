@@ -1,21 +1,28 @@
 package gaku.original.myapplication
 
-//もう少しわかりやすい構造にしよう。AddScreenをMainの配下にいれたり。後日やな。
-sealed class Screen(val route:String){
-    object StartScreen: Screen("start"){
-        object Start:Screen("start")
-        object SignUp:Screen("start/sign_up")
-        object Login:Screen("start/login")
+sealed class Screen(val route: String) {
+
+    // Start関連
+    sealed class StartScreen(route: String) : Screen(route) {
+        companion object {
+            const val BASE_ROUTE = "start"
+        }
+        object Start : StartScreen("$BASE_ROUTE/start")
+        object SignUp : StartScreen("$BASE_ROUTE/sign_up")
+        object Login : StartScreen("$BASE_ROUTE/login")
     }
 
-    //Mainスクリーン関連
-    object MainScreen: Screen("main"){
-        object Content:Screen("main/content")
-        object AddEdit:Screen("main/add_edit")
+    // Main関連
+    sealed class MainScreen(route: String) : Screen(route) {
+        companion object {
+            const val BASE_ROUTE = "main"
+        }
+        object Content : MainScreen("$BASE_ROUTE/content")
+        object AddEdit : MainScreen("$BASE_ROUTE/add_edit")
     }
 
-    //bottom barのその他
-    object GraphScreen: Screen("graph_screen")
-    object NotCategorizedScreen: Screen("not_categorized_screen")
-    object SettingScreen: Screen("setting_screen")
+    // その他
+    object GraphScreen : Screen("graph_screen")
+    object NotCategorizedScreen : Screen("not_categorized_screen")
+    object SettingScreen : Screen("setting_screen")
 }

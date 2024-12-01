@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.theme.MainScreen
 
 import android.util.Log
 import androidx.compose.foundation.border
@@ -41,6 +41,9 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.ui.theme.BottomBarView
+import gaku.original.myapplication.ui.theme.CalendarDisplay
+import gaku.original.myapplication.ui.theme.TopBarView
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -91,7 +94,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
             }
         },
-        bottomBar = { BottomBarView(navController)}
+        bottomBar = { BottomBarView(navController) }
     ){
         innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
