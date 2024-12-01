@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")//version宣言しなくて大丈夫かな。kotlin("kapt") version "2.0.21"だとエラーでからこの書き方だけど。
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -82,6 +83,7 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
 
     /************************** firebase ***********************************/
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-auth")
 
 

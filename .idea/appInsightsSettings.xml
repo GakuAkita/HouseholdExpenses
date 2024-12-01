@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="gaku.original.myapplication" />
+                  <option name="mobileSdkAppId" value="1:70966018964:android:1e01c43a6097370893c581" />
+                  <option name="projectId" value="householdexepenses" />
+                  <option name="projectNumber" value="70966018964" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

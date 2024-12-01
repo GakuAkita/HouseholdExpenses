@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.theme.StartScreen
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -47,13 +49,17 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                     }
                               },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.StartScreen.Start.route)
+                    }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "戻る")
                     }
                 }
             )
         }
     ) {
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,13 +73,46 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                 onValueChange = { email = it },
                 label = { Text("メールアドレス") }
             )
+            Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("パスワード") }
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { performSignUp(email, password, navController) }) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Button(onClick = {
+                if(isLogin){//Login画面の場合の処理
+                    performLogin(
+                        email = email,
+                        password = password,
+                        callback = {isSuccess->
+                            if(isSuccess){
+                                //ログインが成功したらMainScreenへ
+                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                navController.navigate(Screen.MainScreen.Content.route)
+                            }
+                            else{
+                                Toast.makeText(context, "ログインに失敗しました", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+
+                }else{//SignUpの場合の処理
+                    performSignUp(
+                        email = email,
+                        password = password,
+                        callback =  { isSuccess ->
+                            if(isSuccess){
+                                Toast.makeText(context,"アカウントを作成しました",Toast.LENGTH_SHORT).show()
+                                navController.navigate(Screen.StartScreen.Login.route)
+                            }else{
+                                Toast.makeText(context, "アカウント作成に失敗しました",Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
+            }
+            ) {
                 if(isLogin){
                     Text("Login")
                 }else{
@@ -84,32 +123,33 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
     }
 }
 
-private fun performLogin(email: String, password: String, navController: NavController) {
+private fun performLogin(email: String, password: String, callback:(Boolean)->Unit){
     FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
                 Log.d("performLogin","${uid}")
-                // ログイン成功、ホーム画面に遷移
-                navController.navigate(Screen.MainScreen.Content.route)
+                callback(true)
             } else {
                 // エラーハンドリング
+                val errorMessage = task.exception?.message ?: "Unknown error occurred"
+                Log.d("performLogin", "$errorMessage")
+                callback(false)
             }
         }
 }
 
-private fun performSignUp(email: String, password: String,navController: NavHostController) {
+private fun performSignUp(email: String, password: String, callback: (Boolean) -> Unit) {
     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d("performSignUp","Created a user with Email:$email")
-
-                // 登録成功、ログイン画面に遷移
-                navController.navigate("Login")
+                callback(true)
             } else {
                 // エラーハンドリング
                 val errorMessage = task.exception?.message ?: "Unknown error occurred"
-                Log.d("LoginView", "$errorMessage")
+                Log.d("performSignUp", "$errorMessage")
+                callback(false)
             }
         }
 }
