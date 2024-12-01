@@ -87,14 +87,12 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                     performLogin(
                         email = email,
                         password = password,
-                        callback = {isSuccess->
+                        callback = {isSuccess ->
                             if(isSuccess){
-                                //ログインが成功したらMainScreenへ
                                 Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
                                 navController.navigate(Screen.MainScreen.Content.route)
-                            }
-                            else{
-                                Toast.makeText(context, "ログインに失敗しました", Toast.LENGTH_SHORT).show()
+                            }else{
+                                Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
                             }
                         }
                     )
@@ -105,8 +103,21 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                         password = password,
                         callback =  { isSuccess ->
                             if(isSuccess){
-                                Toast.makeText(context,"アカウントを作成しました",Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screen.StartScreen.Login.route)
+                                Toast.makeText(context,"アカウントを作成しました。ログインします",Toast.LENGTH_SHORT).show()
+                                //SignUpができたら即ログインする。
+                                performLogin(
+                                    email = email,
+                                    password = password,
+                                    callback = {isLoginSuccess ->
+                                        if(isLoginSuccess){
+                                            Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                            navController.navigate(Screen.MainScreen.Content.route)
+                                        }else{
+                                            //SignUpしたあとだからまず失敗することはない。
+                                            Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                )
                             }else{
                                 Toast.makeText(context, "アカウント作成に失敗しました",Toast.LENGTH_SHORT).show()
                             }
@@ -118,14 +129,14 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                 if(isLogin){
                     Text("Login")
                 }else{
-                    Text("新規登録")
+                    Text("SignUp")
                 }
             }
         }
     }
 }
 
-private fun performLogin(email: String, password: String, callback:(Boolean)->Unit){
+private fun performLogin(email: String, password: String, callback: (Boolean) -> Unit={}){
     FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
@@ -141,7 +152,7 @@ private fun performLogin(email: String, password: String, callback:(Boolean)->Un
         }
 }
 
-private fun performSignUp(email: String, password: String, callback: (Boolean) -> Unit) {
+private fun performSignUp(email: String, password: String, callback:(Boolean)->Unit = {}) {
     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
