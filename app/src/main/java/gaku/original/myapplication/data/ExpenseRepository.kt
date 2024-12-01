@@ -1,45 +1,37 @@
 package gaku.original.myapplication.data
 
-import android.util.Log
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Firebase
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.database
+import kotlinx.coroutines.tasks.await
 
-class ExpenseRepository(private val expenseDao: ExpenseDao):idGeneration {
-    //これでいいのかわからんが、id生成類はinterfaceにまとめておく
-    suspend fun addAExpense(expense: Expense, num: Int){
-        //
-        if(expense.id==""){
-            expense.id=generateExpenseId(num)
-            expenseDao.addAExpense(expense)
-        }else{
-            Log.d("Akita Debug","addAExpense was called, but id is not \"\"")
+class ExpenseRepository {
+    private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
+
+    // ユーザーIDに基づいた共通の参照を事前に作成
+    private fun getUSerExpenseRef(userId: String): DatabaseReference {
+        return database.child("users").child(userId).child("data").child("expenses")
+    }
+
+    private fun getUserCategoryRef(userId:String):DatabaseReference {
+        return database.child("users").child(userId).child("data").child("categories")
+    }
+
+
+    // ユーザーIDに基づいてデータをリストとして返す（非同期）
+    suspend fun getExpenses(userId: String): List<Expense> {
+        return try {
+            val snapshot = getUSerExpenseRef(userId).get().await()  // 非同期でデータを取得
+            snapshot.children.mapNotNull { it.getValue(Expense::class.java) }
+        } catch (e: Exception) {
+            emptyList()  // エラー時には空のリストを返す
         }
     }
 
-    fun getExpenseById(id:String): Flow<Expense> {
-        return expenseDao.getExpenseById(id)
-    }
-
-    fun getExpensesByYearMonth(year: Int, month: Int): Flow<List<Expense>> {
-        Log.d("Akita Debug","getExpensesByYearMonth(year:${year} month:${month}) was called")
-        return expenseDao.getExpensesByYearMonth(year, month)
-            .catch { //エラー処理
-                e->
-                Log.e("ExpenseRepository","Error fetching expenses:${e.message}")
-                emit(emptyList())
-            }
-    }
-
-    fun getAllExpenses(): Flow<List<Expense>> {
-        Log.d("Akita Debug","getAllExpenses was called")
-        return expenseDao.getAllExpenses()
-    }
-
-    suspend fun updateAExpense(expense: Expense){
-        expenseDao.updateAExpense(expense)
-    }
-
-    suspend fun deleteAExpense(expense: Expense){
-        expenseDao.deleteAExpense(expense)
+    //経費を追加
+    fun addExpense(userId:String, expense:Expense): Task<Void>{
+        val expenseRef = getUSerExpenseRef(userId).push()
+        return expenseRef.setValue(expense)
     }
 }

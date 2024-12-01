@@ -52,6 +52,7 @@ android {
 
 dependencies {
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.database.ktx)
     val calendar_version="2.6.0"
     val scrollbar_version="2.2.0"
     val viewModel_version="2.8.5"
