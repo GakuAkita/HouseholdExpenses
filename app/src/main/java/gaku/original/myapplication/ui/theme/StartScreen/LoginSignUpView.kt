@@ -71,13 +71,13 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("メールアドレス") }
+                label = { Text("mail") }
             )
             Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("パスワード") }
+                label = { Text("password") }
             )
 
             Spacer(modifier = Modifier.height(30.dp))
