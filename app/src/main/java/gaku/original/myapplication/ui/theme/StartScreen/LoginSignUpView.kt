@@ -79,7 +79,9 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                 onValueChange = { password = it },
                 label = { Text("パスワード") }
             )
+
             Spacer(modifier = Modifier.height(30.dp))
+
             Button(onClick = {
                 if(isLogin){//Login画面の場合の処理
                     performLogin(
@@ -128,7 +130,7 @@ private fun performLogin(email: String, password: String, callback:(Boolean)->Un
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
-                Log.d("performLogin","${uid}")
+                Log.d("performLogin","$uid")
                 callback(true)
             } else {
                 // エラーハンドリング
