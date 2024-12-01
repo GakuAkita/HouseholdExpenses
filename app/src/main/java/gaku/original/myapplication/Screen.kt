@@ -2,6 +2,12 @@ package gaku.original.myapplication
 
 //もう少しわかりやすい構造にしよう。AddScreenをMainの配下にいれたり。後日やな。
 sealed class Screen(val route:String){
+    object StartScreen: Screen("start"){
+        object Start:Screen("start")
+        object SignUp:Screen("start/sign_up")
+        object Login:Screen("start/login")
+    }
+
     //Mainスクリーン関連
     object MainScreen: Screen("main"){
         object Content:Screen("main/content")
