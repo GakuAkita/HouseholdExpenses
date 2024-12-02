@@ -116,10 +116,11 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                     password = password,
                                     callback = {isLoginSuccess ->
                                         if(isLoginSuccess){//ここに来ることはまずいないだろう。
-                                            val uid:String=FirebaseAuth.getInstance().currentUser?.uid?:""
-                                            if(uid==""){
+                                            val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
+                                            if(uid==null){
                                                 Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
                                             }else{
+                                                //viewModel内にuserIdを保存してログイン後使っていく
                                                 viewModel.setUserId(uid)
                                                 Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
                                                 navController.navigate(Screen.MainScreen.Content.route)

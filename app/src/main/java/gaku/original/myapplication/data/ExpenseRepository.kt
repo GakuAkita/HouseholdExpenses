@@ -36,5 +36,12 @@ class ExpenseRepository  {
     fun addExpense(userId:String, expense:Expense): Task<Void>{
         val expenseRef = getUserExpenseRef(userId).push()
         return expenseRef.setValue(expense)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("ExpenseRepository", "Expense added successfully")
+                } else {
+                    Log.e("ExpenseRepository", "Failed to add expense", task.exception)
+                }
+            }
     }
 }
