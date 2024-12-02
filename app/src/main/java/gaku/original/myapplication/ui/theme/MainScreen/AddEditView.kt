@@ -108,7 +108,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
                 TextField(
-                    value = viewModel.getExpenseInstanceDateTime().format(dateFormat),
+                    value = viewModel.getExpenseInstanceDateTime()?.format(dateFormat) ?: "日付が入っていません",
                     onValueChange = {},
                     enabled = false,
                     readOnly = true,
@@ -141,7 +141,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 Spacer(modifier=Modifier.padding(8.dp))
 
                 TextField(
-                    value = viewModel.getExpenseInstanceDateTime().format(timeFormat),
+                    value = viewModel.getExpenseInstanceDateTime()?.format(timeFormat) ?:"時間が入っていません",
                     onValueChange = {},
                     enabled=false,
                     readOnly = true,
@@ -157,18 +157,21 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 //時間をタップしたらダイアログを表示して選択させる
                 //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
                 if(isTimePickerVisible){
-                    DialWithDialog(
-                        onConfirm = {selectedTime->
-                            // 選択した時間を取得して ViewModel に更新
-                            val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
-                            viewModel.updateExpenseInstanceTime(newTime)
-                            isTimePickerVisible=false
-                        },
-                        onDismiss = {
-                            isTimePickerVisible=false
-                        },
-                        initialDateTime = viewModel.getExpenseInstanceDateTime()
-                    )
+                    //nullでないときのみ時刻を表示
+                    viewModel.getExpenseInstanceDateTime()?.let {
+                        DialWithDialog(
+                            onConfirm = {selectedTime->
+                                // 選択した時間を取得して ViewModel に更新
+                                val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
+                                viewModel.updateExpenseInstanceTime(newTime)
+                                isTimePickerVisible=false
+                            },
+                            onDismiss = {
+                                isTimePickerVisible=false
+                            },
+                            initialDateTime = it
+                        )
+                    }
                 }
 
             }
@@ -296,7 +299,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                         //idが""なら新規作成ってこと
                         if(viewModel.getExpenseInstanceId()==""){
                             //追加して
-                            viewModel.addExpense(viewModel.expense.value,0)
+//                            viewModel.addExpense(viewModel.expense.value,0)
                             Toast.makeText(
                                 context,
                                 "追加しました" ,
@@ -305,7 +308,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
 
                         } else{//idがなにか入ってたら編集
                             //このidのExpenseをupdateする
-                            viewModel.updateExpense(viewModel.expense.value)
+//                            viewModel.updateExpense(viewModel.expense.value)
                             Toast.makeText(
                                 context,
                                 "更新する" ,

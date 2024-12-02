@@ -174,7 +174,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         items(sortedMonthExpensesList){
                             expense ->
                             ExpenseItem(
-                                expense = expense,
+                                viewModel = viewModel,
                                 onEdit = {
                                     //viewModel内の値を転写
                                     viewModel.updateExpenseInstance(expense)
@@ -190,7 +190,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 }
 
 @Composable
-fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
+fun ExpenseItem(viewModel:ExpenseViewModel, onEdit: () -> Unit){
     Row(modifier = Modifier
         .fillMaxWidth()
         .height(32.dp)
@@ -201,17 +201,17 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(
-            text = "${expense.datetime.dayOfMonth}日",
+            text = "${viewModel.getExpenseInstanceDateTime()?.dayOfMonth}日",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
-            text="${expense.amount}",
+            text="${viewModel.getExpenseInstanceAmount()}円",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
         Text(
-            text=expense.category?:"",
+            text=viewModel.getExpenseInstanceCategory()?:"",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
