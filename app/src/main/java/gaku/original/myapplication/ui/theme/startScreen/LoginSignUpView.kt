@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 
@@ -115,9 +116,9 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                     email = email,
                                     password = password,
                                     callback = {isLoginSuccess ->
-                                        if(isLoginSuccess){//ここに来ることはまずいないだろう。
-                                            val uid:String=FirebaseAuth.getInstance().currentUser?.uid?:""
-                                            if(uid==""){
+                                        if(isLoginSuccess){
+                                            val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
+                                            if(uid==null){
                                                 Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
                                             }else{
                                                 viewModel.setUserId(uid)
@@ -163,16 +164,52 @@ private fun performLogin(email: String, password: String, callback: (Boolean) ->
         }
 }
 
-private fun performSignUp(email: String, password: String, callback:(Boolean)->Unit = {}) {
+private fun performSignUp(
+    email: String,
+    password: String,
+    accountCreationCallback:(Boolean)->Unit = {},//アカウント作成はできた
+    initialDataCreationCallback:(Boolean)->Unit = {}//アカウント作成はできたけど、初期データ作成に失敗したとき
+    ) {
     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d("performSignUp","Created a user with Email:$email")
-                callback(true)
+                accountCreationCallback(true)
+
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                if(uid.isNullOrEmpty()){
+                    Log.d("performSignUp","Failed to get userId.")
+                    return@addOnCompleteListener
+                }
+
+                saveUserDataToDatabase(uid,email){isSuccess->
+                    if(isSuccess == false){
+                        initialDataCreationCallback(false)
+                    }
+                }
             } else {
                 // エラーハンドリング
                 val errorMessage = task.exception?.message ?: "Unknown error occurred"
                 Log.d("performSignUp", "$errorMessage")
+                accountCreationCallback(false)
+            }
+        }
+}
+
+private fun saveUserDataToDatabase(uid: String, email: String, callback: (Boolean) -> Unit) {
+    val databaseRef = FirebaseDatabase.getInstance().reference
+    val userData = mapOf(
+        "email" to email
+    )
+
+    databaseRef.child("users").child(uid).child("data").setValue(userData)
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.d("saveUserDataToDatabase", "User data saved successfully.")
+                callback(true)
+            } else {
+                val errorMessage = task.exception?.message ?: "Unknown error occurred"
+                Log.d("saveUserDataToDatabase", errorMessage)
                 callback(false)
             }
         }
