@@ -6,9 +6,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 import kotlinx.coroutines.tasks.await
-import javax.inject.Inject
 
-class ExpenseRepository @Inject constructor() {
+class ExpenseRepository  {
     private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
 
     // ユーザーIDに基づいた共通の参照を事前に作成

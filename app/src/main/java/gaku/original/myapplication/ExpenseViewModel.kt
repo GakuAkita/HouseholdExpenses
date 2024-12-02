@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.idGeneration
@@ -27,8 +26,7 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-@HiltViewModel
-class ExpenseViewModel @Inject constructor(
+class ExpenseViewModel(
     private val expenseRepository: ExpenseRepository
 ):ViewModel() ,idGeneration{
     /********************* MainView用*******************************/
