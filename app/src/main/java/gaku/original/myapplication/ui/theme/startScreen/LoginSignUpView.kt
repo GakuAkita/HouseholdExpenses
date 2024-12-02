@@ -121,7 +121,10 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                                 Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
                                             }else{
                                                 //viewModel内にuserIdを保存してログイン後使っていく
-                                                viewModel.setUserId(uid)
+                                                viewModel.run {
+                                                    setUserId(uid)
+                                                    addUserInitialData(email)
+                                                }
                                                 Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
                                                 navController.navigate(Screen.MainScreen.Content.route)
                                             }

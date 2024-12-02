@@ -10,13 +10,32 @@ import kotlinx.coroutines.tasks.await
 class ExpenseRepository  {
     private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
 
-    // ユーザーIDに基づいた共通の参照を事前に作成
+    //users配下の自分のuserIdのreferenceを返す
+    // userId配下のexpenses
+    private fun getUserRef(userId: String): DatabaseReference {
+        return database.child("users").child(userId)
+    }
+
+    // userId配下のexpenses
     private fun getUserExpenseRef(userId: String): DatabaseReference {
         return database.child("users").child(userId).child("data").child("expenses")
     }
 
+    //userId配下のcategory
     private fun getUserCategoryRef(userId:String):DatabaseReference {
         return database.child("users").child(userId).child("data").child("categories")
+    }
+
+    fun addUserInitialData(userId: String,email:String){
+        val userRef = getUserRef(userId)
+        userRef.child("email").setValue(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("ExpenseRepository","addUserInitialData successful")
+                }else{
+                    Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
+                }
+            }
     }
 
 
@@ -27,7 +46,7 @@ class ExpenseRepository  {
             Log.d("ExpenseRepository","getExpenses successful")
             snapshot.children.mapNotNull { it.getValue(Expense::class.java) }
         } catch (e: Exception) {
-            Log.d("ExpenseRepository","getExpenses failed")
+            Log.d("ExpenseRepository","getExpenses failed. ${e.message}")
             emptyList()  // エラー時には空のリストを返す
         }
     }

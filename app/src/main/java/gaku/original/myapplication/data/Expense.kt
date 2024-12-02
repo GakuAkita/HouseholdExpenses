@@ -4,12 +4,12 @@ import androidx.compose.runtime.mutableStateListOf
 import java.time.LocalDateTime
 
 data class Expense(
-    var id: String?,//yyyy-mm-ddTHH:MM:SS-1
-    val generatedType:String?,//自動生成なのか手動生成なのか
-    var datetime:String?,//ISO_LOCAL_DATE_TIME
-    var amount:Long?,
-    var category:String?,
-    var note:String?
+    var id: String?=null,//yyyy-mm-ddTHH:MM:SS-1
+    var generatedType:String?=null,//自動生成なのか手動生成なのか
+    var datetime:String?=null,//ISO_LOCAL_DATE_TIME
+    var amount:Long?=null,
+    var category:String?=null,
+    var note:String?=null
 )
 
 data class CategoryClass(

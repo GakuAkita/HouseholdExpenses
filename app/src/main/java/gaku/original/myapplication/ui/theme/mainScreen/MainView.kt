@@ -75,6 +75,10 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val currentPageMonth = viewModel.getCalendarMonth()
     val currentPageYear = viewModel.getCalendarYear()
 
+    // 最初にDBからデータを取得
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllExpenses() // 初期データの読み込み
+    }
     //カレンダーの下に表示する費用の配列
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
 
@@ -119,7 +123,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        monthExpenses = DummyExpenses.expensesList,
+                        monthExpenses = monthExpenses,
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな

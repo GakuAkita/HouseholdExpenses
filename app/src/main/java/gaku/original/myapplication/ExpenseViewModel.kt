@@ -78,6 +78,12 @@ class ExpenseViewModel(
         _userId.value = id
     }
 
+    fun addUserInitialData(email:String){
+        viewModelScope.launch {
+            expenseRepository.addUserInitialData(_userId.value.toString(),email)
+        }
+    }
+
     fun fetchAllExpenses(){
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses(_userId.value.toString())
@@ -99,6 +105,18 @@ class ExpenseViewModel(
     }
 
     fun addExpense(expense: Expense){
+        //項目の中で中身がnullだとRealtime Databaseで何も入ってくれない
+        if(expense.id == null){
+            expense.id = generateExpenseId()
+            expense.generatedType = "manual"
+        }
+        if(expense.category == null){
+            expense.category = ""
+        }
+        if(expense.note == null){
+            expense.note = ""
+        }
+
         viewModelScope.launch {
             expenseRepository.addExpense(_userId.value.toString(),expense)
         }
