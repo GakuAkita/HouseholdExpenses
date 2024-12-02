@@ -3,16 +3,10 @@ package gaku.original.myapplication
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.data.data_interfaces.datetimeConverters
 import gaku.original.myapplication.data.idGeneration
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -29,8 +23,8 @@ rememberとViewModelは違う。
  */
 
 class ExpenseViewModel(
-    private val expenseRepository: ExpenseRepository = Graph.expenseRepository
-):ViewModel() ,datetimeConverters,idGeneration{
+
+):ViewModel() ,idGeneration{
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -162,7 +156,7 @@ class ExpenseViewModel(
     fun resetExpenseInstance(){
         val emptyExpense=Expense(
             id=null,
-            datetime=fromLocalDateTime(LocalDateTime.now()),
+            datetime= fromLocalDateTime(LocalDateTime.now()),
             amount=null,
             category=null,
             note=null,

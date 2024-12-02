@@ -11,20 +11,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.toLocalDateTime
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -82,11 +77,11 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 @Composable
 fun Day(day: CalendarDay,monthExpenses:List<Expense>,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
     // Calculate the total amount of expenses for this day
-    val totalExpenseForDay = monthExpenses.filter { Expense ->
-        Expense.datetime.toLocalDate() == day.date // Filter expenses by matching the date
-    }.mapNotNull { Expense ->
+    val totalExpenseForDay = monthExpenses.filter { expense ->
+        toLocalDateTime(expense.datetime)?.toLocalDate() == day.date // Filter expenses by matching the date
+    }.mapNotNull { expense ->
         // Convert the expense amount to a numeric type, assuming it might be String or nullable.
-        Expense.amount
+        expense.amount
     }.sum()
 
     Box(

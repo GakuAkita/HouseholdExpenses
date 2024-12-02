@@ -1,9 +1,9 @@
 package gaku.original.myapplication.data
 
-import gaku.original.myapplication.data.data_interfaces.datetimeConverters
+import gaku.original.myapplication.fromLocalDateTime
 import java.time.LocalDateTime
 
-interface idGeneration : datetimeConverters {
+interface idGeneration {
     //idを生成
     //yyyymmddMMHHSS-(番号:同時に生成されてしまったとき)
     //これはここに入れてよいのかな？わからないな。

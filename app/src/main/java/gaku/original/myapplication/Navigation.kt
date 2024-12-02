@@ -6,13 +6,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import gaku.original.myapplication.ui.theme.MainScreen.AddEditView
+import gaku.original.myapplication.ui.theme.mainScreen.AddEditView
 import gaku.original.myapplication.ui.theme.GraphView
-import gaku.original.myapplication.ui.theme.MainScreen.MainView
+import gaku.original.myapplication.ui.theme.mainScreen.MainView
 import gaku.original.myapplication.ui.theme.NotCategorizedView
 import gaku.original.myapplication.ui.theme.SettingsView
-import gaku.original.myapplication.ui.theme.StartScreen.LoginSignUpView
-import gaku.original.myapplication.ui.theme.StartScreen.StartView
+import gaku.original.myapplication.ui.theme.startScreen.LoginSignUpView
+import gaku.original.myapplication.ui.theme.startScreen.StartView
 
 @Composable
 fun Navigation(

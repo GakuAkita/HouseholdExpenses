@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme.MainScreen
+package gaku.original.myapplication.ui.theme.mainScreen
 
 import android.util.Log
 import androidx.compose.foundation.border
@@ -42,6 +42,7 @@ import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.theme.BottomBarView
 import gaku.original.myapplication.ui.theme.CalendarDisplay
 import gaku.original.myapplication.ui.theme.TopBarView
@@ -174,7 +175,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         items(sortedMonthExpensesList){
                             expense ->
                             ExpenseItem(
-                                viewModel = viewModel,
+                                expense = expense,
                                 onEdit = {
                                     //viewModel内の値を転写
                                     viewModel.updateExpenseInstance(expense)
@@ -190,7 +191,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 }
 
 @Composable
-fun ExpenseItem(viewModel:ExpenseViewModel, onEdit: () -> Unit){
+fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
     Row(modifier = Modifier
         .fillMaxWidth()
         .height(32.dp)
@@ -201,17 +202,17 @@ fun ExpenseItem(viewModel:ExpenseViewModel, onEdit: () -> Unit){
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(
-            text = "${viewModel.getExpenseInstanceDateTime()?.dayOfMonth}日",
+            text = "${toLocalDateTime(expense.datetime)?.dayOfMonth }日",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
-            text="${viewModel.getExpenseInstanceAmount()}円",
+            text="${expense.amount}円",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
         Text(
-            text=viewModel.getExpenseInstanceCategory()?:"",
+            text=expense.category?:"",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )

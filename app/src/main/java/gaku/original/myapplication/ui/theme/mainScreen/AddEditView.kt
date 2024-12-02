@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme.MainScreen
+package gaku.original.myapplication.ui.theme.mainScreen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -296,8 +296,8 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                     /* きちんと値が入っているかチェック */
                     if(viewModel.getExpenseInstanceAmount() != null){
 
-                        //idが""なら新規作成ってこと
-                        if(viewModel.getExpenseInstanceId()==""){
+                        //idがnullなら新規作成ってこと
+                        if(viewModel.getExpenseInstanceId()==null){
                             //追加して
 //                            viewModel.addExpense(viewModel.expense.value,0)
                             Toast.makeText(
@@ -306,7 +306,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                                 Toast.LENGTH_LONG
                             ).show()
 
-                        } else{//idがなにか入ってたら編集
+                        } else{//idがnullでなかったら編集
                             //このidのExpenseをupdateする
 //                            viewModel.updateExpense(viewModel.expense.value)
                             Toast.makeText(
@@ -339,7 +339,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
             }
 
 
-            if(viewModel.getExpenseInstanceId()==""){
+            if(viewModel.getExpenseInstanceId()==null){
                 //新規作成のとき。リセット
                 Button(
                     onClick = {

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme.StartScreen
+package gaku.original.myapplication.ui.theme.startScreen
 
 import android.util.Log
 import android.widget.Toast
@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.Screen
