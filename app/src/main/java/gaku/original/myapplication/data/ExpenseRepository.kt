@@ -21,7 +21,7 @@ class ExpenseRepository  {
 
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
-    suspend fun getExpenses(userId: String): List<Expense> {
+    suspend fun fetchUserExpenses(userId: String): List<Expense> {
         return try {
             val snapshot = getUserExpenseRef(userId).get().await()  // 非同期でデータを取得
             Log.d("ExpenseRepository","getExpenses successful")

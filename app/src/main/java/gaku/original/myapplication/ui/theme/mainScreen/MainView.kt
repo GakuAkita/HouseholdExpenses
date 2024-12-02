@@ -75,6 +75,9 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     val currentPageMonth = viewModel.getCalendarMonth()
     val currentPageYear = viewModel.getCalendarYear()
 
+    //カレンダーの下に表示する費用の配列
+    val monthExpenses by viewModel.filteredExpenses.collectAsState()
+
     Scaffold(
         topBar = {
             TopBarView(topBarName)
@@ -163,7 +166,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     )
                 ) {
                     //LazyColumnのそとにないとだめなのか。
-                    val sortedMonthExpensesList=DummyExpenses.expensesList.sortedByDescending { it.datetime }
+                    val sortedMonthExpensesList=monthExpenses.sortedByDescending { it.datetime }
 
                     LazyColumn(
                         state=listState,

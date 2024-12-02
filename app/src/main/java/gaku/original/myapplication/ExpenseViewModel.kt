@@ -5,11 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.idGeneration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -66,8 +68,40 @@ class ExpenseViewModel(
     private val _userId = MutableLiveData<String>()
     val userId: LiveData<String> get() = _userId
 
+    private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
+    val allExpense:StateFlow<List<Expense>> get() = _allExpenses
+
+    private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
+    val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
+
     fun setUserId(id:String){
         _userId.value = id
+    }
+
+    fun fetchAllExpenses(){
+        viewModelScope.launch {
+            _allExpenses.value = expenseRepository.fetchUserExpenses(_userId.value.toString())
+        }
+    }
+
+    fun getMonthExpenses() {
+        viewModelScope.launch {
+            _allExpenses.collect { expenses ->
+                val targetYear = getCalendarYear()
+                val targetMonth = getCalendarMonth()
+
+                _filteredExpenses.value = expenses.filter { expense ->
+                    val expenseDate = toLocalDateTime(expense.datetime)
+                    expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
+                }
+            }
+        }
+    }
+
+    fun addExpense(expense: Expense){
+        viewModelScope.launch {
+            expenseRepository.addExpense(_userId.value.toString(),expense)
+        }
     }
 
     /*
