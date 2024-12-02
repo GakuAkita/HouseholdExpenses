@@ -2,14 +2,19 @@ package gaku.original.myapplication
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.idGeneration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import javax.inject.Inject
 
 /*
 rememberの役割
@@ -22,8 +27,9 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel(
-
+@HiltViewModel
+class ExpenseViewModel @Inject constructor(
+    private val expenseRepository: ExpenseRepository
 ):ViewModel() ,idGeneration{
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
@@ -55,6 +61,15 @@ class ExpenseViewModel(
 
     fun decrementMonth(){
         _monthOffset.value--
+    }
+
+    /********************Repositoryを使う*****************************/
+    //なんでLiveDataかわからんけど、まあいずれわかってくるか。
+    private val _userId = MutableLiveData<String>()
+    val userId: LiveData<String> get() = _userId
+
+    fun setUserId(id:String){
+        _userId.value = id
     }
 
     /*

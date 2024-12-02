@@ -29,12 +29,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
+fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -87,9 +88,15 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                         email = email,
                         password = password,
                         callback = {isSuccess ->
-                            if(isSuccess){
-                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screen.MainScreen.Content.route)
+                            if(isSuccess){//null文字対策をし続けないといけないのだるいな。
+                                val uid:String=FirebaseAuth.getInstance().currentUser?.uid?:""
+                                if(uid==""){//ここに来ることはまずないだろう。
+                                    Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
+                                }else{
+                                    viewModel.setUserId(uid)
+                                    Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Screen.MainScreen.Content.route)
+                                }
                             }else{
                                 Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
                             }
@@ -108,9 +115,15 @@ fun LoginSignUpView(navController: NavHostController , isLogin:Boolean) {
                                     email = email,
                                     password = password,
                                     callback = {isLoginSuccess ->
-                                        if(isLoginSuccess){
-                                            Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                            navController.navigate(Screen.MainScreen.Content.route)
+                                        if(isLoginSuccess){//ここに来ることはまずいないだろう。
+                                            val uid:String=FirebaseAuth.getInstance().currentUser?.uid?:""
+                                            if(uid==""){
+                                                Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
+                                            }else{
+                                                viewModel.setUserId(uid)
+                                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                                navController.navigate(Screen.MainScreen.Content.route)
+                                            }
                                         }else{
                                             //SignUpしたあとだからまず失敗することはない。
                                             Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
@@ -139,8 +152,7 @@ private fun performLogin(email: String, password: String, callback: (Boolean) ->
     FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
-                Log.d("performLogin","$uid")
+                Log.d("performLogin","Successful")
                 callback(true)
             } else {
                 // エラーハンドリング
