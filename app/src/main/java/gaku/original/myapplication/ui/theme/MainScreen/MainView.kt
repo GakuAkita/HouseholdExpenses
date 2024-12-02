@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.ui.theme.BottomBarView
 import gaku.original.myapplication.ui.theme.CalendarDisplay
@@ -114,7 +115,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        monthExpenses = viewModel.monthExpensesList.collectAsState().value,//これを渡すことでカレンダーのマスに金額を表示
+                        monthExpenses = DummyExpenses.expensesList,
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
@@ -161,7 +162,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     )
                 ) {
                     //LazyColumnのそとにないとだめなのか。
-                    val sortedMonthExpensesList=viewModel.monthExpensesList.collectAsState(emptyList()).value.sortedByDescending { it.datetime }
+                    val sortedMonthExpensesList=DummyExpenses.expensesList.sortedByDescending { it.datetime }
 
                     LazyColumn(
                         state=listState,
@@ -170,7 +171,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         userScrollEnabled = true
                     ){
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
-                        items(sortedMonthExpensesList,key={it.id}){
+                        items(sortedMonthExpensesList){
                             expense ->
                             ExpenseItem(
                                 expense = expense,

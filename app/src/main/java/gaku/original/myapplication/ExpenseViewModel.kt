@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
+import gaku.original.myapplication.data.data_interfaces.datetimeConverters
+import gaku.original.myapplication.data.idGeneration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +30,7 @@ rememberとViewModelは違う。
 
 class ExpenseViewModel(
     private val expenseRepository: ExpenseRepository = Graph.expenseRepository
-):ViewModel() {
+):ViewModel() ,datetimeConverters,idGeneration{
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -61,72 +63,20 @@ class ExpenseViewModel(
         _monthOffset.value--
     }
 
-    /* しばらくデータが溜まっていない限りはこれでいいか。 */
-    private val _allExpenses=MutableStateFlow<List<Expense>>(emptyList())
-    val allExpenses:StateFlow<List<Expense>> = _allExpenses
-
-    private val _monthFilteredExpenses= MutableStateFlow<List<Expense>>(emptyList())
-    val monthExpensesList: StateFlow<List<Expense>> = _monthFilteredExpenses
-
-    init {
-        viewModelScope.launch {
-            expenseRepository.getAllExpenses().collect { expenses->
-                _allExpenses.value=expenses
-                updateMonthFilteredExpenses(expenses)
-            }
-        }
-
-        viewModelScope.launch {
-            // monthOffset の変更を監視して処理をトリガー
-            _monthOffset.collect { offset ->
-                updateMonthFilteredExpenses(_allExpenses.value)
-            }
-        }
-    }
-
-    private fun updateMonthFilteredExpenses(expenses: List<Expense>) {
-        val year = getCalendarYear()
-        val month = getCalendarMonth()
-
-        _monthFilteredExpenses.value = expenses.filter { expense ->
-            expense.datetime.year == year && expense.datetime.monthValue == month
-        }
-    }
-
     /*
     A:AllExpensesを取って、それを月ごとに抽出
     B:前後12ヶ月分だけローカルに保存して、ローカルと変化があったときに同期させる
     C:
     */
 
-    fun getAExpense(id:String):Flow<Expense>{
-        return expenseRepository.getExpenseById(id)
-    }
 
-    fun addExpense(newExpense:Expense,num:Int){
-        viewModelScope.launch(Dispatchers.IO){
-            expenseRepository.addAExpense(newExpense,num)
-        }
-    }
-
-    fun updateExpense(expense:Expense){
-        viewModelScope.launch(Dispatchers.IO){
-            expenseRepository.updateAExpense(expense=expense)
-        }
-    }
-
-    fun deleteExpense(expense:Expense){
-        viewModelScope.launch() {
-            expenseRepository.deleteAExpense(expense=expense)
-        }
-    }
 
     /********************* AddEditView用*******************************/
     // 初期値として null もしくは適切なデフォルト値を設定
     private val _expense = mutableStateOf<Expense>(
         Expense(
-            id = "",
-            datetime = LocalDateTime.now(),
+            id = null,
+            datetime = fromLocalDateTime(LocalDateTime.now()),
             amount = null,
             category = null,
             note = null,
@@ -135,7 +85,7 @@ class ExpenseViewModel(
     )
     val expense: State<Expense> = _expense
 
-    fun getExpenseInstanceId():String{
+    fun getExpenseInstanceId():String?{
         return _expense.value.id
     }
 
@@ -143,8 +93,8 @@ class ExpenseViewModel(
         return _expense.value.amount
     }
 
-    fun getExpenseInstanceDateTime():LocalDateTime{
-        return _expense.value.datetime
+    fun getExpenseInstanceDateTime():LocalDateTime?{
+        return toLocalDateTime(_expense.value.datetime)
     }
 
     fun getExpenseInstanceCategory():String?{
@@ -162,12 +112,15 @@ class ExpenseViewModel(
 
     // 日付のみを更新する
     fun updateExpenseInstanceDate(newDate: LocalDate) {
-        _expense.value.let {
-            _expense.value = it.copy(
-                datetime = it.datetime
-                    .withYear(newDate.year)
-                    .withMonth(newDate.monthValue)
-                    .withDayOfMonth(newDate.dayOfMonth)
+        _expense.value.let {currentExpense ->
+            _expense.value = currentExpense.copy(
+                //datetimeはstringなので、更新して
+                datetime = fromLocalDateTime(
+                    toLocalDateTime(currentExpense.datetime)
+                    ?.withYear(newDate.year)
+                    ?.withMonth(newDate.monthValue)
+                    ?.withDayOfMonth(newDate.dayOfMonth)
+                )
             )
         }
     }
@@ -176,10 +129,12 @@ class ExpenseViewModel(
     fun updateExpenseInstanceTime(newTime: LocalTime) {
         _expense.value.let { currentExpense ->
             _expense.value = currentExpense.copy(
-                datetime = currentExpense.datetime
-                    .withHour(newTime.hour)
-                    .withMinute(newTime.minute)
-                    .withSecond(newTime.second)
+                datetime = fromLocalDateTime(
+                    toLocalDateTime(currentExpense.datetime)
+                    ?.withHour(newTime.hour)
+                    ?.withMinute(newTime.minute)
+                    ?.withSecond(newTime.second)
+                )
             )
         }
     }
@@ -206,8 +161,8 @@ class ExpenseViewModel(
     //ExpenseInstanceを一旦リセットする
     fun resetExpenseInstance(){
         val emptyExpense=Expense(
-            id="",
-            datetime=LocalDateTime.now(),
+            id=null,
+            datetime=fromLocalDateTime(LocalDateTime.now()),
             amount=null,
             category=null,
             note=null,

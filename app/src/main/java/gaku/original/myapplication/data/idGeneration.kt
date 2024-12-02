@@ -1,16 +1,15 @@
 package gaku.original.myapplication.data
 
+import gaku.original.myapplication.data.data_interfaces.datetimeConverters
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
-interface idGeneration {
+interface idGeneration : datetimeConverters {
     //idを生成
     //yyyymmddMMHHSS-(番号:同時に生成されてしまったとき)
     //これはここに入れてよいのかな？わからないな。
     fun generateExpenseId(num:Int=0):String{
         val currentDateTime= LocalDateTime.now()
-        val datetimeFormat= DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-        val datetimeStr=currentDateTime.format(datetimeFormat)
+        val datetimeStr= fromLocalDateTime(currentDateTime)
         val id=datetimeStr+"-"+"${num}"
         return id
     }

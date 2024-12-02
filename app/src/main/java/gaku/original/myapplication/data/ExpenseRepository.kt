@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data
 
+import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference
@@ -23,8 +24,10 @@ class ExpenseRepository {
     suspend fun getExpenses(userId: String): List<Expense> {
         return try {
             val snapshot = getUSerExpenseRef(userId).get().await()  // 非同期でデータを取得
+            Log.d("ExpenseRepository","getExpenses successful")
             snapshot.children.mapNotNull { it.getValue(Expense::class.java) }
         } catch (e: Exception) {
+            Log.d("ExpenseRepository","getExpenses failed")
             emptyList()  // エラー時には空のリストを返す
         }
     }
