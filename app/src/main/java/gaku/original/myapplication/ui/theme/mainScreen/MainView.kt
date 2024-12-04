@@ -70,16 +70,24 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         // monthOffsetが変更されたときに再実行する処理をここに書く
         val currentPageMonth = viewModel.getCalendarMonth()
         val currentPageYear = viewModel.getCalendarYear()
+
+        //フィルターして更新
+        viewModel.filterExpensesByMonth()
     }
 
     val currentPageMonth = viewModel.getCalendarMonth()
     val currentPageYear = viewModel.getCalendarYear()
 
-    // 最初にDBからデータを取得
-    LaunchedEffect(Unit) {
-        viewModel.fetchAllExpenses() // 初期データの読み込み
-    }
     //カレンダーの下に表示する費用の配列
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllExpenses(
+            onComplete = {//allExpensesが更新されて初めて実行する。
+                //完了を確認していないと_filteredExpensesに値が入らない
+                viewModel.filterExpensesByMonth()
+            }
+        )
+    }
+    // ViewModel から StateFlow を監視
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
 
     Scaffold(
@@ -105,11 +113,11 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         },
         bottomBar = { BottomBarView(navController) }
     ){
-        innerPadding ->
+            innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
-                ){
+            ){
                 Text("${currentPageYear}-${currentPageMonth} Debug:${viewModel.userId.value}")
             }
 
@@ -154,7 +162,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
                         }
                         previousCalendarPage=currentPage
-                }
+                    }
             }
 
             //スペースちょっとあける。
@@ -180,7 +188,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     ){
                         //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
                         items(sortedMonthExpensesList){
-                            expense ->
+                                expense ->
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {

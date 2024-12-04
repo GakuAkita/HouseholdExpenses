@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -36,8 +37,6 @@ class ExpenseViewModel(
 
     private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
     val monthOffset: StateFlow<Int> = _monthOffset
-    /*private val _monthOffset = mutableStateOf(0)
-    val monthOffset: State<Int> = _monthOffset*/
 
     fun getCalendarYear(): Int {
         return calendarDate.plusMonths(monthOffset.value.toLong()).year
@@ -84,24 +83,23 @@ class ExpenseViewModel(
         }
     }
 
-    fun fetchAllExpenses(){
+    fun fetchAllExpenses(onComplete:()->Unit={}){
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses(_userId.value.toString())
+            Log.d("ExpenseViewModel","Expenses:${_allExpenses.value}")
+            onComplete()
         }
     }
 
-    fun getMonthExpenses() {
-        viewModelScope.launch {
-            _allExpenses.collect { expenses ->
-                val targetYear = getCalendarYear()
-                val targetMonth = getCalendarMonth()
+    fun filterExpensesByMonth() {
+        val targetYear = getCalendarYear()
+        val targetMonth = getCalendarMonth()
 
-                _filteredExpenses.value = expenses.filter { expense ->
-                    val expenseDate = toLocalDateTime(expense.datetime)
-                    expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-                }
-            }
+        _filteredExpenses.value = _allExpenses.value.filter { expense ->
+            val expenseDate = toLocalDateTime(expense.datetime)
+            expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
         }
+        Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 
     fun addExpense(expense: Expense){

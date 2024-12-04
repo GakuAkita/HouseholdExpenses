@@ -41,13 +41,17 @@ class ExpenseRepository  {
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchUserExpenses(userId: String): List<Expense> {
-        return try {
-            val snapshot = getUserExpenseRef(userId).get().await()  // 非同期でデータを取得
-            Log.d("ExpenseRepository","getExpenses successful")
-            snapshot.children.mapNotNull { it.getValue(Expense::class.java) }
-        } catch (e: Exception) {
-            Log.d("ExpenseRepository","getExpenses failed. ${e.message}")
-            emptyList()  // エラー時には空のリストを返す
+        try {
+            val snapshot = getUserExpenseRef(userId).get().await()
+            Log.d("ExpenseRepository", "fetchUserExpenses successful")
+            val expenses = snapshot.children.mapNotNull {
+                it.getValue(Expense::class.java)
+            }
+            Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+            return expenses
+        }catch (e: Exception) {
+            Log.d("ExpenseRepository","fetchUserExpenses failed. ${e.message}")
+            return emptyList()  // エラー時には空のリストを返す
         }
     }
 
