@@ -295,18 +295,15 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 onClick = {
                     /* きちんと値が入っているかチェック */
                     if(viewModel.getExpenseInstanceAmount() != null){
-
                         //idがnullなら新規作成ってこと
                         if(viewModel.getExpenseInstanceId()==null){
-                            //追加して
-//                            viewModel.addExpense(viewModel.expense.value,0)
-                            viewModel.addExpense(viewModel.expense.value)
+                            //追加する
+                            viewModel.addExpense(viewModel.expense.value,0)
                             Toast.makeText(
                                 context,
                                 "追加しました" ,
                                 Toast.LENGTH_LONG
                             ).show()
-
                         } else{//idがnullでなかったら編集
                             //このidのExpenseをupdateする
 //                            viewModel.updateExpense(viewModel.expense.value)

@@ -1,7 +1,6 @@
 package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
-import java.time.LocalDateTime
 
 data class Expense(
     var id: String?=null,//yyyy-mm-ddTHH:MM:SS-1

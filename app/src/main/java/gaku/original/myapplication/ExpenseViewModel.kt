@@ -73,6 +73,12 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
+    fun observeExpenses(userId:String){
+        expenseRepository.observeExpenses( _userId.value.toString() , onExpenseChanged = {updatedExpenses->
+            _allExpenses.value = updatedExpenses
+        })
+    }
+
     fun setUserId(id:String){
         _userId.value = id
     }
@@ -102,10 +108,10 @@ class ExpenseViewModel(
         Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 
-    fun addExpense(expense: Expense){
+    fun addExpense(expense: Expense,num:Int){
         //項目の中で中身がnullだとRealtime Databaseで何も入ってくれない
         if(expense.id == null){
-            expense.id = generateExpenseId()
+            expense.id = generateExpenseId(num=0)
             expense.generatedType = "manual"
         }
         if(expense.category == null){

@@ -86,6 +86,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 viewModel.filterExpensesByMonth()
             }
         )
+        viewModel.observeExpenses(viewModel.userId.value.toString())
     }
     // ViewModel から StateFlow を監視
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
