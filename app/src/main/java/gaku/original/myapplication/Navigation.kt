@@ -37,11 +37,11 @@ fun Navigation(){
         }
         composable(Screen.StartScreen.SignUp.route){
             val isLogin = false
-            LoginSignUpView(sharedViewModel,navController,isLogin)
+            LoginSignUpView(expenseViewModel,navController,isLogin)
         }
         composable(Screen.StartScreen.Login.route){
             val isLogin = true
-            LoginSignUpView(sharedViewModel,navController,isLogin)
+            LoginSignUpView(expenseViewModel,navController,isLogin)
         }
 
         //Mainスクリーン

@@ -3,22 +3,17 @@ package gaku.original.myapplication
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.database.ServerValue
-import com.google.firebase.database.ServerValue.*
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.data.idGeneration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import javax.inject.Inject
 
 /*
 rememberの役割
@@ -42,6 +37,33 @@ class ExpenseViewModel(
 
     fun getUserId():String?{
         return sharedViewModel.userId.value
+    }
+
+    fun signUpAndInitialSetup(email:String,password:String,uiCallback:(Boolean)->Unit){
+        sharedViewModel.signUp(
+            email=email,
+            password = password,
+            callback = { isSuccess->
+                if(isSuccess){
+                    addUserInitialData(email)
+                }
+                uiCallback(isSuccess)//UIで実行する内容
+                //なんかめっちゃ入れ子になってるけど大丈夫かな笑 正しい設計なのか？笑
+            }
+        )
+    }
+
+    fun signInAndFetchAllExpenses(email:String,password:String,uiCallback: (Boolean) -> Unit){
+        sharedViewModel.signIn(
+            email = email,
+            password = password,
+            callback = {isSucess->
+                if(isSucess){
+                    fetchAllExpenses()
+                }
+                uiCallback(isSucess)
+            }
+        )
     }
 
     /********************* MainView用*******************************/
@@ -119,7 +141,7 @@ class ExpenseViewModel(
 
     fun addUserInitialData(email:String){
         viewModelScope.launch {
-            expenseRepository.addUserInitialData(getUserId()?:"",email)
+            expenseRepository.addUserInitialData(getUserId()?:"other",email)
         }
     }
 

@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.theme.startScreen
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,15 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.SharedViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(sharedViewModel: SharedViewModel, navController: NavHostController, isLogin:Boolean) {
+fun LoginSignUpView(viewModel:ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -72,23 +69,25 @@ fun LoginSignUpView(sharedViewModel: SharedViewModel, navController: NavHostCont
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("mail") }
+                label = { Text("mail") },
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(10.dp))
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("password") }
+                label = { Text("password") },
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(onClick = {
                 if(isLogin){//Login画面の場合の処理
-                    sharedViewModel.signIn(
+                    viewModel.signInAndFetchAllExpenses(
                         email = email,
                         password = password,
-                        callback = {isSuccess ->
+                        uiCallback = {isSuccess ->
                             if(isSuccess){//null文字対策をし続けないといけないのだるいな。
                                 //ログインしたときにExpensesを更新
                                 Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
@@ -100,17 +99,17 @@ fun LoginSignUpView(sharedViewModel: SharedViewModel, navController: NavHostCont
                     )
 
                 }else{//SignUpの場合の処理
-                    sharedViewModel.signUp(
+                    viewModel.signUpAndInitialSetup(
                         email = email,
                         password = password,
-                        callback =  { isSuccess ->
+                        uiCallback =  { isSuccess ->
                             if(isSuccess){
                                 Toast.makeText(context,"アカウントを作成しました。ログインします",Toast.LENGTH_SHORT).show()
                                 //SignUpができたら即ログインする。
-                                sharedViewModel.signIn(
+                                viewModel.signInAndFetchAllExpenses(
                                     email = email,
                                     password = password,
-                                    callback = {isSignInSuccess ->
+                                    uiCallback = {isSignInSuccess ->
                                         if(isSignInSuccess){
                                             navController.navigate(Screen.MainScreen.Content.route)
                                         }else{
