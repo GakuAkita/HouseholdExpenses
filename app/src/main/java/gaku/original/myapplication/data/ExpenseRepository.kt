@@ -99,15 +99,15 @@ class ExpenseRepository {
         }
     }
 
-    //経費を追加
-    fun addExpense(userId: String, expense: Expense): Task<Void> {
-        val expenseRef = getUserExpenseRef(userId).push()
+    fun addExpense(userId: String, expense: Expense) {
+        val expenseRef = getUserExpenseRef(userId)
+        val newExpenseRef = expenseRef.push() // Generate the unique key
 
-        //ここで初めてキーが自動生成される!
-        val newExpenseRef = expenseRef.push()
-        expense.id = newExpenseRef.key
+        // Create a new instance of Expense with the generated ID
+        val expenseWithId = expense.copy(id = newExpenseRef.key)
 
-        return expenseRef.setValue(expense)
+        // Save the new instance with the generated key
+        newExpenseRef.setValue(expenseWithId)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("ExpenseRepository", "Expense added successfully")

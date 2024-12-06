@@ -31,11 +31,12 @@ import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.SharedViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
+fun LoginSignUpView(sharedViewModel: SharedViewModel, navController: NavHostController, isLogin:Boolean) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -84,25 +85,14 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
 
             Button(onClick = {
                 if(isLogin){//Login画面の場合の処理
-                    performLogin(
+                    sharedViewModel.signIn(
                         email = email,
                         password = password,
                         callback = {isSuccess ->
                             if(isSuccess){//null文字対策をし続けないといけないのだるいな。
-                                val uid:String=FirebaseAuth.getInstance().currentUser?.uid?:""
-                                if(uid==""){//ここに来ることはまずないだろう。
-                                    Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
-                                }else{
-                                    viewModel.setUserId(uid)
-                                    Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                    //ログインしたときにExpensesを更新
-                                    viewModel.fetchAllExpenses(
-                                        onComplete = {
-                                            viewModel.filterExpensesByMonth()
-                                            navController.navigate(Screen.MainScreen.Content.route)
-                                        }
-                                    )
-                                }
+                                //ログインしたときにExpensesを更新
+                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                navController.navigate(Screen.MainScreen.Content.route)
                             }else{
                                 Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
                             }
@@ -110,41 +100,24 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                     )
 
                 }else{//SignUpの場合の処理
-                    performSignUp(
+                    sharedViewModel.signUp(
                         email = email,
                         password = password,
                         callback =  { isSuccess ->
                             if(isSuccess){
                                 Toast.makeText(context,"アカウントを作成しました。ログインします",Toast.LENGTH_SHORT).show()
                                 //SignUpができたら即ログインする。
-                                performLogin(
+                                sharedViewModel.signIn(
                                     email = email,
                                     password = password,
-                                    callback = {isLoginSuccess ->
-                                        if(isLoginSuccess){//ここに来ることはまずいないだろう。
-                                            val uid:String?=FirebaseAuth.getInstance().currentUser?.uid
-                                            if(uid==null){
-                                                Toast.makeText(context,"UserIdを取得できませんでした。",Toast.LENGTH_SHORT).show()
-                                            }else{
-                                                //viewModel内にuserIdを保存してログイン後使っていく
-                                                viewModel.run {
-                                                    setUserId(uid)
-                                                    addUserInitialData(email)
-                                                }
-                                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                                //ログインしたときにExpensesを更新
-                                                viewModel.fetchAllExpenses(
-                                                    onComplete = {
-                                                        viewModel.filterExpensesByMonth()
-                                                        navController.navigate(Screen.MainScreen.Content.route)
-                                                    }
-                                                )
-                                            }
+                                    callback = {isSignInSuccess ->
+                                        if(isSignInSuccess){
+                                            navController.navigate(Screen.MainScreen.Content.route)
                                         }else{
-                                            //SignUpしたあとだからまず失敗することはない。
-                                            Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context,"ログインに失敗しました",Toast.LENGTH_SHORT).show()
                                         }
                                     }
+
                                 )
                             }else{
                                 Toast.makeText(context, "アカウント作成に失敗しました",Toast.LENGTH_SHORT).show()
@@ -162,34 +135,4 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
             }
         }
     }
-}
-
-private fun performLogin(email: String, password: String, callback: (Boolean) -> Unit={}){
-    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d("performLogin","Successful")
-                callback(true)
-            } else {
-                // エラーハンドリング
-                val errorMessage = task.exception?.message ?: "Unknown error occurred"
-                Log.d("performLogin", "$errorMessage")
-                callback(false)
-            }
-        }
-}
-
-private fun performSignUp(email: String, password: String, callback:(Boolean)->Unit = {}) {
-    FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d("performSignUp","Created a user with Email:$email")
-                callback(true)
-            } else {
-                // エラーハンドリング
-                val errorMessage = task.exception?.message ?: "Unknown error occurred"
-                Log.d("performSignUp", "$errorMessage")
-                callback(false)
-            }
-        }
 }

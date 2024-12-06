@@ -24,7 +24,8 @@ fun Navigation(){
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
     val repository = ExpenseRepository()
-    val expenseViewModel = remember { ExpenseViewModel(repository) }
+    val sharedViewModel = SharedViewModel()
+    val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
 
     NavHost(
         navController = navController,
@@ -36,11 +37,11 @@ fun Navigation(){
         }
         composable(Screen.StartScreen.SignUp.route){
             val isLogin = false
-            LoginSignUpView(expenseViewModel,navController,isLogin)
+            LoginSignUpView(sharedViewModel,navController,isLogin)
         }
         composable(Screen.StartScreen.Login.route){
             val isLogin = true
-            LoginSignUpView(expenseViewModel,navController,isLogin)
+            LoginSignUpView(sharedViewModel,navController,isLogin)
         }
 
         //Mainスクリーン
@@ -63,7 +64,7 @@ fun Navigation(){
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.route){
-            SettingsView(navController)
+            SettingsView(sharedViewModel,navController)
         }
     }
 }

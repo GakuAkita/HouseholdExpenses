@@ -32,8 +32,18 @@ rememberとViewModelは違う。
  */
 
 class ExpenseViewModel(
-    private val expenseRepository: ExpenseRepository
-):ViewModel() ,idGeneration{
+    private val expenseRepository: ExpenseRepository,
+    private val sharedViewModel:SharedViewModel
+):ViewModel(){
+    /** ユーザー情報 **/
+    fun updateUserId(id:String?){
+        sharedViewModel.setUserId(id)
+    }
+
+    fun getUserId():String?{
+        return sharedViewModel.userId.value
+    }
+
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -65,9 +75,6 @@ class ExpenseViewModel(
     }
 
     /********************Repositoryを使う*****************************/
-    //なんでLiveDataかわからんけど、まあいずれわかってくるか。
-    private val _userId = MutableLiveData<String>()
-    val userId: LiveData<String> get() = _userId
 
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpense:StateFlow<List<Expense>> get() = _allExpenses
@@ -80,7 +87,7 @@ class ExpenseViewModel(
     var lastFetchedTime = System.currentTimeMillis()
     fun observeExpenses() {
         expenseRepository.observeExpenses(
-            userId.value.toString(),
+            sharedViewModel.userId.value.toString(),
             lastFetchedTime = lastFetchedTime,
             onExpenseAdded = { newExpense ->
                 viewModelScope.launch {
@@ -110,19 +117,15 @@ class ExpenseViewModel(
         )
     }
 
-    fun setUserId(id:String){
-        _userId.value = id
-    }
-
     fun addUserInitialData(email:String){
         viewModelScope.launch {
-            expenseRepository.addUserInitialData(_userId.value.toString(),email)
+            expenseRepository.addUserInitialData(getUserId()?:"",email)
         }
     }
 
     fun fetchAllExpenses(onComplete:()->Unit={}){
         viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses(_userId.value.toString())
+            _allExpenses.value = expenseRepository.fetchUserExpenses(getUserId()?:"")
             Log.d("ExpenseViewModel","Expenses:${_allExpenses.value}")
             onComplete()
         }
@@ -149,13 +152,13 @@ class ExpenseViewModel(
             expense.note = ""
         }
         viewModelScope.launch {
-            expenseRepository.addExpense(_userId.value.toString(),expense)
+            expenseRepository.addExpense(getUserId()?:"",expense)
         }
     }
 
     fun updateExpense(expense:Expense){
         viewModelScope.launch {
-            expenseRepository.updateExpense(_userId.value.toString(),expense)
+            expenseRepository.updateExpense(getUserId()?:"",expense)
         }
     }
 
