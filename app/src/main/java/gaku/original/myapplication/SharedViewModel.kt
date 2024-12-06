@@ -28,12 +28,21 @@ class SharedViewModel:ViewModel() {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("SharedViewModel","signIn")
-                    callback(true)
+                    val user = firebaseAuth.currentUser
+                    if(user!=null){
+                        //明示的に入れておく。uidがnullになる可能性はかなり低いが。
+                        _currentUser.value = user
+                        _userId.value = user.uid
+                        Log.d("SharedViewModel","signIn successful")
+                        callback(true)
+                    }else{
+                        Log.d("SharedViewModel", "signIn successful but currentUser is null")
+                        callback(false)
+                    }
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"
-                    Log.d("performLogin", "$errorMessage")
+                    Log.d("SharedViewModel", "signIn failed:$errorMessage")
                     callback(false)
                 }
             }
@@ -43,12 +52,12 @@ class SharedViewModel:ViewModel() {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("performSignUp","Created a user with Email:$email")
+                    Log.d("SharedViewModel","Created a user with Email:$email")
                     callback(true)
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"
-                    Log.d("performSignUp", "$errorMessage")
+                    Log.d("SharedViewModel", "signUp failed:$errorMessage")
                     callback(false)
                 }
             }
