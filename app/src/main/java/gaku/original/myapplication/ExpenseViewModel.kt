@@ -7,6 +7,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.ServerValue
+import com.google.firebase.database.ServerValue.*
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.idGeneration
@@ -73,10 +75,39 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
-    fun observeExpenses(userId:String){
-        expenseRepository.observeExpenses( _userId.value.toString() , onExpenseChanged = {updatedExpenses->
-            _allExpenses.value = updatedExpenses
-        })
+
+    val addObserveExpensesDoneFlag=MutableLiveData(false)
+    var lastFetchedTime = System.currentTimeMillis()
+    fun observeExpenses() {
+        expenseRepository.observeExpenses(
+            userId.value.toString(),
+            lastFetchedTime = lastFetchedTime,
+            onExpenseAdded = { newExpense ->
+                viewModelScope.launch {
+                    Log.d("ExpenseViewModel", "_allExpenses.value: ${_allExpenses.value.size}")
+                    _allExpenses.value = _allExpenses.value + newExpense
+                    Log.d("ExpenseViewModel", "Expense added: $newExpense")
+                    //更新する
+                    lastFetchedTime = System.currentTimeMillis()
+                }
+            },
+            onExpenseUpdated = { updatedExpense ->
+                viewModelScope.launch {
+                    _allExpenses.value = _allExpenses.value.map { expense ->
+                        if (expense.id == updatedExpense.id) updatedExpense else expense
+                    }
+                    Log.d("ExpenseViewModel", "Expense updated: $updatedExpense")
+                }
+            },
+            onExpenseRemoved = { removedExpense ->
+                viewModelScope.launch {
+                    _allExpenses.value = _allExpenses.value.filterNot { expense ->
+                        expense.id == removedExpense.id
+                    }
+                    Log.d("ExpenseViewModel", "Expense removed: $removedExpense")
+                }
+            }
+        )
     }
 
     fun setUserId(id:String){
@@ -120,7 +151,6 @@ class ExpenseViewModel(
         if(expense.note == null){
             expense.note = ""
         }
-
         viewModelScope.launch {
             expenseRepository.addExpense(_userId.value.toString(),expense)
         }

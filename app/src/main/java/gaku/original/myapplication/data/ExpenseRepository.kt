@@ -30,41 +30,45 @@ class ExpenseRepository  {
     }
 
     //Realtime Databaseの差分だけ監視
-    fun observeExpenses(userId:String,onExpenseChanged:(List<Expense>)->Unit) {
+    fun observeExpenses(
+        userId: String,
+        lastFetchedTime:Long,
+        onExpenseAdded: (Expense) -> Unit,
+        onExpenseUpdated: (Expense) -> Unit,
+        onExpenseRemoved: (Expense) -> Unit
+    ) {
         val expenseRef = getUserExpenseRef(userId)
-        expenseRef.addChildEventListener(object: ChildEventListener{
-            private val expenses = mutableListOf<Expense>()
 
+        //
+        val query = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
+
+        query.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 val expense = snapshot.getValue(Expense::class.java)
-                expense?.let{
-                    expenses.add(it)
-                    Log.d("ExpenseRepository","${it} added.")
+                expense?.let {
+                    onExpenseAdded(it)
                 }
-                onExpenseChanged(expenses)
             }
 
-            override fun onChildChanged(snapshot:DataSnapshot,previousChildName:String?){
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 val updatedExpense = snapshot.getValue(Expense::class.java)
-                updatedExpense?.let{
-                    expenses.replaceAll { if (it.id == updatedExpense.id) updatedExpense else it}
-                    onExpenseChanged(expenses)
+                updatedExpense?.let {
+                    onExpenseUpdated(it)
                 }
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
                 val removedExpense = snapshot.getValue(Expense::class.java)
-                removedExpense?.let{
-                    expenses.removeIf { it.id == removedExpense.id}
-                    onExpenseChanged(expenses)
+                removedExpense?.let {
+                    onExpenseRemoved(it)
                 }
             }
 
-            override fun onChildMoved(snapshot:DataSnapshot,previousChildName:String?){}
-
-            override fun onCancelled(error: DatabaseError){}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
+
 
 
     fun addUserInitialData(userId: String,email:String){

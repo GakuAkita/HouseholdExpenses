@@ -65,28 +65,26 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
     val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
 
+
+    var currentPageMonth = viewModel.getCalendarMonth()
+    var currentPageYear = viewModel.getCalendarYear()
     // monthOffsetが変更されたときに再実行する処理
     LaunchedEffect(monthOffset) {
         // monthOffsetが変更されたときに再実行する処理をここに書く
-        val currentPageMonth = viewModel.getCalendarMonth()
-        val currentPageYear = viewModel.getCalendarYear()
+        currentPageMonth = viewModel.getCalendarMonth()
+        currentPageYear = viewModel.getCalendarYear()
 
-        //フィルターして更新
         viewModel.filterExpensesByMonth()
     }
 
-    val currentPageMonth = viewModel.getCalendarMonth()
-    val currentPageYear = viewModel.getCalendarYear()
-
-    //カレンダーの下に表示する費用の配列
     LaunchedEffect(Unit) {
-        viewModel.fetchAllExpenses(
-            onComplete = {//allExpensesが更新されて初めて実行する。
-                //完了を確認していないと_filteredExpensesに値が入らない
-                viewModel.filterExpensesByMonth()
-            }
-        )
-        viewModel.observeExpenses(viewModel.userId.value.toString())
+        if(viewModel.addObserveExpensesDoneFlag.value==false){
+            viewModel.addObserveExpensesDoneFlag.value=true
+            viewModel.observeExpenses()
+        }
+        else{
+            Log.d("MainView","addObserveExpenses is already done.")
+        }
     }
     // ViewModel から StateFlow を監視
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
@@ -119,7 +117,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
             ){
-                Text("${currentPageYear}-${currentPageMonth} Debug:${viewModel.userId.value}")
+                Text("${currentPageYear}-${currentPageMonth}")
             }
 
             Row(
@@ -139,7 +137,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             //リセットして
                             viewModel.resetExpenseInstance()
                             //日付を入力
-                            Log.d("Akita Debug","${inputDate}")
+                            Log.d("Akita Debug","$inputDate")
                             viewModel.updateExpenseInstanceDate(inputDate)
                             //時間を入力
                             viewModel.updateExpenseInstanceTime(inputTime)
@@ -180,6 +178,8 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 ) {
                     //LazyColumnのそとにないとだめなのか。
                     val sortedMonthExpensesList=monthExpenses.sortedByDescending { it.datetime }
+                    Log.d("MainView","sortedMonthExpensesList updated:${monthExpenses}")
+                    Log.d("MainView","sortedMonthExpensesList size:${sortedMonthExpensesList.size}")
 
                     LazyColumn(
                         state=listState,
@@ -187,7 +187,6 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        //削除したときに.getMonthExpensesが実行されてそこでクラッシュしている
                         items(sortedMonthExpensesList){
                                 expense ->
                             ExpenseItem(

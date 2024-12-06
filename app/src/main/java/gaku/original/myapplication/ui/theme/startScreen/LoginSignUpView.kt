@@ -95,7 +95,13 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                 }else{
                                     viewModel.setUserId(uid)
                                     Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                    navController.navigate(Screen.MainScreen.Content.route)
+                                    //ログインしたときにExpensesを更新
+                                    viewModel.fetchAllExpenses(
+                                        onComplete = {
+                                            viewModel.filterExpensesByMonth()
+                                            navController.navigate(Screen.MainScreen.Content.route)
+                                        }
+                                    )
                                 }
                             }else{
                                 Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
@@ -126,7 +132,13 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                                     addUserInitialData(email)
                                                 }
                                                 Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                                navController.navigate(Screen.MainScreen.Content.route)
+                                                //ログインしたときにExpensesを更新
+                                                viewModel.fetchAllExpenses(
+                                                    onComplete = {
+                                                        viewModel.filterExpensesByMonth()
+                                                        navController.navigate(Screen.MainScreen.Content.route)
+                                                    }
+                                                )
                                             }
                                         }else{
                                             //SignUpしたあとだからまず失敗することはない。
