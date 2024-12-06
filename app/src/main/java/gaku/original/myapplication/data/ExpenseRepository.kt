@@ -10,7 +10,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 import kotlinx.coroutines.tasks.await
 
-class ExpenseRepository  {
+class ExpenseRepository {
     private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
 
     //users配下の自分のuserIdのreferenceを返す
@@ -25,14 +25,14 @@ class ExpenseRepository  {
     }
 
     //userId配下のcategory
-    private fun getUserCategoryRef(userId:String):DatabaseReference {
+    private fun getUserCategoryRef(userId: String): DatabaseReference {
         return database.child("users").child(userId).child("data").child("categories")
     }
 
     //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,
-        lastFetchedTime:Long,
+        lastFetchedTime: Long,
         onExpenseAdded: (Expense) -> Unit,
         onExpenseUpdated: (Expense) -> Unit,
         onExpenseRemoved: (Expense) -> Unit
@@ -70,14 +70,13 @@ class ExpenseRepository  {
     }
 
 
-
-    fun addUserInitialData(userId: String,email:String){
+    fun addUserInitialData(userId: String, email: String) {
         val userRef = getUserRef(userId)
         userRef.child("email").setValue(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("ExpenseRepository","addUserInitialData successful")
-                }else{
+                    Log.d("ExpenseRepository", "addUserInitialData successful")
+                } else {
                     Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
                 }
             }
@@ -94,21 +93,42 @@ class ExpenseRepository  {
             }
             Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
             return expenses
-        }catch (e: Exception) {
-            Log.d("ExpenseRepository","fetchUserExpenses failed. ${e.message}")
+        } catch (e: Exception) {
+            Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
             return emptyList()  // エラー時には空のリストを返す
         }
     }
 
     //経費を追加
-    fun addExpense(userId:String, expense:Expense): Task<Void>{
+    fun addExpense(userId: String, expense: Expense): Task<Void> {
         val expenseRef = getUserExpenseRef(userId).push()
+
+        //ここで初めてキーが自動生成される!
+        val newExpenseRef = expenseRef.push()
+        expense.id = newExpenseRef.key
+
         return expenseRef.setValue(expense)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("ExpenseRepository", "Expense added successfully")
                 } else {
                     Log.e("ExpenseRepository", "Failed to add expense", task.exception)
+                }
+            }
+    }
+
+    fun updateExpense(userId: String, expense: Expense) {
+        val expenseRef = getUserExpenseRef(userId)
+
+        // Use the expense's ID (which is the Firebase-generated key) to locate it
+        val expenseToUpdateRef = expenseRef.child(expense.id ?: return)
+
+        expenseToUpdateRef.setValue(expense)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("ExpenseRepository", "Expense updated successfully")
+                } else {
+                    Log.e("ExpenseRepository", "Failed to update expense", task.exception)
                 }
             }
     }

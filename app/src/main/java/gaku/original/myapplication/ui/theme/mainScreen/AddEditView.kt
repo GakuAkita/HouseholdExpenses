@@ -306,7 +306,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                             ).show()
                         } else{//idがnullでなかったら編集
                             //このidのExpenseをupdateする
-//                            viewModel.updateExpense(viewModel.expense.value)
+                            viewModel.updateExpense(viewModel.expense.value)
                             Toast.makeText(
                                 context,
                                 "更新する" ,

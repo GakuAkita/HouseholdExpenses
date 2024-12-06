@@ -140,11 +140,8 @@ class ExpenseViewModel(
     }
 
     fun addExpense(expense: Expense,num:Int){
-        //項目の中で中身がnullだとRealtime Databaseで何も入ってくれない
-        if(expense.id == null){
-            expense.id = generateExpenseId(num=0)
-            expense.generatedType = "manual"
-        }
+        //idはpushしたときに代入することにする。したがって、nullのままにする。
+        //repositoryのaddExpenseでidを格納する
         if(expense.category == null){
             expense.category = ""
         }
@@ -153,6 +150,12 @@ class ExpenseViewModel(
         }
         viewModelScope.launch {
             expenseRepository.addExpense(_userId.value.toString(),expense)
+        }
+    }
+
+    fun updateExpense(expense:Expense){
+        viewModelScope.launch {
+            expenseRepository.updateExpense(_userId.value.toString(),expense)
         }
     }
 
