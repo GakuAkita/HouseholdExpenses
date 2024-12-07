@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
-        minSdk = 27//ここを上げる。上げないとkizitonwoseが使いづらくなる
+        minSdk = 30//ここを上げる。上げないとkizitonwoseが使いづらくなる
         versionCode = 1
         versionName = "1.0"
 

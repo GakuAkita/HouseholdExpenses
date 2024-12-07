@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.SignInStatus
+import gaku.original.myapplication.data.SignUpStatus
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,13 +89,21 @@ fun LoginSignUpView(viewModel:ExpenseViewModel, navController: NavHostController
                     viewModel.signInAndFetchAllExpenses(
                         email = email,
                         password = password,
-                        uiCallback = {isSuccess ->
-                            if(isSuccess){//null文字対策をし続けないといけないのだるいな。
-                                //ログインしたときにExpensesを更新
-                                Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screen.MainScreen.Content.route)
-                            }else{
-                                Toast.makeText(context, "ログインに失敗しました",Toast.LENGTH_SHORT).show()
+                        callback = {status ->
+                            when (status){
+                                SignInStatus.SUCCESS -> {
+                                    //ログインしたときにExpensesを更新
+                                    Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Screen.MainScreen.Content.route)
+                                }
+                                SignInStatus.USER_ID_NULL -> {
+                                    //ログインしたが、ユーザーIDが空
+                                    Toast.makeText(context,"ログインしましたがユーザーIDが空です\nログアウトします",Toast.LENGTH_SHORT).show()
+                                    //これログアウトしてしまいたいな。
+                                }
+                                SignInStatus.SIGN_IN_FAILED -> {
+                                    Toast.makeText(context,"ログインに失敗しました",Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     )
@@ -102,24 +112,41 @@ fun LoginSignUpView(viewModel:ExpenseViewModel, navController: NavHostController
                     viewModel.signUpAndInitialSetup(
                         email = email,
                         password = password,
-                        uiCallback =  { isSuccess ->
-                            if(isSuccess){
-                                Toast.makeText(context,"アカウントを作成しました。ログインします",Toast.LENGTH_SHORT).show()
-                                //SignUpができたら即ログインする。
-                                viewModel.signInAndFetchAllExpenses(
-                                    email = email,
-                                    password = password,
-                                    uiCallback = {isSignInSuccess ->
-                                        if(isSignInSuccess){
-                                            navController.navigate(Screen.MainScreen.Content.route)
-                                        }else{
-                                            Toast.makeText(context,"ログインに失敗しました",Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+                        callback =  { status ->
+                            when (status) {
+                                SignUpStatus.SUCCESS -> {
+                                    Toast.makeText(context, "アカウントを作成しました。ログインします", Toast.LENGTH_SHORT).show()
+                                    //SignUpができたら即ログインする。
+                                    viewModel.signInAndFetchAllExpenses(
+                                        email = email,
+                                        password = password,
+                                        callback = { signInStatus ->
+                                            when (signInStatus) {
+                                                SignInStatus.SUCCESS -> {
+                                                    navController.navigate(Screen.MainScreen.Content.route)
+                                                }
 
-                                )
-                            }else{
-                                Toast.makeText(context, "アカウント作成に失敗しました",Toast.LENGTH_SHORT).show()
+                                                SignInStatus.USER_ID_NULL -> {
+                                                    //ログアウトする
+                                                    Toast.makeText(context, "アカウント作成しましたが、ユーザーIDが空です", Toast.LENGTH_SHORT).show()
+                                                }
+
+                                                SignInStatus.SIGN_IN_FAILED -> {
+                                                    //もう一度ログインする
+                                                    Toast.makeText(context, "アカウント作成しましたが、ログインに失敗しました", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+
+                                SignUpStatus.USER_ID_NULL -> {
+                                    Toast.makeText(context, "アカウント作成しましたが、ユーザーIDが空です", Toast.LENGTH_SHORT).show()
+                                }
+
+                                SignUpStatus.SIGN_UP_FAILED -> {
+                                    Toast.makeText(context, "アカウント作成に失敗しました", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     )

@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
+import gaku.original.myapplication.data.SignInStatus
+import gaku.original.myapplication.data.SignUpStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,29 +41,49 @@ class ExpenseViewModel(
         return sharedViewModel.userId.value
     }
 
-    fun signUpAndInitialSetup(email:String,password:String,uiCallback:(Boolean)->Unit){
+    fun signUpAndInitialSetup(email:String,password:String,callback:(SignUpStatus)->Unit){
         sharedViewModel.signUp(
             email=email,
             password = password,
-            callback = { isSuccess->
-                if(isSuccess){
-                    addUserInitialData(email)
+            callback = { status ->
+                when (status){
+                    SignUpStatus.SUCCESS -> {
+                        addUserInitialData(email)
+                        callback(SignUpStatus.SUCCESS)
+                    }
+                    SignUpStatus.USER_ID_NULL->{
+                        //UI側でToastする内容を変えたいのでこんな入れ子構造に。
+                        callback(SignUpStatus.USER_ID_NULL)
+                    }
+                    SignUpStatus.SIGN_UP_FAILED ->{
+                        callback(SignUpStatus.SIGN_UP_FAILED)
+                    }
                 }
-                uiCallback(isSuccess)//UIで実行する内容
-                //なんかめっちゃ入れ子になってるけど大丈夫かな笑 正しい設計なのか？笑
             }
         )
     }
 
-    fun signInAndFetchAllExpenses(email:String,password:String,uiCallback: (Boolean) -> Unit){
+    fun signInAndFetchAllExpenses(email:String,password:String,callback: (SignInStatus) -> Unit){
         sharedViewModel.signIn(
             email = email,
             password = password,
-            callback = {isSucess->
-                if(isSucess){
-                    fetchAllExpenses()
+            callback = {status ->
+                when (status){
+                    SignInStatus.SUCCESS -> {
+                        fetchAllExpenses(
+                            onComplete = {
+                                filterExpensesByMonth()
+                            }
+                        )
+                        callback(SignInStatus.SUCCESS)
+                    }
+                    SignInStatus.USER_ID_NULL->{
+                        callback(SignInStatus.USER_ID_NULL)
+                    }
+                    SignInStatus.SIGN_IN_FAILED ->{
+                        callback(SignInStatus.SIGN_IN_FAILED)
+                    }
                 }
-                uiCallback(isSucess)
             }
         )
     }
@@ -114,7 +136,7 @@ class ExpenseViewModel(
             onExpenseAdded = { newExpense ->
                 viewModelScope.launch {
                     Log.d("ExpenseViewModel", "_allExpenses.value: ${_allExpenses.value.size}")
-                    _allExpenses.value = _allExpenses.value + newExpense
+                    _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
                     //更新する
                     lastFetchedTime = System.currentTimeMillis()
@@ -141,13 +163,13 @@ class ExpenseViewModel(
 
     fun addUserInitialData(email:String){
         viewModelScope.launch {
-            expenseRepository.addUserInitialData(getUserId()?:"other",email)
+            expenseRepository.addUserInitialData(getUserId()?:"empty",email)
         }
     }
 
     fun fetchAllExpenses(onComplete:()->Unit={}){
         viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses(getUserId()?:"")
+            _allExpenses.value = expenseRepository.fetchUserExpenses(getUserId()?:"empty")
             Log.d("ExpenseViewModel","Expenses:${_allExpenses.value}")
             onComplete()
         }
@@ -164,7 +186,7 @@ class ExpenseViewModel(
         Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 
-    fun addExpense(expense: Expense,num:Int){
+    fun addExpense(expense: Expense){
         //idはpushしたときに代入することにする。したがって、nullのままにする。
         //repositoryのaddExpenseでidを格納する
         if(expense.category == null){
@@ -194,7 +216,7 @@ class ExpenseViewModel(
 
     /********************* AddEditView用*******************************/
     // 初期値として null もしくは適切なデフォルト値を設定
-    private val _expense = mutableStateOf<Expense>(
+    private val _expense = mutableStateOf(
         Expense(
             id = null,
             datetime = fromLocalDateTime(LocalDateTime.now()),

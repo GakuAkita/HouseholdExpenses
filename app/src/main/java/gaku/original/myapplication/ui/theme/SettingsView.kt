@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.Screen
@@ -23,8 +25,9 @@ fun SettingsView(sharedViewModel: SharedViewModel,navController: NavController){
         },
 
         bottomBar = { BottomBarView(navController)}
-    ){
-        innerPadding ->
+    ){ innerPadding ->
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
@@ -35,6 +38,8 @@ fun SettingsView(sharedViewModel: SharedViewModel,navController: NavController){
                  modifier=Modifier.fillMaxWidth(),
                  onClick = {
                      //ログアウト機能を実装
+                     sharedViewModel.signOut()
+                     Toast.makeText(context,"ログアウトしました",Toast.LENGTH_SHORT).show()
                      navController.navigate(Screen.StartScreen.Start.route)
                  }
              ) {

@@ -298,7 +298,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                         //idがnullなら新規作成ってこと
                         if(viewModel.getExpenseInstanceId()==null){
                             //追加する
-                            viewModel.addExpense(viewModel.expense.value,0)
+                            viewModel.addExpense(viewModel.expense.value)
                             Toast.makeText(
                                 context,
                                 "追加しました" ,

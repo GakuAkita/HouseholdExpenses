@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import gaku.original.myapplication.data.SignInStatus
+import gaku.original.myapplication.data.SignUpStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,7 +26,7 @@ class SharedViewModel:ViewModel() {
         _userId.value= id
     }
 
-    fun signIn(email: String, password: String, callback: (Boolean) -> Unit={}){
+    fun signIn(email: String, password: String, callback: (SignInStatus) -> Unit={}){
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -34,31 +36,38 @@ class SharedViewModel:ViewModel() {
                         _currentUser.value = user
                         _userId.value = user.uid
                         Log.d("SharedViewModel","signIn successful")
-                        callback(true)
+                        callback(SignInStatus.SUCCESS)
                     }else{
                         Log.d("SharedViewModel", "signIn successful but currentUser is null")
-                        callback(false)
+                        callback(SignInStatus.USER_ID_NULL)
                     }
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"
                     Log.d("SharedViewModel", "signIn failed:$errorMessage")
-                    callback(false)
+                    callback(SignInStatus.SIGN_IN_FAILED)
                 }
             }
     }
 
-    fun signUp(email: String, password: String, callback:(Boolean)->Unit = {}) {
+    fun signUp(email: String, password: String, callback:(SignUpStatus)->Unit = {}) {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("SharedViewModel","Created a user with Email:$email")
-                    callback(true)
+                    val user = task.result?.user
+                    val userId = user?.uid
+                    if(userId!=null){
+                        Log.d("SharedViewModel","Created a user with Email:$email")
+                        callback(SignUpStatus.SUCCESS)
+                    }else{
+                        Log.d("SharedViewModel","Signed Up successful but userId is null")
+                        callback(SignUpStatus.USER_ID_NULL)
+                    }
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"
                     Log.d("SharedViewModel", "signUp failed:$errorMessage")
-                    callback(false)
+                    callback(SignUpStatus.SIGN_UP_FAILED)
                 }
             }
     }
