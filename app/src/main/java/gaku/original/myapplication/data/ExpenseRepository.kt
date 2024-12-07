@@ -114,6 +114,7 @@ class ExpenseRepository {
                     Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
                 }
             }
+
     }
 
 

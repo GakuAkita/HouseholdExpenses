@@ -137,10 +137,10 @@ class ExpenseViewModel(
     private val _lastFetchedTime = MutableStateFlow(0L)
     val lastFetchedTime: Long get() = _lastFetchedTime.value
 
-    fun fetchLastFetchedTime(callback: (Long?) -> Unit) {
+    fun fetchLastFetchedTime() {
         expenseRepository.fetchLastFetchedTime(
-            sharedViewModel.userId.value.toString(),
-            deviceId.value.toString(),
+            getUserId()?:"empty",
+            deviceId.value?:"",
             callback = {
                 if(it!=null){
                     _lastFetchedTime.value = it
@@ -152,14 +152,11 @@ class ExpenseViewModel(
     }
 
     fun updateLastFetchedTime(timestamp:Long){
-        //ここで更新して、
-        _lastFetchedTime.value = timestamp
-
         //Repositoryを介してDBを更新
         expenseRepository.updateLastFetchedTime(
             getUserId()?:"empty",
             deviceId.value?:"",
-            _lastFetchedTime.value,
+            timestamp,
             callback ={}//特に何もやらんでいいや。
         )
     }
@@ -170,11 +167,12 @@ class ExpenseViewModel(
             sharedViewModel.userId.value.toString(),
             lastFetchedTime = _lastFetchedTime.value,
             onExpenseAdded = { newExpense ->
+                //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
+                fetchLastFetchedTime()
                 viewModelScope.launch {
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    //更新する
                     updateLastFetchedTime(System.currentTimeMillis())
                 }
             },
