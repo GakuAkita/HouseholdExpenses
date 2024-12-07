@@ -117,7 +117,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
             ){
-                Text("${currentPageYear}-${currentPageMonth}")
+                Text("${currentPageYear}-${currentPageMonth}　LastTimestamp:${viewModel.lastFetchedTime}")
             }
 
             Row(

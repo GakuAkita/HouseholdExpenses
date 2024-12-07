@@ -22,6 +22,10 @@ class SharedViewModel:ViewModel() {
 
     val isSignedIn:StateFlow<Boolean> = MutableStateFlow(firebaseAuth.currentUser!=null)
 
+    //サインアップした後ログインする場合はこのフラグをTrueにいれる。
+    //最初に追加すべきデータがあるから。
+    var isAfterSignUp = MutableStateFlow(false)
+
     fun setUserId(id:String?){
         _userId.value= id
     }
@@ -57,6 +61,7 @@ class SharedViewModel:ViewModel() {
                     val user = task.result?.user
                     val userId = user?.uid
                     if(userId!=null){
+                        isAfterSignUp.value =true
                         Log.d("SharedViewModel","Created a user with Email:$email")
                         callback(SignUpStatus.SUCCESS)
                     }else{

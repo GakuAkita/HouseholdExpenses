@@ -29,6 +29,10 @@ class ExpenseRepository {
         return database.child("users").child(userId).child("data").child("categories")
     }
 
+    private fun getDevicesRef(userId: String): DatabaseReference {
+        return database.child("users").child(userId).child("devices")
+    }
+
     //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,

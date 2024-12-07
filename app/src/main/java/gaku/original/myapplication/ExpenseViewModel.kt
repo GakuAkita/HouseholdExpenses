@@ -48,7 +48,6 @@ class ExpenseViewModel(
             callback = { status ->
                 when (status){
                     SignUpStatus.SUCCESS -> {
-                        addUserInitialData(email)
                         callback(SignUpStatus.SUCCESS)
                     }
                     SignUpStatus.USER_ID_NULL->{
@@ -70,6 +69,11 @@ class ExpenseViewModel(
             callback = {status ->
                 when (status){
                     SignInStatus.SUCCESS -> {
+                        //このフラグがたっているときはサインアップ後のログイン
+                        if(sharedViewModel.isAfterSignUp.value == true){
+                            addUserInitialData(email)
+                            sharedViewModel.isAfterSignUp.value = false
+                        }
                         fetchAllExpenses(
                             onComplete = {
                                 filterExpensesByMonth()
@@ -135,7 +139,7 @@ class ExpenseViewModel(
             lastFetchedTime = lastFetchedTime,
             onExpenseAdded = { newExpense ->
                 viewModelScope.launch {
-                    Log.d("ExpenseViewModel", "_allExpenses.value: ${_allExpenses.value.size}")
+                    Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
                     //更新する
@@ -164,6 +168,7 @@ class ExpenseViewModel(
     fun addUserInitialData(email:String){
         viewModelScope.launch {
             expenseRepository.addUserInitialData(getUserId()?:"empty",email)
+            Log.d("ExpenseViewModel","addUserInitialData for ${getUserId()}")
         }
     }
 
