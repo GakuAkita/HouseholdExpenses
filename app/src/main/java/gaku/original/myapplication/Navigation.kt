@@ -18,13 +18,12 @@ import gaku.original.myapplication.ui.theme.startScreen.StartView
 import kotlin.math.exp
 
 @Composable
-fun Navigation(){
+fun Navigation(sharedViewModel: SharedViewModel){
     val navController = rememberNavController()
 
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
     val repository = ExpenseRepository()
-    val sharedViewModel = SharedViewModel()
     val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
 
     NavHost(

@@ -3,6 +3,7 @@ package gaku.original.myapplication
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -92,6 +93,9 @@ class ExpenseViewModel(
         )
     }
 
+    /*********************デバイス管理********************************/
+    val deviceId: LiveData<String> = sharedViewModel.deviceId
+
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -130,9 +134,20 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
+    /***** タイムスタンプの管理 *****/
+    fun getLastFetchedTime(deviceId:String){
+        expenseRepository(
+            getUserId(),
+            deviceId,
+            callback = {
+                lastFetchedTime = it?:0L
+            }
+        )
+    }
+
+    var lastFetchedTime<Long?> = null
 
     val addObserveExpensesDoneFlag=MutableLiveData(false)
-    var lastFetchedTime = System.currentTimeMillis()
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),

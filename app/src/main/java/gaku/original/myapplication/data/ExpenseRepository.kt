@@ -21,16 +21,46 @@ class ExpenseRepository {
 
     // userId配下のexpenses
     private fun getUserExpenseRef(userId: String): DatabaseReference {
-        return database.child("users").child(userId).child("data").child("expenses")
+        return getUserRef(userId).child("data").child("expenses")
     }
 
     //userId配下のcategory
     private fun getUserCategoryRef(userId: String): DatabaseReference {
-        return database.child("users").child(userId).child("data").child("categories")
+        return getUserRef(userId).child("data").child("categories")
     }
 
+    //デバイスごとにタイムスタンプを管理
     private fun getDevicesRef(userId: String): DatabaseReference {
-        return database.child("users").child(userId).child("devices")
+        return getUserRef(userId).child("devices")
+    }
+
+    fun getLastFetchedTime(userId: String, deviceId: String, callback: (Long?) -> Unit) {
+        val deviceRef: DatabaseReference = getDevicesRef(userId).child(deviceId)
+
+        // データを非同期で取得
+        deviceRef.child("lastFetchedTime").get().addOnSuccessListener { dataSnapshot ->
+            // データが存在する場合、取得したタイムスタンプを返す
+            val lastFetchedTime = dataSnapshot.getValue(Long::class.java)
+            callback(lastFetchedTime)
+        }.addOnFailureListener { exception ->
+            // エラーが発生した場合
+            Log.e("ExpenseRepository", "Error getting last fetched time", exception)
+            callback(null)
+        }
+    }
+
+    fun updateLastFetchedTime(userId: String, deviceId: String, lastFetchedTime: Long,callback: (Boolean) -> Unit={}) {
+        val deviceRef: DatabaseReference = getDevicesRef(userId).child(deviceId)
+        deviceRef.child("lastFetchedTime").setValue(lastFetchedTime)
+            .addOnSuccessListener {
+                //成功した場合
+                callback(true)
+            }
+            .addOnFailureListener { exception ->
+                //失敗した場合
+                Log.e("ExpenseRepository", "Error updating last fetched time", exception)
+                callback(false)
+            }
     }
 
     //Realtime Databaseの差分だけ監視

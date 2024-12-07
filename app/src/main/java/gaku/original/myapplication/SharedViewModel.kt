@@ -1,6 +1,8 @@
 package gaku.original.myapplication
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -81,5 +83,16 @@ class SharedViewModel:ViewModel() {
         firebaseAuth.signOut()
         _currentUser.value = null
         _userId.value = null
+    }
+
+    /****************デバイス管理*****************/
+    private val _deviceId = MutableLiveData<String>()
+    val deviceId: LiveData<String> get() = _deviceId
+
+    //アプリ起動時に一回だけセットする
+    fun setDeviceId(id:String){
+        if(_deviceId.value == null){
+            _deviceId.value = id
+        }
     }
 }
