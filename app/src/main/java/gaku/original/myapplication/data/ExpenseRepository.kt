@@ -34,7 +34,7 @@ class ExpenseRepository {
         return getUserRef(userId).child("devices")
     }
 
-    fun getLastFetchedTime(userId: String, deviceId: String, callback: (Long?) -> Unit) {
+    fun fetchLastFetchedTime(userId: String, deviceId: String, callback: (Long?) -> Unit) {
         val deviceRef: DatabaseReference = getDevicesRef(userId).child(deviceId)
 
         // データを非同期で取得

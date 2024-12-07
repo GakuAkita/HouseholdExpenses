@@ -134,31 +134,48 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
-    /***** タイムスタンプの管理 *****/
-    fun getLastFetchedTime(deviceId:String){
-        expenseRepository(
-            getUserId(),
-            deviceId,
+    private val _lastFetchedTime = MutableStateFlow(0L)
+    val lastFetchedTime: Long get() = _lastFetchedTime.value
+
+    fun fetchLastFetchedTime(callback: (Long?) -> Unit) {
+        expenseRepository.fetchLastFetchedTime(
+            sharedViewModel.userId.value.toString(),
+            deviceId.value.toString(),
             callback = {
-                lastFetchedTime = it?:0L
+                if(it!=null){
+                    _lastFetchedTime.value = it
+                }else{
+                    Log.d("ExpenseViewModel","fetchLastFetchedTime null")
+                }
             }
         )
     }
 
-    var lastFetchedTime<Long?> = null
+    fun updateLastFetchedTime(timestamp:Long){
+        //ここで更新して、
+        _lastFetchedTime.value = timestamp
+
+        //Repositoryを介してDBを更新
+        expenseRepository.updateLastFetchedTime(
+            getUserId()?:"empty",
+            deviceId.value?:"",
+            _lastFetchedTime.value,
+            callback ={}//特に何もやらんでいいや。
+        )
+    }
 
     val addObserveExpensesDoneFlag=MutableLiveData(false)
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),
-            lastFetchedTime = lastFetchedTime,
+            lastFetchedTime = _lastFetchedTime.value,
             onExpenseAdded = { newExpense ->
                 viewModelScope.launch {
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
                     //更新する
-                    lastFetchedTime = System.currentTimeMillis()
+                    updateLastFetchedTime(System.currentTimeMillis())
                 }
             },
             onExpenseUpdated = { updatedExpense ->
