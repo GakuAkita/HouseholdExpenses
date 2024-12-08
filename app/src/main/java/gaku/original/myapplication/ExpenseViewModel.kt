@@ -134,33 +134,6 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
-    private val _lastFetchedTime = MutableStateFlow(0L)
-    val lastFetchedTime: Long get() = _lastFetchedTime.value
-
-    fun fetchLastFetchedTime() {
-        expenseRepository.fetchLastFetchedTime(
-            getUserId()?:"empty",
-            deviceId.value?:"",
-            callback = {
-                if(it!=null){
-                    _lastFetchedTime.value = it
-                }else{
-                    Log.d("ExpenseViewModel","fetchLastFetchedTime null\nThis can happen immediately after the usre signed up and logged in.")
-                }
-            }
-        )
-    }
-
-    fun updateLastFetchedTime(timestamp:Long){
-        //Repositoryを介してDBを更新
-        expenseRepository.updateLastFetchedTime(
-            getUserId()?:"empty",
-            deviceId.value?:"",
-            timestamp,
-            callback ={}//特に何もやらんでいいや。
-        )
-    }
-
     //本当のフラグはsharedViewModelで管理している。ログアウトのときフラグを下ろせない
     val addObserveExpensesDoneFlagState= mutableStateOf(sharedViewModel.addObserveExpensesDoneFlag)
     fun setAddObserveExpensesDoneFlag(flag:Boolean){
@@ -170,7 +143,7 @@ class ExpenseViewModel(
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),
-            lastFetchedTime = _lastFetchedTime.value,
+            lastFetchedTime = 0L,
             onExpenseAdded = { newExpense ->
                 //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
                 viewModelScope.launch {

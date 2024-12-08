@@ -1,6 +1,8 @@
 package gaku.original.myapplication.data
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.tasks.Task
 import com.google.firebase.Firebase
 import com.google.firebase.database.ChildEventListener
@@ -8,6 +10,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
 
 class ExpenseRepository {
@@ -34,18 +37,28 @@ class ExpenseRepository {
         return getUserRef(userId).child("devices")
     }
 
-    fun fetchLastFetchedTime(userId: String, deviceId: String, callback: (Long?) -> Unit) {
+    //lastFetchedTimeの管理はRepository内で行い、UIで表示したかったらViewModelで読み出す
+    private val _lastFetchedTime = MutableLiveData(0L)
+    val lastFetchedTime: LiveData<Long> get() = _lastFetchedTime
+
+    fun fetchLastFetchedTime(userId: String, deviceId: String,callback: (Long) -> Unit) {
         val deviceRef: DatabaseReference = getDevicesRef(userId).child(deviceId)
 
         // データを非同期で取得
         deviceRef.child("lastFetchedTime").get().addOnSuccessListener { dataSnapshot ->
             // データが存在する場合、取得したタイムスタンプを返す
-            val lastFetchedTime = dataSnapshot.getValue(Long::class.java)
-            callback(lastFetchedTime)
+            //SignUpした直後は0Lが入るかも。
+            //Todo:オフライン対応が問題だな。今はずっとオンライン前提で考えている
+            val timestamp = dataSnapshot.getValue(Long::class.java)?:0L
+            _lastFetchedTime.postValue(timestamp)
+            callback(timestamp)
         }.addOnFailureListener { exception ->
             // エラーが発生した場合
             Log.e("ExpenseRepository", "Error getting last fetched time", exception)
-            callback(null)
+            //エラー時は何もしたくない。
+            //0Lのときはオフラインなので、オンラインになった後でもlastFetchedTimeを更新したくない。
+            //上でオンライン前提って考えているのにワロタ。
+            callback(0L)
         }
     }
 
@@ -66,15 +79,21 @@ class ExpenseRepository {
     //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,
-        lastFetchedTime: Long,
+        deviceId:String,
         onExpenseAdded: (Expense) -> Unit,
         onExpenseUpdated: (Expense) -> Unit,
         onExpenseRemoved: (Expense) -> Unit
     ) {
-        val expenseRef = getUserExpenseRef(userId)
+        // fetchLastFetchedTime を呼び出してタイムスタンプを取得してからobserveExpensesを開始
+        fetchLastFetchedTime(userId, deviceId){initialLastFetchedTime->
+            //これ以降で実行されるものは、すでにタイムスタンプがセットされている状態
+            val expenseRef = getUserExpenseRef(userId)
+            var lastFetchedTime = initialLastFetchedTime
+        }
+
 
         //
-        val query = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
+        val query = expenseRef.orderByChild("timestamp").startAt(_lastFetchedTime.value.toDouble())
 
         query.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
