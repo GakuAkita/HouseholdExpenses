@@ -117,7 +117,7 @@ class ExpenseRepository {
                             callback = {}
                             )
                         onExpenseAdded(it)
-                        Log.d("ExpenseRepository", "Updated lastFetchedTime to: $lastFetchedTime")
+                        Log.d("ExpenseRepository", "Updated lastFetchedTime to: ${lastFetchedTime+1}")
                     }
                 }
 
@@ -139,9 +139,11 @@ class ExpenseRepository {
                 override fun onCancelled(error: DatabaseError) {}
             }
 
-            // 最初のリスナーを登録
-            query.addChildEventListener(listener)
-            currentListener = listener
+            // リスナーがすでに登録されていないか確認し、再登録を避ける
+            if (currentListener == null) {
+                query.addChildEventListener(listener)
+                currentListener = listener
+            }
 
             // もしlastFetchedTimeが変更された場合、その後にデータを再取得する
             _lastFetchedTime.observeForever { newFetchedTime ->

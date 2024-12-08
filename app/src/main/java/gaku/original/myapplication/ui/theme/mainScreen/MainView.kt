@@ -77,24 +77,17 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     }
 
     //サインインした瞬間にやるべきこと
-    LaunchedEffect(Unit) {
-        if(viewModel.addObserveExpensesDoneFlagState.value==false){
-            viewModel.fetchAllExpenses(
-                onComplete = {
-                    viewModel.initializeLastFetchedTime(
-                        onSet = {
-                            viewModel.observeExpenses()
-                            viewModel.setAddObserveExpensesDoneFlag(true)
-                            Log.d("MainView","observeExpenses called.")
-                        }
-                    )
-                }
-            )
-        }
-        else{
-            Log.d("MainView","addObserveExpenses is already done.")
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        Log.d("MainView","addObserveExpensesDoneFlagState:${viewModel.addObserveExpensesDoneFlagState.value}")
+//        if(viewModel.addObserveExpensesDoneFlagState.value==false){
+//            viewModel.observeExpenses()
+//            viewModel.addObserveExpensesDoneFlagState.value = true
+//            Log.d("MainView","addObserveExpenses is done.")
+//        }
+//        else{
+//            Log.d("MainView","addObserveExpenses is already done.")
+//        }
+//    }
 
     val monthExpenses = viewModel.filteredExpenses.collectAsState().value
     Log.d("MainView","monthExpenses updated in MainView:: size=${monthExpenses.size}")

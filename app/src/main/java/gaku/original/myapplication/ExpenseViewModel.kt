@@ -80,7 +80,15 @@ class ExpenseViewModel(
                             sharedViewModel.isAfterSignUp.value = false
                         }
                         fetchAllExpenses(
+                            //onComplete内で行われることは、すべてのfetchが終わった後。
                             onComplete = {
+                                Log.d("ExpenseViewModel","fetchAllExpenses done after Login")
+                                //timestampの更新をし、
+                                initializeLastFetchedTime{
+                                    observeExpenses()
+                                    sharedViewModel.addObserveExpensesDoneFlag=false
+                                    Log.d("observeExpenses","observeExpenses done")
+                                }
                                 filterExpensesByMonth()
                             }
                         )
