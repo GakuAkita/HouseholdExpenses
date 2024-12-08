@@ -145,7 +145,7 @@ class ExpenseViewModel(
                 if(it!=null){
                     _lastFetchedTime.value = it
                 }else{
-                    Log.d("ExpenseViewModel","fetchLastFetchedTime null")
+                    Log.d("ExpenseViewModel","fetchLastFetchedTime null\nThis can happen immediately after the usre signed up and logged in.")
                 }
             }
         )
@@ -161,7 +161,12 @@ class ExpenseViewModel(
         )
     }
 
-    val addObserveExpensesDoneFlag=MutableLiveData(false)
+    //本当のフラグはsharedViewModelで管理している。ログアウトのときフラグを下ろせない
+    val addObserveExpensesDoneFlagState= mutableStateOf(sharedViewModel.addObserveExpensesDoneFlag)
+    fun setAddObserveExpensesDoneFlag(flag:Boolean){
+        sharedViewModel.addObserveExpensesDoneFlag=flag
+    }
+
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),

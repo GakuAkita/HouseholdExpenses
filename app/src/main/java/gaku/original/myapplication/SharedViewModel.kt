@@ -28,6 +28,10 @@ class SharedViewModel:ViewModel() {
     //最初に追加すべきデータがあるから。
     var isAfterSignUp = MutableStateFlow(false)
 
+    //ログアウトして、もう一度別アカウントでログインをしようとしたときに、フラグを下げないと
+    //observeExpenseが最新のユーザーに対応しなくなる。したがって、フラグはこっちで管理
+    var addObserveExpensesDoneFlag=false
+
     fun setUserId(id:String?){
         _userId.value= id
     }
@@ -83,6 +87,7 @@ class SharedViewModel:ViewModel() {
         firebaseAuth.signOut()
         _currentUser.value = null
         _userId.value = null
+        addObserveExpensesDoneFlag=false
     }
 
     /****************デバイス管理*****************/

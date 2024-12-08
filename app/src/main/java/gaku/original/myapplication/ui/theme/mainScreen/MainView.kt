@@ -77,10 +77,11 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     }
 
     LaunchedEffect(Unit) {
-        if(viewModel.addObserveExpensesDoneFlag.value==false){
-            viewModel.addObserveExpensesDoneFlag.value=true
+        if(viewModel.addObserveExpensesDoneFlagState.value==false){
+            viewModel.setAddObserveExpensesDoneFlag(true)
             viewModel.fetchAllExpenses()
             viewModel.observeExpenses()
+            Log.d("MainView","observeExpenses called.")
         }
         else{
             Log.d("MainView","addObserveExpenses is already done.")
