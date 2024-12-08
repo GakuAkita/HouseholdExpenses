@@ -80,6 +80,7 @@ class ExpenseRepository {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 val expense = snapshot.getValue(Expense::class.java)
                 expense?.let {
+                    Log.d("ExpenseRepository", "onChildAdded: startAtの値は$lastFetchedTime")
                     onExpenseAdded(it)
                 }
             }
@@ -87,6 +88,7 @@ class ExpenseRepository {
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 val updatedExpense = snapshot.getValue(Expense::class.java)
                 updatedExpense?.let {
+                    Log.d("ExpenseRepository","onChildChanged called ${updatedExpense}")
                     onExpenseUpdated(it)
                 }
             }

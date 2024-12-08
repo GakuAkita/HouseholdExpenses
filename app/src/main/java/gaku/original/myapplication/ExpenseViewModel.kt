@@ -168,12 +168,10 @@ class ExpenseViewModel(
             lastFetchedTime = _lastFetchedTime.value,
             onExpenseAdded = { newExpense ->
                 //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
-                fetchLastFetchedTime()
                 viewModelScope.launch {
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    updateLastFetchedTime(System.currentTimeMillis())
                 }
             },
             onExpenseUpdated = { updatedExpense ->
@@ -214,10 +212,14 @@ class ExpenseViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = _allExpenses.value.filter { expense ->
-            val expenseDate = toLocalDateTime(expense.datetime)
-            expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-        }
+        _filteredExpenses.value = _allExpenses.value
+            .filter { expense ->
+                val expenseDate = toLocalDateTime(expense.datetime)
+                expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
+            }
+            .sortedByDescending { expense ->
+                toLocalDateTime(expense.datetime) // 降順にソート
+            }
         Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 

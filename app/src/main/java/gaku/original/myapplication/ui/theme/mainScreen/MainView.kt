@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.DummyExpenses
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.theme.BottomBarView
@@ -80,14 +79,16 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     LaunchedEffect(Unit) {
         if(viewModel.addObserveExpensesDoneFlag.value==false){
             viewModel.addObserveExpensesDoneFlag.value=true
+            viewModel.fetchAllExpenses()
             viewModel.observeExpenses()
         }
         else{
             Log.d("MainView","addObserveExpenses is already done.")
         }
     }
-    // ViewModel から StateFlow を監視
-    val monthExpenses by viewModel.filteredExpenses.collectAsState()
+
+    val monthExpenses = viewModel.filteredExpenses.collectAsState().value
+    Log.d("MainView","monthExpenses updated in MainView:: size=${monthExpenses.size}")
 
     Scaffold(
         topBar = {
@@ -155,7 +156,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                 snapshotFlow { calendarPagerState.currentPage }
                     .distinctUntilChanged()
                     .collect{ currentPage->
-                        Log.d("MainView","Calendar pager state changed: ${currentPage}")
+                        Log.d("MainView","Calendar pager state changed: $currentPage")
                         when{
                             currentPage > previousCalendarPage -> viewModel.incrementMonth()
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
@@ -176,18 +177,13 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                         thumbSelectedColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    //LazyColumnのそとにないとだめなのか。
-                    val sortedMonthExpensesList=monthExpenses.sortedByDescending { it.datetime }
-                    Log.d("MainView","sortedMonthExpensesList updated:${monthExpenses}")
-                    Log.d("MainView","sortedMonthExpensesList size:${sortedMonthExpensesList.size}")
-
                     LazyColumn(
                         state=listState,
                         modifier=Modifier
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        items(sortedMonthExpensesList){
+                        items(monthExpenses){
                                 expense ->
                             ExpenseItem(
                                 expense = expense,
