@@ -33,7 +33,6 @@ class ExpenseRepository {
         return database.child("users").child(userId).child("devices")
     }
 
-    //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,
         lastFetchedTime: Long,
@@ -43,40 +42,45 @@ class ExpenseRepository {
     ) {
         val expenseRef = getUserExpenseRef(userId)
 
-        //あ～わかった。updateやremoveが走ったときは、timestampがlastFetchedTimeより後ろになってしまっているから、onChildChangedが走らないのか。
-        val query = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
-        Log.d("ExpenseRepository","lastFetchedTime.toDouble(): ${lastFetchedTime.toDouble()}")
+        // `onChildAdded` 用のクエリ
+        val addedQuery = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
+        Log.d("ExpenseRepository", "lastFetchedTime.toDouble(): ${lastFetchedTime.toDouble()}")
 
-        query.addChildEventListener(object : ChildEventListener {
+        // `onChildAdded` のみ
+        addedQuery.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("ExpenseRepository","onChildAdded was called.")
+                Log.d("ExpenseRepository", "onChildAdded was called.")
                 val expense = snapshot.getValue(Expense::class.java)
-                expense?.let {
-                    onExpenseAdded(it)
-                }
+                expense?.let { onExpenseAdded(it) }
             }
 
-            //updateしたときに、ここが走っていない。
+            override fun onCancelled(error: DatabaseError) {}
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildRemoved(snapshot: DataSnapshot) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+        })
+
+        // onChildChangedとonChildRemovedはtimestampによらず監視をする。
+        expenseRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
+
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("ExpenseRepository","onChildChanged was called.")
+                Log.d("ExpenseRepository", "onChildChanged was called.")
                 val updatedExpense = snapshot.getValue(Expense::class.java)
-                updatedExpense?.let {
-                    onExpenseUpdated(it)
-                }
+                updatedExpense?.let { onExpenseUpdated(it) }
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
-                Log.d("ExpenseRepository","onChildRemoved was called.")
+                Log.d("ExpenseRepository", "onChildRemoved was called.")
                 val removedExpense = snapshot.getValue(Expense::class.java)
-                removedExpense?.let {
-                    onExpenseRemoved(it)
-                }
+                removedExpense?.let { onExpenseRemoved(it) }
             }
 
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onCancelled(error: DatabaseError) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
         })
     }
+
 
 
     fun addUserInitialData(userId: String, email: String) {

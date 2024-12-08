@@ -76,14 +76,6 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         viewModel.filterExpensesByMonth()
     }
 
-    LaunchedEffect(viewModel.allExpense) {
-        Log.d("MainView","allExpense changed!!")
-        Log.d("MainView","size:${viewModel.allExpense.value.size}")
-        Log.d("MainView","${viewModel.allExpense.value}")
-        viewModel.filterExpensesByMonth()
-        Log.d("MainView","filterExpensesByMonth Ended.")
-    }
-
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
 
     Scaffold(

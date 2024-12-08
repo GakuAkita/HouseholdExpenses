@@ -143,6 +143,8 @@ class ExpenseViewModel(
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
+                    //ここでfilterしないと
+                    filterExpensesByMonth()
                 }
             },
             onExpenseUpdated = { updatedExpense ->
