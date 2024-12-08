@@ -43,6 +43,7 @@ class ExpenseRepository {
         }
         listeners.clear()
     }
+
     fun observeExpenses(
         userId: String,
         lastFetchedTime: Long,

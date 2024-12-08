@@ -65,13 +65,25 @@ class ExpenseViewModel(
             callback = {status ->
                 when (status){
                     SignInStatus.SUCCESS -> {
+                        /*
+                        本当にタイミング悪く、fetchAllExpensesの取得している間にデータが書き込まれたら
+                        バグるかも。
+                         */
+                        observeExpenses()
+                        Log.d("ExpenseViewModel","observeExpenses() was called.")
+
                         //このフラグがたっているときはサインアップ後のログイン
                         if(sharedViewModel.isAfterSignUp.value == true){
                             addUserInitialData(email)
                             sharedViewModel.isAfterSignUp.value = false
                         }
                         fetchAllExpenses(
-                            onComplete = {}
+                            onComplete = {
+                                //fetchAllExpensesがCoroutineだから少し厄介だな。
+                                //loadingかどうか見れるとよいのだが。
+                                //ここにフィルターを入れないと最初に表示されない。
+                                filterExpensesByMonth()
+                            }
                         )
                         callback(SignInStatus.SUCCESS)
                     }
