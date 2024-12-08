@@ -78,6 +78,8 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
 
     LaunchedEffect(viewModel.allExpense) {
         Log.d("MainView","allExpense changed!!")
+        Log.d("MainView","size:${viewModel.allExpense.value.size}")
+        Log.d("MainView","${viewModel.allExpense.value}")
         viewModel.filterExpensesByMonth()
         Log.d("MainView","filterExpensesByMonth Ended.")
     }

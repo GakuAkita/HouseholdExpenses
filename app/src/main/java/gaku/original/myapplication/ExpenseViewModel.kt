@@ -146,6 +146,7 @@ class ExpenseViewModel(
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
+                    filterExpensesByMonth()
                 }
             },
             onExpenseUpdated = { updatedExpense ->
@@ -158,6 +159,7 @@ class ExpenseViewModel(
                         }
                     }
                     Log.d("ExpenseViewModel", "Expense updated: ${updatedExpense.id}")
+                    filterExpensesByMonth()
                 }
             },
             onExpenseRemoved = { removedExpense ->
@@ -166,6 +168,7 @@ class ExpenseViewModel(
                         expense.id == removedExpense.id
                     }
                     Log.d("ExpenseViewModel", "Expense removed: $removedExpense")
+                    filterExpensesByMonth()
                 }
             }
         )
@@ -190,17 +193,15 @@ class ExpenseViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        viewModelScope.launch {
-            val filteredList = _allExpenses.value
-                .filter { expense ->
-                    val expenseDate = toLocalDateTime(expense.datetime)
-                    expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-                }
-                .sortedByDescending {
-                    toLocalDateTime(it.datetime)
-                }
-            _filteredExpenses.emit(filteredList) // 更新
-        }
+        _filteredExpenses.value = _allExpenses.value
+            .filter { expense ->
+                val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
+                val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
+                expenseYear == targetYear && expenseMonth == targetMonth
+            }
+            .sortedByDescending {
+                it.datetime
+            }
         Log.d("ExpenseViewModel","filterExpensesByMonth was executed.")
     }
 
