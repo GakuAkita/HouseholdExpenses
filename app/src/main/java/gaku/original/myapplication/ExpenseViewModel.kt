@@ -86,6 +86,16 @@ class ExpenseViewModel(
         )
     }
 
+    fun signOut(){
+        //自分のuserId配下のExpenseRefにすでにあるイベントリスナーをクリアにする。
+        //これをしないとログイン・ログアウトをしたときにおかしくなる。
+        expenseRepository.clearListeners(sharedViewModel.userId.value.toString())
+
+        //こっちでFirebase関連の
+        //サインアウトしてuserId配下にアクセスできなくなるので、注意。
+        sharedViewModel.signOut()
+    }
+
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -143,7 +153,8 @@ class ExpenseViewModel(
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    //ここでfilterしないと
+                    //FIXME:filterExpensesByMonth()をもう少し賢くやりたい。実行しすぎているかもなのと、
+                    //ここに3つ現れているのは普通に美しくない。
                     filterExpensesByMonth()
                 }
             },
@@ -201,8 +212,8 @@ class ExpenseViewModel(
             .sortedByDescending {
                 it.datetime
             }
-        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
-        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
+//        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
+//        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
     }
 
     fun addExpense(expense: Expense){

@@ -14,11 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import gaku.original.myapplication.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.SharedViewModel
 
 @Composable
-fun SettingsView(sharedViewModel: SharedViewModel,navController: NavController){
+fun SettingsView(viewModel: ExpenseViewModel,navController: NavController){
     Scaffold(
         topBar = {
             TopBarView("SettingsView作成中")
@@ -38,7 +39,7 @@ fun SettingsView(sharedViewModel: SharedViewModel,navController: NavController){
                  modifier=Modifier.fillMaxWidth(),
                  onClick = {
                      //ログアウト機能を実装
-                     sharedViewModel.signOut()
+                     viewModel.signOut()
                      Toast.makeText(context,"ログアウトしました",Toast.LENGTH_SHORT).show()
                      navController.navigate(Screen.StartScreen.Start.route)
                  }

@@ -33,6 +33,16 @@ class ExpenseRepository {
         return database.child("users").child(userId).child("devices")
     }
 
+    //あるアカウントでログインして、サインアウトした後、別のアカウントでログインしたときの対応ができていない。
+    //冒頭に溜まっているeventをすべてクリアにする操作を入れないとまずいな。か、サインアウトのときにイベントをすべて消すか。
+    private val listeners = mutableListOf<ChildEventListener>()//リスナーをすべてここに溜める。
+    fun clearListeners(userId:String){
+        val expenseRef = getUserExpenseRef(userId)
+        listeners.forEach {listener->
+            expenseRef.removeEventListener(listener)
+        }
+        listeners.clear()
+    }
     fun observeExpenses(
         userId: String,
         lastFetchedTime: Long,
@@ -100,7 +110,6 @@ class ExpenseRepository {
     suspend fun fetchUserExpenses(userId: String): List<Expense> {
         try {
             val snapshot = getUserExpenseRef(userId).get().await()
-            Log.d("ExpenseRepository", "fetchUserExpenses successful")
             val expenses = snapshot.children.mapNotNull {
                 it.getValue(Expense::class.java)
             }

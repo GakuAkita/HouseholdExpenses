@@ -19,21 +19,22 @@ import gaku.original.myapplication.ui.theme.startScreen.StartView
 import kotlin.math.exp
 
 @Composable
-fun Navigation(sharedViewModel: SharedViewModel){
+fun Navigation(){
     val navController = rememberNavController()
 
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
     val repository = ExpenseRepository()
+    val sharedViewModel: SharedViewModel = viewModel()
     val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
 
-    if(expenseViewModel.addObserveExpensesDoneFlag.value == false){
-        Log.d("Navigation","observeExpenses() called.")
-        expenseViewModel.observeExpenses()
-        expenseViewModel.addObserveExpensesDoneFlag.value = true
-    }else{
-        Log.d("Navigation","observeExpenses() was already called.")
-    }
+//    if(expenseViewModel.addObserveExpensesDoneFlag.value == false){
+//        Log.d("Navigation","observeExpenses() called.")
+//        expenseViewModel.observeExpenses()
+//        expenseViewModel.addObserveExpensesDoneFlag.value = true
+//    }else{
+//        Log.d("Navigation","observeExpenses() was already called.")
+//    }
 
     NavHost(
         navController = navController,
@@ -72,7 +73,7 @@ fun Navigation(sharedViewModel: SharedViewModel){
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.route){
-            SettingsView(sharedViewModel,navController)
+            SettingsView(expenseViewModel,navController)
         }
     }
 }

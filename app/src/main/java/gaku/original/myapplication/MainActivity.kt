@@ -20,26 +20,14 @@ class MainActivity : ComponentActivity() {
             HouseholdExpensesTheme(
                 darkTheme = true/*システム設定によらずずっとダーク*/
             ) {
-                val sharedViewModel: SharedViewModel by viewModels()
-
-                // デバイスIDを取得してSharedViewModelにセット
-                val deviceId = getDeviceId(applicationContext)
-                sharedViewModel.setDeviceId(deviceId)
-
                 // 一番最初にデフォルで存在するScaffold
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Surface(modifier = Modifier.padding(innerPadding)) {
-                        Navigation(sharedViewModel)
+                        Navigation()
                     }
                 }
             }
         }
     }
-}
-
-
-// デバイスの一意なIDを取得する関数
-private fun getDeviceId(context: Context): String {
-    return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 }

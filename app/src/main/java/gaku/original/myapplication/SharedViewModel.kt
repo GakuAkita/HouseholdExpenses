@@ -6,12 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.SignInStatus
 import gaku.original.myapplication.data.SignUpStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class SharedViewModel:ViewModel() {
+//これいいのかな。Repositoryもらってしまって。
+//普通にきもい設計かも。
+class SharedViewModel():ViewModel() {
 
     /****************ユーザー管理*****************/
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -88,16 +91,5 @@ class SharedViewModel:ViewModel() {
         _currentUser.value = null
         _userId.value = null
         addObserveExpensesDoneFlag=false
-    }
-
-    /****************デバイス管理*****************/
-    private val _deviceId = MutableLiveData<String>()
-    val deviceId: LiveData<String> get() = _deviceId
-
-    //アプリ起動時に一回だけセットする
-    fun setDeviceId(id:String){
-        if(_deviceId.value == null){
-            _deviceId.value = id
-        }
     }
 }

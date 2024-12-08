@@ -77,6 +77,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
     }
 
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
+    Log.d("MainView","monthExpenses lodaded:${monthExpenses.size}")
 
     Scaffold(
         topBar = {
@@ -119,7 +120,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                     CalendarDisplay(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
-                        monthExpenses = monthExpenses,
+                        monthExpenses = viewModel.filteredExpenses.collectAsState().value,
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
