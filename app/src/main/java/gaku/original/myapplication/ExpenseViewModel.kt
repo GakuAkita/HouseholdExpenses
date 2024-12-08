@@ -97,9 +97,6 @@ class ExpenseViewModel(
         )
     }
 
-    /*********************デバイス管理********************************/
-    val deviceId: LiveData<String> = sharedViewModel.deviceId
-
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -138,6 +135,19 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
+    /* lastFetchedTimeの初期値をいれる。保存されているのはExpenseRepository内 */
+    fun initializeLastFetchedTime(onSet:()->Unit){
+        expenseRepository.setLastFetchedTime(
+            userId = sharedViewModel.userId.value.toString(),
+            deviceId = sharedViewModel.deviceId.value.toString(),
+            callback = {timestamp->
+                if(timestamp!=0L){
+                    onSet()
+                }
+            }
+        )
+    }
+
     //本当のフラグはsharedViewModelで管理している。ログアウトのときフラグを下ろせない
     val addObserveExpensesDoneFlagState= mutableStateOf(sharedViewModel.addObserveExpensesDoneFlag)
     fun setAddObserveExpensesDoneFlag(flag:Boolean){
@@ -147,6 +157,7 @@ class ExpenseViewModel(
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),
+            sharedViewModel.deviceId.value.toString(),
             onExpenseAdded = { newExpense ->
                 //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
                 viewModelScope.launch {

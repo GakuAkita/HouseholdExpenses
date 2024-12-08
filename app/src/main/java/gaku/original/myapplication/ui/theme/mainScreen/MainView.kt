@@ -76,12 +76,20 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         viewModel.filterExpensesByMonth()
     }
 
-    LaunchedEffect(viewModel.isSignedIn()) {
+    //サインインした瞬間にやるべきこと
+    LaunchedEffect(Unit) {
         if(viewModel.addObserveExpensesDoneFlagState.value==false){
-            viewModel.setAddObserveExpensesDoneFlag(true)
-            viewModel.fetchAllExpenses()
-            viewModel.observeExpenses()
-            Log.d("MainView","observeExpenses called.")
+            viewModel.fetchAllExpenses(
+                onComplete = {
+                    viewModel.initializeLastFetchedTime(
+                        onSet = {
+                            viewModel.observeExpenses()
+                            viewModel.setAddObserveExpensesDoneFlag(true)
+                            Log.d("MainView","observeExpenses called.")
+                        }
+                    )
+                }
+            )
         }
         else{
             Log.d("MainView","addObserveExpenses is already done.")

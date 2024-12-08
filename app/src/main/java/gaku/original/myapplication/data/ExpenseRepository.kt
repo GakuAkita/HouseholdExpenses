@@ -41,7 +41,7 @@ class ExpenseRepository {
     private val _lastFetchedTime = MutableLiveData(0L)
     val lastFetchedTime: LiveData<Long> get() = _lastFetchedTime
 
-    fun fetchLastFetchedTime(userId: String, deviceId: String,callback: (Long) -> Unit) {
+    fun setLastFetchedTime(userId: String, deviceId: String,callback: (Long) -> Unit) {
         val deviceRef: DatabaseReference = getDevicesRef(userId).child(deviceId)
 
         // データを非同期で取得
@@ -79,6 +79,7 @@ class ExpenseRepository {
     //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,
+        deviceId: String,
         onExpenseAdded: (Expense) -> Unit,
         onExpenseUpdated: (Expense) -> Unit,
         onExpenseRemoved: (Expense) -> Unit
@@ -107,7 +108,14 @@ class ExpenseRepository {
                     expense?.let {
                         // `lastFetchedTime` を更新
                         lastFetchedTime = it.timestamp ?: lastFetchedTime
-                        _lastFetchedTime.postValue(lastFetchedTime) // LiveData を更新
+                        //これ+1しないと終わる。ずっと同じExpenseを追加することになる。
+//                        _lastFetchedTime.postValue(lastFetchedTime+1) // LiveData を更新
+                        updateLastFetchedTime(
+                            userId,
+                            deviceId,
+                            lastFetchedTime+1,
+                            callback = {}
+                            )
                         onExpenseAdded(it)
                         Log.d("ExpenseRepository", "Updated lastFetchedTime to: $lastFetchedTime")
                     }
