@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +26,14 @@ fun Navigation(sharedViewModel: SharedViewModel){
     //@Todo hilt使えるようになる
     val repository = ExpenseRepository()
     val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
+
+    if(expenseViewModel.addObserveExpensesDoneFlag.value == false){
+        Log.d("Navigation","observeExpenses() called.")
+        expenseViewModel.observeExpenses()
+        expenseViewModel.addObserveExpensesDoneFlag.value = true
+    }else{
+        Log.d("Navigation","observeExpenses() was already called.")
+    }
 
     NavHost(
         navController = navController,

@@ -71,10 +71,7 @@ class ExpenseViewModel(
                             sharedViewModel.isAfterSignUp.value = false
                         }
                         fetchAllExpenses(
-                            onComplete = {
-                                observeExpenses()
-                                filterExpensesByMonth()
-                            }
+                            onComplete = {}
                         )
                         callback(SignInStatus.SUCCESS)
                     }
@@ -146,10 +143,10 @@ class ExpenseViewModel(
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    filterExpensesByMonth()
                 }
             },
             onExpenseUpdated = { updatedExpense ->
+                Log.d("Expense This is updatedExpense","${updatedExpense.amount}")
                 viewModelScope.launch {
                     _allExpenses.value = _allExpenses.value.map { expense ->
                         if (expense.id == updatedExpense.id){
@@ -202,7 +199,8 @@ class ExpenseViewModel(
             .sortedByDescending {
                 it.datetime
             }
-        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.")
+        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
+        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
     }
 
     fun addExpense(expense: Expense){
