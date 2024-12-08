@@ -137,4 +137,17 @@ class ExpenseRepository {
                 }
             }
     }
+
+    fun removeExpense(userId:String,expense:Expense){
+        val expenseRef = getUserExpenseRef(userId)
+        val expenseToRemoveRef = expenseRef.child(expense.id ?: return)
+        expenseToRemoveRef.removeValue()
+            .addOnCompleteListener { task ->
+                if(task.isSuccessful){
+                    Log.d("ExpenseRepository","Expense removed successfully")
+                } else{
+                    Log.e("ExpenseRepository","Failed to remove expense",task.exception)
+                }
+            }
+    }
 }

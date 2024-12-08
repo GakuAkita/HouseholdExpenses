@@ -357,7 +357,7 @@ fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
                 Button(
                     onClick = {
                         //削除
-
+                        viewModel.removeExpense(viewModel.expense.value)
                         //リセット
                         viewModel.resetExpenseInstance()
                         //元に戻る

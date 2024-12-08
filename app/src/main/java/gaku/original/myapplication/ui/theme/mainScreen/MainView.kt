@@ -76,17 +76,13 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         viewModel.filterExpensesByMonth()
     }
 
-    LaunchedEffect(viewModel.allExpense.value) {
+    LaunchedEffect(viewModel.allExpense) {
+        Log.d("MainView","allExpense changed!!")
         viewModel.filterExpensesByMonth()
-        Log.d("MainView","allExpense was changed!!")
+        Log.d("MainView","filterExpensesByMonth Ended.")
     }
 
-    LaunchedEffect(viewModel.filteredExpenses.value) {
-        Log.d("MainView","filteredExpenses was changed!!")
-    }
-
-    val monthExpenses = viewModel.filteredExpenses.collectAsState().value
-    Log.d("MainView","monthExpenses updated in MainView:: size=${monthExpenses.size}")
+    val monthExpenses by viewModel.filteredExpenses.collectAsState()
 
     Scaffold(
         topBar = {
@@ -181,8 +177,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ){
-                        items(monthExpenses){
-                                expense ->
+                        items(monthExpenses){ expense ->
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {

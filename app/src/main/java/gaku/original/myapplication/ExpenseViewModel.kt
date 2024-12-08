@@ -33,10 +33,6 @@ class ExpenseViewModel(
     private val sharedViewModel:SharedViewModel
 ):ViewModel(){
     /** ユーザー情報 **/
-    fun updateUserId(id:String?){
-        sharedViewModel.setUserId(id)
-    }
-
     fun getUserId():String?{
         return sharedViewModel.userId.value
     }
@@ -130,7 +126,8 @@ class ExpenseViewModel(
 
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
-
+//    private val _filteredExpenses = mutableStateOf<List<Expense>>(emptyList())
+//    val filteredExpenses: State<List<Expense>> = _filteredExpenses
 
     val addObserveExpensesDoneFlag=MutableLiveData(false)
 
@@ -149,16 +146,18 @@ class ExpenseViewModel(
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    //更新する
-                    lastFetchedTime = System.currentTimeMillis()
                 }
             },
             onExpenseUpdated = { updatedExpense ->
                 viewModelScope.launch {
                     _allExpenses.value = _allExpenses.value.map { expense ->
-                        if (expense.id == updatedExpense.id) updatedExpense else expense
+                        if (expense.id == updatedExpense.id){
+                            updatedExpense
+                        } else {
+                            expense
+                        }
                     }
-                    Log.d("ExpenseViewModel", "Expense updated: $updatedExpense")
+                    Log.d("ExpenseViewModel", "Expense updated: ${updatedExpense.id}")
                 }
             },
             onExpenseRemoved = { removedExpense ->
@@ -191,15 +190,18 @@ class ExpenseViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = _allExpenses.value
-            .filter { expense ->
-                val expenseDate = toLocalDateTime(expense.datetime)
-                expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-            }
-            .sortedByDescending {
-                toLocalDateTime(it.datetime)
-            }
-        Log.d("ExpenseViewModel","filterExpensesByMonth")
+        viewModelScope.launch {
+            val filteredList = _allExpenses.value
+                .filter { expense ->
+                    val expenseDate = toLocalDateTime(expense.datetime)
+                    expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
+                }
+                .sortedByDescending {
+                    toLocalDateTime(it.datetime)
+                }
+            _filteredExpenses.emit(filteredList) // 更新
+        }
+        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.")
     }
 
     fun addExpense(expense: Expense){
@@ -219,6 +221,12 @@ class ExpenseViewModel(
     fun updateExpense(expense:Expense){
         viewModelScope.launch {
             expenseRepository.updateExpense(getUserId()?:"",expense)
+        }
+    }
+
+    fun removeExpense(expense:Expense){
+        viewModelScope.launch {
+            expenseRepository.removeExpense(getUserId()?:"",expense)
         }
     }
 
