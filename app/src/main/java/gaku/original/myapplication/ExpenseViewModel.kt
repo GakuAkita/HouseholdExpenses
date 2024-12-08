@@ -76,6 +76,7 @@ class ExpenseViewModel(
                         }
                         fetchAllExpenses(
                             onComplete = {
+                                observeExpenses()
                                 filterExpensesByMonth()
                             }
                         )
@@ -132,6 +133,12 @@ class ExpenseViewModel(
 
 
     val addObserveExpensesDoneFlag=MutableLiveData(false)
+
+    /*
+    まじで意味わからないけど、これで追加したやつだけ一個ずつ取れてるから、とりあえずこのままでいく。
+    引数のlastFetchedTimeは関数を呼び出してから変わらないはず。だから、一個追加してさらにまた別の追加したら、
+    最初に追加したやつも反応するはずなんだけど、それがなってないんだよね。(この状態が理想ではあるんだが。)
+    */
     var lastFetchedTime = System.currentTimeMillis()
     fun observeExpenses() {
         expenseRepository.observeExpenses(
@@ -184,10 +191,14 @@ class ExpenseViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = _allExpenses.value.filter { expense ->
-            val expenseDate = toLocalDateTime(expense.datetime)
-            expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-        }
+        _filteredExpenses.value = _allExpenses.value
+            .filter { expense ->
+                val expenseDate = toLocalDateTime(expense.datetime)
+                expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
+            }
+            .sortedByDescending {
+                toLocalDateTime(it.datetime)
+            }
         Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 

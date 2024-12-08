@@ -45,6 +45,7 @@ class ExpenseRepository {
 
         //
         val query = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
+        Log.d("ExpenseRepository","lastFetchedTime.toDouble(): ${lastFetchedTime.toDouble()}")
 
         query.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
@@ -87,21 +88,21 @@ class ExpenseRepository {
     }
 
 
-    // ユーザーIDに基づいてデータをリストとして返す（非同期）
-    suspend fun fetchUserExpenses(userId: String): List<Expense> {
-        try {
-            val snapshot = getUserExpenseRef(userId).get().await()
-            Log.d("ExpenseRepository", "fetchUserExpenses successful")
-            val expenses = snapshot.children.mapNotNull {
-                it.getValue(Expense::class.java)
+        // ユーザーIDに基づいてデータをリストとして返す（非同期）
+        suspend fun fetchUserExpenses(userId: String): List<Expense> {
+            try {
+                val snapshot = getUserExpenseRef(userId).get().await()
+                Log.d("ExpenseRepository", "fetchUserExpenses successful")
+                val expenses = snapshot.children.mapNotNull {
+                    it.getValue(Expense::class.java)
+                }
+                Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+                return expenses
+            } catch (e: Exception) {
+                Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
+                return emptyList()  // エラー時には空のリストを返す
             }
-            Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
-            return expenses
-        } catch (e: Exception) {
-            Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
-            return emptyList()  // エラー時には空のリストを返す
         }
-    }
 
     fun addExpense(userId: String, expense: Expense) {
         val expenseRef = getUserExpenseRef(userId)
