@@ -3,7 +3,6 @@ package gaku.original.myapplication
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -42,10 +41,6 @@ class ExpenseViewModel(
         return sharedViewModel.userId.value
     }
 
-    fun isSignedIn():StateFlow<Boolean>{
-        return sharedViewModel.isSignedIn
-    }
-
     fun signUpAndInitialSetup(email:String,password:String,callback:(SignUpStatus)->Unit){
         sharedViewModel.signUp(
             email=email,
@@ -80,15 +75,7 @@ class ExpenseViewModel(
                             sharedViewModel.isAfterSignUp.value = false
                         }
                         fetchAllExpenses(
-                            //onComplete内で行われることは、すべてのfetchが終わった後。
                             onComplete = {
-                                Log.d("ExpenseViewModel","fetchAllExpenses done after Login")
-                                //timestampの更新をし、
-                                initializeLastFetchedTime{
-                                    observeExpenses()
-                                    sharedViewModel.addObserveExpensesDoneFlag=false
-                                    Log.d("observeExpenses","observeExpenses done")
-                                }
                                 filterExpensesByMonth()
                             }
                         )
@@ -143,35 +130,20 @@ class ExpenseViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
-    /* lastFetchedTimeの初期値をいれる。保存されているのはExpenseRepository内 */
-    fun initializeLastFetchedTime(onSet:()->Unit){
-        expenseRepository.setLastFetchedTime(
-            userId = sharedViewModel.userId.value.toString(),
-            deviceId = sharedViewModel.deviceId.value.toString(),
-            callback = {timestamp->
-                if(timestamp!=0L){
-                    onSet()
-                }
-            }
-        )
-    }
 
-    //本当のフラグはsharedViewModelで管理している。ログアウトのときフラグを下ろせない
-    val addObserveExpensesDoneFlagState= mutableStateOf(sharedViewModel.addObserveExpensesDoneFlag)
-    fun setAddObserveExpensesDoneFlag(flag:Boolean){
-        sharedViewModel.addObserveExpensesDoneFlag=flag
-    }
-
+    val addObserveExpensesDoneFlag=MutableLiveData(false)
+    var lastFetchedTime = System.currentTimeMillis()
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),
-            sharedViewModel.deviceId.value.toString(),
+            lastFetchedTime = lastFetchedTime,
             onExpenseAdded = { newExpense ->
-                //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
                 viewModelScope.launch {
                     Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
                     _allExpenses.value += newExpense
                     Log.d("ExpenseViewModel", "Expense added: $newExpense")
+                    //更新する
+                    lastFetchedTime = System.currentTimeMillis()
                 }
             },
             onExpenseUpdated = { updatedExpense ->
@@ -212,14 +184,10 @@ class ExpenseViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = _allExpenses.value
-            .filter { expense ->
-                val expenseDate = toLocalDateTime(expense.datetime)
-                expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
-            }
-            .sortedByDescending { expense ->
-                toLocalDateTime(expense.datetime) // 降順にソート
-            }
+        _filteredExpenses.value = _allExpenses.value.filter { expense ->
+            val expenseDate = toLocalDateTime(expense.datetime)
+            expenseDate?.year == targetYear && expenseDate.monthValue == targetMonth
+        }
         Log.d("ExpenseViewModel","filterExpensesByMonth")
     }
 
