@@ -79,49 +79,78 @@ class ExpenseRepository {
     //Realtime Databaseの差分だけ監視
     fun observeExpenses(
         userId: String,
-        deviceId:String,
         onExpenseAdded: (Expense) -> Unit,
         onExpenseUpdated: (Expense) -> Unit,
         onExpenseRemoved: (Expense) -> Unit
     ) {
-        // fetchLastFetchedTime を呼び出してタイムスタンプを取得してからobserveExpensesを開始
-        fetchLastFetchedTime(userId, deviceId){initialLastFetchedTime->
-            //これ以降で実行されるものは、すでにタイムスタンプがセットされている状態
+        /*
+        現状だと、query...startAt(..)の中身を動的に変えることはできないらしい。
+        つまり、最初に実行された値で固定されてしまう。
+        したがって、毎回リスナーを解除して、新たにリスナーを登録するって動きになるっぽい。
+        なんとかもっと効率的にできないかな～
+        */
+        // LiveData を監視
+        lastFetchedTime.observeForever { initialLastFetchedTime ->
             val expenseRef = getUserExpenseRef(userId)
             var lastFetchedTime = initialLastFetchedTime
+
+            // クエリの変更前に前のリスナーを削除する
+            var currentListener: ChildEventListener? = null
+
+            // 初回クエリを実行
+            val query = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
+
+            // 新しいリスナーを作成
+            val listener = object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val expense = snapshot.getValue(Expense::class.java)
+                    expense?.let {
+                        // `lastFetchedTime` を更新
+                        lastFetchedTime = it.timestamp ?: lastFetchedTime
+                        _lastFetchedTime.postValue(lastFetchedTime) // LiveData を更新
+                        onExpenseAdded(it)
+                        Log.d("ExpenseRepository", "Updated lastFetchedTime to: $lastFetchedTime")
+                    }
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    val updatedExpense = snapshot.getValue(Expense::class.java)
+                    updatedExpense?.let {
+                        onExpenseUpdated(it)
+                    }
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    val removedExpense = snapshot.getValue(Expense::class.java)
+                    removedExpense?.let {
+                        onExpenseRemoved(it)
+                    }
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+                override fun onCancelled(error: DatabaseError) {}
+            }
+
+            // 最初のリスナーを登録
+            query.addChildEventListener(listener)
+            currentListener = listener
+
+            // もしlastFetchedTimeが変更された場合、その後にデータを再取得する
+            _lastFetchedTime.observeForever { newFetchedTime ->
+                if (newFetchedTime != lastFetchedTime) {
+                    // 古いリスナーを削除
+                    currentListener?.let { query.removeEventListener(it) }
+
+                    // 新しいタイムスタンプでクエリを再実行
+                    val newQuery = expenseRef.orderByChild("timestamp").startAt(newFetchedTime.toDouble())
+                    // 新しいリスナーを追加
+                    newQuery.addChildEventListener(listener)
+                    currentListener = listener // 更新されたリスナーを保持
+
+                    lastFetchedTime = newFetchedTime
+                }
+            }
         }
-
-
-        //
-        val query = expenseRef.orderByChild("timestamp").startAt(_lastFetchedTime.value.toDouble())
-
-        query.addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val expense = snapshot.getValue(Expense::class.java)
-                expense?.let {
-                    Log.d("ExpenseRepository", "onChildAdded: startAtの値は$lastFetchedTime")
-                    onExpenseAdded(it)
-                }
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                val updatedExpense = snapshot.getValue(Expense::class.java)
-                updatedExpense?.let {
-                    Log.d("ExpenseRepository","onChildChanged called ${updatedExpense}")
-                    onExpenseUpdated(it)
-                }
-            }
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-                val removedExpense = snapshot.getValue(Expense::class.java)
-                removedExpense?.let {
-                    onExpenseRemoved(it)
-                }
-            }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-            override fun onCancelled(error: DatabaseError) {}
-        })
     }
 
 

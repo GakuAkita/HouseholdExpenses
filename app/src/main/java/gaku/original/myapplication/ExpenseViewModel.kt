@@ -42,6 +42,10 @@ class ExpenseViewModel(
         return sharedViewModel.userId.value
     }
 
+    fun isSignedIn():StateFlow<Boolean>{
+        return sharedViewModel.isSignedIn
+    }
+
     fun signUpAndInitialSetup(email:String,password:String,callback:(SignUpStatus)->Unit){
         sharedViewModel.signUp(
             email=email,
@@ -143,7 +147,6 @@ class ExpenseViewModel(
     fun observeExpenses() {
         expenseRepository.observeExpenses(
             sharedViewModel.userId.value.toString(),
-            lastFetchedTime = 0L,
             onExpenseAdded = { newExpense ->
                 //新しいExpenseが追加されたら、DBにあるlastFetchedTimeを取得する。
                 viewModelScope.launch {

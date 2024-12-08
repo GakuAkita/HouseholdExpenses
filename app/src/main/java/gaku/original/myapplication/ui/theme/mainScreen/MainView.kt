@@ -76,7 +76,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
         viewModel.filterExpensesByMonth()
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel.isSignedIn()) {
         if(viewModel.addObserveExpensesDoneFlagState.value==false){
             viewModel.setAddObserveExpensesDoneFlag(true)
             viewModel.fetchAllExpenses()
@@ -119,7 +119,7 @@ fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
             ){
-                Text("${currentPageYear}-${currentPageMonth}　LastTimestamp:${viewModel.lastFetchedTime}")
+                Text("${currentPageYear}-${currentPageMonth}")
             }
 
             Row(
