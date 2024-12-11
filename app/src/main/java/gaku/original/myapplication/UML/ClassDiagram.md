@@ -2,19 +2,68 @@
 classDiagram
 
 
-class ExpenseViewModel{
+class ExpenseListViewModel{
 calendarDate
 monthOffset
-expense
 _allExpenses
 
 incrementMonth()
 decrementMonth()
-expenseの編集関数()
+filterMonthExpenses()
+
+readFromRemoteDB
+deleteToRemoteDB
+%%AddEditとこのdeleteがかぶる
 }
 
+class ExpenseAddEditViewModel{
+
+ExpenseTmpを編集する関数()
+addToRemoteDB
+updateToRemoteDB
+deleteToRemoteDB
+}
+
+class ExpenseTmp{
+_expense
+}
+
+ExpenseTmp ..> ExpenseListViewModel :CI
+ExpenseTmp ..> ExpenseAddEditViewModel :CI
+
+
+class ExpenseRepository{
+addUserInitialData()
+fetchUserExpenses()
+addExpense()
+updateExpense()
+removeExpense()
+}
+ExpenseRepository ..> ExpenseListViewModel :CI
+ExpenseRepository ..> ExpenseAddEditViewModel :CI
+
+
+class ExpenseListenerManager {
+listeners
+
+clearListeners()
+addListeners()
+}
+
+class FirebaseReference {
+Firebase.database.reference
+
+getUserRef()
+getExpenseRef()
+getCategoryRef()
+}
+
+FirebaseReference ..> ExpenseListenerManager : CI
+FirebaseReference ..> ExpenseRepository : CI
+ExpenseListenerManager <..> RealtimeDatabase :リスナー管理
+
 %%Firebase関連がまとめられる。ユーザーとか
-class SharedViewModel{
+class UserManageViewModel{
 firebaseAuth
 currentUser
 userId
@@ -24,25 +73,17 @@ signIn()
 signUp()
 signOut()
 }
-SharedViewModel ..> ExpenseViewModel :constructor injection
 
-class ExpenseRepository{
-Firebase.database.reference
-listeners
-
-clearlistners()
-observeExpenses()
-addUserInitialData()
-fetchUserExpenses()
-addExpense()
-updateExpense()
-removeExpense()
-}
-ExpenseRepository ..> ExpenseViewModel :constructor injection
+UserManageViewModel ..> FirebaseReference : CI
 
 class RealtimeDatabase{
 Database
 }
-RealtimeDatabase <..> ExpenseRepository: 通信
+RealtimeDatabase <..> ExpenseRepository: CRUD
+
+class FirebaseAuth{
+Firebase Authentication
+}
+UserManageViewModel <..> FirebaseAuth: ユーザー管理
 
 ````
