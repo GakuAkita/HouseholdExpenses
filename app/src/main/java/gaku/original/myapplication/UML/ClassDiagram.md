@@ -50,7 +50,7 @@ clearListeners()
 addListeners()
 }
 
-class FirebaseReference {
+class RealtimeDbReference {
 Firebase.database.reference
 
 getUserRef()
@@ -58,8 +58,8 @@ getExpenseRef()
 getCategoryRef()
 }
 
-FirebaseReference ..> ExpenseListenerManager : CI
-FirebaseReference ..> ExpenseRepository : CI
+RealtimeDbReference ..> ExpenseListenerManager : CI
+RealtimeDbReference ..> ExpenseRepository : CI
 ExpenseListenerManager <..> RealtimeDatabase :リスナー管理
 
 %%Firebase関連がまとめられる。ユーザーとか
@@ -74,7 +74,7 @@ signUp()
 signOut()
 }
 
-UserManageViewModel ..> FirebaseReference : CI
+UserManageViewModel ..> RealtimeDbReference : CI
 
 class RealtimeDatabase{
 Database

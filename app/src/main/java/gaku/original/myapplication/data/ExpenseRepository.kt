@@ -29,10 +29,6 @@ class ExpenseRepository {
         return database.child("users").child(userId).child("data").child("categories")
     }
 
-    private fun getDevicesRef(userId: String): DatabaseReference {
-        return database.child("users").child(userId).child("devices")
-    }
-
     //あるアカウントでログインして、サインアウトした後、別のアカウントでログインしたときの対応ができていない。
     //冒頭に溜まっているeventをすべてクリアにする操作を入れないとまずいな。か、サインアウトのときにイベントをすべて消すか。
     private val listeners = mutableListOf<ChildEventListener>()//リスナーをすべてここに溜める。

@@ -145,10 +145,6 @@ class ExpenseViewModel(
 
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
-//    private val _filteredExpenses = mutableStateOf<List<Expense>>(emptyList())
-//    val filteredExpenses: State<List<Expense>> = _filteredExpenses
-
-    val addObserveExpensesDoneFlag=MutableLiveData(false)
 
     /*
     まじで意味わからないけど、これで追加したやつだけ一個ずつ取れてるから、とりあえずこのままでいく。
