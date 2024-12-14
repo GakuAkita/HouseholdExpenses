@@ -1,7 +1,6 @@
 package gaku.original.myapplication.ui.theme
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,13 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import gaku.original.myapplication.ExpenseViewModel
+import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.SharedViewModel
 
 @Composable
-fun SettingsView(viewModel: ExpenseViewModel,navController: NavController){
+fun SettingsView(viewModel: ExpenseViewModel, navController: NavController){
     Scaffold(
         topBar = {
             TopBarView("SettingsView作成中")

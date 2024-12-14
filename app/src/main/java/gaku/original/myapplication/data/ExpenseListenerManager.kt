@@ -1,6 +1,4 @@
-package gaku.original.myapplication
-
-import gaku.original.myapplication.data.ExpenseRepository
+package gaku.original.myapplication.data
 
 class ListenerManager(private val expenseRepository: ExpenseRepository) {
     private val activeListeners = mutableSetOf<String>()

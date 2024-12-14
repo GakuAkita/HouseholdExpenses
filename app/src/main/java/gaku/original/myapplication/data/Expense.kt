@@ -16,32 +16,3 @@ data class Expense(
 data class CategoryClass(
     val name:String?
 )
-
-object DummyExpenses{
-    val expensesList= mutableStateListOf(
-        Expense(
-            id="1",
-            datetime = "2024-12-02T12:34:56",
-            amount=1000,
-            category="necessities",
-            note="",
-            generatedType = "manual"
-        ),
-        Expense(
-            id="2",
-            datetime = "2024-12-03T12:34:56",
-            amount=120,
-            category="waste",
-            note="",
-            generatedType = "manual"
-        ),
-        Expense(
-            id="3",
-            datetime = "2024-12-04T12:34:56",
-            amount=1500,
-            category="Food",
-            note="",
-            generatedType = "manual"
-        )
-    )
-}

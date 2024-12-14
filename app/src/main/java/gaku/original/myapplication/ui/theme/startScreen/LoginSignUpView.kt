@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.ExpenseViewModel
+import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.SignInStatus
 import gaku.original.myapplication.data.SignUpStatus
@@ -35,7 +35,7 @@ import gaku.original.myapplication.data.SignUpStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(viewModel:ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
+fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 

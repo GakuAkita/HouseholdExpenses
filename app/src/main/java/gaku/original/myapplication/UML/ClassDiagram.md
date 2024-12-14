@@ -1,27 +1,19 @@
 ```mermaid
 classDiagram
 
-
 class ExpenseListViewModel{
 calendarDate
 monthOffset
-_allExpenses
 
 incrementMonth()
 decrementMonth()
 filterMonthExpenses()
-
-readFromRemoteDB
-deleteToRemoteDB
 %%AddEditとこのdeleteがかぶる
 }
 
 class ExpenseAddEditViewModel{
 
 ExpenseTmpを編集する関数()
-addToRemoteDB
-updateToRemoteDB
-deleteToRemoteDB
 }
 
 class ExpenseTmp{
@@ -39,9 +31,6 @@ addExpense()
 updateExpense()
 removeExpense()
 }
-ExpenseRepository ..> ExpenseListViewModel :CI
-ExpenseRepository ..> ExpenseAddEditViewModel :CI
-
 
 class ExpenseListenerManager {
 listeners
@@ -49,6 +38,20 @@ listeners
 clearListeners()
 addListeners()
 }
+
+class ExpenseSharedViewModel{
+allExpenseList
+将来的に数ヶ月分だけ取得とかの仕様にする↑
+
+addExpense()
+updateExpense()
+deleteExpense()
+}
+
+ExpenseListenerManager ..> ExpenseSharedViewModel :CI
+ExpenseRepository ..> ExpenseSharedViewModel :CI
+ExpenseSharedViewModel ..> ExpenseListViewModel :CI
+ExpenseSharedViewModel ..> ExpenseAddEditViewModel :CI
 
 class RealtimeDbReference {
 Firebase.database.reference
@@ -63,18 +66,26 @@ RealtimeDbReference ..> ExpenseRepository : CI
 ExpenseListenerManager <..> RealtimeDatabase :リスナー管理
 
 %%Firebase関連がまとめられる。ユーザーとか
-class UserManageViewModel{
-firebaseAuth
-currentUser
-userId
-
-setUserId()
-signIn()
-signUp()
-signOut()
+class UserInfoViewModel {
+    currentUser
+    userId
+    isSignedIn
+    getUserId()
 }
 
-UserManageViewModel ..> RealtimeDbReference : CI
+class AuthManagerViewModel {
+    signUpProcessFlag
+    firstSignInFlag
+    signIn()
+    signUp()
+    signOut()
+}
+UserInfoViewModel ..> AuthManagerViewModel :CI
+UserInfoViewModel ..> RealtimeDbReference :CI
+ExpenseListenerManager ..> AuthManagerViewModel :CI
+%%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
+%% ExpenseListenerManager ..> UserManageViewModel :CI 
+%% UserManageViewModel ..> RealtimeDbReference : CI
 
 class RealtimeDatabase{
 Database
@@ -84,6 +95,6 @@ RealtimeDatabase <..> ExpenseRepository: CRUD
 class FirebaseAuth{
 Firebase Authentication
 }
-UserManageViewModel <..> FirebaseAuth: ユーザー管理
+AuthManagerViewModel <..> FirebaseAuth: ユーザー管理
 
 ````

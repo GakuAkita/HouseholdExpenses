@@ -38,7 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import gaku.original.myapplication.ExpenseViewModel
+import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.theme.BottomBarView
 import gaku.original.myapplication.ui.theme.TopBarView
@@ -56,7 +56,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditView(viewModel: ExpenseViewModel,navController: NavController){
+fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
     //Toastとか用
     val context= LocalContext.current
 

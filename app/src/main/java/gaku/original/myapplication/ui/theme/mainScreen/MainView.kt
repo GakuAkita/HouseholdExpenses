@@ -38,7 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.ExpenseViewModel
+import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.toLocalDateTime
@@ -52,7 +52,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel,navController: NavHostController){
+fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 

@@ -1,13 +1,13 @@
 package gaku.original.myapplication
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import gaku.original.myapplication.viewModel.ExpenseViewModel
+import gaku.original.myapplication.viewModel.SharedViewModel
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.theme.GraphView
 import gaku.original.myapplication.ui.theme.NotCategorizedView
@@ -16,7 +16,6 @@ import gaku.original.myapplication.ui.theme.mainScreen.AddEditView
 import gaku.original.myapplication.ui.theme.mainScreen.MainView
 import gaku.original.myapplication.ui.theme.startScreen.LoginSignUpView
 import gaku.original.myapplication.ui.theme.startScreen.StartView
-import kotlin.math.exp
 
 @Composable
 fun Navigation(){
