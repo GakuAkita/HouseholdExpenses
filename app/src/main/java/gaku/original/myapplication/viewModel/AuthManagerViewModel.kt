@@ -5,13 +5,15 @@ import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.SignInStatus
 import gaku.original.myapplication.data.SignOutStatus
 import gaku.original.myapplication.data.SignUpStatus
-import kotlinx.coroutines.flow.callbackFlow
 
 class AuthManagerViewModel(
     private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel()
 ) {
+    private val authManagerFirebaseAuth:FirebaseAuth
+        get() = userInfoViewModel.firebaseAuth
+
     fun signIn(email: String, password: String, callback: (SignInStatus) -> Unit) {
-        userInfoViewModel.firebaseAuth.signInWithEmailAndPassword(email, password)
+        authManagerFirebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     if(userInfoViewModel.userId.value != null) {
@@ -29,7 +31,7 @@ class AuthManagerViewModel(
     }
 
     fun signUp(email: String, password: String, callback: (SignUpStatus) -> Unit) {
-        userInfoViewModel.firebaseAuth.createUserWithEmailAndPassword(email,password)
+        authManagerFirebaseAuth.createUserWithEmailAndPassword(email,password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("AuthManagerViewModel","Created a user with Email:$email")
@@ -45,7 +47,7 @@ class AuthManagerViewModel(
 
     fun signOut():SignOutStatus{
         try {
-            userInfoViewModel.firebaseAuth.signOut()
+            authManagerFirebaseAuth.signOut()
             if(userInfoViewModel.currentUser.value == null){
                 Log.d("AuthManagerViewModel","signOut successful")
                 return SignOutStatus.SUCCESS
