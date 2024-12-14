@@ -28,7 +28,8 @@ rememberとViewModelは違う。
  */
 
 class ExpenseListViewModel(
-    private val expenseSharedViewModel: ExpenseSharedViewModel
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ):ViewModel(){
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
@@ -89,82 +90,9 @@ class ExpenseListViewModel(
     C:
     */
 
-
-
-    /********************* AddEditView用*******************************/
-    // 初期値として null もしくは適切なデフォルト値を設定
-    private val _expense = mutableStateOf(
-        Expense(
-            id = null,
-            datetime = fromLocalDateTime(LocalDateTime.now()),
-            amount = null,
-            category = null,
-            note = null,
-            generatedType = null
-        )
-    )
-    val expense: State<Expense> = _expense
-
-
-
-    // 日付のみを更新する
-    fun updateExpenseInstanceDate(newDate: LocalDate) {
-        _expense.value.let {currentExpense ->
-            _expense.value = currentExpense.copy(
-                //datetimeはstringなので、更新して
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentExpense.datetime)
-                    ?.withYear(newDate.year)
-                    ?.withMonth(newDate.monthValue)
-                    ?.withDayOfMonth(newDate.dayOfMonth)
-                )
-            )
-        }
+    /** AddEditに値を渡す用 **/
+    fun setToTmpExpense(expense: Expense){
+        tmpExpenseViewModel.tmpExpense.value = expense
     }
 
-    //時間のみを更新する
-    fun updateExpenseInstanceTime(newTime: LocalTime) {
-        _expense.value.let { currentExpense ->
-            _expense.value = currentExpense.copy(
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentExpense.datetime)
-                    ?.withHour(newTime.hour)
-                    ?.withMinute(newTime.minute)
-                    ?.withSecond(newTime.second)
-                )
-            )
-        }
-    }
-
-    // 各項目を個別に更新するメソッド
-    fun updateExpenseInstanceAmount(newAmount: Long?) {
-        _expense.value.let {
-            _expense.value = it.copy(amount = newAmount)
-        }
-    }
-
-    fun updateExpenseInstanceCategory(newCategory: String) {
-        _expense.value.let {
-            _expense.value = it.copy(category = newCategory)
-        }
-    }
-
-    fun updateExpenseInstanceNote(newNote: String) {
-        _expense.value.let {
-            _expense.value = it.copy(note = newNote)
-        }
-    }
-
-    //ExpenseInstanceを一旦リセットする
-    fun resetExpenseInstance(){
-        val emptyExpense=Expense(
-            id=null,
-            datetime= fromLocalDateTime(LocalDateTime.now()),
-            amount=null,
-            category=null,
-            note=null,
-            generatedType = null
-        )
-        updateExpenseInstance(emptyExpense)
-    }
 }

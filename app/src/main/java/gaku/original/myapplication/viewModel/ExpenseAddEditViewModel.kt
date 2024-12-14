@@ -11,82 +11,73 @@ import java.time.LocalTime
 class ExpenseAddEditViewModel(
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
     private val expenseSharedViewModel: ExpenseSharedViewModel
-) : ViewModel(){
+) : ViewModel() {
 
-    fun getTmpExpense(): Expense {
-        return tmpExpenseViewModel.tmpExpense.value
-    }
+    // プロパティでアクセスを簡略化。この書き方でcurrentExpenseだけでviewModelのtmpExpenseにアクセスできる。
+    private var currentExpense: Expense
+        get() = tmpExpenseViewModel.tmpExpense.value
+        set(value) {
+            tmpExpenseViewModel.tmpExpense.value = value
+        }
 
     // 日付のみを更新する
     fun updateTmpExpenseDate(newDate: LocalDate) {
-        tmpExpenseViewModel.tmpExpense.value.let {currentExpense ->
-             tmpExpenseViewModel.tmpExpense.value = currentExpense.copy(
-                //datetimeはstringなので、更新して
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentExpense.datetime)
-                        ?.withYear(newDate.year)
-                        ?.withMonth(newDate.monthValue)
-                        ?.withDayOfMonth(newDate.dayOfMonth)
-                )
+        currentExpense = currentExpense.copy(
+            datetime = fromLocalDateTime(
+                toLocalDateTime(currentExpense.datetime)
+                    ?.withYear(newDate.year)
+                    ?.withMonth(newDate.monthValue)
+                    ?.withDayOfMonth(newDate.dayOfMonth)
             )
-        }
+        )
     }
 
-    //時間のみを更新する
+    // 時間のみを更新する
     fun updateTmpExpenseTime(newTime: LocalTime) {
-        tmpExpenseViewModel.tmpExpense.value.let { currentExpense ->
-            tmpExpenseViewModel.tmpExpense.value = currentExpense.copy(
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentExpense.datetime)
-                        ?.withHour(newTime.hour)
-                        ?.withMinute(newTime.minute)
-                        ?.withSecond(newTime.second)
-                )
+        currentExpense = currentExpense.copy(
+            datetime = fromLocalDateTime(
+                toLocalDateTime(currentExpense.datetime)
+                    ?.withHour(newTime.hour)
+                    ?.withMinute(newTime.minute)
+                    ?.withSecond(newTime.second)
             )
-        }
+        )
     }
 
     // 各項目を個別に更新するメソッド
     fun updateTmpExpenseAmount(newAmount: Long?) {
-        tmpExpenseViewModel.tmpExpense.value.let {
-            tmpExpenseViewModel.tmpExpense.value = it.copy(amount = newAmount)
-        }
+        currentExpense = currentExpense.copy(amount = newAmount)
     }
 
     fun updateTmpExpenseCategory(newCategory: String) {
-        tmpExpenseViewModel.tmpExpense.value.let {
-            tmpExpenseViewModel.tmpExpense.value = it.copy(category = newCategory)
-        }
+        currentExpense = currentExpense.copy(category = newCategory)
     }
 
     fun updateTmpExpenseNote(newNote: String) {
-        tmpExpenseViewModel.tmpExpense.value.let {
-            tmpExpenseViewModel.tmpExpense.value = it.copy(note = newNote)
-        }
+        currentExpense = currentExpense.copy(note = newNote)
     }
 
-    //ExpenseInstanceを一旦リセットする
-    fun resetTmpExpense(){
-        val emptyExpense=Expense(
-            id=null,
-            datetime= fromLocalDateTime(LocalDateTime.now()),
-            amount=null,
-            category=null,
-            note=null,
+    // ExpenseInstanceを一旦リセットする
+    fun resetTmpExpense() {
+        currentExpense = Expense(
+            id = null,
+            datetime = fromLocalDateTime(LocalDateTime.now()),
+            amount = null,
+            category = null,
+            note = null,
             generatedType = null
         )
-        tmpExpenseViewModel.tmpExpense.value = emptyExpense
     }
 
-    fun addTmpExpenseToDb(){
-        expenseSharedViewModel.addExpense(tmpExpenseViewModel.tmpExpense.value)
+    fun addTmpExpenseToDb() {
+        expenseSharedViewModel.addExpense(currentExpense)
     }
 
-    fun updateTmpExpenseToDb(){
-        expenseSharedViewModel.updateExpense(tmpExpenseViewModel.tmpExpense.value)
+    fun updateTmpExpenseToDb() {
+        expenseSharedViewModel.updateExpense(currentExpense)
     }
 
-    fun removeTmpExpenseToDb(){
-        expenseSharedViewModel.removeExpense(tmpExpenseViewModel.tmpExpense.value)
+    fun removeTmpExpenseToDb() {
+        expenseSharedViewModel.removeExpense(currentExpense)
     }
 }
