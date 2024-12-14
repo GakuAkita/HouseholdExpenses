@@ -30,4 +30,15 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        //起動時になにかしたいとき
+    }
+
+    override fun onStop() {
+        super.onStop()
+        //アプリ終了時になにかしたいとき
+    }
+
 }

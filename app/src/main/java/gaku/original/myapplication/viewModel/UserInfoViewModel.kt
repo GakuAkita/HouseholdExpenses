@@ -17,21 +17,32 @@ class UserInfoViewModel(): ViewModel(){
     private val _userId = MutableStateFlow(firebaseAuth.currentUser?.uid)
     val userId: StateFlow<String?> = _userId
 
-    //サインアップした後ログインする場合はこのフラグをTrueにいれる。
-    //最初に追加すべきデータがあるから。
-    var isAfterSignUp = MutableStateFlow(false)
-
     fun getUserId(): String {
         return _userId.value?: USER_ID_NULL_REPLACEMENT
     }
 
+    //AuthStateListenerを保持
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
+
     init {
+        firebaseAuth.removeAuthStateListener(authStateListener!!)
+
         // AuthStateListenerでサインイン・サインアウトを監視
-        firebaseAuth.addAuthStateListener { auth ->
+        authStateListener = FirebaseAuth.AuthStateListener {auth->
             val user = auth.currentUser
             _currentUser.value = user // currentUserを更新
             _userId.value = user?.uid // currentUserが更新されると自動でuserIdも更新
             //signInした後userIdがnullではないかどうかは、signInの関数で確認
         }
+
+        //リスナーを追加
+        firebaseAuth.addAuthStateListener(authStateListener!!)
+    }
+
+    //これをやらないとどんどんリスナーが追加されていく?
+    override fun onCleared() {
+        super.onCleared()
+        //ViewModelが破棄される際にリスナーを解除
+        authStateListener?.let { firebaseAuth.removeAuthStateListener(it)}
     }
 }

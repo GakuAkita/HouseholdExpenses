@@ -62,8 +62,6 @@ class ExpenseRepository(
 //        })
 //    }
 
-
-
     //SignUp後にやる操作
     fun addUserInitialData(email: String) {
         val userRef = realtimeDbReference.getUserRef()
