@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme.startScreen
+package gaku.original.myapplication.ui.view.start
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme.mainScreen
+package gaku.original.myapplication.ui.view.main
 
 import android.util.Log
 import androidx.compose.foundation.border
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -42,9 +41,9 @@ import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.toLocalDateTime
-import gaku.original.myapplication.ui.theme.BottomBarView
-import gaku.original.myapplication.ui.theme.CalendarDisplay
-import gaku.original.myapplication.ui.theme.TopBarView
+import gaku.original.myapplication.ui.view.BottomBarView
+import gaku.original.myapplication.ui.view.CalendarDisplay
+import gaku.original.myapplication.ui.view.TopBarView
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings

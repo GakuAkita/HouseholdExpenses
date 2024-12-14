@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.view
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -22,7 +22,7 @@ fun SettingsView(viewModel: ExpenseViewModel, navController: NavController){
             TopBarView("SettingsView作成中")
         },
 
-        bottomBar = { BottomBarView(navController)}
+        bottomBar = { BottomBarView(navController) }
     ){ innerPadding ->
         val context = LocalContext.current
 

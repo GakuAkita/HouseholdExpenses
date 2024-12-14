@@ -2,19 +2,18 @@ package gaku.original.myapplication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.ui.theme.GraphView
-import gaku.original.myapplication.ui.theme.NotCategorizedView
-import gaku.original.myapplication.ui.theme.SettingsView
-import gaku.original.myapplication.ui.theme.mainScreen.AddEditView
-import gaku.original.myapplication.ui.theme.mainScreen.MainView
-import gaku.original.myapplication.ui.theme.startScreen.LoginSignUpView
-import gaku.original.myapplication.ui.theme.startScreen.StartView
+import gaku.original.myapplication.ui.view.GraphView
+import gaku.original.myapplication.ui.view.NotCategorizedView
+import gaku.original.myapplication.ui.view.SettingsView
+import gaku.original.myapplication.ui.view.main.AddEditView
+import gaku.original.myapplication.ui.view.main.MainView
+import gaku.original.myapplication.ui.view.start.LoginSignUpView
+import gaku.original.myapplication.ui.view.start.StartView
 
 @Composable
 fun Navigation(){

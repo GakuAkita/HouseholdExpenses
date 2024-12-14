@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.view
 
 
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,7 +12,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp

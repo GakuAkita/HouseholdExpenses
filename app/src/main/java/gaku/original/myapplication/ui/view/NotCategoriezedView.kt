@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +16,7 @@ fun NotCategorizedView(navController: NavController){
             TopBarView("NotCategorizedView作成中")
         },
 
-        bottomBar = { BottomBarView(navController)}
+        bottomBar = { BottomBarView(navController) }
     ){
         innerPadding->
         Column(

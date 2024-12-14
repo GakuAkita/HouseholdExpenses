@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.theme
+package gaku.original.myapplication.ui.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -50,9 +50,9 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<Expen
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = {Day(it,monthExpenses,onDayClicked)},
+        dayContent = { Day(it,monthExpenses,onDayClicked) },
         // カレンダーのヘッダー
-        monthHeader = {DaysOfWeekTitle(daysOfWeek = daysOfWeek)},
+        monthHeader = { DaysOfWeekTitle(daysOfWeek = daysOfWeek) },
         //ユーザーのスクロール
         userScrollEnabled = false
     )
