@@ -14,10 +14,6 @@ class DbListenerManager(
     val expenseRef: DatabaseReference
         get() = realtimeDbReference.getUserExpenseRef()
 
-    // Queryを追加するためのプロパティ
-    val expenseQuery: Query
-        get() = expenseRef.orderByChild("timestamp") // 例として、timestampを使ったQuery
-
     /**
      * リスナーを追加する (DatabaseReferenceまたはQueryに対応)
      */

@@ -1,6 +1,5 @@
 package gaku.original.myapplication.data
 
-import ListenerManager
 import android.util.Log
 import gaku.original.myapplication.RealtimeDbReference
 import kotlinx.coroutines.tasks.await
@@ -8,54 +7,6 @@ import kotlinx.coroutines.tasks.await
 class ExpenseRepository(
     private val realtimeDbReference: RealtimeDbReference
 ) {
-//    fun observeExpenses(
-//        userId: String,
-//        lastFetchedTime: Long,
-//        onExpenseAdded: (Expense) -> Unit,
-//        onExpenseUpdated: (Expense) -> Unit,
-//        onExpenseRemoved: (Expense) -> Unit
-//    ) {
-//        val expenseRef = getUserExpenseRef(userId)
-//
-//        // `onChildAdded` 用のクエリ
-//        val addedQuery = expenseRef.orderByChild("timestamp").startAt(lastFetchedTime.toDouble())
-//        Log.d("ExpenseRepository", "lastFetchedTime.toDouble(): ${lastFetchedTime.toDouble()}")
-//
-//        // `onChildAdded` のみ
-//        addedQuery.addChildEventListener(object : ChildEventListener {
-//            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                Log.d("ExpenseRepository", "onChildAdded was called.")
-//                val expense = snapshot.getValue(Expense::class.java)
-//                expense?.let { onExpenseAdded(it) }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {}
-//            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-//            override fun onChildRemoved(snapshot: DataSnapshot) {}
-//            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-//        })
-//
-//        // onChildChangedとonChildRemovedはtimestampによらず監視をする。
-//        expenseRef.addChildEventListener(object : ChildEventListener {
-//            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
-//
-//            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-//                Log.d("ExpenseRepository", "onChildChanged was called.")
-//                val updatedExpense = snapshot.getValue(Expense::class.java)
-//                updatedExpense?.let { onExpenseUpdated(it) }
-//            }
-//
-//            override fun onChildRemoved(snapshot: DataSnapshot) {
-//                Log.d("ExpenseRepository", "onChildRemoved was called.")
-//                val removedExpense = snapshot.getValue(Expense::class.java)
-//                removedExpense?.let { onExpenseRemoved(it) }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {}
-//            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-//        })
-//    }
-
     //SignUp後にやる操作
     fun addUserInitialData(email: String) {
         val userRef = realtimeDbReference.getUserRef()
@@ -103,7 +54,7 @@ class ExpenseRepository(
             }
     }
 
-    fun updateExpense(userId: String, expense: Expense) {
+    fun updateExpense(expense: Expense) {
         val expenseRef = realtimeDbReference.getUserExpenseRef()
 
         // Use the expense's ID (which is the Firebase-generated key) to locate it
@@ -119,7 +70,7 @@ class ExpenseRepository(
             }
     }
 
-    fun removeExpense(userId:String,expense:Expense){
+    fun removeExpense(expense:Expense){
         val expenseRef = realtimeDbReference.getUserExpenseRef()
         val expenseToRemoveRef = expenseRef.child(expense.id ?: return)
         expenseToRemoveRef.removeValue()

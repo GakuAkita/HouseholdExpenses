@@ -28,7 +28,7 @@ rememberとViewModelは違う。
  */
 
 class ExpenseListViewModel(
-    private val expenseRepository: ExpenseRepository,
+    private val expenseSharedViewModel: ExpenseSharedViewModel
 ):ViewModel(){
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
@@ -61,79 +61,16 @@ class ExpenseListViewModel(
     }
 
     /********************Repositoryを使う*****************************/
-
-    private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
-    val allExpense:StateFlow<List<Expense>> get() = _allExpenses
+    private val _allExpenses:List<Expense> get() = expenseSharedViewModel.allExpense.value
 
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
-
-    /*
-    まじで意味わからないけど、これで追加したやつだけ一個ずつ取れてるから、とりあえずこのままでいく。
-    引数のlastFetchedTimeは関数を呼び出してから変わらないはず。だから、一個追加してさらにまた別の追加したら、
-    最初に追加したやつも反応するはずなんだけど、それがなってないんだよね。(この状態が理想ではあるんだが。)
-    */
-    var lastFetchedTime = System.currentTimeMillis()
-    fun observeExpenses() {
-        expenseRepository.observeExpenses(
-            sharedViewModel.userId.value.toString(),
-            lastFetchedTime = lastFetchedTime,
-            onExpenseAdded = { newExpense ->
-                viewModelScope.launch {
-                    Log.d("ExpenseViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
-                    _allExpenses.value += newExpense
-                    Log.d("ExpenseViewModel", "Expense added: $newExpense")
-                    //FIXME:filterExpensesByMonth()をもう少し賢くやりたい。実行しすぎているかもなのと、
-                    //ここに3つ現れているのは普通に美しくない。
-                    filterExpensesByMonth()
-                }
-            },
-            onExpenseUpdated = { updatedExpense ->
-                Log.d("Expense This is updatedExpense","${updatedExpense.amount}")
-                viewModelScope.launch {
-                    _allExpenses.value = _allExpenses.value.map { expense ->
-                        if (expense.id == updatedExpense.id){
-                            updatedExpense
-                        } else {
-                            expense
-                        }
-                    }
-                    Log.d("ExpenseViewModel", "Expense updated: ${updatedExpense.id}")
-                    filterExpensesByMonth()
-                }
-            },
-            onExpenseRemoved = { removedExpense ->
-                viewModelScope.launch {
-                    _allExpenses.value = _allExpenses.value.filterNot { expense ->
-                        expense.id == removedExpense.id
-                    }
-                    Log.d("ExpenseViewModel", "Expense removed: $removedExpense")
-                    filterExpensesByMonth()
-                }
-            }
-        )
-    }
-
-    fun addUserInitialData(email:String){
-        viewModelScope.launch {
-            expenseRepository.addUserInitialData(getUserId()?:"empty",email)
-            Log.d("ExpenseViewModel","addUserInitialData for ${getUserId()}")
-        }
-    }
-
-    fun fetchAllExpenses(onComplete:()->Unit={}){
-        viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses(getUserId()?:"empty")
-            Log.d("ExpenseViewModel","Expenses:${_allExpenses.value}")
-            onComplete()
-        }
-    }
 
     fun filterExpensesByMonth() {
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = _allExpenses.value
+        _filteredExpenses.value = expenseSharedViewModel.allExpense.value
             .filter { expense ->
                 val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
                 val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
@@ -144,32 +81,6 @@ class ExpenseListViewModel(
             }
 //        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
 //        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
-    }
-
-    fun addExpense(expense: Expense){
-        //idはpushしたときに代入することにする。したがって、nullのままにする。
-        //repositoryのaddExpenseでidを格納する
-        if(expense.category == null){
-            expense.category = ""
-        }
-        if(expense.note == null){
-            expense.note = ""
-        }
-        viewModelScope.launch {
-            expenseRepository.addExpense(getUserId()?:"",expense)
-        }
-    }
-
-    fun updateExpense(expense:Expense){
-        viewModelScope.launch {
-            expenseRepository.updateExpense(getUserId()?:"",expense)
-        }
-    }
-
-    fun removeExpense(expense:Expense){
-        viewModelScope.launch {
-            expenseRepository.removeExpense(getUserId()?:"",expense)
-        }
     }
 
     /*
@@ -194,30 +105,7 @@ class ExpenseListViewModel(
     )
     val expense: State<Expense> = _expense
 
-    fun getExpenseInstanceId():String?{
-        return _expense.value.id
-    }
 
-    fun getExpenseInstanceAmount():Long?{
-        return _expense.value.amount
-    }
-
-    fun getExpenseInstanceDateTime():LocalDateTime?{
-        return toLocalDateTime(_expense.value.datetime)
-    }
-
-    fun getExpenseInstanceCategory():String?{
-        return _expense.value.category
-    }
-
-    fun getInstanceNote():String?{
-        return _expense.value.note
-    }
-
-    // Expense のインスタンスを更新するメソッド
-    fun updateExpenseInstance(newExpense: Expense) {
-        _expense.value = newExpense
-    }
 
     // 日付のみを更新する
     fun updateExpenseInstanceDate(newDate: LocalDate) {
