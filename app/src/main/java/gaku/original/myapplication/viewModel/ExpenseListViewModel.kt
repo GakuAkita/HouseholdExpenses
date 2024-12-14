@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.data.SignInStatus
-import gaku.original.myapplication.data.SignUpStatus
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,86 +27,9 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseViewModel(
+class ExpenseListViewModel(
     private val expenseRepository: ExpenseRepository,
-    private val sharedViewModel: SharedViewModel
 ):ViewModel(){
-    /** ユーザー情報 **/
-    fun getUserId():String?{
-        return sharedViewModel.userId.value
-    }
-
-    fun signUpAndInitialSetup(email:String,password:String,callback:(SignUpStatus)->Unit){
-        sharedViewModel.signUp(
-            email=email,
-            password = password,
-            callback = { status ->
-                when (status){
-                    SignUpStatus.SUCCESS -> {
-                        callback(SignUpStatus.SUCCESS)
-                    }
-                    SignUpStatus.USER_ID_NULL->{
-                        //UI側でToastする内容を変えたいのでこんな入れ子構造に。
-                        callback(SignUpStatus.USER_ID_NULL)
-                    }
-                    SignUpStatus.SIGN_UP_FAILED ->{
-                        callback(SignUpStatus.SIGN_UP_FAILED)
-                    }
-                }
-            }
-        )
-    }
-
-    fun signInAndFetchAllExpenses(email:String,password:String,callback: (SignInStatus) -> Unit){
-        sharedViewModel.signIn(
-            email = email,
-            password = password,
-            callback = {status ->
-                when (status){
-                    SignInStatus.SUCCESS -> {
-                        /*
-                        本当にタイミング悪く、fetchAllExpensesの取得している間にデータが書き込まれたら
-                        バグるかも。
-                         */
-                        observeExpenses()
-                        Log.d("ExpenseViewModel","observeExpenses() was called.")
-
-                        //このフラグがたっているときはサインアップ後のログイン
-                        if(sharedViewModel.isAfterSignUp.value == true){
-                            addUserInitialData(email)
-                            sharedViewModel.isAfterSignUp.value = false
-                        }
-                        fetchAllExpenses(
-                            onComplete = {
-                                //fetchAllExpensesがCoroutineだから少し厄介だな。
-                                //loadingかどうか見れるとよいのだが。
-                                //ここにフィルターを入れないと最初に表示されない。
-                                filterExpensesByMonth()
-                            }
-                        )
-                        callback(SignInStatus.SUCCESS)
-                    }
-                    SignInStatus.USER_ID_NULL->{
-                        callback(SignInStatus.USER_ID_NULL)
-                    }
-                    SignInStatus.SIGN_IN_FAILED ->{
-                        callback(SignInStatus.SIGN_IN_FAILED)
-                    }
-                }
-            }
-        )
-    }
-
-    fun signOut(){
-        //自分のuserId配下のExpenseRefにすでにあるイベントリスナーをクリアにする。
-        //これをしないとログイン・ログアウトをしたときにおかしくなる。
-        expenseRepository.clearListeners(sharedViewModel.userId.value.toString())
-
-        //こっちでFirebase関連の
-        //サインアウトしてuserId配下にアクセスできなくなるので、注意。
-        sharedViewModel.signOut()
-    }
-
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 

@@ -2,13 +2,15 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 
+//ここ抽象化してexpense用とcategory用に継承させたほうが良いのか?
 class DbListenerManager(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     // DatabaseReference とリスナーのペアを保持するリスト
     private val listeners = mutableListOf<Pair<DatabaseReference, ChildEventListener>>()
 
-    private val expenseRef : DatabaseReference
+    //privateを外して継承する方にも渡せるようにするか。
+    val expenseRef : DatabaseReference
         get() = realtimeDbReference.getUserExpenseRef()
 
     /**

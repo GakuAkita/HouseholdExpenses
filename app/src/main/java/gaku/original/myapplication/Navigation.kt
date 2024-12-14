@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.viewModel.ExpenseViewModel
-import gaku.original.myapplication.viewModel.SharedViewModel
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.theme.GraphView
 import gaku.original.myapplication.ui.theme.NotCategorizedView
@@ -24,7 +23,6 @@ fun Navigation(){
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
     val repository = ExpenseRepository()
-    val sharedViewModel: SharedViewModel = viewModel()
     val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
 
 //    if(expenseViewModel.addObserveExpensesDoneFlag.value == false){

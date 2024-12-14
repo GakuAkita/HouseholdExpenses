@@ -1,13 +1,7 @@
 package gaku.original.myapplication.data
 
+import ListenerManager
 import android.util.Log
-import com.google.android.gms.tasks.Task
-import com.google.firebase.Firebase
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.database
 import gaku.original.myapplication.RealtimeDbReference
 import kotlinx.coroutines.tasks.await
 
