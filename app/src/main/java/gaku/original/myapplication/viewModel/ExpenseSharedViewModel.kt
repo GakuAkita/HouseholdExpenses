@@ -21,20 +21,6 @@ class ExpenseSharedViewModel(
     private val expenseRepository: ExpenseRepository,
     private val dbListenerManager: DbListenerManager
 ):ViewModel() {
-
-    // 初期値として null もしくは適切なデフォルト値を設定
-    //AddEditとMainViewのデータの受け渡しに使う
-    val tmpExpense = mutableStateOf(
-        Expense(
-            id = null,
-            datetime = fromLocalDateTime(LocalDateTime.now()),
-            amount = null,
-            category = null,
-            note = null,
-            generatedType = null
-        )
-    )
-
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpense: StateFlow<List<Expense>> get() = _allExpenses
