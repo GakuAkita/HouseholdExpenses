@@ -1,53 +1,59 @@
+//ここ抽象化してexpense用とcategory用に継承させたほうが良いのか?
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.Query
 import gaku.original.myapplication.RealtimeDbReference
 
-//ここ抽象化してexpense用とcategory用に継承させたほうが良いのか?
 class DbListenerManager(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     // DatabaseReference とリスナーのペアを保持するリスト
-    private val listeners = mutableListOf<Pair<DatabaseReference, ChildEventListener>>()
+    private val listeners = mutableListOf<Pair<Any, ChildEventListener>>()
 
-    //privateを外して継承する方にも渡せるようにするか。
-    val expenseRef : DatabaseReference
+    // DatabaseReferenceとQueryのどちらも使えるように、getメソッドを定義
+    val expenseRef: DatabaseReference
         get() = realtimeDbReference.getUserExpenseRef()
 
+    // Queryを追加するためのプロパティ
+    val expenseQuery: Query
+        get() = expenseRef.orderByChild("timestamp") // 例として、timestampを使ったQuery
+
     /**
-     * リスナーを追加する
+     * リスナーを追加する (DatabaseReferenceまたはQueryに対応)
      */
-    private fun addListener(databaseReference: DatabaseReference, listener: ChildEventListener) {
-        databaseReference.addChildEventListener(listener)
-        listeners.add(databaseReference to listener) // ペアとして保存
+    fun addListener(reference: Any, listener: ChildEventListener) {
+        when (reference) {
+            is DatabaseReference -> reference.addChildEventListener(listener)
+            is Query -> reference.addChildEventListener(listener)
+            else -> throw IllegalArgumentException("Invalid reference type")
+        }
+        listeners.add(reference to listener) // リスナーと参照のペアを保存
     }
 
     /**
-     * リスナーをリセットする (指定したDatabaseReferenceに紐づくリスナーを削除して新しいリスナーを追加)
+     * リスナーをリセットする (指定した参照に紐づくリスナーを削除して新しいリスナーを追加)
      */
-    private fun resetListener(databaseReference: DatabaseReference, listener: ChildEventListener) {
-        // 指定されたDatabaseReferenceに紐づくリスナーを削除
-        val toRemove = listeners.filter { it.first == databaseReference && it.second == listener }
+    fun resetListener(reference: Any, listener: ChildEventListener) {
+        // 指定された参照に紐づくリスナーを削除
+        val toRemove = listeners.filter { it.first == reference && it.second == listener }
         toRemove.forEach {
-            it.first.removeEventListener(it.second) // リスナーを削除
+            when (it.first) {
+                is DatabaseReference -> (it.first as DatabaseReference).removeEventListener(it.second)
+                is Query -> (it.first as Query).removeEventListener(it.second)
+            }
             listeners.remove(it) // リストから削除
         }
-    }
-
-    /******** Expense専用 **********/
-    fun addExpenseListener(listener: ChildEventListener){
-        addListener(expenseRef,listener)
-    }
-
-    fun resetExpenseListener(listener:ChildEventListener){
-        resetListener(expenseRef,listener)
     }
 
     /**
      * すべてのリスナーを削除する (アプリ終了時などに呼び出す)
      */
     fun removeAllListeners() {
-        listeners.forEach { (databaseReference, listener) ->
-            databaseReference.removeEventListener(listener)
+        listeners.forEach { (reference, listener) ->
+            when (reference) {
+                is DatabaseReference -> reference.removeEventListener(listener)
+                is Query -> reference.removeEventListener(listener)
+            }
         }
         listeners.clear() // リストをクリア
     }
