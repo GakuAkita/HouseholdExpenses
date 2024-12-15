@@ -12,12 +12,69 @@ import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 class ExpenseSharedViewModel(
     private val expenseRepository: ExpenseRepository,
     private val dbListenerManager: DbListenerManager
 ):ViewModel() {
+    private val _afterLoginProcessStartFlag = MutableStateFlow(false)
+    val afterLoginProcessStartFlag: StateFlow<Boolean> get() = _afterLoginProcessStartFlag
+
+    private val _afterLogoutProcessStartFlag = MutableStateFlow(false)
+    val afterLogoutProcessStartFlag: StateFlow<Boolean> get() = _afterLogoutProcessStartFlag
+
+    init {
+        observeAfterLoginFlag()
+        observeAfterLogoutFlag()
+    }
+
+    private fun observeAfterLoginFlag(){
+        viewModelScope.launch {
+            _afterLoginProcessStartFlag
+                .collect{flag->
+                    if(flag){
+                        Log.d("ExpenseSharedViewModel","afterLoginProcessStartFlag is set to true.")
+                        onLoginProcess()
+                    }
+                    else{
+                        Log.d("ExpenseSharedViewModel","afterLoginProcessStartFlag is now false.")
+                    }
+                }
+        }
+    }
+
+    private fun observeAfterLogoutFlag(){
+        viewModelScope.launch {
+            _afterLogoutProcessStartFlag
+                .collect{flag->
+                    if(flag){
+                        Log.d("ExpenseSharedViewModel","afterLoginProcessStartFlag is set to true.")
+                        onLogoutProcess()
+                    }
+                    else{
+                        Log.d("ExpenseSharedViewModel","afterLoginProcessStartFlag is now false.")
+                    }
+                }
+        }
+    }
+
+    private fun onLoginProcess(){
+        fetchAllExpenses(
+            onComplete = {
+                addExpenseChildEventListener()
+                _afterLoginProcessStartFlag.value = false
+            }
+        )
+    }
+
+    private fun onLogoutProcess(){
+        dbListenerManager.removeAllListeners()
+        _afterLogoutProcessStartFlag.value = false
+    }
+
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpense: StateFlow<List<Expense>> get() = _allExpenses
@@ -92,6 +149,10 @@ class ExpenseSharedViewModel(
         dbListenerManager.addListener(expenseRef,listWatchChildEventListener)
 
         //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
+    }
+
+    fun clearExpenseChildEventListener(){
+        dbListenerManager.removeAllListeners()
     }
 
     /*******************CRUD関連**************************/

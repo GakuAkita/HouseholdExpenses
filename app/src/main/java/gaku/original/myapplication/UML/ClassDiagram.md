@@ -32,7 +32,7 @@ updateExpense()
 removeExpense()
 }
 
-class ListenerManager {
+class DbListenerManager {
 listeners
 
 clearListeners()
@@ -48,7 +48,7 @@ updateExpense()
 deleteExpense()
 }
 
-ListenerManager ..> ExpenseSharedViewModel :CI
+DbListenerManager ..> ExpenseSharedViewModel :CI
 ExpenseRepository ..> ExpenseSharedViewModel :CI
 ExpenseSharedViewModel ..> ExpenseListViewModel :CI
 ExpenseSharedViewModel ..> ExpenseAddEditViewModel :CI
@@ -61,9 +61,9 @@ getExpenseRef()
 getCategoryRef()
 }
 
-RealtimeDbReference ..> ListenerManager : CI
+RealtimeDbReference ..> DbListenerManager : CI
 RealtimeDbReference ..> ExpenseRepository : CI
-ListenerManager <..> RealtimeDatabase :リスナー管理
+DbListenerManager <..> RealtimeDatabase :リスナー管理
 
 %%Firebase関連がまとめられる。ユーザーとか
 class UserInfoViewModel {
@@ -82,9 +82,8 @@ class AuthManagerViewModel {
 }
 UserInfoViewModel ..> AuthManagerViewModel :CI
 UserInfoViewModel ..> RealtimeDbReference :CI
-ListenerManager ..> AuthManagerViewModel :CI
 %%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
-%% ListenerManager ..> UserManageViewModel :CI 
+%% DbListenerManager ..> UserManageViewModel :CI 
 %% UserManageViewModel ..> RealtimeDbReference : CI
 
 class RealtimeDatabase{

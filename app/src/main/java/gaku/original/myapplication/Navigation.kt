@@ -1,6 +1,7 @@
 package gaku.original.myapplication
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,10 +37,12 @@ fun Navigation(){
     val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
     val expenseAddEditViewModel = remember { ExpenseAddEditViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
 
+
     NavHost(
         navController = navController,
         startDestination = Screen.StartScreen.Start.route
     ){
+
         //Startスクリーン
         composable(Screen.StartScreen.Start.route){
             StartView(navController)
@@ -55,6 +58,7 @@ fun Navigation(){
 
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route){
+            //AuthManagerViewModelでサインイン後なのか、そうでないのかを判断
             MainView(expenseListViewModel,navController)
         }
         composable(Screen.MainScreen.AddEdit.route){
