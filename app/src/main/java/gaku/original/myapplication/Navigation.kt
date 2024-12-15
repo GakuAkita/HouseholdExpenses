@@ -30,13 +30,12 @@ fun Navigation(){
     val userInfoViewModel = remember { UserInfoViewModel() }
     val realtimeDbReference = RealtimeDbReference(userInfoViewModel)
     val dbListenerManager = DbListenerManager(realtimeDbReference)
-    val authManagerViewModel = remember {AuthManagerViewModel(userInfoViewModel)}
     val expenseRepository = ExpenseRepository(realtimeDbReference)
     val expenseSharedViewModel = remember { ExpenseSharedViewModel(expenseRepository,dbListenerManager) }
+    val authManagerViewModel = remember {AuthManagerViewModel(userInfoViewModel,expenseSharedViewModel)}
     val temporaryExpenseViewModel = remember { TemporaryExpenseViewModel() }
     val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
     val expenseAddEditViewModel = remember { ExpenseAddEditViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
-
 
     NavHost(
         navController = navController,

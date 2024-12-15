@@ -7,7 +7,8 @@ class DbListenerManager(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     // DatabaseReference とリスナーのペアを保持するリスト
-    private val listeners = mutableListOf<Pair<Any, ChildEventListener>>()
+    private val _listeners = mutableListOf<Pair<Any, ChildEventListener>>()
+    val listeners: List<Pair<Any, ChildEventListener>> get() = _listeners
 
     // DatabaseReferenceとQueryのどちらも使えるように、getメソッドを定義
     val expenseRef: DatabaseReference
@@ -22,7 +23,7 @@ class DbListenerManager(
             is Query -> reference.addChildEventListener(listener)
             else -> throw IllegalArgumentException("Invalid reference type")
         }
-        listeners.add(reference to listener) // リスナーと参照のペアを保存
+        _listeners.add(reference to listener) // リスナーと参照のペアを保存
     }
 
     /**
@@ -36,7 +37,7 @@ class DbListenerManager(
                 is DatabaseReference -> (it.first as DatabaseReference).removeEventListener(it.second)
                 is Query -> (it.first as Query).removeEventListener(it.second)
             }
-            listeners.remove(it) // リストから削除
+            _listeners.remove(it) // リストから削除
         }
     }
 
@@ -50,6 +51,6 @@ class DbListenerManager(
                 is Query -> reference.removeEventListener(listener)
             }
         }
-        listeners.clear() // リストをクリア
+        _listeners.clear() // リストをクリア
     }
 }

@@ -9,7 +9,8 @@ import gaku.original.myapplication.data.SingOutResult
 import gaku.original.myapplication.data.SingUpResult
 
 class AuthManagerViewModel(
-    private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel()
+    private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel(),
+    private val expenseSharedViewModel: ExpenseSharedViewModel
 ) {
 
     private val authManagerFirebaseAuth:FirebaseAuth
@@ -21,6 +22,12 @@ class AuthManagerViewModel(
                 if (task.isSuccessful) {
                     if(userInfoViewModel.userId.value != null) {
                         Log.d("AuthManagerViewModel","Signed in with Email:$email")
+                        //サインイン直後にやらないと行けない作業はここでやる
+                        expenseSharedViewModel.fetchAllExpenses(
+                            onComplete = {
+                                expenseSharedViewModel.addExpenseChildEventListener()
+                            }
+                        )
                         callback(SignInResult.SUCCESS)
                     }else{
                         //ここに来ることはまずないが。
@@ -50,6 +57,8 @@ class AuthManagerViewModel(
 
     fun signOut():SingOutResult{
         try {
+            expenseSharedViewModel.clearExpenseChildEventListener()
+
             authManagerFirebaseAuth.signOut()
             if(userInfoViewModel.currentUser.value == null){
                 Log.d("AuthManagerViewModel","signOut successful")

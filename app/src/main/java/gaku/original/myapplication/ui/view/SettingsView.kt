@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.SingOutResult
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @Composable
@@ -36,9 +37,13 @@ fun SettingsView(viewModel: AuthManagerViewModel, navController: NavController){
                  modifier=Modifier.fillMaxWidth(),
                  onClick = {
                      //ログアウト機能を実装
-                     viewModel.signOut()
-                     Toast.makeText(context,"ログアウトしました",Toast.LENGTH_SHORT).show()
-                     navController.navigate(Screen.StartScreen.Start.route)
+                     val ret = viewModel.signOut()
+                     if(ret == SingOutResult.SUCCESS){
+                         Toast.makeText(context,"ログアウトしました",Toast.LENGTH_SHORT).show()
+                         navController.navigate(Screen.StartScreen.Start.route)
+                     } else if(ret == SingOutResult.SIGN_OUT_FAILED){
+                         Toast.makeText(context,"ログアウトに失敗しました",Toast.LENGTH_SHORT).show()
+                     }
                  }
              ) {
                  Text("LogOut(仮)")
