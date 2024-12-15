@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.view.GraphView
 import gaku.original.myapplication.ui.view.NotCategorizedView
@@ -14,6 +13,12 @@ import gaku.original.myapplication.ui.view.main.AddEditView
 import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
+import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
+import gaku.original.myapplication.viewModel.ExpenseListViewModel
+import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
+import gaku.original.myapplication.viewModel.UserInfoViewModel
 
 @Composable
 fun Navigation(){
@@ -21,16 +26,15 @@ fun Navigation(){
 
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
-    val repository = ExpenseRepository()
-    val expenseViewModel = remember { ExpenseViewModel(repository,sharedViewModel) }
-
-//    if(expenseViewModel.addObserveExpensesDoneFlag.value == false){
-//        Log.d("Navigation","observeExpenses() called.")
-//        expenseViewModel.observeExpenses()
-//        expenseViewModel.addObserveExpensesDoneFlag.value = true
-//    }else{
-//        Log.d("Navigation","observeExpenses() was already called.")
-//    }
+    val userInfoViewModel = remember { UserInfoViewModel() }
+    val realtimeDbReference = RealtimeDbReference(userInfoViewModel)
+    val dbListenerManager = DbListenerManager(realtimeDbReference)
+    val authManagerViewModel = remember {AuthManagerViewModel(userInfoViewModel)}
+    val expenseRepository = ExpenseRepository(realtimeDbReference)
+    val expenseSharedViewModel = remember { ExpenseSharedViewModel(expenseRepository,dbListenerManager) }
+    val temporaryExpenseViewModel = remember { TemporaryExpenseViewModel() }
+    val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
+    val expenseAddEditViewModel = remember { ExpenseAddEditViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
 
     NavHost(
         navController = navController,
@@ -42,19 +46,19 @@ fun Navigation(){
         }
         composable(Screen.StartScreen.SignUp.route){
             val isLogin = false
-            LoginSignUpView(expenseViewModel,navController,isLogin)
+            LoginSignUpView(authManagerViewModel,navController,isLogin)
         }
         composable(Screen.StartScreen.Login.route){
             val isLogin = true
-            LoginSignUpView(expenseViewModel,navController,isLogin)
+            LoginSignUpView(authManagerViewModel,navController,isLogin)
         }
 
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route){
-            MainView(expenseViewModel,navController)
+            MainView(expenseListViewModel,navController)
         }
         composable(Screen.MainScreen.AddEdit.route){
-            AddEditView(expenseViewModel,navController)
+            AddEditView(expenseAddEditViewModel,navController)
         }
 
         //Graphスクリーン
@@ -69,7 +73,7 @@ fun Navigation(){
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.route){
-            SettingsView(expenseViewModel,navController)
+            SettingsView(authManagerViewModel,navController)
         }
     }
 }

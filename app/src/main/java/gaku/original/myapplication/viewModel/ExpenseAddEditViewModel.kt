@@ -8,56 +8,59 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class ExpenseAddEditViewModel(
-    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val expenseSharedViewModel: ExpenseSharedViewModel
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
 
     // プロパティでアクセスを簡略化。この書き方でcurrentTmpExpenseだけでviewModelのtmpExpenseにアクセスできる。
-    private var currentTmpExpense: Expense
+    val currentTmpExpense: Expense
         get() = tmpExpenseViewModel.tmpExpense.value
-        set(value) {
-            tmpExpenseViewModel.tmpExpense.value = value
-        }
-
-    fun getCurrentTmpExpense():Expense{
-        return currentTmpExpense
-    }
 
     // 日付のみを更新する
     fun updateTmpExpenseDate(newDate: LocalDate) {
-        currentTmpExpense = currentTmpExpense.copy(
-            datetime = fromLocalDateTime(
-                toLocalDateTime(currentTmpExpense.datetime)
-                    ?.withYear(newDate.year)
-                    ?.withMonth(newDate.monthValue)
-                    ?.withDayOfMonth(newDate.dayOfMonth)
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(
+                datetime = fromLocalDateTime(
+                    toLocalDateTime(currentTmpExpense.datetime)
+                        ?.withYear(newDate.year)
+                        ?.withMonth(newDate.monthValue)
+                        ?.withDayOfMonth(newDate.dayOfMonth)
+                )
             )
         )
     }
 
     // 時間のみを更新する
     fun updateTmpExpenseTime(newTime: LocalTime) {
-        currentTmpExpense = currentTmpExpense.copy(
-            datetime = fromLocalDateTime(
-                toLocalDateTime(currentTmpExpense.datetime)
-                    ?.withHour(newTime.hour)
-                    ?.withMinute(newTime.minute)
-                    ?.withSecond(newTime.second)
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(
+                datetime = fromLocalDateTime(
+                    toLocalDateTime(currentTmpExpense.datetime)
+                        ?.withHour(newTime.hour)
+                        ?.withMinute(newTime.minute)
+                        ?.withSecond(newTime.second)
+                )
             )
         )
     }
 
     // 各項目を個別に更新するメソッド
     fun updateTmpExpenseAmount(newAmount: Long?) {
-        currentTmpExpense = currentTmpExpense.copy(amount = newAmount)
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(amount = newAmount)
+        )
     }
 
     fun updateTmpExpenseCategory(newCategory: String) {
-        currentTmpExpense = currentTmpExpense.copy(category = newCategory)
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(category = newCategory)
+        )
     }
 
     fun updateTmpExpenseNote(newNote: String) {
-        currentTmpExpense = currentTmpExpense.copy(note = newNote)
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(note = newNote)
+        )
     }
 
     fun addTmpExpenseToDb() {

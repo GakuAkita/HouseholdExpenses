@@ -62,8 +62,6 @@ class ExpenseListViewModel(
     }
 
     /********************Repositoryを使う*****************************/
-    private val _allExpenses:List<Expense> get() = expenseSharedViewModel.allExpense.value
-
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
@@ -92,7 +90,7 @@ class ExpenseListViewModel(
 
     /** AddEditに値を渡す用 **/
     fun setToTmpExpense(expense: Expense){
-        tmpExpenseViewModel.tmpExpense.value = expense
+        tmpExpenseViewModel.updateTmpExpense(expense)
     }
 
     fun resetTmpExpense(){
@@ -102,9 +100,11 @@ class ExpenseListViewModel(
     /* カレンダーからAddEditする場合の関数。日付だけ変えて他は初期値 */
     fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime){
         tmpExpenseViewModel.resetTmpExpense()
-        tmpExpenseViewModel.tmpExpense.value = tmpExpenseViewModel.tmpExpense.value.copy(
-            //datetimeはStringなので注意!!! 変換必要
-            datetime = fromLocalDateTime(newDateTime)
+        tmpExpenseViewModel.updateTmpExpense(
+            tmpExpenseViewModel.tmpExpense.value.copy(
+                //datetimeはStringなので注意!!! 変換必要
+                datetime = fromLocalDateTime(newDateTime)
+            )
         )
     }
 }

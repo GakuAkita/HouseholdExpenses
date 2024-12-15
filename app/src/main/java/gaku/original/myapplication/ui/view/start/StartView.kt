@@ -34,10 +34,10 @@ fun StartView(navController: NavHostController){
 
         Spacer(modifier=Modifier.size(10.dp))
 
-        Text(text="このアプリは永遠に完成しない。\n"+
-                    "この世界に想像力が残っている限り、成長し続ける。",
-            textAlign = TextAlign.Center
-        )
+//        Text(text="このアプリは永遠に完成しない。\n"+
+//                    "この世界に想像力が残っている限り、成長し続ける。",
+//            textAlign = TextAlign.Center
+//        )
 
         Spacer(modifier=Modifier.size(10.dp))
 

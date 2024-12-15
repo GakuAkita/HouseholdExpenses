@@ -38,8 +38,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
@@ -113,7 +113,7 @@ fun AddEditView(
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
                 TextField(
-                    value = viewModel.getCurrentTmpExpense().datetime?.format(dateFormat) ?: "日付が入っていません",
+                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(dateFormat) ?: "日付が入っていません",
                     onValueChange = {},
                     enabled = false,
                     readOnly = true,
@@ -146,7 +146,7 @@ fun AddEditView(
                 Spacer(modifier=Modifier.padding(8.dp))
 
                 TextField(
-                    value = viewModel.getCurrentTmpExpense().datetime?.format(timeFormat) ?:"時間が入っていません",
+                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(timeFormat) ?:"時間が入っていません",
                     onValueChange = {},
                     enabled=false,
                     readOnly = true,
@@ -163,7 +163,7 @@ fun AddEditView(
                 //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
                 if(isTimePickerVisible){
                     //nullでないときのみ時刻を表示
-                    viewModel.getCurrentTmpExpense().datetime?.let {
+                    viewModel.currentTmpExpense.datetime?.let {
                         DialWithDialog(
                             onConfirm = { selectedTime->
                                 // 選択した時間を取得して ViewModel に更新
@@ -193,7 +193,7 @@ fun AddEditView(
             ) {
                 TextField(
                     //数値だけ受け付ける感じにしたい
-                    value = viewModel.getCurrentTmpExpense().amount?.toString() ?: "",
+                    value = viewModel.currentTmpExpense.amount?.toString() ?: "",
                     onValueChange ={
                         if(it!="" && it.toLongOrNull()==null){
                             Toast.makeText(
@@ -284,7 +284,7 @@ fun AddEditView(
             ){
                 //メモ
                 TextField(
-                    value=viewModel.getCurrentTmpExpense().note?:"",
+                    value=viewModel.currentTmpExpense.note?:"",
                     onValueChange = {
                         viewModel.updateTmpExpenseNote(it)
                     },
@@ -300,9 +300,9 @@ fun AddEditView(
             Button(
                 onClick = {
                     /* きちんと値が入っているかチェック */
-                    if(viewModel.getCurrentTmpExpense().amount != null){
+                    if(viewModel.currentTmpExpense.amount != null){
                         //idがnullなら新規作成ってこと
-                        if(viewModel.getCurrentTmpExpense().id==null){
+                        if(viewModel.currentTmpExpense.id==null){
                             //追加する
                             //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
                             viewModel.addTmpExpenseToDb()
@@ -344,7 +344,7 @@ fun AddEditView(
             }
 
 
-            if(viewModel.getCurrentTmpExpense().id==null){
+            if(viewModel.currentTmpExpense.id==null){
                 //新規作成のとき。リセット
                 Button(
                     onClick = {

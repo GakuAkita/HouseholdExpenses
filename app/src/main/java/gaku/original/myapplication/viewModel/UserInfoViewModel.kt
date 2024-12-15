@@ -25,7 +25,8 @@ class UserInfoViewModel(): ViewModel(){
     private var authStateListener: FirebaseAuth.AuthStateListener? = null
 
     init {
-        firebaseAuth.removeAuthStateListener(authStateListener!!)
+        //@TODO これでListenerがずっと追加されないかチェック
+        /*firebaseAuth.removeAuthStateListener(authStateListener)*/
 
         // AuthStateListenerでサインイン・サインアウトを監視
         authStateListener = FirebaseAuth.AuthStateListener {auth->

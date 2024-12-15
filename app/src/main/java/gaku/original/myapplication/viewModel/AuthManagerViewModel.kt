@@ -1,6 +1,5 @@
 package gaku.original.myapplication.viewModel
 
-import ListenerManager
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.SignInStatus

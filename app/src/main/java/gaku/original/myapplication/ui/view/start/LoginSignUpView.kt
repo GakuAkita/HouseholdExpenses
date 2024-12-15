@@ -27,15 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.SignInStatus
 import gaku.original.myapplication.data.SignUpStatus
+import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostController, isLogin:Boolean) {
+fun LoginSignUpView(authViewModel: AuthManagerViewModel, navController: NavHostController, isLogin:Boolean) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -86,7 +86,7 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
 
             Button(onClick = {
                 if(isLogin){//Login画面の場合の処理
-                    viewModel.signInAndFetchAllExpenses(
+                    authViewModel.signIn(
                         email = email,
                         password = password,
                         callback = {status ->
@@ -109,7 +109,7 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                     )
 
                 }else{//SignUpの場合の処理
-                    viewModel.signUpAndInitialSetup(
+                    authViewModel.signUp(
                         email = email,
                         password = password,
                         callback =  { status ->
@@ -117,7 +117,7 @@ fun LoginSignUpView(viewModel: ExpenseViewModel, navController: NavHostControlle
                                 SignUpStatus.SUCCESS -> {
                                     Toast.makeText(context, "アカウントを作成しました。ログインします", Toast.LENGTH_SHORT).show()
                                     //SignUpができたら即ログインする。
-                                    viewModel.signInAndFetchAllExpenses(
+                                    authViewModel.signIn(
                                         email = email,
                                         password = password,
                                         callback = { signInStatus ->

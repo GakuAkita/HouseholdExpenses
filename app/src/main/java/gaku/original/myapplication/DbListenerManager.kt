@@ -1,8 +1,7 @@
-//ここ抽象化してexpense用とcategory用に継承させたほうが良いのか?
+package gaku.original.myapplication//ここ抽象化してexpense用とcategory用に継承させたほうが良いのか?
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.Query
-import gaku.original.myapplication.RealtimeDbReference
 
 class DbListenerManager(
     private val realtimeDbReference: RealtimeDbReference

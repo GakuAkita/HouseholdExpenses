@@ -12,11 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @Composable
-fun SettingsView(viewModel: ExpenseViewModel, navController: NavController){
+fun SettingsView(viewModel: AuthManagerViewModel, navController: NavController){
     Scaffold(
         topBar = {
             TopBarView("SettingsView作成中")
