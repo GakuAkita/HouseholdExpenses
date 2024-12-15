@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -37,21 +38,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.CalendarDisplay
 import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.viewModel.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Composable
-fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
+fun MainView(
+    viewModel: ExpenseListViewModel,
+    navController: NavHostController
+){
     val topBarName ="What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
@@ -62,7 +67,6 @@ fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
 
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
     val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
-
 
     var currentPageMonth = viewModel.getCalendarMonth()
     var currentPageYear = viewModel.getCalendarYear()
@@ -86,7 +90,7 @@ fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
             FloatingActionButton(
                 onClick = {
                     //必ずAddなのでリセットで
-                    viewModel.resetExpenseInstance()
+                    viewModel.resetTmpExpense()
                     /* Addに飛ぶ */
                     navController.navigate(Screen.MainScreen.AddEdit.route)
                 },
@@ -101,7 +105,7 @@ fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
         },
         bottomBar = { BottomBarView(navController) }
     ){
-            innerPadding ->
+        innerPadding ->
         Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
             Row (
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
@@ -123,13 +127,9 @@ fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
                         onDayClicked = {day->
                             val inputDate:LocalDate=day.date
                             val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
-                            //リセットして
-                            viewModel.resetExpenseInstance()
-                            //日付を入力
+                            val newDatetime:LocalDateTime = inputDate.atTime(inputTime)//LocalDateTimeに変換
                             Log.d("Akita Debug","$inputDate")
-                            viewModel.updateExpenseInstanceDate(inputDate)
-                            //時間を入力
-                            viewModel.updateExpenseInstanceTime(inputTime)
+                            viewModel.setToTmpExpenseFromCalendar(newDatetime)
                             //AddEditViewに移動
                             navController.navigate(Screen.MainScreen.AddEdit.route)
                         }
@@ -176,7 +176,7 @@ fun MainView(viewModel: ExpenseViewModel, navController: NavHostController){
                                 expense = expense,
                                 onEdit = {
                                     //viewModel内の値を転写
-                                    viewModel.updateExpenseInstance(expense)
+                                    viewModel.setToTmpExpense(expense)
                                     //AddEditViewに移動
                                     navController.navigate(Screen.MainScreen.AddEdit.route)
                                 })

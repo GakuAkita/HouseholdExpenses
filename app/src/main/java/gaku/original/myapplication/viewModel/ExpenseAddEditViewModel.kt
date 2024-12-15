@@ -57,18 +57,6 @@ class ExpenseAddEditViewModel(
         currentExpense = currentExpense.copy(note = newNote)
     }
 
-    // ExpenseInstanceを一旦リセットする
-    fun resetTmpExpense() {
-        currentExpense = Expense(
-            id = null,
-            datetime = fromLocalDateTime(LocalDateTime.now()),
-            amount = null,
-            category = null,
-            note = null,
-            generatedType = null
-        )
-    }
-
     fun addTmpExpenseToDb() {
         expenseSharedViewModel.addExpense(currentExpense)
     }

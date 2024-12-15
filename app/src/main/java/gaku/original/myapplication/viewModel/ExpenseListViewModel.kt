@@ -95,4 +95,16 @@ class ExpenseListViewModel(
         tmpExpenseViewModel.tmpExpense.value = expense
     }
 
+    fun resetTmpExpense(){
+        tmpExpenseViewModel.resetTmpExpense()
+    }
+
+    /* カレンダーからAddEditする場合の関数。日付だけ変えて他は初期値 */
+    fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime){
+        tmpExpenseViewModel.resetTmpExpense()
+        tmpExpenseViewModel.tmpExpense.value = tmpExpenseViewModel.tmpExpense.value.copy(
+            //datetimeはStringなので注意!!! 変換必要
+            datetime = fromLocalDateTime(newDateTime)
+        )
+    }
 }
