@@ -24,7 +24,7 @@ class ExpenseSharedViewModel(
 ):ViewModel() {
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
-    val allExpense: StateFlow<List<Expense>> get() = _allExpenses
+    val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
 
     //realtimeDbReferenceからとっても良いが、引数が増えるのでdbListenerManagerから取る
     private val expenseRef: DatabaseReference

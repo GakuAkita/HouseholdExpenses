@@ -1,8 +1,6 @@
 package gaku.original.myapplication.viewModel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.SignInResult
 import gaku.original.myapplication.data.SingOutResult
@@ -12,7 +10,6 @@ class AuthManagerViewModel(
     private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel(),
     private val expenseSharedViewModel: ExpenseSharedViewModel
 ) {
-
     private val authManagerFirebaseAuth:FirebaseAuth
         get() = userInfoViewModel.firebaseAuth
 
@@ -30,7 +27,6 @@ class AuthManagerViewModel(
                         )
                         callback(SignInResult.SUCCESS)
                     }else{
-                        //ここに来ることはまずないが。
                         Log.d("AuthManagerViewModel","SignIn success but userId is null")
                         callback(SignInResult.USER_ID_NULL)
                     }
@@ -64,12 +60,15 @@ class AuthManagerViewModel(
                 Log.d("AuthManagerViewModel","signOut successful")
                 return SingOutResult.SUCCESS
             }else{
-                Log.d("AuthManagerViewModel","signOut failed. currentUser is not null\n")
-                return SingOutResult.SIGN_OUT_FAILED
+                //サイン・アウトしてからすぐだとここに来てしまうが、時間経って結局nullになる。
+                //したがって、扱いとしてはSUCESSにする
+                Log.d("AuthManagerViewModel","!!Warning!!signOut failed. currentUser is not null\n")
+                return SingOutResult.SUCCESS
             }
         }catch (e:Exception){
             Log.d("AuthManagerViewModel","signOut failed : ${e.message}")
             return SingOutResult.SIGN_OUT_FAILED
         }
     }
+
 }

@@ -11,6 +11,7 @@ import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -61,7 +62,22 @@ class ExpenseListViewModel(
         _monthOffset.value--
     }
 
-    /********************Repositoryを使う*****************************/
+    /********* Expense配列の管理 ***********/
+    val allExpenses :List<Expense> get() = expenseSharedViewModel.allExpenses.value
+    
+    init {
+        observeAllExpenses()
+    }
+    
+    //allExpenseが更新されたときに
+    private fun observeAllExpenses(){
+        viewModelScope.launch {
+            expenseSharedViewModel.allExpenses.collectLatest {
+                filterExpensesByMonth()
+            }
+        }
+    }
+
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
@@ -69,7 +85,22 @@ class ExpenseListViewModel(
         val targetYear = getCalendarYear()
         val targetMonth = getCalendarMonth()
 
-        _filteredExpenses.value = expenseSharedViewModel.allExpense.value
+        Log.d("ExpenseListViewModel", "allExpense: ${expenseSharedViewModel.allExpenses.value}")
+
+        //@XXX filteredExpensesがnullになるときがあって、この場合はアプリがクラッシュする。気をつけてください。
+        if (filteredExpenses == null){
+            Log.d("ExpenseListViewModel","filteredExpenses is null")
+            return
+        }
+
+        //@XXX 原因はわからんが、このチェックをいれないと、サインインできない？
+        if(allExpenses.isEmpty()){
+            Log.d("ExpenseListViewModel","No expenses available to filter")
+            _filteredExpenses.value = emptyList()
+            return
+        }
+
+        _filteredExpenses.value = expenseSharedViewModel.allExpenses.value
             .filter { expense ->
                 val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
                 val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
@@ -78,8 +109,8 @@ class ExpenseListViewModel(
             .sortedByDescending {
                 it.datetime
             }
-//        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
-//        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
+        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
+        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
     }
 
     /*

@@ -80,7 +80,8 @@ fun MainView(
     }
 
     val monthExpenses by viewModel.filteredExpenses.collectAsState()
-    Log.d("MainView","monthExpenses lodaded:${monthExpenses.size}")
+    //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意
+    Log.d("MainView","monthExpenses loaded:${monthExpenses.size}")
 
     Scaffold(
         topBar = {
