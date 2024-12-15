@@ -40,8 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.viewModel.ExpenseViewModel
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -56,7 +58,10 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
+fun AddEditView(
+    viewModel: ExpenseAddEditViewModel,
+    navController: NavController
+){
     //Toastとか用
     val context= LocalContext.current
 
@@ -108,7 +113,7 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                 horizontalArrangement = Arrangement.Absolute.Left
             ){
                 TextField(
-                    value = viewModel.getExpenseInstanceDateTime()?.format(dateFormat) ?: "日付が入っていません",
+                    value = viewModel.getCurrentTmpExpense().datetime?.format(dateFormat) ?: "日付が入っていません",
                     onValueChange = {},
                     enabled = false,
                     readOnly = true,
@@ -131,7 +136,7 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                                     .toLocalDate() // 日付部分のみ取得
 
                                 // 選択された日付で Expense インスタンスを更新
-                                viewModel.updateExpenseInstanceDate(selectedDate)
+                                viewModel.updateTmpExpenseDate(selectedDate)
                             }
                         },
                         onDismiss = { isDatePickerVisible = false }
@@ -141,7 +146,7 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                 Spacer(modifier=Modifier.padding(8.dp))
 
                 TextField(
-                    value = viewModel.getExpenseInstanceDateTime()?.format(timeFormat) ?:"時間が入っていません",
+                    value = viewModel.getCurrentTmpExpense().datetime?.format(timeFormat) ?:"時間が入っていません",
                     onValueChange = {},
                     enabled=false,
                     readOnly = true,
@@ -158,18 +163,19 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                 //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
                 if(isTimePickerVisible){
                     //nullでないときのみ時刻を表示
-                    viewModel.getExpenseInstanceDateTime()?.let {
+                    viewModel.getCurrentTmpExpense().datetime?.let {
                         DialWithDialog(
-                            onConfirm = {selectedTime->
+                            onConfirm = { selectedTime->
                                 // 選択した時間を取得して ViewModel に更新
                                 val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
-                                viewModel.updateExpenseInstanceTime(newTime)
+                                viewModel.updateTmpExpenseTime(newTime)
                                 isTimePickerVisible=false
                             },
                             onDismiss = {
                                 isTimePickerVisible=false
                             },
-                            initialDateTime = it
+                            //@HACK let内に入っているからnullなわけないけど一応気をつけて
+                            initialDateTime = toLocalDateTime(it)!!
                         )
                     }
                 }
@@ -187,7 +193,7 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
             ) {
                 TextField(
                     //数値だけ受け付ける感じにしたい
-                    value = viewModel.getExpenseInstanceAmount()?.toString() ?: "",
+                    value = viewModel.getCurrentTmpExpense().amount?.toString() ?: "",
                     onValueChange ={
                         if(it!="" && it.toLongOrNull()==null){
                             Toast.makeText(
@@ -197,10 +203,10 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                             ).show()
                             //viewModel.updateExpenseInstanceAmount(null)
                         }else{
-                            viewModel.updateExpenseInstanceAmount(it.toLongOrNull())
+                            viewModel.updateTmpExpenseAmount(it.toLongOrNull())
                         }
                     },
-                    label= {Text(text="Expense")},
+                    label= {Text(text="Amount")},
                     modifier=Modifier.width(260.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
@@ -278,9 +284,9 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
             ){
                 //メモ
                 TextField(
-                    value=viewModel.getInstanceNote()?:"",
+                    value=viewModel.getCurrentTmpExpense().note?:"",
                     onValueChange = {
-                        viewModel.updateExpenseInstanceNote(it)
+                        viewModel.updateTmpExpenseNote(it)
                     },
                     modifier=Modifier.width(260.dp),
                     label={Text(text="Note")},
@@ -294,11 +300,12 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
             Button(
                 onClick = {
                     /* きちんと値が入っているかチェック */
-                    if(viewModel.getExpenseInstanceAmount() != null){
+                    if(viewModel.getCurrentTmpExpense().amount != null){
                         //idがnullなら新規作成ってこと
-                        if(viewModel.getExpenseInstanceId()==null){
+                        if(viewModel.getCurrentTmpExpense().id==null){
                             //追加する
-                            viewModel.addExpense(viewModel.expense.value)
+                            //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
+                            viewModel.addTmpExpenseToDb()
                             Toast.makeText(
                                 context,
                                 "追加しました" ,
@@ -306,7 +313,7 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                             ).show()
                         } else{//idがnullでなかったら編集
                             //このidのExpenseをupdateする
-                            viewModel.updateExpense(viewModel.expense.value)
+                            viewModel.updateTmpExpenseToDb()
                             Toast.makeText(
                                 context,
                                 "更新する" ,
@@ -314,15 +321,15 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                             ).show()
                         }
                         //リセットする
-                        viewModel.resetExpenseInstance()
+                        viewModel.resetTmpExpense()
                         //メイン画面に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     }
                     else{
-                        /*expenseが入っていないので弾く*/
+                        /*amount入っていないので弾く*/
                         Toast.makeText(
                             context,
-                            "Expenseが入力されていません。\n保存できません" ,
+                            "金額が入力されていません。\n保存できません" ,
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -337,12 +344,12 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
             }
 
 
-            if(viewModel.getExpenseInstanceId()==null){
+            if(viewModel.getCurrentTmpExpense().id==null){
                 //新規作成のとき。リセット
                 Button(
                     onClick = {
                         //リセット
-                        viewModel.resetExpenseInstance()
+                        viewModel.resetTmpExpense()
                     },
                     modifier=Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(
@@ -357,9 +364,9 @@ fun AddEditView(viewModel: ExpenseViewModel, navController: NavController){
                 Button(
                     onClick = {
                         //削除
-                        viewModel.removeExpense(viewModel.expense.value)
+                        viewModel.removeTmpExpenseToDb()
                         //リセット
-                        viewModel.resetExpenseInstance()
+                        viewModel.resetTmpExpense()
                         //元に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     },
