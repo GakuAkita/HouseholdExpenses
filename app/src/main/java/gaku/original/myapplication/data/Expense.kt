@@ -13,6 +13,7 @@ data class Expense(
     var note:String?=null
 )
 
-data class CategoryClass(
-    val name:String?
+data class Category(
+    val id:String? = null,
+    val name:String? = CATEGORY_NULL_REPLACEMENT
 )

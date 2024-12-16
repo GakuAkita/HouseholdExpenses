@@ -5,8 +5,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 import gaku.original.myapplication.viewModel.UserInfoViewModel
 
-class RealtimeDbReference(private val userInfoViewModel: UserInfoViewModel
-
+class RealtimeDbReference(
+    private val userInfoViewModel: UserInfoViewModel
 ){
     private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
 

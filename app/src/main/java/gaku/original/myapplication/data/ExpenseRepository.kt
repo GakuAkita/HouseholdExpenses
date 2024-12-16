@@ -20,7 +20,6 @@ class ExpenseRepository(
             }
     }
 
-
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchUserExpenses(): List<Expense> {
         try {
