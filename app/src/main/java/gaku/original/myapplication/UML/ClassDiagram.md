@@ -32,6 +32,13 @@ updateExpense()
 removeExpense()
 }
 
+class CategoryRepository{
+fetchAllCategory()
+addCategory()
+updateCategory()
+removeCategory()
+}
+
 class DbListenerManager {
 listeners
 
@@ -58,8 +65,10 @@ ExpenseSharedViewModel ..> onSignInOutViewModel
 
 DbListenerManager ..> ExpenseSharedViewModel :CI
 ExpenseRepository ..> ExpenseSharedViewModel :CI
+CategoryRepository ..> ExpenseSharedViewModel :CI
 ExpenseSharedViewModel ..> ExpenseListViewModel :CI
 ExpenseSharedViewModel ..> ExpenseAddEditViewModel :CI
+
 
 class RealtimeDbReference {
 Firebase.database.reference
@@ -71,6 +80,7 @@ getCategoryRef()
 
 RealtimeDbReference ..> DbListenerManager : CI
 RealtimeDbReference ..> ExpenseRepository : CI
+RealtimeDbReference ..> CategoryRepository :CI
 DbListenerManager <..> RealtimeDatabase :リスナー管理
 
 %%Firebase関連がまとめられる。ユーザーとか

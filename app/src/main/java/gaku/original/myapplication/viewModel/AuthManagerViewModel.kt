@@ -41,6 +41,8 @@ class AuthManagerViewModel(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("AuthManagerViewModel","Created a user with Email:$email")
+                    //アカウント作成後に行う処理はここでやる
+                    expenseSharedViewModel.addUserInitialData(email)
                     callback(SingUpResult.SUCCESS)
                 } else {
                     // エラーハンドリング

@@ -103,6 +103,11 @@ class ExpenseSharedViewModel(
     }
 
     /*******************CRUD関連**************************/
+    fun addUserInitialData(email:String){
+        //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
+        expenseRepository.addUserInitialData(email)
+    }
+
     fun fetchAllExpenses(onComplete:()->Unit={}){
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses()
