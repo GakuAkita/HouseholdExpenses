@@ -48,6 +48,14 @@ updateExpense()
 deleteExpense()
 }
 
+class onSignInOutViewModel{
+onSignIn()
+onSignOut()
+}
+
+onSignInOutViewModel ..> AuthManagerViewModel
+ExpenseSharedViewModel ..> onSignInOutViewModel
+
 DbListenerManager ..> ExpenseSharedViewModel :CI
 ExpenseRepository ..> ExpenseSharedViewModel :CI
 ExpenseSharedViewModel ..> ExpenseListViewModel :CI
