@@ -1,6 +1,7 @@
 package gaku.original.myapplication.viewModel
 
 import androidx.lifecycle.ViewModel
+import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
@@ -15,6 +16,9 @@ class ExpenseAddEditViewModel(
     // プロパティでアクセスを簡略化。この書き方でcurrentTmpExpenseだけでviewModelのtmpExpenseにアクセスできる。
     val currentTmpExpense: Expense
         get() = tmpExpenseViewModel.tmpExpense.value
+
+    val categories: List<Category>
+        get() = expenseSharedViewModel.allCategories.value
 
     // 日付のみを更新する
     fun updateTmpExpenseDate(newDate: LocalDate) {

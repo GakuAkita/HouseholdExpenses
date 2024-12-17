@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.fromLocalDateTime
@@ -64,6 +65,7 @@ class ExpenseListViewModel(
 
     /********* Expense配列の管理 ***********/
     val allExpenses :List<Expense> get() = expenseSharedViewModel.allExpenses.value
+    val allCategories :List<Category> get() = expenseSharedViewModel.allCategories.value
     
     init {
         observeAllExpenses()

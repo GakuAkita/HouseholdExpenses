@@ -22,7 +22,7 @@ class AuthManagerViewModel(
                         //サインイン直後にやらないと行けない作業はここでやる
                         expenseSharedViewModel.fetchAllExpenses(
                             onComplete = {
-                                expenseSharedViewModel.addExpenseChildEventListener()
+                                expenseSharedViewModel.addExpenseCategoryChildEventListener()
                             }
                         )
                         callback(SignInResult.SUCCESS)

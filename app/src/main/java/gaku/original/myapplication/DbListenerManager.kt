@@ -14,6 +14,9 @@ class DbListenerManager(
     val expenseRef: DatabaseReference
         get() = realtimeDbReference.getUserExpenseRef()
 
+    val categoryRef: DatabaseReference
+        get() = realtimeDbReference.getUserCategoryRef()
+
     /**
      * リスナーを追加する (DatabaseReferenceまたはQueryに対応)
      */

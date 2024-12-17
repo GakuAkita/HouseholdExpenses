@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.view.GraphView
 import gaku.original.myapplication.ui.view.NotCategorizedView
@@ -31,7 +32,8 @@ fun Navigation(){
     val realtimeDbReference = RealtimeDbReference(userInfoViewModel)
     val dbListenerManager = DbListenerManager(realtimeDbReference)
     val expenseRepository = ExpenseRepository(realtimeDbReference)
-    val expenseSharedViewModel = remember { ExpenseSharedViewModel(expenseRepository,dbListenerManager) }
+    val categoryRepository = CategoryRepository(realtimeDbReference)
+    val expenseSharedViewModel = remember { ExpenseSharedViewModel(expenseRepository,categoryRepository,dbListenerManager) }
     val authManagerViewModel = remember {AuthManagerViewModel(userInfoViewModel,expenseSharedViewModel)}
     val temporaryExpenseViewModel = remember { TemporaryExpenseViewModel() }
     val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
