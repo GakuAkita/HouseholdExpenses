@@ -117,6 +117,13 @@ class ExpenseSharedViewModel(
     fun addUserInitialData(email:String){
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
         expenseRepository.addUserInitialData(email)
+
+        val category = Category(
+            id = null,
+            name = "Food",
+            enabled = true
+        )
+        categoryRepository.addCategory(category)
     }
 
     fun fetchAllExpenses(onComplete:()->Unit={}){

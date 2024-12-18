@@ -30,7 +30,10 @@ class CategoryRepository(
         val newCategoryRef = categoryRef.push() // Generate the unique key
 
         // Create a new instance of Expense with the generated ID
-        val categoryWithId = category.copy(id = newCategoryRef.key)
+        val categoryWithId = category.copy(
+            id = newCategoryRef.key,
+            timestamp = System.currentTimeMillis()//時間は念のためここで代入
+            )
 
         // Save the new instance with the generated key
         newCategoryRef.setValue(categoryWithId)

@@ -218,12 +218,12 @@ fun AddEditView(
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
-//            Row(
-//                modifier=Modifier
-//                    .fillMaxWidth()
-//            ){
-//
-//            }
+            Row(
+                modifier=Modifier
+                    .fillMaxWidth()
+            ){
+                Text("${viewModel.categories}")
+            }
 
             ExposedDropdownMenuBox(
                 expanded=categoryOptionsExpanded,

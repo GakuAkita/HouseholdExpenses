@@ -16,5 +16,6 @@ data class Expense(
 data class Category(
     val id:String? = null,
     var timestamp:Long? = System.currentTimeMillis(),
-    val name:String? = CATEGORY_NULL_REPLACEMENT
+    val name:String? = CATEGORY_NULL_REPLACEMENT,
+    val enabled:Boolean? = true
 )

@@ -25,6 +25,7 @@ class AuthManagerViewModel(
                                 expenseSharedViewModel.addExpenseCategoryChildEventListener()
                             }
                         )
+                        expenseSharedViewModel.fetchAllCategories()
                         callback(SignInResult.SUCCESS)
                     }else{
                         Log.d("AuthManagerViewModel","SignIn success but userId is null")
