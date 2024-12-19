@@ -46,7 +46,7 @@ fun TopBarView(
                 val currentRoute = navBackStateEntry?.destination?.route
                 //AddEditViewからMainScreenContentに戻るとき
                 //AddEditViewだけ表示する
-                if(currentRoute==Screen.MainScreen.AddEdit.route){
+                if(currentRoute==Screen.MainScreen.ExpenseAddEdit.route){
                     IconButton(onClick = onBackNavClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_24),

@@ -218,6 +218,14 @@ fun AddEditView(
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
+            Button(
+                onClick = {
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("[Test] Add Category")
+            }
+
             Row(
                 modifier=Modifier
                     .fillMaxWidth()

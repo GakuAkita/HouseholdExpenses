@@ -93,7 +93,7 @@ fun MainView(
                     //必ずAddなのでリセットで
                     viewModel.resetTmpExpense()
                     /* Addに飛ぶ */
-                    navController.navigate(Screen.MainScreen.AddEdit.route)
+                    navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                 },
                 containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
                 contentColor = MaterialTheme.colorScheme.onSecondary,
@@ -132,7 +132,7 @@ fun MainView(
                             Log.d("Akita Debug","$inputDate")
                             viewModel.setToTmpExpenseFromCalendar(newDatetime)
                             //AddEditViewに移動
-                            navController.navigate(Screen.MainScreen.AddEdit.route)
+                            navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                         }
                     )
                 }
@@ -179,7 +179,7 @@ fun MainView(
                                     //viewModel内の値を転写
                                     viewModel.setToTmpExpense(expense)
                                     //AddEditViewに移動
-                                    navController.navigate(Screen.MainScreen.AddEdit.route)
+                                    navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                                 })
                         }
                     }

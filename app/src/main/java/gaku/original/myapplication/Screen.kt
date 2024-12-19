@@ -18,7 +18,8 @@ sealed class Screen(val route: String) {
             const val BASE_ROUTE = "main"
         }
         object Content : MainScreen("$BASE_ROUTE/content")
-        object AddEdit : MainScreen("$BASE_ROUTE/add_edit")
+        object ExpenseAddEdit : MainScreen("$BASE_ROUTE/expense_add_edit")
+        object CategoryAddEdit : MainScreen("$BASE_ROUTE/category_add_edit")
     }
 
     // その他

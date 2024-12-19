@@ -62,7 +62,7 @@ fun Navigation(){
             //AuthManagerViewModelでサインイン後なのか、そうでないのかを判断
             MainView(expenseListViewModel,navController)
         }
-        composable(Screen.MainScreen.AddEdit.route){
+        composable(Screen.MainScreen.ExpenseAddEdit.route){
             AddEditView(expenseAddEditViewModel,navController)
         }
 
