@@ -58,7 +58,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditView(
+fun ExpenseAddEditView(
     viewModel: ExpenseAddEditViewModel,
     navController: NavController
 ){
@@ -218,69 +218,64 @@ fun AddEditView(
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
-            Button(
-                onClick = {
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("[Test] Add Category")
-            }
 
-            Row(
-                modifier=Modifier
-                    .fillMaxWidth()
+            Row (
+
             ){
-                Text("${viewModel.categories}")
-            }
-
-            ExposedDropdownMenuBox(
-                expanded=categoryOptionsExpanded,
-                onExpandedChange = {
-                    categoryOptionsExpanded= !categoryOptionsExpanded
-                }
-            ) {
-
-                //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
-                //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
-                //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
-                //カテゴリーの編集画面もほしいし
-                /*
-                TextField(
-                    value=viewModel.getExpenseInstanceCategory():"" ,
-                    onValueChange = {
-                        viewModel.updateExpenseInstanceCategory(it)
-                    },
-                    enabled = false,
-                    readOnly = true,
-                    modifier=Modifier
-                        .width(260.dp)
-                        .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
-                    label={Text(text="Category")},
-                    singleLine = true,
-                    colors = enabledTextFiledColorSet,
-                )
-
-
-                ExposedDropdownMenu(
+                ExposedDropdownMenuBox(
                     expanded=categoryOptionsExpanded,
-                    onDismissRequest = { categoryOptionsExpanded=false }
-                ) {
-                    DummyCategory.categoryList.forEachIndexed{
-                            index,category->
-                        DropdownMenuItem(
-                            text = { Text(text = category.name.toString()) },
-                            onClick = {
-                                viewModel.category.value=category.name
-                                categoryOptionsExpanded=false
-                            }
-                        )
+                    onExpandedChange = {
+                        categoryOptionsExpanded= !categoryOptionsExpanded
                     }
+                ) {
+
+                    //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
+                    //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
+                    //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
+                    //カテゴリーの編集画面もほしいし
+                    TextField(
+                        value="Category",
+                        onValueChange = {
+                            viewModel.updateTmpExpenseCategory(it)
+                        },
+                        enabled = false,
+                        readOnly = true,
+                        modifier=Modifier
+                            .width(260.dp)
+                            .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
+                        label={Text(text="Category")},
+                        singleLine = true,
+                        colors = enabledTextFiledColorSet,
+                    )
+
+                    /*
+                    ExposedDropdownMenu(
+                        expanded=categoryOptionsExpanded,
+                        onDismissRequest = { categoryOptionsExpanded=false }
+                    ) {
+                        DummyCategory.categoryList.forEachIndexed{
+                                index,category->
+                            DropdownMenuItem(
+                                text = { Text(text = category.name.toString()) },
+                                onClick = {
+                                    viewModel.category.value=category.name
+                                    categoryOptionsExpanded=false
+                                }
+                            )
+                        }
+                    }
+                     */
+
                 }
-                 */
 
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.MainScreen.CategoryAddEdit.route)
+                    }
+                ){
+                    Text("CategoryEditのアイコン")
+                }
             }
-
-
 
             Spacer(modifier=Modifier.padding(8.dp))
 

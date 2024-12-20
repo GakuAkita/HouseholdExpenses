@@ -44,8 +44,8 @@ fun TopBarView(
                 //現在のルートを取得
                 val navBackStateEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStateEntry?.destination?.route
-                //AddEditViewからMainScreenContentに戻るとき
-                //AddEditViewだけ表示する
+                //ExpenseAddEditViewからMainScreenContentに戻るとき
+                //ExpenseAddEditViewだけ表示する
                 if(currentRoute==Screen.MainScreen.ExpenseAddEdit.route){
                     IconButton(onClick = onBackNavClicked) {
                         Icon(
@@ -68,7 +68,7 @@ fun BottomBarView(
         BottomNavigationItem(
             title="Main",
             icon= painterResource(id = R.drawable.baseline_home_24),
-            //@Todo できればAddEditViewのとき別のbottomBarViewに移動したときに戻った際に入力結果を保存してかつ、AddEditViewに戻ってほしい
+            //@Todo できればExpenseAddEditViewのとき別のbottomBarViewに移動したときに戻った際に入力結果を保存してかつ、AddEditViewに戻ってほしい
             //viewModelに保存しておくのがまるいか？
             route=Screen.MainScreen.Content.route
         ),

@@ -224,9 +224,16 @@ class ExpenseSharedViewModel(
         }
     }
 
-    fun addCategory(category:Category){
-        viewModelScope.launch {
-            categoryRepository.addCategory(category)
+    fun addCategory(category:Category, onAlreadyExists:()->Unit={}){
+        //addするときに、既存のカテゴリーと重複しないようにする
+        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
+        if(isNameAlreadyExists){
+            onAlreadyExists()
+        }
+        else {
+            viewModelScope.launch {
+                categoryRepository.addCategory(category)
+            }
         }
     }
 

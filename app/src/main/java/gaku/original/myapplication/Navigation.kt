@@ -11,7 +11,8 @@ import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.view.GraphView
 import gaku.original.myapplication.ui.view.NotCategorizedView
 import gaku.original.myapplication.ui.view.SettingsView
-import gaku.original.myapplication.ui.view.main.AddEditView
+import gaku.original.myapplication.ui.view.main.CategoryAddEditView
+import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
@@ -63,7 +64,10 @@ fun Navigation(){
             MainView(expenseListViewModel,navController)
         }
         composable(Screen.MainScreen.ExpenseAddEdit.route){
-            AddEditView(expenseAddEditViewModel,navController)
+            ExpenseAddEditView(expenseAddEditViewModel,navController)
+        }
+        composable(Screen.MainScreen.CategoryAddEdit.route){
+            CategoryAddEditView(expenseSharedViewModel,navController)
         }
 
         //Graphスクリーン

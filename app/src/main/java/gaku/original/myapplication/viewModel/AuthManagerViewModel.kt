@@ -33,6 +33,7 @@ class AuthManagerViewModel(
                     }
                 } else {
                     Log.d("AuthManagerViewModel","signIn failed.")
+                    callback(SignInResult.SIGN_IN_FAILED)
                 }
             }
     }

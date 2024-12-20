@@ -96,9 +96,8 @@ class ExpenseListViewModel(
         }
 
         //@XXX 原因はわからんが、このチェックをいれないと、サインインできない？
-        if(allExpenses.isEmpty()){
-            Log.d("ExpenseListViewModel","No expenses available to filter")
-            _filteredExpenses.value = emptyList()
+        if(allExpenses == null){
+            Log.d("ExpenseListViewModel","allExpenses is null")
             return
         }
 
@@ -111,8 +110,8 @@ class ExpenseListViewModel(
             .sortedByDescending {
                 it.datetime
             }
-        Log.d("ExpenseViewModel","filterExpensesByMonth was executed.↓")
-        Log.d("ExpenseViewModel","${_filteredExpenses.value}")
+        Log.d("ExpenseListViewModel","filterExpensesByMonth was executed.↓")
+        Log.d("ExpenseListViewModel","${_filteredExpenses.value}")
     }
 
     /*

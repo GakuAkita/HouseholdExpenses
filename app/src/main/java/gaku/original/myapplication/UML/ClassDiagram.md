@@ -108,6 +108,7 @@ class RealtimeDatabase{
 Database
 }
 RealtimeDatabase <..> ExpenseRepository: CRUD
+RealtimeDatabase <..> CategoryRepository :CRUD
 
 class FirebaseAuth{
 Firebase Authentication

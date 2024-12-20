@@ -131,7 +131,7 @@ fun MainView(
                             val newDatetime:LocalDateTime = inputDate.atTime(inputTime)//LocalDateTimeに変換
                             Log.d("Akita Debug","$inputDate")
                             viewModel.setToTmpExpenseFromCalendar(newDatetime)
-                            //AddEditViewに移動
+                            //ExpenseAddEditViewに移動
                             navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                         }
                     )
@@ -178,7 +178,7 @@ fun MainView(
                                 onEdit = {
                                     //viewModel内の値を転写
                                     viewModel.setToTmpExpense(expense)
-                                    //AddEditViewに移動
+                                    //ExpenseAddEditViewに移動
                                     navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                                 })
                         }
