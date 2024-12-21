@@ -6,13 +6,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
@@ -26,6 +34,8 @@ fun CategoryAddEditView(
     viewModel:ExpenseSharedViewModel,
     navController: NavController
 ){
+    var showDialog by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     Scaffold(
         topBar = {
@@ -55,15 +65,40 @@ fun CategoryAddEditView(
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    viewModel.addCategory(
-                        sampleCategory,
-                        onAlreadyExists = {
-                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    showDialog = true
+//                    viewModel.addCategory(
+//                        sampleCategory,
+//                        onAlreadyExists = {
+//                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+//                        }
+//                    )
                 }
             ) {
                 Text("Add Category")
+            }
+
+            //ダイアログを表示
+            if(showDialog){
+                AlertDialog(
+                    onDismissRequest = {
+                        showDialog = false
+                    },
+                    title = {
+                        Text("Category Edit Dialog")
+                    },
+                    text = {
+                        Text("Text")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showDialog = false
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
         }
     }
@@ -80,4 +115,71 @@ fun CategoryItem(category:Category){
     ){
         Text(category.name?:CATEGORY_NULL_REPLACEMENT)
     }
+}
+
+@Composable
+fun CategoryAddEditDialog(
+    category:Category = Category(
+        name = null
+    ),
+    onSave : (category:Category)->Unit,
+    onDismiss : ()->Unit,
+){
+    var newCategory by remember{ mutableStateOf(category) }
+
+    AlertDialog(
+        onDismissRequest = {
+            onDismiss()
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Button(
+                    modifier = Modifier
+                        .padding(start = 10.dp),
+                    onClick = { onDismiss() }
+                ){
+                    Text("Cancel")
+                }
+                Button(
+                    modifier=Modifier
+                        .padding(end = 10.dp),
+                    onClick = {
+                        /* ここでnewCategoryが適切かチェックする */
+                        /* すでにカテゴリーの中に存在するかはここではチェックしない */
+                        if(newCategory.name == null||newCategory.name == ""){
+                            /* callbackする */
+                        } else{
+                            onSave(newCategory)
+                        }
+                    }
+                ){
+                    Text("Save")
+                }
+            }
+        },
+        title = {
+            if(newCategory.id == null){
+                Text("Add Category")
+            }else{
+                Text("Edit Category")
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = newCategory.name ?: "",
+                    onValueChange = {
+                        newCategory = newCategory.copy(name = it)
+                    }
+                )
+            }
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = true
+        )
+    )
 }
