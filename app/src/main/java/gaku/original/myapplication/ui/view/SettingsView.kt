@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.SingOutResult
+import gaku.original.myapplication.data.Status.SingOutResult
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @Composable

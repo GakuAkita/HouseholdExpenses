@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data
+package gaku.original.myapplication.data.Status
 enum class SignInResult {
     SUCCESS,            // サインアップ成功
     USER_ID_NULL,       // サインアップ成功したがUIDがnull

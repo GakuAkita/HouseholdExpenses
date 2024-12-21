@@ -2,9 +2,9 @@ package gaku.original.myapplication.viewModel
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import gaku.original.myapplication.data.SignInResult
-import gaku.original.myapplication.data.SingOutResult
-import gaku.original.myapplication.data.SingUpResult
+import gaku.original.myapplication.data.Status.SignInResult
+import gaku.original.myapplication.data.Status.SingOutResult
+import gaku.original.myapplication.data.Status.SingUpResult
 
 class AuthManagerViewModel(
     private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel(),
@@ -55,7 +55,7 @@ class AuthManagerViewModel(
             }
     }
 
-    fun signOut():SingOutResult{
+    fun signOut(): SingOutResult {
         try {
             expenseSharedViewModel.clearExpenseChildEventListener()
 

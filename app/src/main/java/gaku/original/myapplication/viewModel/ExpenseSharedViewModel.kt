@@ -12,6 +12,7 @@ import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
+import gaku.original.myapplication.data.Status.CategoryEditStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -219,26 +220,76 @@ class ExpenseSharedViewModel(
 
     fun fetchAllCategories(callback: (Boolean) -> Unit){
         viewModelScope.launch {
-            _allCategories.value = categoryRepository.fetchAllCategories(callback)
+            _allCategories.value = categoryRepository.fetchAllCategories(
+                callback = {result->
+                    callback(result)
+                }
+            )
             Log.d("CategoryViewModel","Categories:${_allCategories.value}")
         }
     }
 
-    fun addCategory(category:Category,callback:(Boolean)->Unit ={}){
-        viewModelScope.launch {
-            categoryRepository.addCategory(category,callback)
+    /*
+    被りチェックはここで入れたほうが良いな。
+    CategoryEditView用の関数を作りそこで被りチェックを入れても良いが、そうすると、
+    SharedViewModelを他のviewModelでチェックしてCategoryを追加するときに同じ機能を実装することになる。
+    */
+    fun addCategory(category:Category,callback:(CategoryEditStatus)->Unit ={}){
+        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
+        if(isNameAlreadyExists){
+            callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
+        }
+        else {
+            viewModelScope.launch {
+                categoryRepository.addCategory(
+                    category = category,
+                    callback = {result->
+                        if(result){
+                            callback(CategoryEditStatus.SUCCESS)
+                        }
+                        else{
+                            callback(CategoryEditStatus.FAILED)
+                        }
+                    }
+                )
+            }
         }
     }
 
-    fun updateCategory(category:Category,callback:(Boolean)->Unit ={}){
-        viewModelScope.launch {
-            categoryRepository.updateCategory(category,callback)
+    fun updateCategory(category:Category,callback:(CategoryEditStatus)->Unit ={}){
+        //@TODO すでに存在するかチェックは関数化したほうが良いかも
+        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
+        if(isNameAlreadyExists){
+            callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
+        }else{
+            viewModelScope.launch {
+                categoryRepository.updateCategory(
+                    category = category,
+                    callback = {result->
+                        if(result){
+                            callback(CategoryEditStatus.SUCCESS)
+                        }else{
+                            callback(CategoryEditStatus.FAILED)
+                        }
+                    }
+                )
+            }
         }
     }
 
     fun removeCategory(category:Category,callback: (Boolean) -> Unit = {}){
         viewModelScope.launch {
-            categoryRepository.removeCategory(category,callback)
+            categoryRepository.removeCategory(
+                category,
+                callback={result ->
+                    if(result){
+                        callback(true)
+                    }else{
+                        callback(false)
+                    }
+
+                }
+            )
         }
     }
 }

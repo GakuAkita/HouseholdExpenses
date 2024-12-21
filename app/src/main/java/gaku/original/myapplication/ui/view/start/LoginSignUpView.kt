@@ -28,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.SignInResult
-import gaku.original.myapplication.data.SingUpResult
+import gaku.original.myapplication.data.Status.SignInResult
+import gaku.original.myapplication.data.Status.SingUpResult
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 

@@ -25,6 +25,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.Status.CategoryEditStatus
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
@@ -70,12 +71,6 @@ fun CategoryAddEditView(
                     editedCategory = Category(
                         name = null
                     )
-//                    viewModel.addCategory(
-//                        sampleCategory,
-//                        onAlreadyExists = {
-//                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
-//                        }
-//                    )
                 }
             ) {
                 Text("Add Category")
@@ -90,19 +85,42 @@ fun CategoryAddEditView(
                         if(newCategory.id == null){
                             viewModel.addCategory(
                                 newCategory,
-                                onAlreadyExists = {
-                                    Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+                                callback = {status->
+                                    when(status){
+                                        CategoryEditStatus.SUCCESS->{
+                                            Toast.makeText(context, "Category Added", Toast.LENGTH_SHORT).show()
+                                            showDialog = false
+                                        }
+                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST->{
+                                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+                                        }
+                                        CategoryEditStatus.FAILED->{
+                                            Toast.makeText(context, "Failed to Add Category", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+
                                 }
                             )
                         }else{
+                            viewModel.updateCategory(
+                                newCategory,
+                                callback = {status->
+                                    when(status){
+                                        CategoryEditStatus.SUCCESS->{
+                                            Toast.makeText(context, "Category Added", Toast.LENGTH_SHORT).show()
+                                            showDialog = false
+                                        }
+                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST->{
+                                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+                                        }
+                                        CategoryEditStatus.FAILED->{
+                                            Toast.makeText(context, "Failed to Add Category", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
 
+                                }
+                            )
                         }
-                        viewModel.addCategory(
-                            it,
-                            onAlreadyExists = {
-                                Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
-                            }
-                        )
                     },
                     onDismiss = {
                         showDialog = false

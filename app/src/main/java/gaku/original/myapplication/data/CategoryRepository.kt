@@ -44,8 +44,10 @@ class CategoryRepository(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("CategoryRepository", "Category added successfully${category.id}")
+                    callback(true)
                 } else {
                     Log.e("CategoryRepository", "Failed to add category", task.exception)
+                    callback(false)
                 }
             }
     }
@@ -75,6 +77,7 @@ class CategoryRepository(
                     callback(true)
                 } else{
                     Log.e("CategoryRepository","Failed to remove category",task.exception)
+                    callback(false)
                 }
             }
     }
