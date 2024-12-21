@@ -79,7 +79,8 @@ fun MainView(
         viewModel.filterExpensesByMonth()
     }
 
-    val monthExpenses by viewModel.filteredExpenses.collectAsState()
+    //rememberをつけると再コンポーズのとき無駄に走らない
+    val monthExpenses by remember { viewModel.filteredExpenses }.collectAsState(initial = emptyList())
     //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意
     Log.d("MainView","monthExpenses loaded:${monthExpenses.size}")
 

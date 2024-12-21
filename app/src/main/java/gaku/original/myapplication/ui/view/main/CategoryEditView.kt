@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -38,6 +41,8 @@ fun CategoryAddEditView(
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
     var showDialog by remember { mutableStateOf(false) }
 
+    val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
+
     val context = LocalContext.current
     Scaffold(
         topBar = {
@@ -57,11 +62,28 @@ fun CategoryAddEditView(
             modifier= Modifier.padding(innerPadding)
         ) {
 
-            val sampleCategory = Category(
-                name = "Food1",
-            )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(allCategories){
+                    CategoryItem(
+                        category = it,
+                        onClick = {
+                            showDialog = true
+                            editedCategory = it
+                        }
+                    )
+                }
+            }
             for(category in viewModel.allCategories.collectAsState(initial = emptyList()).value){
-                CategoryItem(category = category)
+                CategoryItem(
+                    category = category,
+                    onClick = {
+                        showDialog = true
+                        editedCategory = it
+                    }
+                )
             }
 
             Button(
@@ -107,7 +129,6 @@ fun CategoryAddEditView(
                                 callback = {status->
                                     when(status){
                                         CategoryEditStatus.SUCCESS->{
-                                            Toast.makeText(context, "Category Added", Toast.LENGTH_SHORT).show()
                                             showDialog = false
                                         }
                                         CategoryEditStatus.CATEGORY_ALREADY_EXIST->{
@@ -132,12 +153,12 @@ fun CategoryAddEditView(
 }
 
 @Composable
-fun CategoryItem(category:Category,onClick:()->Unit = {}){
+fun CategoryItem(category:Category,onClick:(category:Category)->Unit = {}){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onClick()
+                onClick(category)
             }
     ){
         Text(category.name?:CATEGORY_NULL_REPLACEMENT)

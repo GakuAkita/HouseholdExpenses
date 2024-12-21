@@ -218,7 +218,7 @@ class ExpenseSharedViewModel(
     }
 
 
-    fun fetchAllCategories(callback: (Boolean) -> Unit){
+    fun fetchAllCategories(callback: (Boolean) -> Unit={}){
         viewModelScope.launch {
             _allCategories.value = categoryRepository.fetchAllCategories(
                 callback = {result->
