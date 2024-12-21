@@ -12,21 +12,25 @@ class CategoryRepository(
     val categoryRef : DatabaseReference
         get()= realtimeDbReference.getUserCategoryRef()
 
-    suspend fun fetchAllCategories():List<Category>{
+    suspend fun fetchAllCategories(
+        callback: (Boolean) -> Unit = {}
+    ):List<Category>{
         try {
             val snapshot = categoryRef.get().await()
             val categories = snapshot.children.mapNotNull {
                 it.getValue(Category::class.java)
             }
             Log.d("CategoryRepository", "Fetched Categories: $categories")
+            callback(true)
             return categories
         } catch (e: Exception) {
             Log.d("CategoryRepository", "fetchUserExpenses failed. ${e.message}")
+            callback(false)
             return emptyList()  // エラー時には空のリストを返す
         }
     }
 
-    fun addCategory(category: Category){
+    fun addCategory(category: Category,callback: (Boolean) -> Unit={}){
         val newCategoryRef = categoryRef.push() // Generate the unique key
 
         // Create a new instance of Expense with the generated ID
@@ -46,7 +50,7 @@ class CategoryRepository(
             }
     }
 
-    fun updateCategory(category: Category){
+    fun updateCategory(category: Category,callback:(Boolean)->Unit={}){
         // Use the expense's ID (which is the Firebase-generated key) to locate it
         val categoryToUpdateRef = categoryRef.child(category.id ?: return)
 
@@ -54,18 +58,21 @@ class CategoryRepository(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("CategoryRepository", "Category updated successfully${category.id}")
+                    callback(true)
                 } else {
                     Log.e("CategoryRepository", "Failed to update category", task.exception)
+                    callback(false)
                 }
             }
     }
 
-    fun removeCategory(category: Category){
+    fun removeCategory(category: Category,callback: (Boolean) -> Unit={}){
         val categoryToRemoveRef = categoryRef.child(category.id ?: return)
         categoryToRemoveRef.removeValue()
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
                     Log.d("CategoryRepository","Category removed successfully")
+                    callback(true)
                 } else{
                     Log.e("CategoryRepository","Failed to remove category",task.exception)
                 }

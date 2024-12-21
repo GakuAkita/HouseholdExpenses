@@ -217,42 +217,28 @@ class ExpenseSharedViewModel(
     }
 
 
-    fun fetchAllCategories(){
+    fun fetchAllCategories(callback: (Boolean) -> Unit){
         viewModelScope.launch {
-            _allCategories.value = categoryRepository.fetchAllCategories()
+            _allCategories.value = categoryRepository.fetchAllCategories(callback)
             Log.d("CategoryViewModel","Categories:${_allCategories.value}")
         }
     }
 
-    fun addCategory(category:Category, onAlreadyExists:()->Unit={}){
-        //addするときに、既存のカテゴリーと重複しないようにする
-        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
-        if(isNameAlreadyExists){
-            onAlreadyExists()
-        }
-        else {
-            viewModelScope.launch {
-                categoryRepository.addCategory(category)
-            }
-        }
-    }
-
-    fun updateCategory(category:Category,onAlreadyExists: () -> Unit={}){
-        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
-        if(isNameAlreadyExists){
-            onAlreadyExists()
-        }
-        else
-        {
-            viewModelScope.launch {
-                categoryRepository.updateCategory(category)
-            }
-        }
-    }
-
-    fun removeCategory(category:Category){
+    fun addCategory(category:Category,callback:(Boolean)->Unit ={}){
         viewModelScope.launch {
-            categoryRepository.removeCategory(category)
+            categoryRepository.addCategory(category,callback)
+        }
+    }
+
+    fun updateCategory(category:Category,callback:(Boolean)->Unit ={}){
+        viewModelScope.launch {
+            categoryRepository.updateCategory(category,callback)
+        }
+    }
+
+    fun removeCategory(category:Category,callback: (Boolean) -> Unit = {}){
+        viewModelScope.launch {
+            categoryRepository.removeCategory(category,callback)
         }
     }
 }

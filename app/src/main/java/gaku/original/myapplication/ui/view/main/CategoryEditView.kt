@@ -34,6 +34,7 @@ fun CategoryAddEditView(
     viewModel:ExpenseSharedViewModel,
     navController: NavController
 ){
+    var editedCategory by remember { mutableStateOf(Category(name = null)) }
     var showDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -66,6 +67,9 @@ fun CategoryAddEditView(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     showDialog = true
+                    editedCategory = Category(
+                        name = null
+                    )
 //                    viewModel.addCategory(
 //                        sampleCategory,
 //                        onAlreadyExists = {
@@ -79,24 +83,29 @@ fun CategoryAddEditView(
 
             //ダイアログを表示
             if(showDialog){
-                AlertDialog(
-                    onDismissRequest = {
-                        showDialog = false
-                    },
-                    title = {
-                        Text("Category Edit Dialog")
-                    },
-                    text = {
-                        Text("Text")
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                showDialog = false
-                            }
-                        ) {
-                            Text("OK")
+                //EditかAddはeditedCategoryのidがnullかどうかで判断する
+                CategoryAddEditDialog(
+                    category = editedCategory,
+                    onSave = {newCategory ->
+                        if(newCategory.id == null){
+                            viewModel.addCategory(
+                                newCategory,
+                                onAlreadyExists = {
+                                    Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }else{
+
                         }
+                        viewModel.addCategory(
+                            it,
+                            onAlreadyExists = {
+                                Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    onDismiss = {
+                        showDialog = false
                     }
                 )
             }
@@ -105,12 +114,12 @@ fun CategoryAddEditView(
 }
 
 @Composable
-fun CategoryItem(category:Category){
+fun CategoryItem(category:Category,onClick:()->Unit = {}){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                //クリックして編集
+                onClick()
             }
     ){
         Text(category.name?:CATEGORY_NULL_REPLACEMENT)
@@ -119,9 +128,7 @@ fun CategoryItem(category:Category){
 
 @Composable
 fun CategoryAddEditDialog(
-    category:Category = Category(
-        name = null
-    ),
+    category:Category,
     onSave : (category:Category)->Unit,
     onDismiss : ()->Unit,
 ){

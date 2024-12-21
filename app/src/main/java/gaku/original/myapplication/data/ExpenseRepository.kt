@@ -21,7 +21,9 @@ class ExpenseRepository(
     }
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
-    suspend fun fetchUserExpenses(): List<Expense> {
+    suspend fun fetchUserExpenses(
+        callback: (Boolean) -> Unit = {}
+    ): List<Expense> {
         try {
             val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
             val expenses = snapshot.children.mapNotNull {
@@ -35,7 +37,10 @@ class ExpenseRepository(
         }
     }
 
-    fun addExpense(expense: Expense) {
+    fun addExpense(
+        expense: Expense,
+        callback: (Boolean) -> Unit = {}
+    ) {
         val expenseRef = realtimeDbReference.getUserExpenseRef()
         val newExpenseRef = expenseRef.push() // Generate the unique key
 
@@ -53,7 +58,10 @@ class ExpenseRepository(
             }
     }
 
-    fun updateExpense(expense: Expense) {
+    fun updateExpense(
+        expense: Expense,
+        callback: (Boolean) -> Unit = {}
+    ) {
         val expenseRef = realtimeDbReference.getUserExpenseRef()
 
         // Use the expense's ID (which is the Firebase-generated key) to locate it
@@ -69,7 +77,10 @@ class ExpenseRepository(
             }
     }
 
-    fun removeExpense(expense:Expense){
+    fun removeExpense(
+        expense:Expense,
+        callback: (Boolean) -> Unit = {}
+    ){
         val expenseRef = realtimeDbReference.getUserExpenseRef()
         val expenseToRemoveRef = expenseRef.child(expense.id ?: return)
         expenseToRemoveRef.removeValue()
