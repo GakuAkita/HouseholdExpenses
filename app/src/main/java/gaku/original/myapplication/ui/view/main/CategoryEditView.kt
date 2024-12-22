@@ -54,8 +54,6 @@ fun CategoryAddEditView(
     val context = LocalContext.current
     Scaffold(
         topBar = {
-            //悩みどころだが、BackだとGraphから来たときにGraphに戻る可能性があるので
-            //強制的にMainScreenに行くことにする。しっかり設計しないとヒューマンエラー起きそうだな
             TopBarView(
                 title = "What is essential is invisible to the eye",
                 onBackNavClicked = {

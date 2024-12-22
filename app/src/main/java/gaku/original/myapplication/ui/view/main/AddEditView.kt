@@ -19,6 +19,8 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,9 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.fromLocalDateTime
@@ -267,12 +271,16 @@ fun ExpenseAddEditView(
 
                 }
 
-                Button(
+                // ゴミ箱ボタン
+                IconButton(
                     onClick = {
                         navController.navigate(Screen.MainScreen.CategoryAddEdit.route)
                     }
-                ){
-                    Text("CategoryEditのアイコン")
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                        contentDescription = "Edit Category"
+                    )
                 }
             }
 
