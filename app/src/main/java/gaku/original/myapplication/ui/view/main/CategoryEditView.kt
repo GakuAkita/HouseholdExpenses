@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.view.main
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,15 +77,6 @@ fun CategoryAddEditView(
                     )
                 }
             }
-            for(category in viewModel.allCategories.collectAsState(initial = emptyList()).value){
-                CategoryItem(
-                    category = category,
-                    onClick = {
-                        showDialog = true
-                        editedCategory = it
-                    }
-                )
-            }
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
@@ -105,6 +97,7 @@ fun CategoryAddEditView(
                     category = editedCategory,
                     onSave = {newCategory ->
                         if(newCategory.id == null){
+                            //新規追加
                             viewModel.addCategory(
                                 newCategory,
                                 callback = {status->
@@ -124,6 +117,7 @@ fun CategoryAddEditView(
                                 }
                             )
                         }else{
+                            //編集
                             viewModel.updateCategory(
                                 newCategory,
                                 callback = {status->
@@ -179,7 +173,8 @@ fun CategoryAddEditDialog(
         },
         confirmButton = {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ){
                 Button(
                     modifier = Modifier
@@ -195,7 +190,7 @@ fun CategoryAddEditDialog(
                         /* ここでnewCategoryが適切かチェックする */
                         /* すでにカテゴリーの中に存在するかはここではチェックしない */
                         if(newCategory.name == null||newCategory.name == ""){
-                            /* callbackする */
+                            /* 何もしないか、Toastをだす */
                         } else{
                             onSave(newCategory)
                         }
@@ -220,7 +215,8 @@ fun CategoryAddEditDialog(
                     value = newCategory.name ?: "",
                     onValueChange = {
                         newCategory = newCategory.copy(name = it)
-                    }
+                    },
+                    singleLine = true
                 )
             }
         },

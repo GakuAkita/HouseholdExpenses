@@ -9,7 +9,7 @@ data class Expense(
     var datetime:String?=null,//ISO_LOCAL_DATE_TIME
     var timestamp:Long? = System.currentTimeMillis(),
     var amount:Long?=null,
-    var category:String?=null,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
+    var category:Category?=null,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
     var note:String?=null
 )
 

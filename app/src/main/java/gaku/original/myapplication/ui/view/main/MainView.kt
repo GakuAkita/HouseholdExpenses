@@ -212,7 +212,7 @@ fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
             textAlign = TextAlign.Left
         )
         Text(
-            text=expense.category?:"",
+            text=expense.category?.name?:"",
             modifier=Modifier.weight(1f),
             textAlign = TextAlign.Left
         )

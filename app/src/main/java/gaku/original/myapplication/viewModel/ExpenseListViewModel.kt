@@ -10,6 +10,7 @@ import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -66,11 +67,11 @@ class ExpenseListViewModel(
     /********* Expense配列の管理 ***********/
     val allExpenses :List<Expense> get() = expenseSharedViewModel.allExpenses.value
     val allCategories :List<Category> get() = expenseSharedViewModel.allCategories.value
-    
+
     init {
         observeAllExpenses()
     }
-    
+
     //allExpenseが更新されたときに
     private fun observeAllExpenses(){
         viewModelScope.launch {
@@ -83,35 +84,33 @@ class ExpenseListViewModel(
     private val _filteredExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val filteredExpenses: StateFlow<List<Expense>> get() = _filteredExpenses
 
+    suspend fun waitForInitialization() {
+        /* nullのまま.valueをするとクラッシュするので、待たせる */
+        while (filteredExpenses == null || allExpenses == null) {
+            Log.d("ExpenseListViewModel", "Waiting for initialization...")
+            delay(100) // 100msごとに再確認
+        }
+        //Log.d("ExpenseListViewModel", "Initialization complete.")
+    }
+
     fun filterExpensesByMonth() {
-        val targetYear = getCalendarYear()
-        val targetMonth = getCalendarMonth()
+        viewModelScope.launch {
+            waitForInitialization()
+            val targetYear = getCalendarYear()
+            val targetMonth = getCalendarMonth()
 
-        Log.d("ExpenseListViewModel", "allExpense: ${expenseSharedViewModel.allExpenses.value}")
-
-        //@XXX filteredExpensesがnullになるときがあって、この場合はアプリがクラッシュする。気をつけてください。
-        if (filteredExpenses == null){
-            Log.d("ExpenseListViewModel","filteredExpenses is null")
-            return
+            _filteredExpenses.value = expenseSharedViewModel.allExpenses.value
+                .filter { expense ->
+                    val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
+                    val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
+                    expenseYear == targetYear && expenseMonth == targetMonth
+                }
+                .sortedByDescending {
+                    it.datetime
+                }
+            Log.d("ExpenseListViewModel","filterExpensesByMonth was executed.↓")
+            Log.d("ExpenseListViewModel","${_filteredExpenses.value}")
         }
-
-        //@XXX 原因はわからんが、このチェックをいれないと、サインインできない？
-        if(allExpenses == null){
-            Log.d("ExpenseListViewModel","allExpenses is null")
-            return
-        }
-
-        _filteredExpenses.value = expenseSharedViewModel.allExpenses.value
-            .filter { expense ->
-                val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
-                val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
-                expenseYear == targetYear && expenseMonth == targetMonth
-            }
-            .sortedByDescending {
-                it.datetime
-            }
-        Log.d("ExpenseListViewModel","filterExpensesByMonth was executed.↓")
-        Log.d("ExpenseListViewModel","${_filteredExpenses.value}")
     }
 
     /*

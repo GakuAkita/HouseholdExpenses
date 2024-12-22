@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -81,6 +83,7 @@ fun ExpenseAddEditView(
         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
+    val allCategories = viewModel.categories
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -234,10 +237,8 @@ fun ExpenseAddEditView(
                     //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
                     //カテゴリーの編集画面もほしいし
                     TextField(
-                        value="Category",
-                        onValueChange = {
-                            viewModel.updateTmpExpenseCategory(it)
-                        },
+                        value=viewModel.currentTmpExpense.category?.name?: "",
+                        onValueChange = {/* ドロップダウンから選択すれば値が更新される */},
                         enabled = false,
                         readOnly = true,
                         modifier=Modifier
@@ -248,23 +249,21 @@ fun ExpenseAddEditView(
                         colors = enabledTextFiledColorSet,
                     )
 
-                    /*
                     ExposedDropdownMenu(
                         expanded=categoryOptionsExpanded,
                         onDismissRequest = { categoryOptionsExpanded=false }
                     ) {
-                        DummyCategory.categoryList.forEachIndexed{
+                        allCategories.forEachIndexed{
                                 index,category->
                             DropdownMenuItem(
                                 text = { Text(text = category.name.toString()) },
                                 onClick = {
-                                    viewModel.category.value=category.name
+                                    viewModel.updateTmpExpenseCategory(category)
                                     categoryOptionsExpanded=false
                                 }
                             )
                         }
                     }
-                     */
 
                 }
 

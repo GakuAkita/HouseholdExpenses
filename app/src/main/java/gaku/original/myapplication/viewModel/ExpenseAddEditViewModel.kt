@@ -17,6 +17,7 @@ class ExpenseAddEditViewModel(
     val currentTmpExpense: Expense
         get() = tmpExpenseViewModel.tmpExpense.value
 
+    //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
     val categories: List<Category>
         get() = expenseSharedViewModel.allCategories.value
 
@@ -55,7 +56,7 @@ class ExpenseAddEditViewModel(
         )
     }
 
-    fun updateTmpExpenseCategory(newCategory: String) {
+    fun updateTmpExpenseCategory(newCategory: Category?) {
         tmpExpenseViewModel.updateTmpExpense(
             currentTmpExpense.copy(category = newCategory)
         )
