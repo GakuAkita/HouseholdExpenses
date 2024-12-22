@@ -8,9 +8,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.DbListenerManager
-import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
+import gaku.original.myapplication.data.DefaultCategories
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.Status.CategoryEditStatus
@@ -121,12 +121,10 @@ class ExpenseSharedViewModel(
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
         expenseRepository.addUserInitialData(email)
 
-//        val category = Category(
-//            id = null,
-//            name = "Food",
-//            enabled = true
-//        )
-//        categoryRepository.addCategory(category)
+        //デフォルトカテゴリーを追加
+        for( defaultCategory in DefaultCategories.categories ){
+            categoryRepository.addCategory(defaultCategory)
+        }
     }
 
     fun fetchAllExpenses(onComplete:()->Unit={}){
@@ -138,16 +136,6 @@ class ExpenseSharedViewModel(
     }
 
     fun addExpense(expense: Expense){
-        //idはpushしたときに代入することにする。したがって、nullのままにする。
-        //repositoryのaddExpenseでidを格納する
-//        if(expense.category == null){
-//            expense.category = Category(
-//                id = null,
-//                name = null,
-//                enabled = true
-//            )
-//        }
-
         if(expense.generatedType==null){
             expense.generatedType = generatedType.MANUAL
         }

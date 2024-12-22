@@ -10,8 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,11 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
+import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Category
@@ -147,15 +154,33 @@ fun CategoryAddEditView(
 }
 
 @Composable
-fun CategoryItem(category:Category,onClick:(category:Category)->Unit = {}){
+fun CategoryItem(
+    category:Category,
+    onClick:(category:Category)->Unit = {},
+    onDelete:(cateogry:Category)->Unit = {}
+    ){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
                 onClick(category)
             }
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ){
+        //nullになることは基本的にない
         Text(category.name?: CATEGORY_NULL_REPLACEMENT)
+
+        // ゴミ箱ボタン
+        IconButton(
+            onClick = { onDelete(category) }
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_delete_24), // カスタムアイコン
+                contentDescription = "Delete Category"
+            )
+        }
     }
 }
 
@@ -191,7 +216,12 @@ fun CategoryAddEditDialog(
                         /* すでにカテゴリーの中に存在するかはここではチェックしない */
                         if(newCategory.name == null||newCategory.name == ""){
                             /* 何もしないか、Toastをだす */
-                        } else{
+                        }
+                        else if(newCategory.name == category.name){
+                            /* 編集だけど何も変わっていない場合 */
+                            onDismiss()
+                        }
+                        else{
                             onSave(newCategory)
                         }
                     }

@@ -26,3 +26,13 @@ class generatedType{
         const val MANUAL = "manual"
     }
 }
+
+object DefaultCategories{
+    //サインアップ時にデフォルトで登録されるカテゴリ
+    val categories = mutableStateListOf(
+        Category(name = "食費"),
+        Category(name = "交通費"),
+        Category(name = "日用品"),
+        Category(name = "その他"),
+    )
+}
