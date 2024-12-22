@@ -30,9 +30,11 @@ class ExpenseRepository(
                 it.getValue(Expense::class.java)
             }
             Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+            callback(true)
             return expenses
         } catch (e: Exception) {
             Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
+            callback(false)
             return emptyList()  // エラー時には空のリストを返す
         }
     }
@@ -52,8 +54,10 @@ class ExpenseRepository(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("ExpenseRepository", "Expense added successfully")
+                    callback(true)
                 } else {
                     Log.e("ExpenseRepository", "Failed to add expense", task.exception)
+                    callback(false)
                 }
             }
     }
@@ -71,8 +75,10 @@ class ExpenseRepository(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("ExpenseRepository", "Expense updated successfully")
+                    callback(true)
                 } else {
                     Log.e("ExpenseRepository", "Failed to update expense", task.exception)
+                    callback(false)
                 }
             }
     }
@@ -87,8 +93,10 @@ class ExpenseRepository(
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
                     Log.d("ExpenseRepository","Expense removed successfully")
+                    callback(true)
                 } else{
                     Log.e("ExpenseRepository","Failed to remove expense",task.exception)
+                    callback(false)
                 }
             }
     }

@@ -14,6 +14,7 @@ import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.Status.CategoryEditStatus
+import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -139,16 +140,22 @@ class ExpenseSharedViewModel(
     fun addExpense(expense: Expense){
         //idはpushしたときに代入することにする。したがって、nullのままにする。
         //repositoryのaddExpenseでidを格納する
-        if(expense.category == null){
-            expense.category = Category(
-                id = null,
-                name = CATEGORY_NULL_REPLACEMENT,
-                enabled = true
-            )
+//        if(expense.category == null){
+//            expense.category = Category(
+//                id = null,
+//                name = null,
+//                enabled = true
+//            )
+//        }
+
+        if(expense.generatedType==null){
+            expense.generatedType = generatedType.MANUAL
         }
+
         if(expense.note == null){
             expense.note = ""
         }
+
         viewModelScope.launch {
             expenseRepository.addExpense(expense)
         }

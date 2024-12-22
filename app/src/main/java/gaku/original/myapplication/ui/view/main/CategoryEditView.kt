@@ -155,7 +155,7 @@ fun CategoryItem(category:Category,onClick:(category:Category)->Unit = {}){
                 onClick(category)
             }
     ){
-        Text(category.name?:CATEGORY_NULL_REPLACEMENT)
+        Text(category.name?: CATEGORY_NULL_REPLACEMENT)
     }
 }
 

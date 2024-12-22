@@ -3,6 +3,7 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.generatedType
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import java.time.LocalDate
