@@ -48,6 +48,7 @@ fun CategoryAddEditView(
 ){
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
     var showDialog by remember { mutableStateOf(false) }
+    var removeShowDialog by remember { mutableStateOf(false) }
 
     val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
 
@@ -57,7 +58,7 @@ fun CategoryAddEditView(
             TopBarView(
                 title = "What is essential is invisible to the eye",
                 onBackNavClicked = {
-                    navController.navigate(Screen.MainScreen.CategoryAddEdit.route)
+                    navController.popBackStack()
                 },
                 navController=navController
             )
@@ -77,6 +78,10 @@ fun CategoryAddEditView(
                         category = it,
                         onClick = {
                             showDialog = true
+                            editedCategory = it
+                        },
+                        onDelete = {
+                            removeShowDialog = true
                             editedCategory = it
                         }
                     )
@@ -144,6 +149,28 @@ fun CategoryAddEditView(
                     },
                     onDismiss = {
                         showDialog = false
+                    }
+                )
+            }
+
+            if(removeShowDialog){
+                CategoryRemoveConfirmDialog(
+                    category = editedCategory,
+                    onOK ={categoryRemoved ->
+                        viewModel.removeCategory(
+                            category = categoryRemoved,
+                            callback = {result->
+                                if(result){
+                                    /* 必要そうだったらToastいれる */
+                                }else{
+                                    Toast.makeText(context, "Failed to Remove Category${categoryRemoved.name}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                        removeShowDialog=false
+                    },
+                    onDismiss = {
+                        removeShowDialog = false
                     }
                 )
             }
@@ -246,6 +273,55 @@ fun CategoryAddEditDialog(
                     },
                     singleLine = true
                 )
+            }
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = true
+        )
+    )
+}
+
+@Composable
+fun CategoryRemoveConfirmDialog(
+    category:Category,
+    onOK : (category:Category)->Unit,
+    onDismiss : ()->Unit,
+){
+    AlertDialog(
+        onDismissRequest = {
+            onDismiss()
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Button(
+                    modifier = Modifier
+                        .padding(start = 10.dp),
+                    onClick = { onDismiss() }
+                ){
+                    Text("Cancel")
+                }
+                Button(
+                    modifier=Modifier
+                        .padding(end = 10.dp),
+                    onClick = {
+                        onOK(category)
+                    }
+                ){
+                    Text("OK")
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Are you sure you want to remove the category?")
+                Text("****************************")
+                Text("${category.name}")
+                Text("****************************")
             }
         },
         properties = DialogProperties(

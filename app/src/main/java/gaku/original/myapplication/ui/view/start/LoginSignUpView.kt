@@ -94,7 +94,12 @@ fun LoginSignUpView(authViewModel: AuthManagerViewModel, navController: NavHostC
                                 SignInResult.SUCCESS -> {
                                     //ログインしたときにExpensesを更新
                                     Toast.makeText(context,"ログインしました",Toast.LENGTH_SHORT).show()
-                                    navController.navigate(Screen.MainScreen.Content.route)
+                                    navController.navigate(Screen.MainScreen.Content.route){
+                                        //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
+                                        popUpTo(Screen.StartScreen.Start.route){
+                                            inclusive = true
+                                        }
+                                    }
                                 }
                                 SignInResult.USER_ID_NULL -> {
                                     //ログインしたが、ユーザーIDが空

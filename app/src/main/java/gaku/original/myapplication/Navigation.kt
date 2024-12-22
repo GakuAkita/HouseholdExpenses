@@ -1,5 +1,7 @@
 package gaku.original.myapplication
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +61,8 @@ fun Navigation(){
         }
 
         //Mainスクリーン
-        composable(Screen.MainScreen.Content.route){
+        composable(Screen.MainScreen.Content.route)
+        {
             //AuthManagerViewModelでサインイン後なのか、そうでないのかを判断
             MainView(expenseListViewModel,navController)
         }

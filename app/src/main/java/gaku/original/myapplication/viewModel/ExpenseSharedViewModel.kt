@@ -207,7 +207,7 @@ class ExpenseSharedViewModel(
             val removedExpense = snapshot.getValue(Expense::class.java)
             removedExpense?.let{
                 viewModelScope.launch {
-                    _allExpenses.value = _allExpenses.value.filterNot { expense ->
+                    _allCategories.value = _allCategories.value.filterNot { expense ->
                         expense.id == removedExpense.id
                     }
                     Log.d("ExpenseSharedViewModel", "Category removed: $removedExpense")
