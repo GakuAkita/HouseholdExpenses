@@ -10,6 +10,9 @@ class AuthManagerViewModel(
     private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel(),
     private val expenseSharedViewModel: ExpenseSharedViewModel
 ) {
+    val userid:String
+        get() = userInfoViewModel.getUserId()
+
     private val authManagerFirebaseAuth:FirebaseAuth
         get() = userInfoViewModel.firebaseAuth
 

@@ -1,5 +1,6 @@
 package gaku.original.myapplication.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -16,6 +17,9 @@ class UserInfoViewModel(): ViewModel(){
 
     private val _userId = MutableStateFlow(firebaseAuth.currentUser?.uid)
     val userId: StateFlow<String?> = _userId
+
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> get() = _isLoggedIn
 
     fun getUserId(): String {
         return _userId.value?: USER_ID_NULL_REPLACEMENT
@@ -34,10 +38,14 @@ class UserInfoViewModel(): ViewModel(){
             _currentUser.value = user // currentUserを更新
             _userId.value = user?.uid // currentUserが更新されると自動でuserIdも更新
             //signInした後userIdがnullではないかどうかは、signInの関数で確認
+            Log.d("UserInfoViewModel","AuthStateListener was called:currentUser:${user?.uid}")
         }
 
         //リスナーを追加
         firebaseAuth.addAuthStateListener(authStateListener!!)
+
+        //ログイン状態を更新
+        _isLoggedIn.value = firebaseAuth.currentUser!=null
     }
 
     //これをやらないとどんどんリスナーが追加されていく?

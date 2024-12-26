@@ -32,6 +32,9 @@ fun SettingsView(viewModel: AuthManagerViewModel, navController: NavController){
         ) {
             Text("The App will never be completed. \n" +
                     "It will continue to grow as long as there is imagination left in the world.")
+            Text("*************************************")
+
+            Text("User ID : ${viewModel.userid}")
 
              Button(
                  modifier=Modifier.fillMaxWidth(),

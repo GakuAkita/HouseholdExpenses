@@ -1,8 +1,11 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
@@ -42,9 +45,18 @@ fun Navigation(){
     val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
     val expenseAddEditViewModel = remember { ExpenseAddEditViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
 
+    /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
+    val startDestination :String
+    if(userInfoViewModel.isLoggedIn.collectAsState().value){
+        Log.d("Navigation","Logged in already : ${userInfoViewModel.getUserId()}")
+        startDestination = Screen.MainScreen.Content.route
+    }else{
+        startDestination = Screen.StartScreen.Start.route
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Screen.StartScreen.Start.route
+        startDestination = startDestination
     ){
 
         //Startスクリーン
@@ -63,6 +75,15 @@ fun Navigation(){
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route)
         {
+            if(startDestination==Screen.MainScreen.Content.route){
+                expenseSharedViewModel.fetchAllExpenses(
+                    onComplete = {
+                        expenseListViewModel.filterExpensesByMonth()
+                    }
+                )
+            }else{
+                /* Do Nothing */
+            }
             //AuthManagerViewModelでサインイン後なのか、そうでないのかを判断
             MainView(expenseListViewModel,navController)
         }

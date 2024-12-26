@@ -257,6 +257,11 @@ fun ExpenseAddEditView(
                         expanded=categoryOptionsExpanded,
                         onDismissRequest = { categoryOptionsExpanded=false }
                     ) {
+                        if(allCategories.isEmpty()){
+                            //何もなかったらToastを出す
+                            Toast.makeText(context,"カテゴリーが何も登録されていません。\n編集ボタンから追加してください",Toast.LENGTH_LONG).show()
+                            categoryOptionsExpanded = false
+                        }
                         allCategories.forEachIndexed{
                                 index,category->
                             DropdownMenuItem(
