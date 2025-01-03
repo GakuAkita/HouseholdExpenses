@@ -28,8 +28,11 @@ import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
 import gaku.original.myapplication.viewModel.UserInfoViewModel
 
+
 @Composable
 fun Navigation(){
+
+
     val navController = rememberNavController()
 
     //本当はhiltとか使いたいけど、手動DIにする。
