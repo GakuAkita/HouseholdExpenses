@@ -9,6 +9,8 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import dagger.hilt.components.SingletonComponent
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.ExpenseRepository
+import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
 import javax.inject.Singleton
 
 @Module
@@ -43,5 +45,21 @@ object AppModule {
     @ActivityRetainedScoped
     fun provideCategoryRepository(realtimeDbReference: RealtimeDbReference): CategoryRepository {
         return CategoryRepository(realtimeDbReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped//つけなくてもよい？
+    fun provideExpenseSharedViewModel(
+        expenseRepository: ExpenseRepository,
+        categoryRepository: CategoryRepository,
+        dbListenerManager: DbListenerManager
+    ): ExpenseSharedViewModel {
+        return ExpenseSharedViewModel(expenseRepository, categoryRepository,dbListenerManager)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideTemporaryExpenseViewModel(): TemporaryExpenseViewModel {
+        return TemporaryExpenseViewModel()
     }
 }

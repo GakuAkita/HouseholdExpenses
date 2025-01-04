@@ -29,12 +29,16 @@ import gaku.original.myapplication.viewModel.ExpenseListViewModel
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
 import gaku.original.myapplication.viewModel.UserInfoViewModel
+import javax.inject.Inject
 
 
 @Composable
-fun Navigation(){
+fun Navigation (
+){
 
     val navController = rememberNavController()
+
+    val firebaseAuth = AppModule.provideFirebaseAuth()
 
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
@@ -42,45 +46,41 @@ fun Navigation(){
 
     /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
     val startDestination :String
+    if( firebaseAuth.currentUser !=null ){
+        startDestination = Screen.MainScreen.Content.route
+    }else{
+        startDestination = Screen.StartScreen.Start.route
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.StartScreen.Start.route
+        startDestination = startDestination
     ){
 
         //Startスクリーン
         composable(Screen.StartScreen.Start.route){
-            StartView(navController)
+            StartView(navController = navController)
         }
         composable(Screen.StartScreen.SignUp.route){
             val isLogin = false
-            LoginSignUpView(authManagerViewModel,navController,isLogin)
+            LoginSignUpView(navController = navController, isLogin = isLogin)
         }
         composable(Screen.StartScreen.Login.route){
             val isLogin = true
-            LoginSignUpView(authManagerViewModel,navController,isLogin)
+            LoginSignUpView(navController = navController, isLogin = isLogin)
         }
 
         //Mainスクリーン
         composable(Screen.MainScreen.Content.route)
         {
-            if(startDestination==Screen.MainScreen.Content.route){
-                expenseSharedViewModel.fetchAllExpenses(
-                    onComplete = {
-                        expenseListViewModel.filterExpensesByMonth()
-                    }
-                )
-            }else{
-                /* Do Nothing */
-            }
             //AuthManagerViewModelでサインイン後なのか、そうでないのかを判断
-            MainView(expenseListViewModel,navController)
+            MainView(navController = navController)
         }
         composable(Screen.MainScreen.ExpenseAddEdit.route){
-            ExpenseAddEditView(expenseAddEditViewModel,navController)
+            ExpenseAddEditView(navController = navController)
         }
         composable(Screen.MainScreen.CategoryAddEdit.route){
-            CategoryAddEditView(expenseSharedViewModel,navController)
+            CategoryAddEditView(navController = navController)
         }
 
         //Graphスクリーン
@@ -95,7 +95,7 @@ fun Navigation(){
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.route){
-            SettingsView(authManagerViewModel,navController)
+            SettingsView(navController = navController)
         }
     }
 }

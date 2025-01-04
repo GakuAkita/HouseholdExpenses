@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
@@ -65,7 +66,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseAddEditView(
-    viewModel: ExpenseAddEditViewModel,
+    viewModel: ExpenseAddEditViewModel = hiltViewModel(),
     navController: NavController
 ){
     //Toastとか用

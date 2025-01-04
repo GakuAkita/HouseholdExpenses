@@ -11,13 +11,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Status.SingOutResult
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @Composable
-fun SettingsView(viewModel: AuthManagerViewModel, navController: NavController){
+fun SettingsView(
+    viewModel: AuthManagerViewModel= hiltViewModel(),
+    navController: NavController
+){
     Scaffold(
         topBar = {
             TopBarView("SettingsView作成中")
@@ -34,7 +38,7 @@ fun SettingsView(viewModel: AuthManagerViewModel, navController: NavController){
                     "It will continue to grow as long as there is imagination left in the world.")
             Text("*************************************")
 
-            Text("User ID : ${viewModel.userid}")
+            Text("User ID : ${viewModel.userId}")
 
              Button(
                  modifier=Modifier.fillMaxWidth(),

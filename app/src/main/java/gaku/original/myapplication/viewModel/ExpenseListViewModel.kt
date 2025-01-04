@@ -34,7 +34,7 @@ rememberとViewModelは違う。
 
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
-    private val expenseSharedViewModel: ExpenseSharedViewModel,
+    private val expenseSharedViewModel: ExpenseSharedViewModel ,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ):ViewModel(){
     /********************* MainView用*******************************/

@@ -10,7 +10,6 @@ import gaku.original.myapplication.fromLocalDateTime
 import java.time.LocalDateTime
 import javax.inject.Inject
 
-@HiltViewModel
 class TemporaryExpenseViewModel @Inject constructor(
 
 ): ViewModel(){

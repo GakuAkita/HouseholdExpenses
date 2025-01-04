@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
@@ -45,7 +46,7 @@ import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 
 @Composable
 fun CategoryAddEditView(
-    viewModel:ExpenseSharedViewModel,
+    viewModel:ExpenseSharedViewModel = hiltViewModel(),
     navController: NavController
 ){
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
