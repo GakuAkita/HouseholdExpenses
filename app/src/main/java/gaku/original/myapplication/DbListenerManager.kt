@@ -2,8 +2,9 @@ package gaku.original.myapplication//ここ抽象化してexpense用とcategory�
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.Query
+import javax.inject.Inject
 
-class DbListenerManager(
+class DbListenerManager @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     // DatabaseReference とリスナーのペアを保持するリスト

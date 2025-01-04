@@ -7,6 +7,7 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
@@ -18,12 +19,14 @@ import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ExpenseSharedViewModel(
+@HiltViewModel
+class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val dbListenerManager: DbListenerManager
-):ViewModel() {
+): ViewModel() {
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses

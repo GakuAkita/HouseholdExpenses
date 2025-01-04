@@ -1,6 +1,7 @@
 package gaku.original.myapplication.viewModel
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.generatedType
@@ -8,8 +9,10 @@ import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import java.time.LocalDate
 import java.time.LocalTime
+import javax.inject.Inject
 
-class ExpenseAddEditViewModel(
+@HiltViewModel
+class ExpenseAddEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {

@@ -4,11 +4,16 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.USER_ID_NULL_REPLACEMENT
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 
-class UserInfoViewModel(): ViewModel(){
+@HiltViewModel
+class UserInfoViewModel @Inject constructor(
+    /* なにもなし */
+): ViewModel(){
     /****************ユーザー管理*****************/
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 

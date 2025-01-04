@@ -8,9 +8,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.ui.view.GraphView
@@ -32,34 +34,18 @@ import gaku.original.myapplication.viewModel.UserInfoViewModel
 @Composable
 fun Navigation(){
 
-
     val navController = rememberNavController()
 
     //本当はhiltとか使いたいけど、手動DIにする。
     //@Todo hilt使えるようになる
-    val userInfoViewModel = remember { UserInfoViewModel() }
-    val realtimeDbReference = RealtimeDbReference(userInfoViewModel)
-    val dbListenerManager = DbListenerManager(realtimeDbReference)
-    val expenseRepository = ExpenseRepository(realtimeDbReference)
-    val categoryRepository = CategoryRepository(realtimeDbReference)
-    val expenseSharedViewModel = remember { ExpenseSharedViewModel(expenseRepository,categoryRepository,dbListenerManager) }
-    val authManagerViewModel = remember {AuthManagerViewModel(userInfoViewModel,expenseSharedViewModel)}
-    val temporaryExpenseViewModel = remember { TemporaryExpenseViewModel() }
-    val expenseListViewModel = remember { ExpenseListViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
-    val expenseAddEditViewModel = remember { ExpenseAddEditViewModel(expenseSharedViewModel,temporaryExpenseViewModel) }
+
 
     /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
     val startDestination :String
-    if(userInfoViewModel.isLoggedIn.collectAsState().value){
-        Log.d("Navigation","Logged in already : ${userInfoViewModel.getUserId()}")
-        startDestination = Screen.MainScreen.Content.route
-    }else{
-        startDestination = Screen.StartScreen.Start.route
-    }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = Screen.StartScreen.Start.route
     ){
 
         //Startスクリーン

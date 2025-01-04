@@ -4,11 +4,11 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class CategoryRepository(
+class CategoryRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
-
     val categoryRef : DatabaseReference
         get()= realtimeDbReference.getUserCategoryRef()
 

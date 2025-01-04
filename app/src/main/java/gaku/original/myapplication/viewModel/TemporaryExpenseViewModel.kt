@@ -3,12 +3,17 @@ package gaku.original.myapplication.viewModel
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.fromLocalDateTime
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-class TemporaryExpenseViewModel : ViewModel(){
+@HiltViewModel
+class TemporaryExpenseViewModel @Inject constructor(
+
+): ViewModel(){
 
     // 初期値として null もしくは適切なデフォルト値を設定
     /*** AddEditとMainViewのデータの受け渡しに使う ***/

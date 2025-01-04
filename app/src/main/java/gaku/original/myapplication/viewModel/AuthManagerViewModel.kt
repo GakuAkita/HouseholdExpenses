@@ -1,26 +1,27 @@
 package gaku.original.myapplication.viewModel
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Status.SignInResult
 import gaku.original.myapplication.data.Status.SingOutResult
 import gaku.original.myapplication.data.Status.SingUpResult
+import javax.inject.Inject
 
-class AuthManagerViewModel(
-    private val userInfoViewModel: UserInfoViewModel = UserInfoViewModel(),
+@HiltViewModel
+class AuthManagerViewModel @Inject constructor(
+    private val firebaseAuth: FirebaseAuth,
     private val expenseSharedViewModel: ExpenseSharedViewModel
-) {
-    val userid:String
-        get() = userInfoViewModel.getUserId()
-
-    private val authManagerFirebaseAuth:FirebaseAuth
-        get() = userInfoViewModel.firebaseAuth
+): ViewModel() {
+    val userId:String?
+        get() = firebaseAuth.currentUser?.uid
 
     fun signIn(email: String, password: String, callback: (SignInResult) -> Unit) {
-        authManagerFirebaseAuth.signInWithEmailAndPassword(email, password)
+        firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    if(userInfoViewModel.userId.value != null) {
+                    if(userId != null) {
                         Log.d("AuthManagerViewModel","Signed in with Email:$email")
                         //サインイン直後にやらないと行けない作業はここでやる
                         expenseSharedViewModel.fetchAllExpenses(
@@ -42,7 +43,7 @@ class AuthManagerViewModel(
     }
 
     fun signUp(email: String, password: String, callback: (SingUpResult) -> Unit) {
-        authManagerFirebaseAuth.createUserWithEmailAndPassword(email,password)
+        firebaseAuth.createUserWithEmailAndPassword(email,password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("AuthManagerViewModel","Created a user with Email:$email")
@@ -62,8 +63,8 @@ class AuthManagerViewModel(
         try {
             expenseSharedViewModel.clearExpenseChildEventListener()
 
-            authManagerFirebaseAuth.signOut()
-            if(userInfoViewModel.currentUser.value == null){
+            firebaseAuth.signOut()
+            if(userId == null){
                 Log.d("AuthManagerViewModel","signOut successful")
                 return SingOutResult.SUCCESS
             }else{

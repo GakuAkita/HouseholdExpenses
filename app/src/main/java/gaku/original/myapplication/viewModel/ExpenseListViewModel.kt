@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import javax.inject.Inject
 
 /*
 rememberの役割
@@ -30,7 +32,8 @@ mutableStateOfの役割
 rememberとViewModelは違う。
  */
 
-class ExpenseListViewModel(
+@HiltViewModel
+class ExpenseListViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ):ViewModel(){

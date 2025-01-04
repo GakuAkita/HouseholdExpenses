@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Status.SignInResult
@@ -35,7 +36,11 @@ import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginSignUpView(authViewModel: AuthManagerViewModel, navController: NavHostController, isLogin:Boolean) {
+fun LoginSignUpView(
+    authViewModel: AuthManagerViewModel = hiltViewModel(),
+    navController: NavHostController,
+    isLogin:Boolean
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
