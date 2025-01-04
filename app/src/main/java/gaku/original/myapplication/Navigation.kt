@@ -19,7 +19,6 @@ import gaku.original.myapplication.viewModel.AuthManagerViewModel
 @Composable
 fun Navigation (
 ){
-
     val navController = rememberNavController()
 
     //サインインすでにしているかをみたい

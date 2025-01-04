@@ -1,5 +1,5 @@
 - done:::Navigation(ルートだけ作っておく。BottomBar+Add)
-- 保留:::アプリが立ち上がるときの画面のデザイン(splash screen?)
+- 保留:::アプリが立ち上がるときの画面のデザイン(splash screen?)→簡単なのはできた。もっといいのはまた後で
 - done:::Add画面の作成→Arrayに追加:interfaceでDB操作に関するものをまとめておく
 - done:::Add画面の作成:ポップアップで日付と時間を編集
 - done(案外簡単だった):::AddEditViewをExpenseViewModelに統合
@@ -12,7 +12,7 @@
 - done::: ArrayとしてexpensesのDBを模擬的に再現
 - done:::Daoでローカルにデータを保存する
 - done:::FireBaseでリモートDBに保存
-- ログイン状態を保持する。
+- done:::ログイン状態を保持する。
 - done:::ログアウト機能
 - done:::デバイスごとにタイムスタンプを保存
 - done:::categoryをクラスで保存するので、その修正。nullに対しての対策とか
@@ -20,7 +20,7 @@
 - done:::ログインを維持する
 - done:::複数端末で操作したときの対応→とりあえずはずっとオンライン前提で考えておく
 - done:::オフライン対応 端末がオフラインでその間にクラウド上に自動追加されたときとかどうなるんだろう。
-- Hilt
+- done:::Hilt
 - 3ヶ月分だけExpenseを取得する
 - デザインを整える
 

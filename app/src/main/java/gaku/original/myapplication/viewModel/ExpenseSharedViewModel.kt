@@ -155,7 +155,7 @@ class ExpenseSharedViewModel @Inject constructor(
     fun fetchAllExpenses(onComplete:()->Unit={}){
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses()
-            Log.d("ExpenseViewModel","Expenses:${_allExpenses.value}")
+            Log.d("ExpenseSharedViewModel","Expenses:${_allExpenses.value}")
             onComplete()
         }
     }
