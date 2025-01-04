@@ -3,6 +3,7 @@ package gaku.original.myapplication.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -24,7 +25,8 @@ import javax.inject.Inject
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
-    private val dbListenerManager: DbListenerManager
+    private val dbListenerManager: DbListenerManager,
+    private val firebaseAuth: FirebaseAuth
 ): ViewModel() {
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
@@ -119,6 +121,27 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /*******************Expense CRUD関連**************************/
+    init {
+        Log.d("ExpenseSharedViewModel","Init was called.")
+
+        /* これがないと、MainViewに遷移したときに_allExpensesに値が入らない */
+        if(firebaseAuth.currentUser != null &&
+            _allExpenses.value.isEmpty()){
+            fetchAllExpenses(
+                onComplete = {
+                    addExpenseCategoryChildEventListener()
+                }
+            )
+        }else{
+            Log.d("ExpenseSharedViewModel","User is not signed in.")
+        }
+
+        if(firebaseAuth.currentUser!= null &&
+            _allCategories.value.isEmpty()){
+            fetchAllCategories()
+        }
+    }
+
     fun addUserInitialData(email:String){
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
         expenseRepository.addUserInitialData(email)

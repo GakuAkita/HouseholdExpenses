@@ -15,6 +15,10 @@ class AuthManagerViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val expenseSharedViewModel: ExpenseSharedViewModel
 ): ViewModel() {
+
+    val isSignedIn:Boolean
+        get() = firebaseAuth.currentUser != null
+
     val userId:String?
         get() = firebaseAuth.currentUser?.uid
 
@@ -70,7 +74,7 @@ class AuthManagerViewModel @Inject constructor(
                 return SingOutResult.SUCCESS
             }else{
                 //サイン・アウトしてからすぐだとここに来てしまうが、時間経って結局nullになる。
-                //したがって、扱いとしてはSUCESSにする
+                //したがって、扱いとしてはSUCCESSにする
                 Log.d("AuthManagerViewModel","!!Warning!!signOut failed. currentUser is not null\n")
                 return SingOutResult.SUCCESS
             }

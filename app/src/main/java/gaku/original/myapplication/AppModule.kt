@@ -52,9 +52,10 @@ object AppModule {
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseRepository,
         categoryRepository: CategoryRepository,
-        dbListenerManager: DbListenerManager
+        dbListenerManager: DbListenerManager,
+        firebaseAuth: FirebaseAuth
     ): ExpenseSharedViewModel {
-        return ExpenseSharedViewModel(expenseRepository, categoryRepository,dbListenerManager)
+        return ExpenseSharedViewModel(expenseRepository, categoryRepository,dbListenerManager,firebaseAuth)
     }
 
     @Provides

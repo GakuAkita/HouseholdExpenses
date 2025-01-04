@@ -42,11 +42,13 @@ import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Status.CategoryEditStatus
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.viewModel.CategoryEditViewModel
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import javax.inject.Inject
 
 @Composable
 fun CategoryAddEditView(
-    viewModel:ExpenseSharedViewModel = hiltViewModel(),
+    viewModel:CategoryEditViewModel = hiltViewModel(),
     navController: NavController
 ){
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
@@ -185,7 +187,7 @@ fun CategoryAddEditView(
 fun CategoryItem(
     category:Category,
     onClick:(category:Category)->Unit = {},
-    onDelete:(cateogry:Category)->Unit = {}
+    onDelete:(category:Category)->Unit = {}
     ){
     Row(
         modifier = Modifier

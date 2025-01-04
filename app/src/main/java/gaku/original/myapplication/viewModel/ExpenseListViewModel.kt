@@ -69,7 +69,6 @@ class ExpenseListViewModel @Inject constructor(
 
     /********* Expense配列の管理 ***********/
     val allExpenses :List<Expense> get() = expenseSharedViewModel.allExpenses.value
-    val allCategories :List<Category> get() = expenseSharedViewModel.allCategories.value
 
     init {
         observeAllExpenses()
