@@ -55,13 +55,8 @@ updateExpense()
 deleteExpense()
 }
 
-class onSignInOutViewModel{
-onSignIn()
-onSignOut()
-}
 
-onSignInOutViewModel ..> AuthManagerViewModel
-ExpenseSharedViewModel ..> onSignInOutViewModel
+ExpenseSharedViewModel ..> AuthManagerViewModel
 
 DbListenerManager ..> ExpenseSharedViewModel :CI
 ExpenseRepository ..> ExpenseSharedViewModel :CI
@@ -78,28 +73,17 @@ getExpenseRef()
 getCategoryRef()
 }
 
+
 RealtimeDbReference ..> DbListenerManager : CI
 RealtimeDbReference ..> ExpenseRepository : CI
 RealtimeDbReference ..> CategoryRepository :CI
 DbListenerManager <..> RealtimeDatabase :リスナー管理
 
-%%Firebase関連がまとめられる。ユーザーとか
-class UserInfoViewModel {
-    currentUser
-    userId
-    isSignedIn
-    getUserId()
-}
-
 class AuthManagerViewModel {
-    signUpProcessFlag
-    firstSignInFlag
     signIn()
     signUp()
     signOut()
 }
-UserInfoViewModel ..> AuthManagerViewModel :CI
-UserInfoViewModel ..> RealtimeDbReference :CI
 %%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
 %% DbListenerManager ..> UserManageViewModel :CI 
 %% UserManageViewModel ..> RealtimeDbReference : CI
@@ -111,8 +95,12 @@ RealtimeDatabase <..> ExpenseRepository: CRUD
 RealtimeDatabase <..> CategoryRepository :CRUD
 
 class FirebaseAuth{
+userId
 Firebase Authentication
 }
-AuthManagerViewModel <..> FirebaseAuth: ユーザー管理
+
+FirebaseAuth ..> AuthManagerViewModel :CI
+
+FirebaseAuth ..> RealtimeDbReference :CI<br>userId取得
 
 ````
