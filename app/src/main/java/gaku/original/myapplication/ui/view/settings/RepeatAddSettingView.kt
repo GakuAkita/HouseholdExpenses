@@ -30,7 +30,7 @@ fun RepeatAddSettingView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
+            
         }
     }
 }

@@ -51,11 +51,16 @@ fun SettingsView(
         ) {
             Text("User ID : ${viewModel.userId}")
 
-            SettingRow {
+            SettingRow(
+                onClick = {
+                    navController.navigate(Screen.SettingScreen.UserInfo.route)
+                }
+            ) {
                 Text("ユーザー情報", modifier = Modifier.padding(start = 10.dp))
             }
 
             SettingRow {
+                //タイムゾーンはアラートでいいか。
                 Text(text = "タイムゾーン設定(未実装)", modifier = Modifier.padding(start = 10.dp))
             }
 

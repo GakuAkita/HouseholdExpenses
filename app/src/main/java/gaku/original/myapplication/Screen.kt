@@ -35,7 +35,6 @@ sealed class Screen(val route: String) {
 
         object Main : MainScreen("$BASE_ROUTE/main")
         object UserInfo : MainScreen("$BASE_ROUTE/user_info")
-        object Timezone : MainScreen("$BASE_ROUTE/timezone")//さらにtimezoneの下に行きたくなったらどうするんだろう..
         object RepeatAdd : MainScreen("$BASE_ROUTE/repeat_add")
     }
 

@@ -82,9 +82,6 @@ fun Navigation(
         composable(Screen.SettingScreen.UserInfo.route) {
             UserInfoView(navController = navController)
         }
-        composable(Screen.SettingScreen.Timezone.route) {
-            //SettingsView(navController = navController)
-        }
         composable(Screen.SettingScreen.RepeatAdd.route) {
             RepeatAddSettingView(navController = navController)
         }
