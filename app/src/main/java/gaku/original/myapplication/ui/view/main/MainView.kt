@@ -68,6 +68,7 @@ fun MainView(
 
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
     val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
+    val monthTotal by viewModel.monthTotal.collectAsState()
 
     var currentPageMonth = viewModel.getCalendarMonth()
     var currentPageYear = viewModel.getCalendarYear()
@@ -114,6 +115,8 @@ fun MainView(
                 modifier = Modifier.fillMaxWidth().padding(start=10.dp),
             ){
                 Text("${currentPageYear}-${currentPageMonth}")
+                Spacer(modifier=Modifier.padding(10.dp))
+                Text("Monthly Total:${monthTotal}")
             }
 
             Row(

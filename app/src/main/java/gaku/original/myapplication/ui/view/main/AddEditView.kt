@@ -316,7 +316,25 @@ fun ExpenseAddEditView(
             Button(
                 onClick = {
                     /* きちんと値が入っているかチェック */
-                    if(viewModel.currentTmpExpense.amount != null){
+                    if(viewModel.currentTmpExpense.amount==null)
+                    {
+                        /*amount入っていないので弾く*/
+                        Toast.makeText(
+                            context,
+                            "金額が入力されていません。\n保存できません" ,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    else if(viewModel.currentTmpExpense.category == null)
+                    {
+                        Toast.makeText(
+                            context,
+                            "Categoryが選択されていません。\n保存できません" ,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    else
+                    {
                         //idがnullなら新規作成ってこと
                         if(viewModel.currentTmpExpense.id==null){
                             //追加する
@@ -341,14 +359,7 @@ fun ExpenseAddEditView(
                         //メイン画面に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     }
-                    else{
-                        /*amount入っていないので弾く*/
-                        Toast.makeText(
-                            context,
-                            "金額が入力されていません。\n保存できません" ,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+
                 },
                 modifier=Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(

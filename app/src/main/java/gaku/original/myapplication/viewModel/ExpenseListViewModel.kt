@@ -95,6 +95,9 @@ class ExpenseListViewModel @Inject constructor(
         //Log.d("ExpenseListViewModel", "Initialization complete.")
     }
 
+    private val _monthTotal= MutableStateFlow(0L)
+    val monthTotal: StateFlow<Long> = _monthTotal
+
     fun filterExpensesByMonth() {
         viewModelScope.launch {
             waitForInitialization()
@@ -112,6 +115,8 @@ class ExpenseListViewModel @Inject constructor(
                 }
             Log.d("ExpenseListViewModel","filterExpensesByMonth was executed.↓")
             Log.d("ExpenseListViewModel","${_filteredExpenses.value}")
+
+            _monthTotal.value = _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
         }
     }
 
