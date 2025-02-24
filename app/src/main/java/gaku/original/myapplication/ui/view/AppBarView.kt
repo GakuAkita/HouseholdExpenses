@@ -21,33 +21,34 @@ import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 
 data class BottomNavigationItem(
-    val title:String,
-    val icon:Painter,
-    val route:String
+    val title: String,
+    val icon: Painter,
+    val route: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarView(
-    title:String,
+    title: String,
     onBackNavClicked: () -> Unit = {},
-    navController: NavController ?= null
-){
+    navController: NavController? = null
+) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary
         ),
-        title={Text(text=title, fontSize = 16.sp)},
+        title = { Text(text = title, fontSize = 16.sp) },
         navigationIcon = {
-            if(navController != null){
+            if (navController != null) {
                 //現在のルートを取得
                 val navBackStateEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStateEntry?.destination?.route
                 //ExpenseAddEditViewからMainScreenContentに戻るとき
                 //ExpenseAddEditViewだけ表示する
-                if(currentRoute==Screen.MainScreen.ExpenseAddEdit.route ||
-                    currentRoute==Screen.MainScreen.CategoryAddEdit.route){
+                if (currentRoute == Screen.MainScreen.ExpenseAddEdit.route ||
+                    currentRoute == Screen.MainScreen.CategoryAddEdit.route
+                ) {
                     IconButton(onClick = onBackNavClicked) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_arrow_back_24),
@@ -64,19 +65,19 @@ fun TopBarView(
 @Composable
 fun BottomBarView(
     navController: NavController
-){
+) {
     val bottomNavigationItems = listOf(
         BottomNavigationItem(
-            title="Main",
-            icon= painterResource(id = R.drawable.baseline_home_24),
+            title = "Main",
+            icon = painterResource(id = R.drawable.baseline_home_24),
             //@Todo できればExpenseAddEditViewのとき別のbottomBarViewに移動したときに戻った際に入力結果を保存してかつ、AddEditViewに戻ってほしい
             //viewModelに保存しておくのがまるいか？
-            route=Screen.MainScreen.Content.route
+            route = Screen.MainScreen.Content.route
         ),
         BottomNavigationItem(
-            title="Graph",
-            icon= painterResource(id = R.drawable.baseline_pie_chart_24),
-            route=Screen.GraphScreen.route
+            title = "Graph",
+            icon = painterResource(id = R.drawable.baseline_pie_chart_24),
+            route = Screen.GraphScreen.route
         ),
 //        BottomNavigationItem(
 //            title="Not-Categorized",
@@ -84,24 +85,24 @@ fun BottomBarView(
 //            route=Screen.NotCategorizedScreen.route
 //        ),
         BottomNavigationItem(
-            title="Settings",
-            icon= painterResource(id = R.drawable.baseline_settings_24),
-            route=Screen.SettingScreen.route
+            title = "Settings",
+            icon = painterResource(id = R.drawable.baseline_settings_24),
+            route = Screen.SettingScreen.Main.route
         )
     )
 
-    NavigationBar (
+    NavigationBar(
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary
-    ){
+    ) {
         val navBackStateEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStateEntry?.destination?.route
 
-        bottomNavigationItems.forEach{item ->
+        bottomNavigationItems.forEach { item ->
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = {
-                    navController.navigate(item.route){
+                    navController.navigate(item.route) {
                         //スタックが積み重なるのを防ぐ？らしい。でも遷移がうまくいかんからいいや。
 //                        popUpTo(navController.graph.findStartDestination().id) {
 //                            saveState = true
@@ -117,7 +118,7 @@ fun BottomBarView(
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 },
-                label = { Text(item.title,color=MaterialTheme.colorScheme.onPrimary)},
+                label = { Text(item.title, color = MaterialTheme.colorScheme.onPrimary) },
             )
         }
     }
