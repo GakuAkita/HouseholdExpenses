@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
-        minSdk = 30//ここを上げる。上げないとkizitonwoseが使いづらくなる
+        minSdk = 31//ここを上げる。上げないとkizitonwoseが使いづらくなる
         versionCode = 1
         versionName = "1.0"
 
@@ -54,10 +54,10 @@ android {
 dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.database.ktx)
-    val calendar_version="2.6.0"
-    val scrollbar_version="2.2.0"
-    val viewModel_version="2.8.5"
-    val nav_version="2.7.5"
+    val calendar_version = "2.6.0"
+    val scrollbar_version = "2.2.0"
+    val viewModel_version = "2.8.5"
+    val nav_version = "2.7.5"
     val room_version = "2.6.1"
     val hilt_version = "2.51.1"
 
@@ -66,10 +66,10 @@ dependencies {
     implementation("com.kizitonwose.calendar:compose:${calendar_version}")
 
     //LazyColumnのスクロールバーのため
-    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:${scrollbar_version}")
+    implementation("com.github.nanihadesuka:LazyColumnScrollbar:${scrollbar_version}")
 
     //ViewModel
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:${viewModel_version}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${viewModel_version}")
 
     //Navigation
     implementation("androidx.navigation:navigation-compose:$nav_version")

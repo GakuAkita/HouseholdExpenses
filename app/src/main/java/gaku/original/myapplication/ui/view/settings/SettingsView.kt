@@ -72,6 +72,10 @@ fun SettingsView(
                 Text("繰り返し自動追加", modifier = Modifier.padding(start = 10.dp))
             }
 
+            SettingRow {
+                //タイムゾーンはアラートでいいか。
+                Text(text = "外部自動連携", modifier = Modifier.padding(start = 10.dp))
+            }
 
             Button(
                 modifier = Modifier

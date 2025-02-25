@@ -16,6 +16,10 @@ import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        val splashScreen = installSplashScreen()
+//        splashScreen.setKeepOnScreenCondition { true }
+        //https://www.youtube.com/watch?v=_Jslt5sMuKc
+
         setContent {
             HouseholdExpensesTheme(
                 darkTheme = true/*システム設定によらずずっとダーク*/
