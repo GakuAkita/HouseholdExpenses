@@ -3,18 +3,19 @@ package gaku.original.myapplication.data
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
+import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class CategoryRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
-    val categoryRef : DatabaseReference
-        get()= realtimeDbReference.getUserCategoryRef()
+    val categoryRef: DatabaseReference
+        get() = realtimeDbReference.getUserCategoryRef()
 
     suspend fun fetchAllCategories(
         callback: (Boolean) -> Unit = {}
-    ):List<Category>{
+    ): List<Category> {
         try {
             val snapshot = categoryRef.get().await()
             val categories = snapshot.children.mapNotNull {
@@ -30,29 +31,21 @@ class CategoryRepository @Inject constructor(
         }
     }
 
-    fun addCategory(category: Category,callback: (Boolean) -> Unit={}){
+    fun addCategory(category: Category, callback: (Boolean) -> Unit = {}) {
         val newCategoryRef = categoryRef.push() // Generate the unique key
 
-        // Create a new instance of Expense with the generated ID
-        val categoryWithId = category.copy(
-            id = newCategoryRef.key,
-            timestamp = System.currentTimeMillis()//時間は念のためここで代入
-            )
-
-        // Save the new instance with the generated key
-        newCategoryRef.setValue(categoryWithId)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("CategoryRepository", "Category added successfully${category.id}")
+        addDataToRTDb(category, { newCategoryRef },
+            callback = { isSuccess ->
+                if (isSuccess) {
                     callback(true)
                 } else {
-                    Log.e("CategoryRepository", "Failed to add category", task.exception)
                     callback(false)
                 }
-            }
+
+            })
     }
 
-    fun updateCategory(category: Category,callback:(Boolean)->Unit={}){
+    fun updateCategory(category: Category, callback: (Boolean) -> Unit = {}) {
         // Use the expense's ID (which is the Firebase-generated key) to locate it
         val categoryToUpdateRef = categoryRef.child(category.id ?: return)
 
@@ -68,15 +61,15 @@ class CategoryRepository @Inject constructor(
             }
     }
 
-    fun removeCategory(category: Category,callback: (Boolean) -> Unit={}){
+    fun removeCategory(category: Category, callback: (Boolean) -> Unit = {}) {
         val categoryToRemoveRef = categoryRef.child(category.id ?: return)
         categoryToRemoveRef.removeValue()
             .addOnCompleteListener { task ->
-                if(task.isSuccessful){
-                    Log.d("CategoryRepository","Category removed successfully")
+                if (task.isSuccessful) {
+                    Log.d("CategoryRepository", "Category removed successfully")
                     callback(true)
-                } else{
-                    Log.e("CategoryRepository","Failed to remove category",task.exception)
+                } else {
+                    Log.e("CategoryRepository", "Failed to remove category", task.exception)
                     callback(false)
                 }
             }

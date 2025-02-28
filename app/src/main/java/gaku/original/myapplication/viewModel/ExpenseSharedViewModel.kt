@@ -8,7 +8,6 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
-import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
@@ -27,7 +26,7 @@ class ExpenseSharedViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val dbListenerManager: DbListenerManager,
     private val firebaseAuth: FirebaseAuth
-): ViewModel() {
+) : ViewModel() {
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
@@ -43,18 +42,22 @@ class ExpenseSharedViewModel @Inject constructor(
         get() = dbListenerManager.categoryRef
 
     //こっちはある時間以降の変更しか見ない
-    private val expenseListAddChildEventListener = object: ChildEventListener {
+    private val expenseListAddChildEventListener = object : ChildEventListener {
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
             Log.d("ExpenseSharedViewModel", "onChildAdded(Expense) was called.")
             val newExpense = snapshot.getValue(Expense::class.java)
             newExpense?.let {
                 viewModelScope.launch {
-                    Log.d("ExpenseSharedViewModel", "_allExpenses.value size: ${_allExpenses.value.size}")
+                    Log.d(
+                        "ExpenseSharedViewModel",
+                        "_allExpenses.value size: ${_allExpenses.value.size}"
+                    )
                     _allExpenses.value += newExpense
                     Log.d("ExpenseSharedViewModel", "Expense added: $newExpense")
                 }
             }
         }
+
         override fun onCancelled(error: DatabaseError) {}
         override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onChildRemoved(snapshot: DataSnapshot) {}
@@ -62,7 +65,7 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     //変更されたときや取り除かれたとき常に監視する
-    private val expenseListWatchChildEventListener = object: ChildEventListener {
+    private val expenseListWatchChildEventListener = object : ChildEventListener {
 
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onCancelled(error: DatabaseError) {}
@@ -72,7 +75,7 @@ class ExpenseSharedViewModel @Inject constructor(
             updatedExpense?.let {
                 viewModelScope.launch {
                     _allExpenses.value = _allExpenses.value.map { expense ->
-                        if (expense.id == updatedExpense.id){
+                        if (expense.id == updatedExpense.id) {
                             updatedExpense
                         } else {
                             expense
@@ -82,10 +85,11 @@ class ExpenseSharedViewModel @Inject constructor(
                 }
             }
         }
+
         override fun onChildRemoved(snapshot: DataSnapshot) {
             Log.d("ExpenseSharedViewModel", "onChildRemoved(Expense) was called.")
             val removedExpense = snapshot.getValue(Expense::class.java)
-            removedExpense?.let{
+            removedExpense?.let {
                 viewModelScope.launch {
                     _allExpenses.value = _allExpenses.value.filterNot { expense ->
                         expense.id == removedExpense.id
@@ -94,6 +98,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 }
             }
         }
+
         override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
     }
 
@@ -101,71 +106,75 @@ class ExpenseSharedViewModel @Inject constructor(
     fun addExpenseCategoryChildEventListener() {
         //実行されたタイミングのtimeだけあればよい。
         val firstFetchedTime = System.currentTimeMillis()
-        val queryForAddedExpense = expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-        val queryForAddedCategory = categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+        val queryForAddedExpense =
+            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+        val queryForAddedCategory =
+            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
 
         //リスナーを追加
         //Expense用
-        dbListenerManager.addListener(queryForAddedExpense,expenseListAddChildEventListener)
-        dbListenerManager.addListener(expenseRef,expenseListWatchChildEventListener)
+        dbListenerManager.addListener(queryForAddedExpense, expenseListAddChildEventListener)
+        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
 
         //Category用
-        dbListenerManager.addListener(queryForAddedCategory,categoryListAddChildEventListener)
-        dbListenerManager.addListener(categoryRef,categoryListWatchChildEventListener)
+        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
+        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
 
         //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
     }
 
-    fun clearExpenseChildEventListener(){
+    fun clearExpenseChildEventListener() {
         dbListenerManager.removeAllListeners()
     }
 
     /*******************Expense CRUD関連**************************/
     init {
-        Log.d("ExpenseSharedViewModel","Init was called.")
+        Log.d("ExpenseSharedViewModel", "Init was called.")
 
         /* これがないと、MainViewに遷移したときに_allExpensesに値が入らない */
-        if(firebaseAuth.currentUser != null &&
-            _allExpenses.value.isEmpty()){
+        if (firebaseAuth.currentUser != null &&
+            _allExpenses.value.isEmpty()
+        ) {
             fetchAllExpenses(
                 onComplete = {
                     addExpenseCategoryChildEventListener()
                 }
             )
-        }else{
-            Log.d("ExpenseSharedViewModel","User is not signed in.")
+        } else {
+            Log.d("ExpenseSharedViewModel", "User is not signed in.")
         }
 
-        if(firebaseAuth.currentUser!= null &&
-            _allCategories.value.isEmpty()){
+        if (firebaseAuth.currentUser != null &&
+            _allCategories.value.isEmpty()
+        ) {
             fetchAllCategories()
         }
     }
 
-    fun addUserInitialData(email:String){
+    fun addUserInitialData(email: String) {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
         expenseRepository.addUserInitialData(email)
 
         //デフォルトカテゴリーを追加
-        for( defaultCategory in DefaultCategories.categories ){
+        for (defaultCategory in DefaultCategories.categories) {
             categoryRepository.addCategory(defaultCategory)
         }
     }
 
-    fun fetchAllExpenses(onComplete:()->Unit={}){
+    fun fetchAllExpenses(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses()
-            Log.d("ExpenseSharedViewModel","Expenses:${_allExpenses.value}")
+            _allExpenses.value = expenseRepository.fetchUserExpenses()//@TODO エラー対策ができていないな。
+            Log.d("ExpenseSharedViewModel", "Expenses:${_allExpenses.value}")
             onComplete()
         }
     }
 
-    fun addExpense(expense: Expense){
-        if(expense.generatedType==null){
+    fun addExpense(expense: Expense) {
+        if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }
 
-        if(expense.note == null){
+        if (expense.note == null) {
             expense.note = ""
         }
 
@@ -174,13 +183,13 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun updateExpense(expense:Expense){
+    fun updateExpense(expense: Expense) {
         viewModelScope.launch {
             expenseRepository.updateExpense(expense)
         }
     }
 
-    fun removeExpense(expense:Expense){
+    fun removeExpense(expense: Expense) {
         viewModelScope.launch {
             expenseRepository.removeExpense(expense)
         }
@@ -188,18 +197,22 @@ class ExpenseSharedViewModel @Inject constructor(
 
     /*******************Category CRUD関連**************************/
     /* @TODO 将来的にはallExpensesと同じようなローカルに保持しておく。(カテゴリー自体は数が多くならないので今は毎回fetchする感じにする) */
-    private val categoryListAddChildEventListener = object: ChildEventListener {
+    private val categoryListAddChildEventListener = object : ChildEventListener {
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
             Log.d("ExpenseSharedViewModel", "onChildAdded(Category) was called.")
             val newCategory = snapshot.getValue(Category::class.java)
             newCategory?.let {
                 viewModelScope.launch {
-                    Log.d("ExpenseSharedViewModel", "_allExpenses.value size: ${_allCategories.value.size}")
+                    Log.d(
+                        "ExpenseSharedViewModel",
+                        "_allExpenses.value size: ${_allCategories.value.size}"
+                    )
                     _allCategories.value += newCategory
                     Log.d("ExpenseSharedViewModel", "Expense added: $newCategory")
                 }
             }
         }
+
         override fun onCancelled(error: DatabaseError) {}
         override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onChildRemoved(snapshot: DataSnapshot) {}
@@ -207,7 +220,7 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     //変更されたときや取り除かれたとき常に監視する
-    private val categoryListWatchChildEventListener = object: ChildEventListener {
+    private val categoryListWatchChildEventListener = object : ChildEventListener {
 
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onCancelled(error: DatabaseError) {}
@@ -217,7 +230,7 @@ class ExpenseSharedViewModel @Inject constructor(
             updatedCategory?.let {
                 viewModelScope.launch {
                     _allCategories.value = _allCategories.value.map { category ->
-                        if (category.id == updatedCategory.id){
+                        if (category.id == updatedCategory.id) {
                             updatedCategory
                         } else {
                             category
@@ -227,10 +240,11 @@ class ExpenseSharedViewModel @Inject constructor(
                 }
             }
         }
+
         override fun onChildRemoved(snapshot: DataSnapshot) {
             Log.d("ExpenseSharedViewModel", "onChildRemoved(Category) was called.")
             val removedExpense = snapshot.getValue(Expense::class.java)
-            removedExpense?.let{
+            removedExpense?.let {
                 viewModelScope.launch {
                     _allCategories.value = _allCategories.value.filterNot { expense ->
                         expense.id == removedExpense.id
@@ -239,18 +253,19 @@ class ExpenseSharedViewModel @Inject constructor(
                 }
             }
         }
+
         override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
     }
 
 
-    fun fetchAllCategories(callback: (Boolean) -> Unit={}){
+    fun fetchAllCategories(callback: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             _allCategories.value = categoryRepository.fetchAllCategories(
-                callback = {result->
+                callback = { result ->
                     callback(result)
                 }
             )
-            Log.d("CategoryViewModel","Categories:${_allCategories.value}")
+            Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
         }
     }
 
@@ -259,20 +274,18 @@ class ExpenseSharedViewModel @Inject constructor(
     CategoryEditView用の関数を作りそこで被りチェックを入れても良いが、そうすると、
     SharedViewModelを他のviewModelでチェックしてCategoryを追加するときに同じ機能を実装することになる。
     */
-    fun addCategory(category:Category,callback:(CategoryEditStatus)->Unit ={}){
+    fun addCategory(category: Category, callback: (CategoryEditStatus) -> Unit = {}) {
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
-        if(isNameAlreadyExists){
+        if (isNameAlreadyExists) {
             callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
-        }
-        else {
+        } else {
             viewModelScope.launch {
                 categoryRepository.addCategory(
                     category = category,
-                    callback = {result->
-                        if(result){
+                    callback = { result ->
+                        if (result) {
                             callback(CategoryEditStatus.SUCCESS)
-                        }
-                        else{
+                        } else {
                             callback(CategoryEditStatus.FAILED)
                         }
                     }
@@ -281,19 +294,19 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun updateCategory(category:Category,callback:(CategoryEditStatus)->Unit ={}){
+    fun updateCategory(category: Category, callback: (CategoryEditStatus) -> Unit = {}) {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
-        if(isNameAlreadyExists){
+        if (isNameAlreadyExists) {
             callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
-        }else{
+        } else {
             viewModelScope.launch {
                 categoryRepository.updateCategory(
                     category = category,
-                    callback = {result->
-                        if(result){
+                    callback = { result ->
+                        if (result) {
                             callback(CategoryEditStatus.SUCCESS)
-                        }else{
+                        } else {
                             callback(CategoryEditStatus.FAILED)
                         }
                     }
@@ -302,14 +315,14 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun removeCategory(category:Category,callback: (Boolean) -> Unit = {}){
+    fun removeCategory(category: Category, callback: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             categoryRepository.removeCategory(
                 category,
-                callback={result ->
-                    if(result){
+                callback = { result ->
+                    if (result) {
                         callback(true)
-                    }else{
+                    } else {
                         callback(false)
                     }
 
