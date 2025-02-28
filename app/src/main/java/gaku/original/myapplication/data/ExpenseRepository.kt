@@ -2,6 +2,7 @@ package gaku.original.myapplication.data
 
 import android.util.Log
 import gaku.original.myapplication.RealtimeDbReference
+import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import kotlinx.coroutines.tasks.await
 
 class ExpenseRepository(
@@ -44,22 +45,8 @@ class ExpenseRepository(
         callback: (Boolean) -> Unit = {}
     ) {
         val expenseRef = realtimeDbReference.getUserExpenseRef()
-        val newExpenseRef = expenseRef.push() // Generate the unique key
 
-        // Create a new instance of Expense with the generated ID
-        val expenseWithId = expense.copy(id = newExpenseRef.key)
-
-        // Save the new instance with the generated key
-        newExpenseRef.setValue(expenseWithId)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("ExpenseRepository", "Expense added successfully")
-                    callback(true)
-                } else {
-                    Log.e("ExpenseRepository", "Failed to add expense", task.exception)
-                    callback(false)
-                }
-            }
+        addDataToRTDb(expense, { expenseRef }, callback)
     }
 
     fun updateExpense(
@@ -84,18 +71,18 @@ class ExpenseRepository(
     }
 
     fun removeExpense(
-        expense:Expense,
+        expense: Expense,
         callback: (Boolean) -> Unit = {}
-    ){
+    ) {
         val expenseRef = realtimeDbReference.getUserExpenseRef()
         val expenseToRemoveRef = expenseRef.child(expense.id ?: return)
         expenseToRemoveRef.removeValue()
             .addOnCompleteListener { task ->
-                if(task.isSuccessful){
-                    Log.d("ExpenseRepository","Expense removed successfully")
+                if (task.isSuccessful) {
+                    Log.d("ExpenseRepository", "Expense removed successfully")
                     callback(true)
-                } else{
-                    Log.e("ExpenseRepository","Failed to remove expense",task.exception)
+                } else {
+                    Log.e("ExpenseRepository", "Failed to remove expense", task.exception)
                     callback(false)
                 }
             }

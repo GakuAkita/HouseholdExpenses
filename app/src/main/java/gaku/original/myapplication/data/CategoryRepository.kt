@@ -34,15 +34,7 @@ class CategoryRepository @Inject constructor(
     fun addCategory(category: Category, callback: (Boolean) -> Unit = {}) {
         val newCategoryRef = categoryRef.push() // Generate the unique key
 
-        addDataToRTDb(category, { newCategoryRef },
-            callback = { isSuccess ->
-                if (isSuccess) {
-                    callback(true)
-                } else {
-                    callback(false)
-                }
-
-            })
+        addDataToRTDb(category, { newCategoryRef }, callback)
     }
 
     fun updateCategory(category: Category, callback: (Boolean) -> Unit = {}) {
