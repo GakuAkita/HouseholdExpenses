@@ -7,8 +7,9 @@ import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
 import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class RepeatAddRepository(
+class RepeatAddRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     val repeatAddRef: DatabaseReference

@@ -6,12 +6,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import dagger.hilt.components.SingletonComponent
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.ExpenseRepository
+import gaku.original.myapplication.data.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
-import javax.inject.Singleton
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -35,6 +34,7 @@ object AppModule {
         return DbListenerManager(realtimeDbReference)
     }
 
+    /************************** Repository類 ******************************/
     @Provides
     @ActivityRetainedScoped
     fun provideExpenseRepository(realtimeDbReference: RealtimeDbReference): ExpenseRepository {
@@ -48,6 +48,13 @@ object AppModule {
     }
 
     @Provides
+    @ActivityRetainedScoped
+    fun provideRepeatAddRepository(realtimeDbReference: RealtimeDbReference): RepeatAddRepository {
+        return RepeatAddRepository(realtimeDbReference)
+    }
+    /* ------------------------------------------------------------------ */
+
+    @Provides
     @ActivityRetainedScoped//つけなくてもよい？
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseRepository,
@@ -55,7 +62,12 @@ object AppModule {
         dbListenerManager: DbListenerManager,
         firebaseAuth: FirebaseAuth
     ): ExpenseSharedViewModel {
-        return ExpenseSharedViewModel(expenseRepository, categoryRepository,dbListenerManager,firebaseAuth)
+        return ExpenseSharedViewModel(
+            expenseRepository,
+            categoryRepository,
+            dbListenerManager,
+            firebaseAuth
+        )
     }
 
     @Provides
