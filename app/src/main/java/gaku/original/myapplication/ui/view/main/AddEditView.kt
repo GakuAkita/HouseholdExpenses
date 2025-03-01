@@ -26,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
@@ -46,6 +45,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.toLocalDateTime
+import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
@@ -73,18 +73,6 @@ fun ExpenseAddEditView(
     //日付、時間の選択肢用
     var isDatePickerVisible by remember { mutableStateOf(false) }
     var isTimePickerVisible by remember { mutableStateOf(false) }
-
-    //enabled=falseにしても同じ色のスタイルを保持したい。色のセットを保存しておく
-    val enabledTextFiledColorSet = TextFieldDefaults.colors(
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        disabledIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant, // 無効化時のインジケーター色を変更
-        disabledTextColor = MaterialTheme.colorScheme.onSurface, // テキスト色を維持
-        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
 
     val allCategories = viewModel.categories
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
@@ -131,7 +119,7 @@ fun ExpenseAddEditView(
                         .clickable {
                             isDatePickerVisible = true
                         },
-                    colors = enabledTextFiledColorSet
+                    colors = enabledTextFiledColorSet()
                 )
                 /* 日付をクリックしたときにどうなるか */
                 if (isDatePickerVisible) {
@@ -165,7 +153,7 @@ fun ExpenseAddEditView(
                         .clickable {
                             isTimePickerVisible = true
                         },
-                    colors = enabledTextFiledColorSet
+                    colors = enabledTextFiledColorSet()
                 )
 
                 //時間をタップしたらダイアログを表示して選択させる
@@ -252,7 +240,7 @@ fun ExpenseAddEditView(
                             .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
                         label = { Text(text = "Category") },
                         singleLine = true,
-                        colors = enabledTextFiledColorSet,
+                        colors = enabledTextFiledColorSet(),
                     )
 
                     ExposedDropdownMenu(

@@ -4,19 +4,28 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,11 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultRepeatAdd
+import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.RepeatAddViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 
 @Composable
@@ -42,6 +54,8 @@ fun RepeatAddSettingView(
 ) {
     var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
     var showAddEditDialog by remember { mutableStateOf(false) }
+
+    val allCategories = viewModel.allCategories
 
     Scaffold(
         topBar = {
@@ -75,6 +89,7 @@ fun RepeatAddSettingView(
             if (showAddEditDialog) {
                 RepeatAddEditDialog(
                     repeatAdd = editedRepeatAdd,
+                    allCategories = allCategories,
                     onSave = { newRepeatAdd ->
                         showAddEditDialog = false
                         Toast.makeText(
@@ -93,15 +108,20 @@ fun RepeatAddSettingView(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepeatAddEditDialog(
     repeatAdd: RepeatAdd,
+    allCategories: StateFlow<List<Category>>,
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
 ) {
     Log.d("AkitaDebug", "Recomposed??")
     var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
     Log.d("AkitaDebug", "newRepeatAdd :${newRepeatAdd}")
+
+    val categories = allCategories.collectAsState()
+    var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = {
@@ -145,18 +165,77 @@ fun RepeatAddEditDialog(
             }
         },
         text = {
-            OutlinedTextField(
-                value = newRepeatAdd.expense?.amount?.toString() ?: "",
-                onValueChange = {
-                    newRepeatAdd = newRepeatAdd.copy(
-                        expense = newRepeatAdd.expense?.copy(
-                            amount = it.toLongOrNull()
-                        )
+            Column()
+            {
+                //Expenseの領域
+                Box()
+                {
+                    OutlinedTextField(
+                        value = newRepeatAdd.expense?.amount?.toString() ?: "",
+                        onValueChange = {
+                            newRepeatAdd = newRepeatAdd.copy(
+                                expense = newRepeatAdd.expense?.copy(
+                                    amount = it.toLongOrNull()
+                                )
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
                     )
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = categoryOptionsExpanded,
+                        onExpandedChange = {
+                            categoryOptionsExpanded = !categoryOptionsExpanded
+                        }
+                    ) {
+                        //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
+                        //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
+                        //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
+                        //カテゴリーの編集画面もほしいし
+                        TextField(
+                            value = newRepeatAdd.expense?.category?.name ?: "",
+                            onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
+                            enabled = false,
+                            readOnly = true,
+                            modifier = Modifier
+                                .width(260.dp)
+                                .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
+                            label = { Text(text = "Category") },
+                            singleLine = true,
+                            colors = enabledTextFiledColorSet(),
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = categoryOptionsExpanded,
+                            onDismissRequest = { categoryOptionsExpanded = false }
+                        ) {
+                            if (allCategories.value.isEmpty()) {
+                                //何もなかったらToastを出す
+                                Log.d("AkitaDebug", "allCategories is empty")
+                                categoryOptionsExpanded = false
+                            }
+                            allCategories.value.forEachIndexed { index, category ->
+                                DropdownMenuItem(
+                                    text = { Text(text = category.name.toString()) },
+                                    onClick = {
+                                        newRepeatAdd = newRepeatAdd.copy(
+                                            expense = newRepeatAdd.expense?.copy(
+                                                category = category
+                                            )
+                                        )
+                                        categoryOptionsExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = true
