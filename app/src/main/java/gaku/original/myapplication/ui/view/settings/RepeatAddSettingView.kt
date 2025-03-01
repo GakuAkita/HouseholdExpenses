@@ -41,7 +41,7 @@ fun RepeatAddSettingView(
     navController: NavController
 ) {
     var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
-    var showAddEditDialog by remember { mutableStateOf<Boolean>(false) }
+    var showAddEditDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -99,7 +99,9 @@ fun RepeatAddEditDialog(
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var newRepeatAdd by remember { mutableStateOf(repeatAdd) }
+    Log.d("AkitaDebug", "Recomposed??")
+    var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
+    Log.d("AkitaDebug", "newRepeatAdd :${newRepeatAdd}")
 
     AlertDialog(
         onDismissRequest = {
@@ -143,41 +145,18 @@ fun RepeatAddEditDialog(
             }
         },
         text = {
-            //Expense領域
-            //まずこっちから作ろう。
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = newRepeatAdd.expense?.amount?.toString() ?: "",
-                    onValueChange = {
-                        if (it != "" && it.toLongOrNull() == null) {
-                            Log.e(
-                                "RepeatAddEditDialog",
-                                "数値が大きすぎます。これ以上入力できません"
-                            )
-                        } else {
-                            newRepeatAdd.expense?.amount = it.toLongOrNull()
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = newRepeatAdd.frequency ?: "",
-                    onValueChange = {
-                        newRepeatAdd = newRepeatAdd.copy(frequency = it)
-                    },
-                    singleLine = true
-                )
-            }
-
-            //Frequency領域
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
-            }
+            OutlinedTextField(
+                value = newRepeatAdd.expense?.amount?.toString() ?: "",
+                onValueChange = {
+                    newRepeatAdd = newRepeatAdd.copy(
+                        expense = newRepeatAdd.expense?.copy(
+                            amount = it.toLongOrNull()
+                        )
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true
+            )
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = true
