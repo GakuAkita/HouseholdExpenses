@@ -1,13 +1,19 @@
 package gaku.original.myapplication.data
 
 import android.util.Log
+import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
+import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
+import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.tasks.await
 
 class RepeatAddRepository(
     private val realtimeDbReference: RealtimeDbReference
 ) {
+    val repeatAddRef: DatabaseReference
+        get() = realtimeDbReference.getUserRepeatAddRef()
+
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchRepeatAddSettings(
         callback: (Boolean) -> Unit = {}
@@ -31,8 +37,20 @@ class RepeatAddRepository(
         repeatAdd: RepeatAdd,
         callback: (Boolean) -> Unit = {}
     ) {
-        val repeatAddRef = realtimeDbReference.getUserRepeatAddRef()
-
         addDataToRTDb(repeatAdd, { repeatAddRef }, callback)
+    }
+
+    fun updateRepeatAdd(
+        repeatAdd: RepeatAdd,
+        callback: (Boolean) -> Unit = {}
+    ) {
+        updateDataToRTDb(repeatAdd, { repeatAddRef }, callback)
+    }
+
+    fun removeRepeatAdd(
+        repeatAdd: RepeatAdd,
+        callback: (Boolean) -> Unit = {}
+    ) {
+        removeDataFromRTDb(repeatAdd, { repeatAddRef }, callback)
     }
 }

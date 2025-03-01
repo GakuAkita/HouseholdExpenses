@@ -4,6 +4,8 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
+import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
+import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -32,38 +34,14 @@ class CategoryRepository @Inject constructor(
     }
 
     fun addCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        val newCategoryRef = categoryRef.push() // Generate the unique key
-
-        addDataToRTDb(category, { newCategoryRef }, callback)
+        addDataToRTDb(category, { categoryRef }, callback)
     }
 
     fun updateCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        // Use the expense's ID (which is the Firebase-generated key) to locate it
-        val categoryToUpdateRef = categoryRef.child(category.id ?: return)
-
-        categoryToUpdateRef.setValue(category)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("CategoryRepository", "Category updated successfully${category.id}")
-                    callback(true)
-                } else {
-                    Log.e("CategoryRepository", "Failed to update category", task.exception)
-                    callback(false)
-                }
-            }
+        updateDataToRTDb(category, { categoryRef }, callback)
     }
 
     fun removeCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        val categoryToRemoveRef = categoryRef.child(category.id ?: return)
-        categoryToRemoveRef.removeValue()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("CategoryRepository", "Category removed successfully")
-                    callback(true)
-                } else {
-                    Log.e("CategoryRepository", "Failed to remove category", task.exception)
-                    callback(false)
-                }
-            }
+        removeDataFromRTDb(category, { categoryRef }, callback)
     }
 }

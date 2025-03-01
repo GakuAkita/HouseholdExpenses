@@ -169,7 +169,7 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun addExpense(expense: Expense) {
+    fun addExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
         if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }
@@ -179,19 +179,19 @@ class ExpenseSharedViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            expenseRepository.addExpense(expense)
+            expenseRepository.addExpense(expense, callback)
         }
     }
 
-    fun updateExpense(expense: Expense) {
+    fun updateExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            expenseRepository.updateExpense(expense)
+            expenseRepository.updateExpense(expense, callback)
         }
     }
 
-    fun removeExpense(expense: Expense) {
+    fun removeExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            expenseRepository.removeExpense(expense)
+            expenseRepository.removeExpense(expense, callback)
         }
     }
 

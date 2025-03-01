@@ -4,9 +4,15 @@ import gaku.original.myapplication.data.Interface.CommonProperty
 
 data class RepeatAdd(
     override var id: String? = null,
-    override var timestamp: Long? = null,
+    override var timestamp: Long? = null,/* When this RepeatAdd was registered */
     var expense: Expense? = null,
     var frequency: String? = null,/* everyday? weekly? monthly? yearly?*/
-    var registeredTimestamp: Long? = System.currentTimeMillis(),/* when this RepeatAdd was registered */
 ) : CommonProperty
+
+val defaultRepeatAdd = RepeatAdd(
+    id = null,
+    timestamp = null,
+    expense = null,
+    frequency = null,
+)
 

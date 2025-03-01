@@ -1,13 +1,19 @@
 package gaku.original.myapplication.data
 
 import android.util.Log
+import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
+import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
+import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.tasks.await
 
 class ExpenseRepository(
     private val realtimeDbReference: RealtimeDbReference
 ) {
+    val expenseRef: DatabaseReference
+        get() = realtimeDbReference.getUserExpenseRef()
+
     //SignUp後にやる操作
     fun addUserInitialData(email: String) {
         val userRef = realtimeDbReference.getUserRef()
@@ -44,8 +50,6 @@ class ExpenseRepository(
         expense: Expense,
         callback: (Boolean) -> Unit = {}
     ) {
-        val expenseRef = realtimeDbReference.getUserExpenseRef()
-
         addDataToRTDb(expense, { expenseRef }, callback)
     }
 
@@ -53,38 +57,13 @@ class ExpenseRepository(
         expense: Expense,
         callback: (Boolean) -> Unit = {}
     ) {
-        val expenseRef = realtimeDbReference.getUserExpenseRef()
-
-        // Use the expense's ID (which is the Firebase-generated key) to locate it
-        val expenseToUpdateRef = expenseRef.child(expense.id ?: return)
-
-        expenseToUpdateRef.setValue(expense)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("ExpenseRepository", "Expense updated successfully")
-                    callback(true)
-                } else {
-                    Log.e("ExpenseRepository", "Failed to update expense", task.exception)
-                    callback(false)
-                }
-            }
+        updateDataToRTDb(expense, { expenseRef }, callback)
     }
 
     fun removeExpense(
         expense: Expense,
         callback: (Boolean) -> Unit = {}
     ) {
-        val expenseRef = realtimeDbReference.getUserExpenseRef()
-        val expenseToRemoveRef = expenseRef.child(expense.id ?: return)
-        expenseToRemoveRef.removeValue()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("ExpenseRepository", "Expense removed successfully")
-                    callback(true)
-                } else {
-                    Log.e("ExpenseRepository", "Failed to remove expense", task.exception)
-                    callback(false)
-                }
-            }
+        removeDataFromRTDb(expense, { expenseRef }, callback)
     }
 }

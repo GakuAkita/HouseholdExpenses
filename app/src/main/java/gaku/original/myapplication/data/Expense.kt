@@ -2,6 +2,8 @@ package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.fromLocalDateTime
+import java.time.LocalDateTime
 
 data class Expense(
     override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1
@@ -12,6 +14,15 @@ data class Expense(
     var category: Category? = null,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
     var note: String? = null
 ) : CommonProperty
+
+val defaultExpense = Expense(
+    id = null,
+    datetime = fromLocalDateTime(LocalDateTime.now()),
+    amount = null,
+    category = null,
+    note = null,
+    generatedType = null
+)
 
 data class Category(
     override var id: String? = null,
