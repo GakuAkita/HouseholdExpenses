@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Status.SingOutResult
+import gaku.original.myapplication.data.Constants.Status.SingOutResult
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel

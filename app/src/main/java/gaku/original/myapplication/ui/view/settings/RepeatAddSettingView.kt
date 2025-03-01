@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.settings
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -73,9 +76,10 @@ fun RepeatAddSettingView(
                 RepeatAddEditDialog(
                     repeatAdd = editedRepeatAdd,
                     onSave = { newRepeatAdd ->
+                        showAddEditDialog = false
                         Toast.makeText(
                             context,
-                            "数値が大きすぎます。これ以上入力できません",
+                            "Repeat Add Setting を追加したいな",
                             Toast.LENGTH_LONG
                         ).show()
                     },
@@ -139,17 +143,40 @@ fun RepeatAddEditDialog(
             }
         },
         text = {
+            //Expense領域
+            //まずこっちから作ろう。
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                //選択肢にしたい...
                 OutlinedTextField(
-                    value = repeatAdd.frequency ?: "",
+                    value = newRepeatAdd.expense?.amount?.toString() ?: "",
+                    onValueChange = {
+                        if (it != "" && it.toLongOrNull() == null) {
+                            Log.e(
+                                "RepeatAddEditDialog",
+                                "数値が大きすぎます。これ以上入力できません"
+                            )
+                        } else {
+                            newRepeatAdd.expense?.amount = it.toLongOrNull()
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = newRepeatAdd.frequency ?: "",
                     onValueChange = {
                         newRepeatAdd = newRepeatAdd.copy(frequency = it)
                     },
                     singleLine = true
                 )
+            }
+
+            //Frequency領域
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
             }
         },
         properties = DialogProperties(

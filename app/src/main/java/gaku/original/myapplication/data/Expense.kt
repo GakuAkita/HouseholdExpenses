@@ -15,21 +15,29 @@ data class Expense(
     var note: String? = null
 ) : CommonProperty
 
-val defaultExpense = Expense(
-    id = null,
-    datetime = fromLocalDateTime(LocalDateTime.now()),
-    amount = null,
-    category = null,
-    note = null,
-    generatedType = null
-)
-
 data class Category(
     override var id: String? = null,
     override var timestamp: Long? = System.currentTimeMillis(),
     val name: String? = null,
     val enabled: Boolean? = true
 ) : CommonProperty
+
+
+val defaultCategory = Category(
+    id = null,
+    timestamp = System.currentTimeMillis(),
+    name = null,
+    enabled = true
+)
+
+val defaultExpense = Expense(
+    id = null,
+    datetime = fromLocalDateTime(LocalDateTime.now()),
+    amount = null,
+    category = defaultCategory,
+    note = null,
+    generatedType = null
+)
 
 /* 使われていない？↓ */
 class generatedType {
@@ -39,7 +47,7 @@ class generatedType {
     }
 }
 
-object DefaultCategories {
+object InitialCategories {
     //サインアップ時にデフォルトで登録されるカテゴリ
     val categories = mutableStateListOf(
         Category(name = "食費"),

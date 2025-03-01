@@ -11,10 +11,10 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
-import gaku.original.myapplication.data.DefaultCategories
+import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.data.Status.CategoryEditStatus
+import gaku.original.myapplication.data.InitialCategories
 import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -156,7 +156,7 @@ class ExpenseSharedViewModel @Inject constructor(
         expenseRepository.addUserInitialData(email)
 
         //デフォルトカテゴリーを追加
-        for (defaultCategory in DefaultCategories.categories) {
+        for (defaultCategory in InitialCategories.categories) {
             categoryRepository.addCategory(defaultCategory)
         }
     }

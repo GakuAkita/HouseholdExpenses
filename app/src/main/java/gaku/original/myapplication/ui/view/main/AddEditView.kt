@@ -45,8 +45,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
-import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
@@ -68,16 +66,16 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 fun ExpenseAddEditView(
     viewModel: ExpenseAddEditViewModel = hiltViewModel(),
     navController: NavController
-){
+) {
     //Toastとか用
-    val context= LocalContext.current
+    val context = LocalContext.current
 
     //日付、時間の選択肢用
     var isDatePickerVisible by remember { mutableStateOf(false) }
     var isTimePickerVisible by remember { mutableStateOf(false) }
 
     //enabled=falseにしても同じ色のスタイルを保持したい。色のセットを保存しておく
-    val enabledTextFiledColorSet=TextFieldDefaults.colors(
+    val enabledTextFiledColorSet = TextFieldDefaults.colors(
         focusedTextColor = MaterialTheme.colorScheme.onSurface,
         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
         focusedIndicatorColor = MaterialTheme.colorScheme.primary,
@@ -100,38 +98,40 @@ fun ExpenseAddEditView(
                 onBackNavClicked = {
                     navController.navigate(Screen.MainScreen.Content.route)
                 },
-                navController=navController
+                navController = navController
             )
         },
         bottomBar = { BottomBarView(navController) }
-    ){
-        innerPadding ->
+    ) { innerPadding ->
         Column(
-            modifier=Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.Center
-            ) {
-            val dateFormat=DateTimeFormatter.ofPattern("yyyy/MM/dd")
-            val timeFormat=DateTimeFormatter.ofPattern("HH:mm")
+        ) {
+            val dateFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+            val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
             /*************************************************/
             /* 日付の項目 */
             /*************************************************/
-            Row (
-                modifier=Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Absolute.Left
-            ){
+            ) {
                 TextField(
-                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(dateFormat) ?: "日付が入っていません",
+                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(dateFormat)
+                        ?: "日付が入っていません",
                     onValueChange = {},
                     enabled = false,
                     readOnly = true,
-                    label= {Text(text="Date")},
-                    modifier=Modifier
+                    label = { Text(text = "Date") },
+                    modifier = Modifier
                         .width(150.dp)
                         .clickable {
-                            isDatePickerVisible=true
+                            isDatePickerVisible = true
                         },
-                    colors= enabledTextFiledColorSet
+                    colors = enabledTextFiledColorSet
                 )
                 /* 日付をクリックしたときにどうなるか */
                 if (isDatePickerVisible) {
@@ -151,36 +151,37 @@ fun ExpenseAddEditView(
                     )
                 }
 
-                Spacer(modifier=Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
 
                 TextField(
-                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(timeFormat) ?:"時間が入っていません",
+                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(timeFormat)
+                        ?: "時間が入っていません",
                     onValueChange = {},
-                    enabled=false,
+                    enabled = false,
                     readOnly = true,
-                    label= { Text(text="Time") },
-                    modifier=Modifier
+                    label = { Text(text = "Time") },
+                    modifier = Modifier
                         .width(100.dp)
                         .clickable {
-                            isTimePickerVisible=true
+                            isTimePickerVisible = true
                         },
-                    colors=enabledTextFiledColorSet
+                    colors = enabledTextFiledColorSet
                 )
 
                 //時間をタップしたらダイアログを表示して選択させる
                 //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
-                if(isTimePickerVisible){
+                if (isTimePickerVisible) {
                     //nullでないときのみ時刻を表示
                     viewModel.currentTmpExpense.datetime?.let {
                         DialWithDialog(
-                            onConfirm = { selectedTime->
+                            onConfirm = { selectedTime ->
                                 // 選択した時間を取得して ViewModel に更新
                                 val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
                                 viewModel.updateTmpExpenseTime(newTime)
-                                isTimePickerVisible=false
+                                isTimePickerVisible = false
                             },
                             onDismiss = {
-                                isTimePickerVisible=false
+                                isTimePickerVisible = false
                             },
                             //@HACK let内に入っているからnullなわけないけど一応気をつけて
                             initialDateTime = toLocalDateTime(it)!!
@@ -191,49 +192,49 @@ fun ExpenseAddEditView(
             }
 
 
-            Spacer(modifier=Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(8.dp))
 
             /*************************************************/
             /* 費用の項目 */
             /*************************************************/
             Row(
-                modifier=Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 TextField(
                     //数値だけ受け付ける感じにしたい
                     value = viewModel.currentTmpExpense.amount?.toString() ?: "",
-                    onValueChange ={
-                        if(it!="" && it.toLongOrNull()==null){
+                    onValueChange = {
+                        if (it != "" && it.toLongOrNull() == null) {
                             Toast.makeText(
                                 context,
-                                "数値が大きすぎます。これ以上入力できません" ,
+                                "数値が大きすぎます。これ以上入力できません",
                                 Toast.LENGTH_LONG
                             ).show()
                             //viewModel.updateExpenseInstanceAmount(null)
-                        }else{
+                        } else {
                             viewModel.updateTmpExpenseAmount(it.toLongOrNull())
                         }
                     },
-                    label= {Text(text="Amount")},
-                    modifier=Modifier.width(260.dp),
+                    label = { Text(text = "Amount") },
+                    modifier = Modifier.width(260.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
             }
 
-            Spacer(modifier=Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(8.dp))
 
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
 
-            Row (
+            Row(
 
-            ){
+            ) {
                 ExposedDropdownMenuBox(
-                    expanded=categoryOptionsExpanded,
+                    expanded = categoryOptionsExpanded,
                     onExpandedChange = {
-                        categoryOptionsExpanded= !categoryOptionsExpanded
+                        categoryOptionsExpanded = !categoryOptionsExpanded
                     }
                 ) {
 
@@ -242,34 +243,37 @@ fun ExpenseAddEditView(
                     //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
                     //カテゴリーの編集画面もほしいし
                     TextField(
-                        value=viewModel.currentTmpExpense.category?.name?: "",
-                        onValueChange = {/* ドロップダウンから選択すれば値が更新される */},
+                        value = viewModel.currentTmpExpense.category?.name ?: "",
+                        onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
                         enabled = false,
                         readOnly = true,
-                        modifier=Modifier
+                        modifier = Modifier
                             .width(260.dp)
                             .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
-                        label={Text(text="Category")},
+                        label = { Text(text = "Category") },
                         singleLine = true,
                         colors = enabledTextFiledColorSet,
                     )
 
                     ExposedDropdownMenu(
-                        expanded=categoryOptionsExpanded,
-                        onDismissRequest = { categoryOptionsExpanded=false }
+                        expanded = categoryOptionsExpanded,
+                        onDismissRequest = { categoryOptionsExpanded = false }
                     ) {
-                        if(allCategories.isEmpty()){
+                        if (allCategories.isEmpty()) {
                             //何もなかったらToastを出す
-                            Toast.makeText(context,"カテゴリーが何も登録されていません。\n編集ボタンから追加してください",Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                "カテゴリーが何も登録されていません。\n編集ボタンから追加してください",
+                                Toast.LENGTH_LONG
+                            ).show()
                             categoryOptionsExpanded = false
                         }
-                        allCategories.forEachIndexed{
-                                index,category->
+                        allCategories.forEachIndexed { index, category ->
                             DropdownMenuItem(
                                 text = { Text(text = category.name.toString()) },
                                 onClick = {
                                     viewModel.updateTmpExpenseCategory(category)
-                                    categoryOptionsExpanded=false
+                                    categoryOptionsExpanded = false
                                 }
                             )
                         }
@@ -290,22 +294,22 @@ fun ExpenseAddEditView(
                 }
             }
 
-            Spacer(modifier=Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(8.dp))
 
             /*************************************************/
             /* Noteの項目 */
             /*************************************************/
             Row(
-                modifier=Modifier.fillMaxWidth()
-            ){
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 //メモ
                 TextField(
-                    value=viewModel.currentTmpExpense.note?:"",
+                    value = viewModel.currentTmpExpense.note ?: "",
                     onValueChange = {
                         viewModel.updateTmpExpenseNote(it)
                     },
-                    modifier=Modifier.width(260.dp),
-                    label={Text(text="Note")},
+                    modifier = Modifier.width(260.dp),
+                    label = { Text(text = "Note") },
                     singleLine = false
                 )
             }
@@ -316,41 +320,36 @@ fun ExpenseAddEditView(
             Button(
                 onClick = {
                     /* きちんと値が入っているかチェック */
-                    if(viewModel.currentTmpExpense.amount==null)
-                    {
+                    if (viewModel.currentTmpExpense.amount == null) {
                         /*amount入っていないので弾く*/
                         Toast.makeText(
                             context,
-                            "金額が入力されていません。\n保存できません" ,
+                            "金額が入力されていません。\n保存できません",
                             Toast.LENGTH_LONG
                         ).show()
-                    }
-                    else if(viewModel.currentTmpExpense.category == null)
-                    {
+                    } else if (viewModel.currentTmpExpense.category == null) {
                         Toast.makeText(
                             context,
-                            "Categoryが選択されていません。\n保存できません" ,
+                            "Categoryが選択されていません。\n保存できません",
                             Toast.LENGTH_LONG
                         ).show()
-                    }
-                    else
-                    {
+                    } else {
                         //idがnullなら新規作成ってこと
-                        if(viewModel.currentTmpExpense.id==null){
+                        if (viewModel.currentTmpExpense.id == null) {
                             //追加する
                             //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
                             viewModel.addTmpExpenseToDb()
                             Toast.makeText(
                                 context,
-                                "追加しました" ,
+                                "追加しました",
                                 Toast.LENGTH_LONG
                             ).show()
-                        } else{//idがnullでなかったら編集
+                        } else {//idがnullでなかったら編集
                             //このidのExpenseをupdateする
                             viewModel.updateTmpExpenseToDb()
                             Toast.makeText(
                                 context,
-                                "更新する" ,
+                                "更新する",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -361,7 +360,7 @@ fun ExpenseAddEditView(
                     }
 
                 },
-                modifier=Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -371,22 +370,22 @@ fun ExpenseAddEditView(
             }
 
 
-            if(viewModel.currentTmpExpense.id==null){
+            if (viewModel.currentTmpExpense.id == null) {
                 //新規作成のとき。リセット
                 Button(
                     onClick = {
                         //リセット
                         viewModel.resetTmpExpense()
                     },
-                    modifier=Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.onSecondary
                     )
-                ){
+                ) {
                     Text("Reset")
                 }
-            } else{
+            } else {
                 //編集
                 Button(
                     onClick = {
@@ -397,12 +396,12 @@ fun ExpenseAddEditView(
                         //元に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     },
-                    modifier=Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     )
-                ){
+                ) {
                     Text("Delete")
                 }
             }
@@ -444,7 +443,7 @@ fun DatePickerModal(
 fun DialWithDialog(
     onConfirm: (TimePickerState) -> Unit,
     onDismiss: () -> Unit,
-    initialDateTime:LocalDateTime//viewModelの値をそのままいれたい
+    initialDateTime: LocalDateTime//viewModelの値をそのままいれたい
 ) {
     val timePickerState = rememberTimePickerState(
         initialHour = initialDateTime.hour,

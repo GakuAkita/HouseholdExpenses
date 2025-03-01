@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RepeatAddViewModel @Inject constructor(
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val repeatAddRepository: RepeatAddRepository
 ) : ViewModel() {
 
@@ -35,6 +37,7 @@ class RepeatAddViewModel @Inject constructor(
 //        _tmpRepeatAdd.value = defaultRepeatAdd
 //    }
 
+    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     private val _repeatAddSettings = MutableStateFlow<List<RepeatAdd>>(emptyList())
     val repeatAddSettings: StateFlow<List<RepeatAdd>> get() = _repeatAddSettings

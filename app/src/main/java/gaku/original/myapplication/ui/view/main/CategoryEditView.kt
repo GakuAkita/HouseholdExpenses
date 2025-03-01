@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -30,27 +27,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
-import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.Status.CategoryEditStatus
+import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
+import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.CategoryEditViewModel
-import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
-import javax.inject.Inject
 
 @Composable
 fun CategoryAddEditView(
-    viewModel:CategoryEditViewModel = hiltViewModel(),
+    viewModel: CategoryEditViewModel = hiltViewModel(),
     navController: NavController
-){
+) {
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
     var showDialog by remember { mutableStateOf(false) }
     var removeShowDialog by remember { mutableStateOf(false) }
@@ -65,20 +58,20 @@ fun CategoryAddEditView(
                 onBackNavClicked = {
                     navController.popBackStack()
                 },
-                navController=navController
+                navController = navController
             )
         },
         bottomBar = { BottomBarView(navController) }
-    ){innerPadding->
+    ) { innerPadding ->
         Column(
-            modifier= Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding)
         ) {
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(allCategories){
+                items(allCategories) {
                     CategoryItem(
                         category = it,
                         onClick = {
@@ -106,45 +99,69 @@ fun CategoryAddEditView(
             }
 
             //ダイアログを表示
-            if(showDialog){
+            if (showDialog) {
                 //EditかAddはeditedCategoryのidがnullかどうかで判断する
                 CategoryAddEditDialog(
                     category = editedCategory,
-                    onSave = {newCategory ->
-                        if(newCategory.id == null){
+                    onSave = { newCategory ->
+                        if (newCategory.id == null) {
                             //新規追加
                             viewModel.addCategory(
                                 newCategory,
-                                callback = {status->
-                                    when(status){
-                                        CategoryEditStatus.SUCCESS->{
-                                            Toast.makeText(context, "Category Added", Toast.LENGTH_SHORT).show()
+                                callback = { status ->
+                                    when (status) {
+                                        CategoryEditStatus.SUCCESS -> {
+                                            Toast.makeText(
+                                                context,
+                                                "Category Added",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             showDialog = false
                                         }
-                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST->{
-                                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+
+                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST -> {
+                                            Toast.makeText(
+                                                context,
+                                                "The Category Already Exists",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        CategoryEditStatus.FAILED->{
-                                            Toast.makeText(context, "Failed to Add Category", Toast.LENGTH_SHORT).show()
+
+                                        CategoryEditStatus.FAILED -> {
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to Add Category",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
 
                                 }
                             )
-                        }else{
+                        } else {
                             //編集
                             viewModel.updateCategory(
                                 newCategory,
-                                callback = {status->
-                                    when(status){
-                                        CategoryEditStatus.SUCCESS->{
+                                callback = { status ->
+                                    when (status) {
+                                        CategoryEditStatus.SUCCESS -> {
                                             showDialog = false
                                         }
-                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST->{
-                                            Toast.makeText(context, "The Category Already Exists", Toast.LENGTH_SHORT).show()
+
+                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST -> {
+                                            Toast.makeText(
+                                                context,
+                                                "The Category Already Exists",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        CategoryEditStatus.FAILED->{
-                                            Toast.makeText(context, "Failed to Add Category", Toast.LENGTH_SHORT).show()
+
+                                        CategoryEditStatus.FAILED -> {
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to Add Category",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
 
@@ -158,21 +175,25 @@ fun CategoryAddEditView(
                 )
             }
 
-            if(removeShowDialog){
+            if (removeShowDialog) {
                 CategoryRemoveConfirmDialog(
                     category = editedCategory,
-                    onOK ={categoryRemoved ->
+                    onOK = { categoryRemoved ->
                         viewModel.removeCategory(
                             category = categoryRemoved,
-                            callback = {result->
-                                if(result){
+                            callback = { result ->
+                                if (result) {
                                     /* 必要そうだったらToastいれる */
-                                }else{
-                                    Toast.makeText(context, "Failed to Remove Category${categoryRemoved.name}", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to Remove Category${categoryRemoved.name}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         )
-                        removeShowDialog=false
+                        removeShowDialog = false
                     },
                     onDismiss = {
                         removeShowDialog = false
@@ -185,10 +206,10 @@ fun CategoryAddEditView(
 
 @Composable
 fun CategoryItem(
-    category:Category,
-    onClick:(category:Category)->Unit = {},
-    onDelete:(category:Category)->Unit = {}
-    ){
+    category: Category,
+    onClick: (category: Category) -> Unit = {},
+    onDelete: (category: Category) -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,9 +219,9 @@ fun CategoryItem(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
-    ){
+    ) {
         //nullになることは基本的にない
-        Text(category.name?: CATEGORY_NULL_REPLACEMENT)
+        Text(category.name ?: CATEGORY_NULL_REPLACEMENT)
 
         // ゴミ箱ボタン
         IconButton(
@@ -216,11 +237,11 @@ fun CategoryItem(
 
 @Composable
 fun CategoryAddEditDialog(
-    category:Category,
-    onSave : (category:Category)->Unit,
-    onDismiss : ()->Unit,
-){
-    var newCategory by remember{ mutableStateOf(category) }
+    category: Category,
+    onSave: (category: Category) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var newCategory by remember { mutableStateOf(category) }
 
     AlertDialog(
         onDismissRequest = {
@@ -230,40 +251,38 @@ fun CategoryAddEditDialog(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Button(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     onClick = { onDismiss() }
-                ){
+                ) {
                     Text("Cancel")
                 }
                 Button(
-                    modifier=Modifier
+                    modifier = Modifier
                         .padding(end = 10.dp),
                     onClick = {
                         /* ここでnewCategoryが適切かチェックする */
                         /* すでにカテゴリーの中に存在するかはここではチェックしない */
-                        if(newCategory.name == null||newCategory.name == ""){
+                        if (newCategory.name == null || newCategory.name == "") {
                             /* 何もしないか、Toastをだす */
-                        }
-                        else if(newCategory.name == category.name){
+                        } else if (newCategory.name == category.name) {
                             /* 編集だけど何も変わっていない場合 */
                             onDismiss()
-                        }
-                        else{
+                        } else {
                             onSave(newCategory)
                         }
                     }
-                ){
+                ) {
                     Text("Save")
                 }
             }
         },
         title = {
-            if(newCategory.id == null){
+            if (newCategory.id == null) {
                 Text("Add Category")
-            }else{
+            } else {
                 Text("Edit Category")
             }
         },
@@ -288,10 +307,10 @@ fun CategoryAddEditDialog(
 
 @Composable
 fun CategoryRemoveConfirmDialog(
-    category:Category,
-    onOK : (category:Category)->Unit,
-    onDismiss : ()->Unit,
-){
+    category: Category,
+    onOK: (category: Category) -> Unit,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = {
             onDismiss()
@@ -300,21 +319,21 @@ fun CategoryRemoveConfirmDialog(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Button(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     onClick = { onDismiss() }
-                ){
+                ) {
                     Text("Cancel")
                 }
                 Button(
-                    modifier=Modifier
+                    modifier = Modifier
                         .padding(end = 10.dp),
                     onClick = {
                         onOK(category)
                     }
-                ){
+                ) {
                     Text("OK")
                 }
             }

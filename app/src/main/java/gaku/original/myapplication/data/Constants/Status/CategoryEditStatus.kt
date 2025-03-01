@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.Status
+package gaku.original.myapplication.data.Constants.Status
 
 enum class CategoryEditStatus {
     SUCCESS,            // カテゴリー編集成功
