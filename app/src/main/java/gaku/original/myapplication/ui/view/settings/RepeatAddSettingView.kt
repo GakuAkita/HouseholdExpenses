@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,16 +41,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.Constants.RepeatFrequencyArray
+import gaku.original.myapplication.data.Constants.RepeatFrequency
+import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.view.main.DialWithDialog
 import gaku.original.myapplication.viewModel.RepeatAddViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -124,15 +131,17 @@ fun RepeatAddEditDialog(
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Log.d("AkitaDebug", "Recomposed??")
+    Log.d("AkitaDebug", "RepeatAddEditDialog Recomposed")
     var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
-    Log.d("AkitaDebug", "newRepeatAdd :${newRepeatAdd}")
 
     val categories = allCategories.collectAsState()
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
     var amount_warning by remember { mutableStateOf(false) }
 
     var frequencyOptionsExpanded by remember { mutableStateOf(false) }
+
+    //rememberつけなくてもよいのだが、再コンポーズのたびに関数が呼ばれるのはもったいないので。
+    val RepeatFrequencyArray = remember { getRepeatFrequencyValues() }
 
     LaunchedEffect(amount_warning) {
         //amount_warningは表示したらすぐ消す
@@ -161,7 +170,7 @@ fun RepeatAddEditDialog(
         },
         text = {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Row() {
                     Text("Expense")
@@ -193,7 +202,6 @@ fun RepeatAddEditDialog(
                         label = { Text("Amount") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
-                        colors = enabledTextFiledColorSet(),
                         isError = amount_warning,
                     )
 
@@ -246,6 +254,22 @@ fun RepeatAddEditDialog(
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    TextField(
+                        //数値だけ受け付ける感じにしたい
+                        value = newRepeatAdd.expense?.note ?: "",
+                        onValueChange = {
+                            newRepeatAdd = newRepeatAdd.copy(
+                                expense = newRepeatAdd.expense?.copy(
+                                    note = it
+                                )
+                            )
+                        },
+                        label = { Text(text = "Note") },
+                        singleLine = true
+                    )
                 }
 
                 Spacer(modifier = Modifier.padding(6.dp))
@@ -304,6 +328,9 @@ fun RepeatAddEditDialog(
                         }
                     }
 
+                    //ここで、選択された内容に応じて表示内容を変える
+                    FrequencyTextField(newRepeatAdd.frequency ?: "")
+
                 }
 
             }
@@ -349,4 +376,308 @@ fun RepeatAddEditDialog(
             usePlatformDefaultWidth = true
         )
     )
+}
+
+
+/**
+ *  every_year: 何月何日何時(時刻はデフォルトで0)
+ *  every_month: 何日何時
+ *  weekends : 何時
+ *  weekdays : 何時
+ *  everyday : 何時
+ */
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun FrequencyTextField(
+    frequency: String,
+) {
+    val ConstSpacer = @Composable {
+        Spacer(modifier = Modifier.padding(10.dp))
+    }
+    var month by remember { mutableStateOf<Int?>(null) }
+    var day by remember { mutableStateOf<Int?>(null) }
+    var time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
+
+    var previousFrequency by remember { mutableStateOf(frequency) }
+    if (previousFrequency != frequency) {
+        //frequencyの選択肢を変えたときは初期化
+        month = null
+        day = null
+        time = LocalTime.MIDNIGHT
+        previousFrequency = frequency
+    }
+
+    var isTimePickerVisible by remember { mutableStateOf(false) }
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+
+    when (frequency) {
+        /*******************************************************/
+        RepeatFrequency.EVERY_YEAR -> {
+            ConstSpacer()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column() {
+                    Text("Month")
+                    TextField(
+                        modifier = Modifier.width(50.dp),
+                        value = month?.toString() ?: "",
+                        onValueChange = {
+                            val month_int = it.toIntOrNull()
+                            /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
+                            if (it == "" || month_int == null) {
+                                month = null
+                            } else if (month_int > 12 || month_int < 1) {
+                                /* Do nothing */
+                            } else {
+                                month = month_int
+                            }
+
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(10.dp))
+
+                Column()
+                {
+                    Text("Day")
+                    TextField(
+                        modifier = Modifier.width(50.dp),
+                        value = day?.toString() ?: "",
+                        onValueChange = {
+                            val day_int = it.toIntOrNull()
+                            if (month == null) {
+                                /* monthを入力してください */
+                            } else if (it == "" || day_int == null) {
+                                day = null
+                            } else if (day_int < 1 || day_int > getLastDayOfMonth(
+                                    year = 2025,/* うるう年でなければ何の年でも良い */
+                                    month = month!!
+                                ).dayOfMonth
+                            ) {
+                                /* 日付が適切でない */
+                            } else {
+                                day = day_int
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(10.dp))
+
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "日付が入っていません",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+
+
+            }
+        }
+
+        /*******************************************************/
+        RepeatFrequency.EVERY_MONTH -> {
+            ConstSpacer()
+            //何日だけ決定。31がない月は最終日に指定
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column()
+                {
+                    Text("Day")
+                    TextField(
+                        modifier = Modifier.width(50.dp),
+                        value = day?.toString() ?: "",
+                        onValueChange = {
+                            val day_int = it.toIntOrNull()
+                            if (it == "" || day_int == null) {
+                                day = null
+                            } else if (day_int < 1 || day_int > 31) {
+                                /* 日付が適切でない */
+                            } else {
+                                day = day_int
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(10.dp))
+
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+        }
+
+        /*******************************************************/
+        RepeatFrequency.EVERY_WEEK -> {
+            ConstSpacer()
+            //曜日の指定
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+        }
+
+
+        /*******************************************************/
+        RepeatFrequency.WEEKDAYS -> {
+            ConstSpacer()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+        }
+
+        /*******************************************************/
+        RepeatFrequency.WEEKENDS -> {
+            ConstSpacer()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+        }
+
+        /*******************************************************/
+        RepeatFrequency.EVERYDAY -> {
+            ConstSpacer()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Column {
+                    Text("Time")
+                    TextField(
+                        value = time?.format(timeFormat)
+                            ?: "",
+                        onValueChange = {},
+                        enabled = false,
+                        readOnly = true,
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clickable {
+                                isTimePickerVisible = true
+                            },
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+        }
+
+        else -> {}
+    }
+
+    //いろんなところで使っているが、ここに書いておけば良い。
+    if (isTimePickerVisible) {
+        DialWithDialog(
+            onConfirm = { selectedTime ->
+                // 選択した時間を取得して ViewModel に更新
+                val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
+                time = newTime
+                isTimePickerVisible = false
+            },
+            onDismiss = {
+                isTimePickerVisible = false
+            },
+            //@HACK let内に入っているからnullなわけないけど一応気をつけて
+            initialDateTime = LocalDate.now().atTime(time)
+        )
+    }
 }

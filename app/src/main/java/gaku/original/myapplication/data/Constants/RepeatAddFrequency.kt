@@ -3,22 +3,21 @@ package gaku.original.myapplication.data.Constants
 object RepeatFrequency {
     const val EVERY_YEAR = "every_year"
     const val EVERY_MONTH = "every_month"
-    const val WEEKDAY = "weekday"
-    const val WEEKEND = "weekend"
+    const val EVERY_WEEK = "every_week"
+    const val WEEKDAYS = "weekdays"
+    const val WEEKENDS = "weekends"
     const val EVERYDAY = "everyday"
 }
 
-// `RepeatFrequency` の定数を配列に変換する関数
-// リフレクションを使ってフィールド名を取得し、その値を変換
+// 定数を手動で配列に格納して順番を保証
+/** 上で何かを追加したときは、こっちにも追加しないとだめ！！ **/
 fun getRepeatFrequencyValues(): Array<String> {
-    return RepeatFrequency::class.java.declaredFields
-        .filter { field ->
-            field.type == String::class.java  // 定数かつString型フィールドのみを対象にする
-        }
-        .map { field ->
-            field.get(null) as String  // 値を取得してString型にキャスト
-        }
-        .toTypedArray()  // 配列に変換
+    return arrayOf(
+        RepeatFrequency.EVERY_YEAR,
+        RepeatFrequency.EVERY_MONTH,
+        RepeatFrequency.EVERY_WEEK,
+        RepeatFrequency.WEEKDAYS,
+        RepeatFrequency.WEEKENDS,
+        RepeatFrequency.EVERYDAY
+    )
 }
-
-val RepeatFrequencyArray = getRepeatFrequencyValues()
