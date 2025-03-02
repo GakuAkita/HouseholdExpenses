@@ -1,10 +1,11 @@
 package gaku.original.myapplication.ui.view.settings
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,20 +17,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,6 +47,7 @@ import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.RepeatAddViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
 
@@ -52,6 +56,8 @@ fun RepeatAddSettingView(
     viewModel: RepeatAddViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val context = LocalContext.current
+
     var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
     var showAddEditDialog by remember { mutableStateOf(false) }
 
@@ -64,7 +70,6 @@ fun RepeatAddSettingView(
 
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
-        val context = LocalContext.current
 
         Column(
             modifier = Modifier
@@ -90,6 +95,7 @@ fun RepeatAddSettingView(
                 RepeatAddEditDialog(
                     repeatAdd = editedRepeatAdd,
                     allCategories = allCategories,
+                    context = context,
                     onSave = { newRepeatAdd ->
                         showAddEditDialog = false
                         Toast.makeText(
@@ -113,6 +119,7 @@ fun RepeatAddSettingView(
 fun RepeatAddEditDialog(
     repeatAdd: RepeatAdd,
     allCategories: StateFlow<List<Category>>,
+    context: Context,
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -122,41 +129,26 @@ fun RepeatAddEditDialog(
 
     val categories = allCategories.collectAsState()
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
+    var amount_warning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(amount_warning) {
+        //amount_warningは表示したらすぐ消す
+        if (amount_warning) {
+            val toast = Toast.makeText(
+                context,
+                "これ以上入力できません。数値が大きすぎます。",
+                Toast.LENGTH_LONG
+            )
+            toast.show()
+
+            delay(2000)
+
+            amount_warning = false
+            toast.cancel()
+        }
+    }
 
     AlertDialog(
-        onDismissRequest = {
-            onDismiss()
-        },
-        confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    onClick = { onDismiss() }
-                ) {
-                    Text("Cancel")
-                }
-                Button(
-                    modifier = Modifier
-                        .padding(end = 10.dp),
-                    onClick = {
-                        /* ここでnewRepeatAddが適切かどうかチェックする */
-                        if (newRepeatAdd.expense == null) {
-                            /* Toast出す */
-                        } else if (newRepeatAdd.frequency == null) {
-                            /* Toast出す */
-                        } else {
-                            onSave(newRepeatAdd)
-                        }
-                    }
-                ) {
-                    Text("Save")
-                }
-            }
-        },
         title = {
             if (repeatAdd.id == null) {
                 Text("Add RepeatAdd Setting")
@@ -165,22 +157,41 @@ fun RepeatAddEditDialog(
             }
         },
         text = {
-            Column()
-            {
-                //Expenseの領域
-                Box()
-                {
-                    OutlinedTextField(
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row() {
+                    Text("Expense")
+                }
+                Column(
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        .padding(5.dp)
+                ) {
+                    //Expenseの領域
+                    TextField(
                         value = newRepeatAdd.expense?.amount?.toString() ?: "",
                         onValueChange = {
-                            newRepeatAdd = newRepeatAdd.copy(
-                                expense = newRepeatAdd.expense?.copy(
-                                    amount = it.toLongOrNull()
+                            if (it != "" && it.toLongOrNull() == null) {
+                                /* Do nothing */
+                                amount_warning = true
+                            } else {
+                                amount_warning = false
+                                newRepeatAdd = newRepeatAdd.copy(
+                                    expense = newRepeatAdd.expense?.copy(
+                                        amount = it.toLongOrNull()
+                                    )
                                 )
-                            )
+                            }
                         },
+                        label = { Text("Amount") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
+                        singleLine = true,
+                        colors = enabledTextFiledColorSet(),
+                        isError = amount_warning,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -212,12 +223,12 @@ fun RepeatAddEditDialog(
                             expanded = categoryOptionsExpanded,
                             onDismissRequest = { categoryOptionsExpanded = false }
                         ) {
-                            if (allCategories.value.isEmpty()) {
+                            if (categories.value.isEmpty()) {
                                 //何もなかったらToastを出す
                                 Log.d("AkitaDebug", "allCategories is empty")
                                 categoryOptionsExpanded = false
                             }
-                            allCategories.value.forEachIndexed { index, category ->
+                            categories.value.forEachIndexed { index, category ->
                                 DropdownMenuItem(
                                     text = { Text(text = category.name.toString()) },
                                     onClick = {
@@ -229,13 +240,65 @@ fun RepeatAddEditDialog(
                                         categoryOptionsExpanded = false
                                     }
                                 )
+
                             }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.padding(6.dp))
+
+                Row() {
+                    Text("Frequency")
+                }
+                Column(
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                ) {
+
+                }
+
             }
-
-
+        },
+        onDismissRequest = {
+            onDismiss()
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    modifier = Modifier
+                        .padding(start = 10.dp),
+                    onClick = { onDismiss() },
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    )
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    modifier = Modifier
+                        .padding(end = 10.dp),
+                    onClick = {
+                        /* ここでnewRepeatAddが適切かどうかチェックする */
+                        if (newRepeatAdd.expense == null) {
+                            /* Toast出す */
+                        } else if (newRepeatAdd.frequency == null) {
+                            /* Toast出す */
+                        } else {
+                            onSave(newRepeatAdd)
+                        }
+                    }
+                ) {
+                    Text("Save")
+                }
+            }
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = true
