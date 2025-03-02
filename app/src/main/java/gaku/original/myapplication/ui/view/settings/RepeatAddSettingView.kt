@@ -41,6 +41,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.Constants.RepeatFrequencyArray
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -131,6 +132,8 @@ fun RepeatAddEditDialog(
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
     var amount_warning by remember { mutableStateOf(false) }
 
+    var frequencyOptionsExpanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(amount_warning) {
         //amount_warningは表示したらすぐ消す
         if (amount_warning) {
@@ -205,7 +208,6 @@ fun RepeatAddEditDialog(
                         //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                         //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                         //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
-                        //カテゴリーの編集画面もほしいし
                         TextField(
                             value = newRepeatAdd.expense?.category?.name ?: "",
                             onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
@@ -253,11 +255,54 @@ fun RepeatAddEditDialog(
                 }
                 Column(
                     modifier = Modifier
+
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary
                         )
+                        .padding(5.dp)
                 ) {
+                    ExposedDropdownMenuBox(
+                        expanded = frequencyOptionsExpanded,
+                        onExpandedChange = {
+                            frequencyOptionsExpanded = !frequencyOptionsExpanded
+                        }
+                    ) {
+                        //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
+                        //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
+                        //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
+                        TextField(
+                            value = newRepeatAdd.frequency?.replace("_", " ") ?: "",
+                            onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
+                            enabled = false,
+                            readOnly = true,
+                            modifier = Modifier
+                                .width(260.dp)
+                                .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
+                            label = { Text(text = "Frequency") },
+                            singleLine = true,
+                            colors = enabledTextFiledColorSet(),
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = frequencyOptionsExpanded,
+                            onDismissRequest = { frequencyOptionsExpanded = false }
+                        ) {
+                            Log.d("Akita debug", "${RepeatFrequencyArray}")
+                            RepeatFrequencyArray.forEachIndexed { index, freq ->
+                                DropdownMenuItem(
+                                    text = { Text(text = freq.replace("_", " ")) },
+                                    onClick = {
+                                        newRepeatAdd = newRepeatAdd.copy(
+                                            frequency = freq
+                                        )
+                                        frequencyOptionsExpanded = false
+                                    }
+                                )
+
+                            }
+                        }
+                    }
 
                 }
 
