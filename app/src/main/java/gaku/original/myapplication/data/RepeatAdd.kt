@@ -5,8 +5,8 @@ import gaku.original.myapplication.data.Interface.CommonProperty
 data class RepeatAdd(
     override var id: String? = null,
     override var timestamp: Long? = null,/* When this RepeatAdd was registered */
-    var expense: Expense? = null,
-    var frequency: String? = null,
+    val expense: Expense? = null,
+    val frequencyInfo: Frequency? = null,
     /* everyday? weekly? monthly? yearly? */
     /**
      * everyday:何時？
@@ -16,10 +16,28 @@ data class RepeatAdd(
      */
 ) : CommonProperty
 
+data class Frequency(
+    val frequency: String? = null,
+    val month: Int? = null,
+    val day: Int? = null,//日付
+    val dayOfWeek: String? = null,//曜日
+    val hour: Int? = null,
+    val minute: Int? = null,
+)
+
+val defaultFrequency = Frequency(
+    frequency = null,
+    month = null,
+    day = null,
+    dayOfWeek = null,
+    hour = null,
+    minute = null,
+)
+
 val defaultRepeatAdd = RepeatAdd(
     id = null,
     timestamp = null,
     expense = defaultExpense,
-    frequency = null,
+    frequencyInfo = defaultFrequency,
 )
 

@@ -45,6 +45,7 @@ import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
+import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -105,6 +106,7 @@ fun RepeatAddSettingView(
                     allCategories = allCategories,
                     context = context,
                     onSave = { newRepeatAdd ->
+                        //ここに関数を挟んで、
                         showAddEditDialog = false
                         Toast.makeText(
                             context,
@@ -296,7 +298,7 @@ fun RepeatAddEditDialog(
                         //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                         //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
                         TextField(
-                            value = newRepeatAdd.frequency?.replace("_", " ") ?: "",
+                            value = newRepeatAdd.frequencyInfo?.frequency?.replace("_", " ") ?: "",
                             onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
                             enabled = false,
                             readOnly = true,
@@ -312,13 +314,14 @@ fun RepeatAddEditDialog(
                             expanded = frequencyOptionsExpanded,
                             onDismissRequest = { frequencyOptionsExpanded = false }
                         ) {
-                            Log.d("Akita debug", "${RepeatFrequencyArray}")
                             RepeatFrequencyArray.forEachIndexed { index, freq ->
                                 DropdownMenuItem(
                                     text = { Text(text = freq.replace("_", " ")) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
-                                            frequency = freq
+                                            frequencyInfo = newRepeatAdd.frequencyInfo?.copy(
+                                                frequency = freq
+                                            )
                                         )
                                         frequencyOptionsExpanded = false
                                     }
@@ -329,8 +332,7 @@ fun RepeatAddEditDialog(
                     }
 
                     //ここで、選択された内容に応じて表示内容を変える
-                    FrequencyTextField(newRepeatAdd.frequency ?: "")
-
+                    FrequencyTextField(newRepeatAdd.frequencyInfo)//frequencyがnullになることは基本ない
                 }
 
             }
@@ -361,7 +363,7 @@ fun RepeatAddEditDialog(
                         /* ここでnewRepeatAddが適切かどうかチェックする */
                         if (newRepeatAdd.expense == null) {
                             /* Toast出す */
-                        } else if (newRepeatAdd.frequency == null) {
+                        } else if (newRepeatAdd.frequencyInfo == null) {
                             /* Toast出す */
                         } else {
                             onSave(newRepeatAdd)
@@ -390,30 +392,31 @@ fun RepeatAddEditDialog(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun FrequencyTextField(
-    frequency: String,
+    frequencyInfo: Frequency?,
 ) {
+
     val ConstSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
     }
+
     var month by remember { mutableStateOf<Int?>(null) }
     var day by remember { mutableStateOf<Int?>(null) }
     var time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
 
-    var previousFrequency by remember { mutableStateOf(frequency) }
-    if (previousFrequency != frequency) {
-        //frequencyの選択肢を変えたときは初期化
-        month = null
-        day = null
-        time = LocalTime.MIDNIGHT
-        previousFrequency = frequency
-    }
+    var newFrequencyInfo by remember { mutableStateOf(frequencyInfo) }
 
     var isTimePickerVisible by remember { mutableStateOf(false) }
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
-    when (frequency) {
+    //Recompositionのたびに上書きする
+    newFrequencyInfo = newFrequencyInfo?.copy(frequency = frequencyInfo?.frequency)
+    when (frequencyInfo?.frequency) {
         /*******************************************************/
         RepeatFrequency.EVERY_YEAR -> {
+            newFrequencyInfo = newFrequencyInfo?.copy(
+                frequency = frequencyInfo?.frequency,
+                dayOfWeek = null //曜日は必要ない
+            )
             ConstSpacer()
             Row(
                 modifier = Modifier
@@ -425,18 +428,21 @@ fun FrequencyTextField(
                     Text("Month")
                     TextField(
                         modifier = Modifier.width(50.dp),
-                        value = month?.toString() ?: "",
+                        value = newFrequencyInfo?.month.toString() ?: "",
                         onValueChange = {
                             val month_int = it.toIntOrNull()
                             /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
                             if (it == "" || month_int == null) {
-                                month = null
+                                newFrequencyInfo = newFrequencyInfo?.copy(
+                                    month = null
+                                )
                             } else if (month_int > 12 || month_int < 1) {
                                 /* Do nothing */
                             } else {
-                                month = month_int
+                                newFrequencyInfo = newFrequencyInfo?.copy(
+                                    month = month_int
+                                )
                             }
-
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
@@ -497,6 +503,10 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.EVERY_MONTH -> {
+            newFrequencyInfo = newFrequencyInfo?.copy(
+                frequency = RepeatFrequency.EVERY_MONTH,
+                dayOfWeek = null //曜日は必要ない
+            )
             ConstSpacer()
             //何日だけ決定。31がない月は最終日に指定
             Row(
