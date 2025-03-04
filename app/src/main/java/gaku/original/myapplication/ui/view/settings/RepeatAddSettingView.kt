@@ -298,7 +298,7 @@ fun RepeatAddEditDialog(
                         //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                         //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
                         TextField(
-                            value = newRepeatAdd.frequencyInfo?.frequency?.replace("_", " ") ?: "",
+                            value = newRepeatAdd.frequencyInfo.frequency?.replace("_", " ") ?: "",
                             onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
                             enabled = false,
                             readOnly = true,
@@ -319,7 +319,7 @@ fun RepeatAddEditDialog(
                                     text = { Text(text = freq.replace("_", " ")) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
-                                            frequencyInfo = newRepeatAdd.frequencyInfo?.copy(
+                                            frequencyInfo = newRepeatAdd.frequencyInfo.copy(
                                                 frequency = freq
                                             )
                                         )
@@ -332,7 +332,8 @@ fun RepeatAddEditDialog(
                     }
 
                     //ここで、選択された内容に応じて表示内容を変える
-                    FrequencyTextField(newRepeatAdd.frequencyInfo)//frequencyがnullになることは基本ない
+                    FrequencyTextField(newRepeatAdd.frequencyInfo,
+                        callback = { newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it) })
                 }
 
             }
@@ -392,16 +393,17 @@ fun RepeatAddEditDialog(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun FrequencyTextField(
-    frequencyInfo: Frequency?,
+    frequencyInfo: Frequency,
+    callback: (Frequency) -> Unit = {}
 ) {
 
     val ConstSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
     }
 
-    var month by remember { mutableStateOf<Int?>(null) }
+    val month by remember { mutableStateOf<Int?>(null) }
     var day by remember { mutableStateOf<Int?>(null) }
-    var time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
+    val time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
 
     var newFrequencyInfo by remember { mutableStateOf(frequencyInfo) }
 
@@ -409,12 +411,12 @@ fun FrequencyTextField(
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
     //Recompositionのたびに上書きする
-    newFrequencyInfo = newFrequencyInfo?.copy(frequency = frequencyInfo?.frequency)
+    newFrequencyInfo = newFrequencyInfo.copy(frequency = frequencyInfo.frequency)
     when (frequencyInfo?.frequency) {
         /*******************************************************/
         RepeatFrequency.EVERY_YEAR -> {
-            newFrequencyInfo = newFrequencyInfo?.copy(
-                frequency = frequencyInfo?.frequency,
+            newFrequencyInfo = newFrequencyInfo.copy(
+                frequency = frequencyInfo.frequency,
                 dayOfWeek = null //曜日は必要ない
             )
             ConstSpacer()
@@ -428,18 +430,18 @@ fun FrequencyTextField(
                     Text("Month")
                     TextField(
                         modifier = Modifier.width(50.dp),
-                        value = newFrequencyInfo?.month.toString() ?: "",
+                        value = newFrequencyInfo?.month?.toString() ?: "",
                         onValueChange = {
                             val month_int = it.toIntOrNull()
                             /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
                             if (it == "" || month_int == null) {
-                                newFrequencyInfo = newFrequencyInfo?.copy(
+                                newFrequencyInfo = newFrequencyInfo.copy(
                                     month = null
                                 )
                             } else if (month_int > 12 || month_int < 1) {
                                 /* Do nothing */
                             } else {
-                                newFrequencyInfo = newFrequencyInfo?.copy(
+                                newFrequencyInfo = newFrequencyInfo.copy(
                                     month = month_int
                                 )
                             }
@@ -456,21 +458,28 @@ fun FrequencyTextField(
                     Text("Day")
                     TextField(
                         modifier = Modifier.width(50.dp),
-                        value = day?.toString() ?: "",
+                        value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
                             val day_int = it.toIntOrNull()
-                            if (month == null) {
-                                /* monthを入力してください */
+                            if (newFrequencyInfo?.month == null) {
+                                /* monthを入力してください。snack barをだしたい */
                             } else if (it == "" || day_int == null) {
                                 day = null
+                                newFrequencyInfo = newFrequencyInfo.copy(
+                                    day = null
+                                )
                             } else if (day_int < 1 || day_int > getLastDayOfMonth(
                                     year = 2025,/* うるう年でなければ何の年でも良い */
-                                    month = month!!
+                                    month = newFrequencyInfo?.month
+                                        ?: 1/* 上でmonthがnullだったら入力できないようになっているからここでmonthがnullになることはない */
                                 ).dayOfMonth
                             ) {
                                 /* 日付が適切でない */
+                                /* 例えば、31日がない月は30日(月の最終日に追加される) */
                             } else {
-                                day = day_int
+                                newFrequencyInfo = newFrequencyInfo.copy(
+                                    day = day_int
+                                )
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -481,10 +490,16 @@ fun FrequencyTextField(
                 Spacer(modifier = Modifier.padding(10.dp))
 
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "日付が入っていません",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -503,8 +518,9 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.EVERY_MONTH -> {
-            newFrequencyInfo = newFrequencyInfo?.copy(
+            newFrequencyInfo = newFrequencyInfo.copy(
                 frequency = RepeatFrequency.EVERY_MONTH,
+                month = null,
                 dayOfWeek = null //曜日は必要ない
             )
             ConstSpacer()
@@ -520,15 +536,19 @@ fun FrequencyTextField(
                     Text("Day")
                     TextField(
                         modifier = Modifier.width(50.dp),
-                        value = day?.toString() ?: "",
+                        value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
                             val day_int = it.toIntOrNull()
                             if (it == "" || day_int == null) {
-                                day = null
+                                newFrequencyInfo = newFrequencyInfo.copy(
+                                    day = null
+                                )
                             } else if (day_int < 1 || day_int > 31) {
                                 /* 日付が適切でない */
                             } else {
-                                day = day_int
+                                newFrequencyInfo = newFrequencyInfo.copy(
+                                    day = day_int
+                                )
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -539,10 +559,16 @@ fun FrequencyTextField(
                 Spacer(modifier = Modifier.padding(10.dp))
 
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -559,8 +585,16 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.EVERY_WEEK -> {
+            newFrequencyInfo = newFrequencyInfo.copy(
+                frequency = RepeatFrequency.EVERY_MONTH,
+                month = null,
+                day = null
+            )
             ConstSpacer()
             //曜日の指定
+            /**********作っていく*******/
+
+            //時間の指定
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -568,10 +602,16 @@ fun FrequencyTextField(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -589,6 +629,12 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.WEEKDAYS -> {
+            newFrequencyInfo = newFrequencyInfo.copy(
+                frequency = RepeatFrequency.EVERY_MONTH,
+                month = null,
+                day = null,
+                dayOfWeek = null
+            )
             ConstSpacer()
             Row(
                 modifier = Modifier
@@ -597,10 +643,16 @@ fun FrequencyTextField(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -617,6 +669,12 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.WEEKENDS -> {
+            newFrequencyInfo = newFrequencyInfo.copy(
+                frequency = RepeatFrequency.EVERY_MONTH,
+                month = null,
+                day = null,
+                dayOfWeek = null
+            )
             ConstSpacer()
             Row(
                 modifier = Modifier
@@ -625,10 +683,16 @@ fun FrequencyTextField(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -645,6 +709,12 @@ fun FrequencyTextField(
 
         /*******************************************************/
         RepeatFrequency.EVERYDAY -> {
+            newFrequencyInfo = newFrequencyInfo.copy(
+                frequency = RepeatFrequency.EVERY_MONTH,
+                month = null,
+                day = null,
+                dayOfWeek = null
+            )
             ConstSpacer()
             Row(
                 modifier = Modifier
@@ -653,10 +723,16 @@ fun FrequencyTextField(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column {
+                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
-                        value = time?.format(timeFormat)
-                            ?: "",
+                        value = newFrequencyInfo.let { info ->
+                            if (info.hour != null && info.minute != null) {
+                                "%02d:%02d".format(info.hour, info.minute)
+                            } else {
+                                ""
+                            }
+                        } ?: "",
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -680,7 +756,10 @@ fun FrequencyTextField(
             onConfirm = { selectedTime ->
                 // 選択した時間を取得して ViewModel に更新
                 val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
-                time = newTime
+                newFrequencyInfo = newFrequencyInfo.copy(
+                    hour = newTime.hour,
+                    minute = newTime.minute
+                )
                 isTimePickerVisible = false
             },
             onDismiss = {
@@ -690,4 +769,7 @@ fun FrequencyTextField(
             initialDateTime = LocalDate.now().atTime(time)
         )
     }
+
+    callback(newFrequencyInfo)
+    Log.d("AkitaDebug", "newFrequencyInfo:${newFrequencyInfo}")
 }

@@ -6,7 +6,7 @@ data class RepeatAdd(
     override var id: String? = null,
     override var timestamp: Long? = null,/* When this RepeatAdd was registered */
     val expense: Expense? = null,
-    val frequencyInfo: Frequency? = null,
+    val frequencyInfo: Frequency = defaultFrequency,
     /* everyday? weekly? monthly? yearly? */
     /**
      * everyday:何時？
