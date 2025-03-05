@@ -34,7 +34,7 @@ val defaultExpense = Expense(
     id = null,
     datetime = fromLocalDateTime(LocalDateTime.now()),
     amount = null,
-    category = defaultCategory,
+    category = null,
     note = null,
     generatedType = null
 )

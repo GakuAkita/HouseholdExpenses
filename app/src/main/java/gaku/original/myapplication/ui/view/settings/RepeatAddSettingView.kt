@@ -187,15 +187,17 @@ fun RepeatAddEditDialog(
                 ) {
                     //Expenseの領域
                     TextField(
-                        value = newRepeatAdd.expense?.amount?.toString() ?: "",
+                        value = newRepeatAdd.expense.amount?.toString() ?: "",
                         onValueChange = {
                             if (it != "" && it.toLongOrNull() == null) {
                                 /* Do nothing */
+                                /* キーボードが数値になっているのでエラーが出ることはないが... */
+                                /* デバッグ中にパソコンから文字をいれることはできなくない笑 */
                                 amount_warning = true
                             } else {
                                 amount_warning = false
                                 newRepeatAdd = newRepeatAdd.copy(
-                                    expense = newRepeatAdd.expense?.copy(
+                                    expense = newRepeatAdd.expense.copy(
                                         amount = it.toLongOrNull()
                                     )
                                 )
@@ -218,8 +220,10 @@ fun RepeatAddEditDialog(
                         //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                         //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                         //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
+
+                        /* 設定したcategoryが消えていたらどうしよう.... */
                         TextField(
-                            value = newRepeatAdd.expense?.category?.name ?: "",
+                            value = newRepeatAdd.expense.category?.name ?: "",
                             onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
                             enabled = false,
                             readOnly = true,
@@ -245,7 +249,7 @@ fun RepeatAddEditDialog(
                                     text = { Text(text = category.name.toString()) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
-                                            expense = newRepeatAdd.expense?.copy(
+                                            expense = newRepeatAdd.expense.copy(
                                                 category = category
                                             )
                                         )
@@ -260,11 +264,10 @@ fun RepeatAddEditDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     TextField(
-                        //数値だけ受け付ける感じにしたい
-                        value = newRepeatAdd.expense?.note ?: "",
+                        value = newRepeatAdd.expense.note ?: "",
                         onValueChange = {
                             newRepeatAdd = newRepeatAdd.copy(
-                                expense = newRepeatAdd.expense?.copy(
+                                expense = newRepeatAdd.expense.copy(
                                     note = it
                                 )
                             )
@@ -357,17 +360,18 @@ fun RepeatAddEditDialog(
                 ) {
                     Text("Cancel")
                 }
+
                 Button(
                     modifier = Modifier
                         .padding(end = 10.dp),
                     onClick = {
                         /* ここでnewRepeatAddが適切かどうかチェックする */
-                        if (newRepeatAdd.expense == null) {
-                            /* Toast出す */
-                        } else if (newRepeatAdd.frequencyInfo == null) {
-                            /* Toast出す */
-                        } else {
+                        val errorMsg = checkNewRepeatAddValid(newRepeatAdd)
+                        if (errorMsg == "") {
                             onSave(newRepeatAdd)
+                        } else {
+                            //エラーをUIに通知する
+                            Log.d("AkitaDebug", errorMsg)
                         }
                     }
                 ) {
@@ -401,7 +405,6 @@ fun FrequencyTextField(
         Spacer(modifier = Modifier.padding(10.dp))
     }
 
-    val month by remember { mutableStateOf<Int?>(null) }
     var day by remember { mutableStateOf<Int?>(null) }
     val time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
 
@@ -559,7 +562,6 @@ fun FrequencyTextField(
                 Spacer(modifier = Modifier.padding(10.dp))
 
                 Column {
-                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
                         value = newFrequencyInfo.let { info ->
@@ -770,6 +772,50 @@ fun FrequencyTextField(
         )
     }
 
+    //ここで逐一呼び出し元のfrequencyInfoに代入
     callback(newFrequencyInfo)
     Log.d("AkitaDebug", "newFrequencyInfo:${newFrequencyInfo}")
+}
+
+
+//ErrorMsgを返したほうが良いのかな？
+fun checkNewRepeatAddValid(newRepeatAdd: RepeatAdd): String {
+    if (newRepeatAdd.expense.amount == null || newRepeatAdd.expense.amount == 0L) {
+        return "expense amount is empty or 0";
+    } else if (newRepeatAdd.expense.category == null) {
+        return "expense category is empty"
+    } else if (newRepeatAdd.frequencyInfo.frequency == null) {
+        return "frequency is empty"
+    }
+
+    val frequencyInfo = newRepeatAdd.frequencyInfo
+    val frequency = frequencyInfo.frequency
+
+    //各頻度ごとに該当するフィールドのチェックを追加
+    if (frequency == RepeatFrequency.EVERY_YEAR) {
+        if (frequencyInfo.month == null) return "month is empty"
+    }
+
+    if (frequency == RepeatFrequency.EVERY_YEAR ||
+        frequency == RepeatFrequency.EVERY_MONTH
+    ) {
+        if (frequencyInfo.day == null) return "day is empty"
+    }
+
+    if (frequency == RepeatFrequency.EVERY_WEEK) {
+        if (frequencyInfo.dayOfWeek == null) return "day of week is empty"
+    }
+
+    if (frequency == RepeatFrequency.EVERY_YEAR ||
+        frequency == RepeatFrequency.EVERY_MONTH ||
+        frequency == RepeatFrequency.EVERY_WEEK ||
+        frequency == RepeatFrequency.WEEKENDS ||
+        frequency == RepeatFrequency.WEEKDAYS ||
+        frequency == RepeatFrequency.EVERYDAY
+    ) {
+        if (frequencyInfo.hour == null) return "hour is empty"
+        if (frequencyInfo.minute == null) return "minute is empty"
+    }
+
+    return ""
 }
