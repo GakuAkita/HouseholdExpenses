@@ -31,6 +31,10 @@ class ExpenseSharedViewModel @Inject constructor(
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
 
+    //emptyList()のとき、Loadingがうまく行ってないのか、シンプルに何も保存されていないのかの区別がつかない
+    private val _expensesLoadingState = MutableStateFlow(false)
+    val expensesLoadingState: StateFlow<Boolean> get() = _expensesLoadingState
+
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
 
@@ -136,8 +140,14 @@ class ExpenseSharedViewModel @Inject constructor(
             _allExpenses.value.isEmpty()
         ) {
             fetchAllExpenses(
-                onComplete = {
-                    addExpenseCategoryChildEventListener()
+                onStart = {
+                    _expensesLoadingState.value = true
+                },
+                callback = { isSuccess ->
+                    if (isSuccess) {
+                        addExpenseCategoryChildEventListener()
+                    }
+                    _expensesLoadingState.value = false
                 }
             )
         } else {
@@ -161,11 +171,13 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun fetchAllExpenses(onComplete: () -> Unit = {}) {
+    fun fetchAllExpenses(onStart: () -> Unit = {}, callback: (Boolean) -> Unit = {}) {
+        onStart()
         viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses()//@TODO エラー対策ができていないな。
+            _allExpenses.value = expenseRepository.fetchUserExpenses(
+                callback = callback
+            )//@TODO エラー対策ができていないな。
             Log.d("ExpenseSharedViewModel", "Expenses:${_allExpenses.value}")
-            onComplete()
         }
     }
 

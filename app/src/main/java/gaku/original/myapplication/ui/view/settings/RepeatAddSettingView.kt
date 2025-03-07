@@ -3,7 +3,6 @@ package gaku.original.myapplication.ui.view.settings
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +60,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -67,10 +69,19 @@ fun RepeatAddSettingView(
 ) {
     val context = LocalContext.current
 
-    var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
     var showAddEditDialog by remember { mutableStateOf(false) }
 
+    var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
+
     val allCategories = viewModel.allCategories
+
+    val repeatAddSettings by viewModel.repeatAddSettings.collectAsState(initial = emptyList())
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllRepeatAddSettings()
+    }
 
     Scaffold(
         topBar = {
@@ -85,19 +96,30 @@ fun RepeatAddSettingView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.inversePrimary)
-            ) {
-                Text("ここで検索とかフィルターしたい")
-            }
+            /**
+             * ここで検索とかできるようにしたいなあ～
+             */
             Button(
                 onClick = {
                     showAddEditDialog = true
                 }
             ) {
                 Text("Show Dialog(Test)")
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                userScrollEnabled = true
+            ) {
+                items(repeatAddSettings) { repeatAdd ->
+                    RepeatAddItem(repeatAdd) {
+                        /* 編集をしたい */
+                        editedRepeatAdd = repeatAdd
+                        showAddEditDialog = true
+                    }
+                }
             }
 
             if (showAddEditDialog) {
@@ -113,13 +135,62 @@ fun RepeatAddSettingView(
                             "Repeat Add Setting を追加したいな",
                             Toast.LENGTH_LONG
                         ).show()
+                        if (newRepeatAdd.id == null)//新規追加
+                        {
+                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { isSuccess ->
+                                if (isSuccess) {
+                                    viewModel.fetchAllRepeatAddSettings()
+                                } else {
+                                    /* do nothing */
+                                }
+                            })
+                        } else {/* 編集 */
+                            viewModel.updateRepeatAdd(newRepeatAdd, callback = { isSuccess ->
+                                if (isSuccess) {
+                                    viewModel.fetchAllRepeatAddSettings()
+                                } else {
+                                    /* do nothing */
+                                }
+                            })
+                        }
                     },
                     onDismiss = {
                         showAddEditDialog = false
+                        editedRepeatAdd = defaultRepeatAdd
                     }
                 )
             }
         }
+    }
+}
+
+@Composable
+fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+            .clickable {
+                onEdit()
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "${repeatAdd.frequencyInfo.frequency?.replace("_", " ")}",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Left//左寄せ
+        )
+        Text(
+            text = "${repeatAdd.expense.amount}",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Left//左寄せ
+        )
+        Text(
+            text = "${repeatAdd.expense.category?.name}",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Left
+        )
     }
 }
 
@@ -138,16 +209,16 @@ fun RepeatAddEditDialog(
 
     val categories = allCategories.collectAsState()
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
-    var amount_warning by remember { mutableStateOf(false) }
+    var amountWarning by remember { mutableStateOf(false) }
 
     var frequencyOptionsExpanded by remember { mutableStateOf(false) }
 
     //rememberつけなくてもよいのだが、再コンポーズのたびに関数が呼ばれるのはもったいないので。
-    val RepeatFrequencyArray = remember { getRepeatFrequencyValues() }
+    val repeatFrequencyArray = remember { getRepeatFrequencyValues() }
 
-    LaunchedEffect(amount_warning) {
-        //amount_warningは表示したらすぐ消す
-        if (amount_warning) {
+    LaunchedEffect(amountWarning) {
+        //amountWarningは表示したらすぐ消す
+        if (amountWarning) {
             val toast = Toast.makeText(
                 context,
                 "これ以上入力できません。数値が大きすぎます。",
@@ -157,7 +228,7 @@ fun RepeatAddEditDialog(
 
             delay(2000)
 
-            amount_warning = false
+            amountWarning = false
             toast.cancel()
         }
     }
@@ -174,7 +245,7 @@ fun RepeatAddEditDialog(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Row() {
+                Row {
                     Text("Expense")
                 }
                 Column(
@@ -193,9 +264,9 @@ fun RepeatAddEditDialog(
                                 /* Do nothing */
                                 /* キーボードが数値になっているのでエラーが出ることはないが... */
                                 /* デバッグ中にパソコンから文字をいれることはできなくない笑 */
-                                amount_warning = true
+                                amountWarning = true
                             } else {
-                                amount_warning = false
+                                amountWarning = false
                                 newRepeatAdd = newRepeatAdd.copy(
                                     expense = newRepeatAdd.expense.copy(
                                         amount = it.toLongOrNull()
@@ -206,7 +277,7 @@ fun RepeatAddEditDialog(
                         label = { Text("Amount") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
-                        isError = amount_warning,
+                        isError = amountWarning,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -244,7 +315,7 @@ fun RepeatAddEditDialog(
                                 Log.d("AkitaDebug", "allCategories is empty")
                                 categoryOptionsExpanded = false
                             }
-                            categories.value.forEachIndexed { index, category ->
+                            categories.value.forEachIndexed { _, category ->
                                 DropdownMenuItem(
                                     text = { Text(text = category.name.toString()) },
                                     onClick = {
@@ -279,12 +350,11 @@ fun RepeatAddEditDialog(
 
                 Spacer(modifier = Modifier.padding(6.dp))
 
-                Row() {
+                Row {
                     Text("Frequency")
                 }
                 Column(
                     modifier = Modifier
-
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.primary
@@ -317,13 +387,18 @@ fun RepeatAddEditDialog(
                             expanded = frequencyOptionsExpanded,
                             onDismissRequest = { frequencyOptionsExpanded = false }
                         ) {
-                            RepeatFrequencyArray.forEachIndexed { index, freq ->
+                            repeatFrequencyArray.forEachIndexed { _, freq ->
                                 DropdownMenuItem(
                                     text = { Text(text = freq.replace("_", " ")) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
                                             frequencyInfo = newRepeatAdd.frequencyInfo.copy(
-                                                frequency = freq
+                                                frequency = freq,
+                                                month = null,
+                                                day = null,
+                                                dayOfWeek = null,
+                                                hour = 0,/* デフォルトで00:00に設定しておく */
+                                                minute = 0
                                             )
                                         )
                                         frequencyOptionsExpanded = false
@@ -334,9 +409,11 @@ fun RepeatAddEditDialog(
                         }
                     }
 
-                    //ここで、選択された内容に応じて表示内容を変える
-                    FrequencyTextField(newRepeatAdd.frequencyInfo,
-                        callback = { newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it) })
+                    if (newRepeatAdd.frequencyInfo.frequency != null) {
+                        //ここで、選択された内容に応じて表示内容を変える
+                        FrequencyTextField(newRepeatAdd.frequencyInfo,
+                            callback = { newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it) })
+                    }
                 }
 
             }
@@ -368,6 +445,14 @@ fun RepeatAddEditDialog(
                         /* ここでnewRepeatAddが適切かどうかチェックする */
                         val errorMsg = checkNewRepeatAddValid(newRepeatAdd)
                         if (errorMsg == "") {
+                            //expenseのid,datetimeはいらないので、
+                            newRepeatAdd = newRepeatAdd.copy(
+                                expense = newRepeatAdd.expense.copy(
+                                    id = null,
+                                    timestamp = null,
+                                    datetime = null
+                                )
+                            )
                             onSave(newRepeatAdd)
                         } else {
                             //エラーをUIに通知する
@@ -401,7 +486,7 @@ fun FrequencyTextField(
     callback: (Frequency) -> Unit = {}
 ) {
 
-    val ConstSpacer = @Composable {
+    val constSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
     }
 
@@ -411,41 +496,40 @@ fun FrequencyTextField(
     var newFrequencyInfo by remember { mutableStateOf(frequencyInfo) }
 
     var isTimePickerVisible by remember { mutableStateOf(false) }
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
     //Recompositionのたびに上書きする
     newFrequencyInfo = newFrequencyInfo.copy(frequency = frequencyInfo.frequency)
-    when (frequencyInfo?.frequency) {
+    when (frequencyInfo.frequency) {
         /*******************************************************/
         RepeatFrequency.EVERY_YEAR -> {
             newFrequencyInfo = newFrequencyInfo.copy(
                 frequency = frequencyInfo.frequency,
-                dayOfWeek = null //曜日は必要ない
+                dayOfWeek = null,//曜日は必要ない,
             )
-            ConstSpacer()
+            constSpacer()
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Column() {
+                Column {
                     Text("Month")
                     TextField(
                         modifier = Modifier.width(50.dp),
-                        value = newFrequencyInfo?.month?.toString() ?: "",
+                        value = newFrequencyInfo.month?.toString() ?: "",
                         onValueChange = {
-                            val month_int = it.toIntOrNull()
+                            val monthInt = it.toIntOrNull()
                             /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
-                            if (it == "" || month_int == null) {
+                            if (it == "" || monthInt == null) {
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     month = null
                                 )
-                            } else if (month_int > 12 || month_int < 1) {
+                            } else if (monthInt > 12 || monthInt < 1) {
                                 /* Do nothing */
                             } else {
                                 newFrequencyInfo = newFrequencyInfo.copy(
-                                    month = month_int
+                                    month = monthInt
                                 )
                             }
                         },
@@ -463,17 +547,17 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
-                            val day_int = it.toIntOrNull()
-                            if (newFrequencyInfo?.month == null) {
+                            val dayInt = it.toIntOrNull()
+                            if (newFrequencyInfo.month == null) {
                                 /* monthを入力してください。snack barをだしたい */
-                            } else if (it == "" || day_int == null) {
+                            } else if (it == "" || dayInt == null) {
                                 day = null
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     day = null
                                 )
-                            } else if (day_int < 1 || day_int > getLastDayOfMonth(
+                            } else if (dayInt < 1 || dayInt > getLastDayOfMonth(
                                     year = 2025,/* うるう年でなければ何の年でも良い */
-                                    month = newFrequencyInfo?.month
+                                    month = newFrequencyInfo.month
                                         ?: 1/* 上でmonthがnullだったら入力できないようになっているからここでmonthがnullになることはない */
                                 ).dayOfMonth
                             ) {
@@ -481,7 +565,7 @@ fun FrequencyTextField(
                                 /* 例えば、31日がない月は30日(月の最終日に追加される) */
                             } else {
                                 newFrequencyInfo = newFrequencyInfo.copy(
-                                    day = day_int
+                                    day = dayInt
                                 )
                             }
                         },
@@ -502,7 +586,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -526,7 +610,7 @@ fun FrequencyTextField(
                 month = null,
                 dayOfWeek = null //曜日は必要ない
             )
-            ConstSpacer()
+            constSpacer()
             //何日だけ決定。31がない月は最終日に指定
             Row(
                 modifier = Modifier
@@ -541,16 +625,16 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
-                            val day_int = it.toIntOrNull()
-                            if (it == "" || day_int == null) {
+                            val dayInt = it.toIntOrNull()
+                            if (it == "" || dayInt == null) {
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     day = null
                                 )
-                            } else if (day_int < 1 || day_int > 31) {
+                            } else if (dayInt < 1 || dayInt > 31) {
                                 /* 日付が適切でない */
                             } else {
                                 newFrequencyInfo = newFrequencyInfo.copy(
-                                    day = day_int
+                                    day = dayInt
                                 )
                             }
                         },
@@ -570,7 +654,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -592,7 +676,7 @@ fun FrequencyTextField(
                 month = null,
                 day = null
             )
-            ConstSpacer()
+            constSpacer()
             //曜日の指定
             /**********作っていく*******/
 
@@ -604,7 +688,6 @@ fun FrequencyTextField(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column {
-                    //val tmpFrequencyInfo = newFrequencyInfo
                     Text("Time")
                     TextField(
                         value = newFrequencyInfo.let { info ->
@@ -613,7 +696,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -637,7 +720,7 @@ fun FrequencyTextField(
                 day = null,
                 dayOfWeek = null
             )
-            ConstSpacer()
+            constSpacer()
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -654,7 +737,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -677,7 +760,7 @@ fun FrequencyTextField(
                 day = null,
                 dayOfWeek = null
             )
-            ConstSpacer()
+            constSpacer()
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -694,7 +777,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -717,7 +800,7 @@ fun FrequencyTextField(
                 day = null,
                 dayOfWeek = null
             )
-            ConstSpacer()
+            constSpacer()
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -734,7 +817,7 @@ fun FrequencyTextField(
                             } else {
                                 ""
                             }
-                        } ?: "",
+                        },
                         onValueChange = {},
                         enabled = false,
                         readOnly = true,
@@ -781,7 +864,7 @@ fun FrequencyTextField(
 //ErrorMsgを返したほうが良いのかな？
 fun checkNewRepeatAddValid(newRepeatAdd: RepeatAdd): String {
     if (newRepeatAdd.expense.amount == null || newRepeatAdd.expense.amount == 0L) {
-        return "expense amount is empty or 0";
+        return "expense amount is empty or 0"
     } else if (newRepeatAdd.expense.category == null) {
         return "expense category is empty"
     } else if (newRepeatAdd.frequencyInfo.frequency == null) {

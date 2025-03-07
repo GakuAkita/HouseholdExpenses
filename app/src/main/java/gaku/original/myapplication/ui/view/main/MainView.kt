@@ -55,15 +55,16 @@ import java.time.LocalTime
 
 @Composable
 fun MainView(
-    viewModel: ExpenseListViewModel= hiltViewModel(),
+    viewModel: ExpenseListViewModel = hiltViewModel(),
     navController: NavHostController
-){
-    val topBarName ="What is essential is invisible to the eye"
+) {
+    val topBarName = "What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
-    val calendarPagerState= rememberPagerState(initialPage = calendarHorizontalInitialPage){ 2*calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
+    val calendarPagerState =
+        rememberPagerState(initialPage = calendarHorizontalInitialPage) { 2 * calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableIntStateOf(calendarPagerState.currentPage) }
 
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
@@ -84,7 +85,7 @@ fun MainView(
     //rememberをつけると再コンポーズのとき無駄に走らない
     val monthExpenses by remember { viewModel.filteredExpenses }.collectAsState(initial = emptyList())
     //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意
-    Log.d("MainView","monthExpenses loaded:${monthExpenses.size}")
+    Log.d("MainView", "monthExpenses loaded:${monthExpenses.size}")
 
     Scaffold(
         topBar = {
@@ -101,27 +102,34 @@ fun MainView(
                 containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
                 contentColor = MaterialTheme.colorScheme.onSecondary,
                 shape = CircleShape,
-                modifier=Modifier.size(80.dp),
+                modifier = Modifier.size(80.dp),
                 elevation = FloatingActionButtonDefaults.elevation(0.dp)//デフォルトだとElevationがついているっぽい。
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Button",modifier=Modifier.size(36.dp))
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Add Button",
+                    modifier = Modifier.size(36.dp)
+                )
             }
         },
         bottomBar = { BottomBarView(navController) }
-    ){
-        innerPadding ->
-        Column (modifier = Modifier.fillMaxSize().padding(innerPadding)){
-            Row (
-                modifier = Modifier.fillMaxWidth().padding(start=10.dp),
-            ){
+    ) { innerPadding ->
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp),
+            ) {
                 Text("${currentPageYear}-${currentPageMonth}")
-                Spacer(modifier=Modifier.padding(10.dp))
+                Spacer(modifier = Modifier.padding(10.dp))
                 Text("Monthly Total:${monthTotal}")
             }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-            ){
+            ) {
                 HorizontalPager(
                     state = calendarPagerState,
                     modifier = Modifier.weight(1f)
@@ -130,11 +138,12 @@ fun MainView(
                         calendarYear = viewModel.getCalendarYear(),
                         calendarMonth = viewModel.getCalendarMonth(),
                         monthExpenses = viewModel.filteredExpenses.collectAsState().value,
-                        onDayClicked = {day->
-                            val inputDate:LocalDate=day.date
-                            val inputTime:LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
-                            val newDatetime:LocalDateTime = inputDate.atTime(inputTime)//LocalDateTimeに変換
-                            Log.d("Akita Debug","$inputDate")
+                        onDayClicked = { day ->
+                            val inputDate: LocalDate = day.date
+                            val inputTime: LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
+                            val newDatetime: LocalDateTime =
+                                inputDate.atTime(inputTime)//LocalDateTimeに変換
+                            Log.d("Akita Debug", "$inputDate")
                             viewModel.setToTmpExpenseFromCalendar(newDatetime)
                             //ExpenseAddEditViewに移動
                             navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
@@ -149,22 +158,22 @@ fun MainView(
             LaunchedEffect(calendarPagerState) {
                 snapshotFlow { calendarPagerState.currentPage }
                     .distinctUntilChanged()
-                    .collect{ currentPage->
-                        Log.d("MainView","Calendar pager state changed: $currentPage")
-                        when{
+                    .collect { currentPage ->
+                        Log.d("MainView", "Calendar pager state changed: $currentPage")
+                        when {
                             currentPage > previousCalendarPage -> viewModel.incrementMonth()
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
                         }
-                        previousCalendarPage=currentPage
+                        previousCalendarPage = currentPage
                     }
             }
 
             //スペースちょっとあける。
-            Spacer(modifier=Modifier.padding(10.dp))
+            Spacer(modifier = Modifier.padding(10.dp))
 
-            Row (modifier=Modifier.fillMaxWidth()){
+            Row(modifier = Modifier.fillMaxWidth()) {
                 LazyColumnScrollbar(//外部ライブラリ
-                    state=listState,
+                    state = listState,
                     settings = ScrollbarSettings.Default.copy(
                         alwaysShowScrollbar = true,
                         thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
@@ -172,12 +181,13 @@ fun MainView(
                     )
                 ) {
                     LazyColumn(
-                        state=listState,
-                        modifier=Modifier
+                        state = listState,
+                        modifier = Modifier
                             .fillMaxWidth(),
                         userScrollEnabled = true
-                    ){
-                        items(monthExpenses){ expense ->
+                    ) {
+
+                        items(monthExpenses) { expense ->
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {
@@ -195,29 +205,30 @@ fun MainView(
 }
 
 @Composable
-fun ExpenseItem(expense:Expense, onEdit: () -> Unit){
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .height(32.dp)
-        .border(width=1.dp, color = MaterialTheme.colorScheme.onSecondary)
-        .clickable {
-            onEdit()
-        },
+fun ExpenseItem(expense: Expense, onEdit: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+            .clickable {
+                onEdit()
+            },
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Text(
-            text = "${toLocalDateTime(expense.datetime)?.dayOfMonth }日",
-            modifier=Modifier.weight(1f),
+            text = "${toLocalDateTime(expense.datetime)?.dayOfMonth}日",
+            modifier = Modifier.weight(1f),
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
-            text="${expense.amount}円",
-            modifier=Modifier.weight(1f),
+            text = "${expense.amount}円",
+            modifier = Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
         Text(
-            text=expense.category?.name?:"",
-            modifier=Modifier.weight(1f),
+            text = expense.category?.name ?: "",
+            modifier = Modifier.weight(1f),
             textAlign = TextAlign.Left
         )
     }

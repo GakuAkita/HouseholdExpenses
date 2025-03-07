@@ -1,14 +1,10 @@
 package gaku.original.myapplication.viewModel
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
 import kotlinx.coroutines.delay
@@ -18,7 +14,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import javax.inject.Inject
 
 /*
@@ -34,9 +29,9 @@ rememberとViewModelは違う。
 
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
-    private val expenseSharedViewModel: ExpenseSharedViewModel ,
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
-):ViewModel(){
+) : ViewModel() {
     /********************* MainView用*******************************/
     private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -47,35 +42,36 @@ class ExpenseListViewModel @Inject constructor(
         return calendarDate.plusMonths(monthOffset.value.toLong()).year
     }
 
-    fun getCalendarMonth():Int{
+    fun getCalendarMonth(): Int {
         return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
     }
 
-    fun resetMonthOffset(){
-        _monthOffset.value=0
+    fun resetMonthOffset() {
+        _monthOffset.value = 0
     }
 
-    fun updateMonthOffset(offset:Int){
-        _monthOffset.value=offset
+    fun updateMonthOffset(offset: Int) {
+        _monthOffset.value = offset
     }
 
-    fun incrementMonth(){
+    fun incrementMonth() {
         _monthOffset.value++
     }
 
-    fun decrementMonth(){
+    fun decrementMonth() {
         _monthOffset.value--
     }
 
     /********* Expense配列の管理 ***********/
-    val allExpenses :List<Expense> get() = expenseSharedViewModel.allExpenses.value
+    val allExpenses: List<Expense> get() = expenseSharedViewModel.allExpenses.value
+    val expenseLoadingState: Boolean get() = expenseSharedViewModel.expensesLoadingState.value
 
     init {
         observeAllExpenses()
     }
 
     //allExpenseが更新されたときに
-    private fun observeAllExpenses(){
+    private fun observeAllExpenses() {
         viewModelScope.launch {
             expenseSharedViewModel.allExpenses.collectLatest {
                 filterExpensesByMonth()
@@ -95,7 +91,7 @@ class ExpenseListViewModel @Inject constructor(
         //Log.d("ExpenseListViewModel", "Initialization complete.")
     }
 
-    private val _monthTotal= MutableStateFlow(0L)
+    private val _monthTotal = MutableStateFlow(0L)
     val monthTotal: StateFlow<Long> = _monthTotal
 
     fun filterExpensesByMonth() {
@@ -113,10 +109,11 @@ class ExpenseListViewModel @Inject constructor(
                 .sortedByDescending {
                     it.datetime
                 }
-            Log.d("ExpenseListViewModel","filterExpensesByMonth was executed.↓")
-            Log.d("ExpenseListViewModel","${_filteredExpenses.value}")
+            Log.d("ExpenseListViewModel", "filterExpensesByMonth was executed.↓")
+            Log.d("ExpenseListViewModel", "${_filteredExpenses.value}")
 
-            _monthTotal.value = _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
+            _monthTotal.value =
+                _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
         }
     }
 
@@ -127,16 +124,16 @@ class ExpenseListViewModel @Inject constructor(
     */
 
     /** AddEditに値を渡す用 **/
-    fun setToTmpExpense(expense: Expense){
+    fun setToTmpExpense(expense: Expense) {
         tmpExpenseViewModel.updateTmpExpense(expense)
     }
 
-    fun resetTmpExpense(){
+    fun resetTmpExpense() {
         tmpExpenseViewModel.resetTmpExpense()
     }
 
     /* カレンダーからAddEditする場合の関数。日付だけ変えて他は初期値 */
-    fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime){
+    fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime) {
         tmpExpenseViewModel.resetTmpExpense()
         tmpExpenseViewModel.updateTmpExpense(
             tmpExpenseViewModel.tmpExpense.value.copy(
