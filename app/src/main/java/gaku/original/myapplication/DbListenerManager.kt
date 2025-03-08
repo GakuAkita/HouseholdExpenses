@@ -2,6 +2,7 @@ package gaku.original.myapplication//ここ抽象化してexpense用とcategory�
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.Query
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import javax.inject.Inject
 
 class DbListenerManager @Inject constructor(
@@ -12,11 +13,17 @@ class DbListenerManager @Inject constructor(
     val listeners: List<Pair<Any, ChildEventListener>> get() = _listeners
 
     // DatabaseReferenceとQueryのどちらも使えるように、getメソッドを定義
-    val expenseRef: DatabaseReference
-        get() = realtimeDbReference.getUserExpenseRef()
+    
+    /**
+     * 上位でもRefを使ってもらうため、ここで定義
+     */
+    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        return realtimeDbReference.getUserExpenseRef(callback)
+    }
 
-    val categoryRef: DatabaseReference
-        get() = realtimeDbReference.getUserCategoryRef()
+    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        return realtimeDbReference.getUserCategoryRef(callback)
+    }
 
     /**
      * リスナーを追加する (DatabaseReferenceまたはQueryに対応)

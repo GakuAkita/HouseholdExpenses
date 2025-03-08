@@ -5,8 +5,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
+import gaku.original.myapplication.Utility.LogException
 import gaku.original.myapplication.Utility.LogTimeout
-import gaku.original.myapplication.Utility.LogUnexpectedError
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -31,12 +31,12 @@ class RealtimeDbReference @Inject constructor(
         var ref: DatabaseReference? = null
         try {
             withTimeout(2000) {
-                if (currentUserId != null) {
+                currentUserId?.let {
                     val userId = currentUserId ?: ""
                     ref = database.child("users").child(userId)
                     //currentUserIdがnullかチェックしているので問題ない
                     callback(SuspendFuncStatus.SUCCESS)
-                } else {
+                } ?: {
                     Log.d(className, "userId is null")
                     callback(SuspendFuncStatus.FAILED)
                 }
@@ -45,7 +45,7 @@ class RealtimeDbReference @Inject constructor(
             LogTimeout(className, funcName, e)
             callback(SuspendFuncStatus.TIMEOUT)
         } catch (e: Exception) {
-            LogUnexpectedError(className, funcName, e)
+            LogException(className, funcName, e)
             callback(SuspendFuncStatus.FAILED)
         }
 
@@ -53,8 +53,8 @@ class RealtimeDbReference @Inject constructor(
     }
 
     /* getUserExpensesRefとgetUserCategoryRefで同じことをやっていたので共通化 */
-    suspend fun getUserDataChildRef(
-        childPath: String,
+    suspend fun getUserChildrenRef(
+        childrenPath: List<String>,/* たどり着きたい順に名前をいれていく */
         funcName: String,
         callback: (SuspendFuncStatus) -> Unit = {}
     ): DatabaseReference? {
@@ -62,7 +62,7 @@ class RealtimeDbReference @Inject constructor(
         try {
             //こっちのタイムアウトはgetUserRefのタイムアウトよりも長くしておく必要ある？
             withTimeout(3000) {
-                val userRef = getUserRef() { status ->
+                var tmp_ref = getUserRef() { status ->
                     if (status == SuspendFuncStatus.SUCCESS) {
                         /* Do nothing */
                     } else if (status == SuspendFuncStatus.TIMEOUT) {
@@ -73,20 +73,21 @@ class RealtimeDbReference @Inject constructor(
                     }
                 }
 
-                if (userRef != null) {
-                    ref = userRef.child("data").child(childPath)
-                    //ここまで来て初めて成功
-                    callback(SuspendFuncStatus.SUCCESS)
-                } else {
-                    Log.d(className, "${funcName} ended successfully, but null${userRef}")
-                    callback(SuspendFuncStatus.FAILED)
+                childrenPath.forEach { childName ->
+                    tmp_ref?.let {//null出ない場合
+                        tmp_ref = tmp_ref?.child(childName)//nullでないことが保証されている
+                    } ?: run {//nullのとき
+                        throw Exception("tmp_ref became null childName:${childName}")
+                        /* ここでループ自体は抜けてしたでcatchされるので、わざわざbreakしなくてよい */
+                    }
                 }
+                ref = tmp_ref
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
             callback(SuspendFuncStatus.TIMEOUT)
         } catch (e: Exception) {
-            LogUnexpectedError(className, funcName, e)
+            LogException(className, funcName, e)
             callback(SuspendFuncStatus.FAILED)
         }
         return ref
@@ -97,9 +98,9 @@ class RealtimeDbReference @Inject constructor(
         val funcName = ::getUserExpenseRef.name
         Log.d(className, "${funcName} was called.")
         var ref: DatabaseReference? = null
-
+        val childrenPath = listOf("data", "expenses")
         try {
-            ref = getUserDataChildRef("expenses", funcName, callback)
+            ref = getUserChildrenRef(childrenPath, funcName, callback)
         } catch (e: Exception) {
             /* 引数のcallbackに何をやるかいれる */
         }
@@ -111,8 +112,22 @@ class RealtimeDbReference @Inject constructor(
         val funcName = ::getUserCategoryRef.name
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
+        val childrenPath = listOf("data", "categories")
         try {
-            ref = getUserDataChildRef("categories", funcName, callback)
+            ref = getUserChildrenRef(childrenPath, funcName, callback)
+        } catch (e: Exception) {
+            /* 引数のcallbackに何をやるかいれる */
+        }
+        return ref
+    }
+
+    suspend fun getUserSettingsRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getUserSettingsRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        val childrenPath = listOf("settings")
+        try {
+            ref = getUserChildrenRef(childrenPath, funcName, callback)
         } catch (e: Exception) {
             /* 引数のcallbackに何をやるかいれる */
         }
@@ -120,11 +135,16 @@ class RealtimeDbReference @Inject constructor(
         return ref
     }
 
-    fun getUserSettingsRef(): DatabaseReference {
-        return getUserRef().child("settings")
-    }
-
-    fun getUserRepeatAddRef(): DatabaseReference {
-        return getUserSettingsRef().child("repeatAdd")
+    suspend fun getUserRepeatAddRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getUserRepeatAddRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        val childrenPath = listOf("settings", "repeatAdd")
+        try {
+            ref = getUserChildrenRef(childrenPath, funcName, callback)
+        } catch (e: Exception) {
+            /* 引数のcallbackに何をやるかいれる */
+        }
+        return ref
     }
 }

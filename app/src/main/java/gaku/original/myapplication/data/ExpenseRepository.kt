@@ -1,7 +1,6 @@
 package gaku.original.myapplication.data
 
 import android.util.Log
-import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
@@ -13,20 +12,22 @@ import kotlinx.coroutines.withTimeout
 class ExpenseRepository(
     private val realtimeDbReference: RealtimeDbReference
 ) {
-    val expenseRef: DatabaseReference
-        get() = realtimeDbReference.getUserExpenseRef()
+    suspend fun get
 
     //SignUp後にやる操作
-    fun addUserInitialData(email: String) {
+    suspend fun addUserInitialData(email: String) {
         val userRef = realtimeDbReference.getUserRef()
-        userRef.child("email").setValue(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("ExpenseRepository", "addUserInitialData successful")
-                } else {
-                    Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
+        userRef?.let {
+            userRef.child("email").setValue(email)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        //ユーザーにはinitial dataを追加したかはわからなくていいか。
+                        Log.d("ExpenseRepository", "addUserInitialData successful")
+                    } else {
+                        Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
+                    }
                 }
-            }
+        }
     }
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
