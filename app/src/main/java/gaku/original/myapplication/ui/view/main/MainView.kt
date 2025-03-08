@@ -40,7 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.defaultCategory
+import gaku.original.myapplication.data.defaultExpense
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.CalendarDisplay
@@ -87,6 +90,8 @@ fun MainView(
     //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意
     Log.d("MainView", "monthExpenses loaded:${monthExpenses.size}")
 
+    val expensesLoadingStatus by remember { viewModel.expensesLoadingStatus }.collectAsState()
+
     Scaffold(
         topBar = {
             TopBarView(topBarName)
@@ -114,9 +119,11 @@ fun MainView(
         },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -171,7 +178,26 @@ fun MainView(
             //スペースちょっとあける。
             Spacer(modifier = Modifier.padding(10.dp))
 
+            if (expensesLoadingStatus == LoadingStatus.LOADING) {
+                Text("Loading.........")
+            } else if (expensesLoadingStatus == LoadingStatus.ERROR) {
+                Text("Unable to get Expenses properly.")
+            }
             Row(modifier = Modifier.fillMaxWidth()) {
+                /* サンプルのExpenseを作ってデザインの参考に */
+                val sampleCategory = defaultCategory.copy(
+                    name = "食費"
+                )
+                val sampleExpense = defaultExpense.copy(
+                    amount = 100,
+                    category = sampleCategory
+                )
+                ExpenseItem(
+                    expense = sampleExpense,
+                    onEdit = {}
+                )
+
+
                 LazyColumnScrollbar(//外部ライブラリ
                     state = listState,
                     settings = ScrollbarSettings.Default.copy(

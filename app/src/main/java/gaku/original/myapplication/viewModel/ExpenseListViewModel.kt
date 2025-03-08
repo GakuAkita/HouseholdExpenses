@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.fromLocalDateTime
 import gaku.original.myapplication.toLocalDateTime
@@ -64,7 +65,7 @@ class ExpenseListViewModel @Inject constructor(
 
     /********* Expense配列の管理 ***********/
     val allExpenses: List<Expense> get() = expenseSharedViewModel.allExpenses.value
-    val expenseLoadingState: Boolean get() = expenseSharedViewModel.expensesLoadingState.value
+    val expensesLoadingStatus: StateFlow<LoadingStatus> get() = expenseSharedViewModel.expensesLoadingStatus
 
     init {
         observeAllExpenses()
@@ -93,6 +94,7 @@ class ExpenseListViewModel @Inject constructor(
 
     private val _monthTotal = MutableStateFlow(0L)
     val monthTotal: StateFlow<Long> = _monthTotal
+
 
     fun filterExpensesByMonth() {
         viewModelScope.launch {

@@ -31,8 +31,12 @@ class ExpenseRepository(
     suspend fun fetchUserExpenses(
         callback: (Boolean) -> Unit = {}
     ): List<Expense> {
+        Log.d("ExpenseRepository", "fetchUserExpenses was called.")
         try {
+            //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
+            Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
             val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
+            Log.d("ExpenseRepository", "getUserExpenseRef finished.")
             val expenses = snapshot.children.mapNotNull {
                 it.getValue(Expense::class.java)
             }

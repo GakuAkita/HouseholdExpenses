@@ -12,6 +12,7 @@ import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.InitialCategories
@@ -32,8 +33,8 @@ class ExpenseSharedViewModel @Inject constructor(
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
 
     //emptyList()のとき、Loadingがうまく行ってないのか、シンプルに何も保存されていないのかの区別がつかない
-    private val _expensesLoadingState = MutableStateFlow(false)
-    val expensesLoadingState: StateFlow<Boolean> get() = _expensesLoadingState
+    private val _expensesLoadingStatus = MutableStateFlow(LoadingStatus.COMPLETED)
+    val expensesLoadingStatus: StateFlow<LoadingStatus> get() = _expensesLoadingStatus
 
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
@@ -141,13 +142,18 @@ class ExpenseSharedViewModel @Inject constructor(
         ) {
             fetchAllExpenses(
                 onStart = {
-                    _expensesLoadingState.value = true
+                    Log.d("AkitaDebug", "Set loadingstatus as loading")
+                    _expensesLoadingStatus.value = LoadingStatus.LOADING
                 },
                 callback = { isSuccess ->
                     if (isSuccess) {
                         addExpenseCategoryChildEventListener()
+                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+                        Log.d("AkitaDebug", "Set loadingStatus as Completed")
+                    } else {
+                        _expensesLoadingStatus.value = LoadingStatus.ERROR
+                        Log.d("AkitaDebug", "Set loadingStatus as Error")
                     }
-                    _expensesLoadingState.value = false
                 }
             )
         } else {

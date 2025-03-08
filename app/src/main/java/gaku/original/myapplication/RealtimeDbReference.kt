@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -25,6 +26,7 @@ class RealtimeDbReference @Inject constructor(
 
     // userId配下のexpenses
     fun getUserExpenseRef(): DatabaseReference {
+        Log.d("RealtimeDbReference", "getUserExpenseRef was called.")
         return getUserRef().child("data").child("expenses")
     }
 
