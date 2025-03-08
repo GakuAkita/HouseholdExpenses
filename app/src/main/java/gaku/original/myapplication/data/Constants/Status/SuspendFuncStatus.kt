@@ -1,8 +1,7 @@
 package gaku.original.myapplication.data.Constants.Status
 
-enum class LoadingStatus {
-    LOADING,
-    COMPLETED,
+enum class SuspendFuncStatus {
+    SUCCESS,
     TIMEOUT,
-    ERROR,
+    FAILED,
 }

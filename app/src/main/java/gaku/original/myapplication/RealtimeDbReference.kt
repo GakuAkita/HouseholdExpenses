@@ -19,10 +19,46 @@ class RealtimeDbReference @Inject constructor(
 
     //users配下の自分のuserIdのreferenceを返す
     // userId配下のexpenses
+//    suspend fun getUserRef(): DatabaseReference? {
+//        var ref: DatabaseReference? = null
+//        try {
+//            withTimeout(2000) {
+//                val userId = currentUserId ?: throw IllegalStateException("currentUserId is null")
+//                ref = database.child("users").child(userId)
+//            }
+//        } catch (e: TimeoutCancellationException) {
+//            Log.d("RealtimeDbReference", "getUserRef timeout")
+//        } catch (e: Exception) {
+//            Log.d("RealtimeDbReference", "UnexpectedError occurred in getUserRef.${e.message}")
+//        }
+//
+//        return ref
+//    }
     fun getUserRef(): DatabaseReference {
         val userId = currentUserId ?: throw IllegalStateException("currentUserId is null")
         return database.child("users").child(userId)
     }
+
+    /** 本当はsuspendにした方が良いが、一旦避ける
+    // userId配下のexpenses
+    suspend fun getUserExpenseRef(): DatabaseReference {
+    Log.d("RealtimeDbReference", "getUserExpenseRef was called.")
+    var ref: DatabaseReference = database
+    try {
+    val result = withTimeout(2000) {
+    ref = getUserRef().child("data").child("expenses")
+    }
+    } catch (e: TimeoutCancellationException) {
+    Log.d("RealtimeDbReference", "getUserExpenseRef timeout")
+    } catch (e: Exception) {
+    Log.d(
+    "RealtimeDbReference",
+    "UnexpectedError occurred. in getUserExpenseRef.${e.message}"
+    )
+    }
+
+    return ref
+    }*/
 
     // userId配下のexpenses
     fun getUserExpenseRef(): DatabaseReference {

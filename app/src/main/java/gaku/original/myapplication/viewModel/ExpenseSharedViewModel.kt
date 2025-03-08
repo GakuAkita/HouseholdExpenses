@@ -13,6 +13,7 @@ import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.InitialCategories
@@ -145,11 +146,13 @@ class ExpenseSharedViewModel @Inject constructor(
                     Log.d("AkitaDebug", "Set loadingstatus as loading")
                     _expensesLoadingStatus.value = LoadingStatus.LOADING
                 },
-                callback = { isSuccess ->
-                    if (isSuccess) {
+                callback = { status ->
+                    if (status == SuspendFuncStatus.SUCCESS) {
                         addExpenseCategoryChildEventListener()
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                         Log.d("AkitaDebug", "Set loadingStatus as Completed")
+                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
                     } else {
                         _expensesLoadingStatus.value = LoadingStatus.ERROR
                         Log.d("AkitaDebug", "Set loadingStatus as Error")
@@ -177,7 +180,7 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun fetchAllExpenses(onStart: () -> Unit = {}, callback: (Boolean) -> Unit = {}) {
+    fun fetchAllExpenses(onStart: () -> Unit = {}, callback: (SuspendFuncStatus) -> Unit = {}) {
         onStart()
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses(

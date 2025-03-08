@@ -3,10 +3,12 @@ package gaku.original.myapplication.data
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
 import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 
 class ExpenseRepository(
     private val realtimeDbReference: RealtimeDbReference
@@ -29,25 +31,31 @@ class ExpenseRepository(
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchUserExpenses(
-        callback: (Boolean) -> Unit = {}
+        callback: (SuspendFuncStatus) -> Unit = {}
     ): List<Expense> {
+        var ret = emptyList<Expense>()
         Log.d("ExpenseRepository", "fetchUserExpenses was called.")
         try {
-            //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
-            Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
-            val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
-            Log.d("ExpenseRepository", "getUserExpenseRef finished.")
-            val expenses = snapshot.children.mapNotNull {
-                it.getValue(Expense::class.java)
+            withTimeout(2000) {
+                //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
+                Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
+                val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
+                Log.d("ExpenseRepository", "getUserExpenseRef finished.")
+                val expenses = snapshot.children.mapNotNull {
+                    it.getValue(Expense::class.java)
+                }
+                Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+                callback(SuspendFuncStatus.SUCCESS)
+                ret = expenses
             }
-            Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
-            callback(true)
-            return expenses
+        } catch (e: Exception) {
+            Log.d("ExpenseRepository", "fetchUserExpenses Timeout.")
+            callback(SuspendFuncStatus.TIMEOUT)
         } catch (e: Exception) {
             Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
-            callback(false)
-            return emptyList()  // エラー時には空のリストを返す
+            callback(SuspendFuncStatus.FAILED)
         }
+        return ret
     }
 
     fun addExpense(

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
@@ -180,8 +181,12 @@ fun MainView(
 
             if (expensesLoadingStatus == LoadingStatus.LOADING) {
                 Text("Loading.........")
+            } else if (expensesLoadingStatus == LoadingStatus.TIMEOUT) {
+                Text("Timeout!!!")
             } else if (expensesLoadingStatus == LoadingStatus.ERROR) {
-                Text("Unable to get Expenses properly.")
+                Text("Unable to get Expenses properly. Please contact the developer.")
+            } else {
+                /* Do nothing */
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 /* サンプルのExpenseを作ってデザインの参考に */
@@ -212,7 +217,6 @@ fun MainView(
                             .fillMaxWidth(),
                         userScrollEnabled = true
                     ) {
-
                         items(monthExpenses) { expense ->
                             ExpenseItem(
                                 expense = expense,
@@ -235,7 +239,7 @@ fun ExpenseItem(expense: Expense, onEdit: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(40.dp)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
             .clickable {
                 onEdit()
@@ -245,16 +249,19 @@ fun ExpenseItem(expense: Expense, onEdit: () -> Unit) {
         Text(
             text = "${toLocalDateTime(expense.datetime)?.dayOfMonth}日",
             modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
             text = "${expense.amount}円",
             modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
             textAlign = TextAlign.Left
         )
         Text(
             text = expense.category?.name ?: "",
             modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
             textAlign = TextAlign.Left
         )
     }
