@@ -50,6 +50,7 @@ import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
+import gaku.original.myapplication.data.defaultFrequency
 import gaku.original.myapplication.data.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -327,7 +328,6 @@ fun RepeatAddEditDialog(
                                         categoryOptionsExpanded = false
                                     }
                                 )
-
                             }
                         }
                     }
@@ -392,6 +392,8 @@ fun RepeatAddEditDialog(
                                     text = { Text(text = freq.replace("_", " ")) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
+                                            /* ドロップダウンでfrequencyを変えたときは、FrequencyTextFiled内のnewFrequencyInfoをリセット */
+                                            /* ここの値が初期値としてセットされる */
                                             frequencyInfo = newRepeatAdd.frequencyInfo.copy(
                                                 frequency = freq,
                                                 month = null,
@@ -416,8 +418,16 @@ fun RepeatAddEditDialog(
 
                     if (newRepeatAdd.frequencyInfo.frequency != null) {
                         Log.d("AkitaDebug", "FrequencyTextField was called!!")
+
+                        /**
+                         * しょうがないが、関数にする以上、FrequencyTextFieldの中でnewFrequencyInfoを書き換え時に、
+                         * callbackでnewRepeatAddを書き換えることになる。で、callbackでnewRepeatAddを書き換えると
+                         * またFrequencyTextFieldが実行されることになる。
+                         * 全部ベタ書きでFrequencyTextFieldの中身を書けばよいのは良いいのだが、見づらくなってしまうので分けた。
+                         * @FIXME 関数の実行を1回だけにするような書き方ができる気がするので余裕があったら直そう。
+                         */
                         //ここで、選択された内容に応じて表示内容を変える
-                        FrequencyTextField(newRepeatAdd,
+                        FrequencyTextField(newRepeatAdd.frequencyInfo,
                             callback = {
                                 newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it)
                                 Log.d(
@@ -426,6 +436,7 @@ fun RepeatAddEditDialog(
                                 )
                             }
                         )
+                        Log.d("AkitaDebug", "FrequencyTextField ended??${newRepeatAdd}")
                         //newRepeatAddをTextFieldで変更した時、これだと2回このFrequencyTextFieldが呼ばれてるわ。
                     }
                 }
@@ -496,10 +507,10 @@ fun RepeatAddEditDialog(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun FrequencyTextField(
-    passedRepeatAdd: RepeatAdd,
+    frequencyInfo: Frequency,
     callback: (Frequency) -> Unit = {}
 ) {
-    Log.d("AkitaDebug", "This is inside of FrequencyTextField")
+    Log.d("AkitaDebug", "This is inside of FrequencyTextField:${frequencyInfo}")
 
     val constSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
@@ -508,7 +519,16 @@ fun FrequencyTextField(
     var day by remember { mutableStateOf<Int?>(null) }
     val time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
 
-    var newFrequencyInfo by remember { mutableStateOf(passedRepeatAdd.frequencyInfo.copy()) }
+    var newFrequencyInfo by remember { mutableStateOf(defaultFrequency) }
+    LaunchedEffect(frequencyInfo.frequency) {
+        /* frequencyInfoが前と変わったときは、パラメータをdayやdayOfWeekなど含めてリセットする */
+        /*  */
+        newFrequencyInfo = frequencyInfo
+    }
+    newFrequencyInfo = newFrequencyInfo.copy(
+        frequency = frequencyInfo.frequency
+    )
+    /* 上書き必要 */
     Log.d("AkitaDebug", "This is inside of FrequencyTextField before when:${newFrequencyInfo}")
 
     var isTimePickerVisible by remember { mutableStateOf(false) }
