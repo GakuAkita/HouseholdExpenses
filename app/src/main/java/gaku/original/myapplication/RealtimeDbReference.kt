@@ -5,6 +5,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
+import gaku.original.myapplication.Utility.LogTimeout
+import gaku.original.myapplication.Utility.LogUnexpectedError
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 
@@ -12,6 +17,8 @@ import javax.inject.Inject
 class RealtimeDbReference @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
 ) {
+    val className: String = this::class.simpleName ?: "UnableToGetClassName"
+
     private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
 
     private val currentUserId: String?
@@ -19,57 +26,98 @@ class RealtimeDbReference @Inject constructor(
 
     //users配下の自分のuserIdのreferenceを返す
     // userId配下のexpenses
-//    suspend fun getUserRef(): DatabaseReference? {
-//        var ref: DatabaseReference? = null
-//        try {
-//            withTimeout(2000) {
-//                val userId = currentUserId ?: throw IllegalStateException("currentUserId is null")
-//                ref = database.child("users").child(userId)
-//            }
-//        } catch (e: TimeoutCancellationException) {
-//            Log.d("RealtimeDbReference", "getUserRef timeout")
-//        } catch (e: Exception) {
-//            Log.d("RealtimeDbReference", "UnexpectedError occurred in getUserRef.${e.message}")
-//        }
-//
-//        return ref
-//    }
-    fun getUserRef(): DatabaseReference {
-        val userId = currentUserId ?: throw IllegalStateException("currentUserId is null")
-        return database.child("users").child(userId)
-        Log.d("A", "async")
+    suspend fun getUserRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getUserRef.name
+        var ref: DatabaseReference? = null
+        try {
+            withTimeout(2000) {
+                if (currentUserId != null) {
+                    val userId = currentUserId ?: ""
+                    ref = database.child("users").child(userId)
+                    //currentUserIdがnullかチェックしているので問題ない
+                    callback(SuspendFuncStatus.SUCCESS)
+                } else {
+                    Log.d(className, "userId is null")
+                    callback(SuspendFuncStatus.FAILED)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            LogTimeout(className, funcName, e)
+            callback(SuspendFuncStatus.TIMEOUT)
+        } catch (e: Exception) {
+            LogUnexpectedError(className, funcName, e)
+            callback(SuspendFuncStatus.FAILED)
+        }
+
+        return ref
     }
 
-    /** 本当はsuspendにした方が良いが、一旦避ける
+    /* getUserExpensesRefとgetUserCategoryRefで同じことをやっていたので共通化 */
+    suspend fun getUserDataChildRef(
+        childPath: String,
+        funcName: String,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): DatabaseReference? {
+        var ref: DatabaseReference? = null
+        try {
+            //こっちのタイムアウトはgetUserRefのタイムアウトよりも長くしておく必要ある？
+            withTimeout(3000) {
+                val userRef = getUserRef() { status ->
+                    if (status == SuspendFuncStatus.SUCCESS) {
+                        /* Do nothing */
+                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                        //getUserRefのタイムアウトとgetUserExpenseRefのタイムアウトが区別つくのか？？
+                        callback(SuspendFuncStatus.TIMEOUT)
+                    } else {
+                        callback(SuspendFuncStatus.FAILED)
+                    }
+                }
+
+                if (userRef != null) {
+                    ref = userRef.child("data").child(childPath)
+                    //ここまで来て初めて成功
+                    callback(SuspendFuncStatus.SUCCESS)
+                } else {
+                    Log.d(className, "${funcName} ended successfully, but null${userRef}")
+                    callback(SuspendFuncStatus.FAILED)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            LogTimeout(className, funcName, e)
+            callback(SuspendFuncStatus.TIMEOUT)
+        } catch (e: Exception) {
+            LogUnexpectedError(className, funcName, e)
+            callback(SuspendFuncStatus.FAILED)
+        }
+        return ref
+    }
+
     // userId配下のexpenses
-    suspend fun getUserExpenseRef(): DatabaseReference {
-    Log.d("RealtimeDbReference", "getUserExpenseRef was called.")
-    var ref: DatabaseReference = database
-    try {
-    val result = withTimeout(2000) {
-    ref = getUserRef().child("data").child("expenses")
-    }
-    } catch (e: TimeoutCancellationException) {
-    Log.d("RealtimeDbReference", "getUserExpenseRef timeout")
-    } catch (e: Exception) {
-    Log.d(
-    "RealtimeDbReference",
-    "UnexpectedError occurred. in getUserExpenseRef.${e.message}"
-    )
-    }
+    suspend fun getUserExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getUserExpenseRef.name
+        Log.d(className, "${funcName} was called.")
+        var ref: DatabaseReference? = null
 
-    return ref
-    }*/
-
-    // userId配下のexpenses
-    fun getUserExpenseRef(): DatabaseReference {
-        Log.d("RealtimeDbReference", "getUserExpenseRef was called.")
-        return getUserRef().child("data").child("expenses")
+        try {
+            ref = getUserDataChildRef("expenses", funcName, callback)
+        } catch (e: Exception) {
+            /* 引数のcallbackに何をやるかいれる */
+        }
+        return ref
     }
 
     //userId配下のcategory
-    fun getUserCategoryRef(): DatabaseReference {
-        return getUserRef().child("data").child("categories")
+    suspend fun getUserCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getUserCategoryRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        try {
+            ref = getUserDataChildRef("categories", funcName, callback)
+        } catch (e: Exception) {
+            /* 引数のcallbackに何をやるかいれる */
+        }
+
+        return ref
     }
 
     fun getUserSettingsRef(): DatabaseReference {
