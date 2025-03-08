@@ -37,6 +37,7 @@ class RealtimeDbReference @Inject constructor(
     fun getUserRef(): DatabaseReference {
         val userId = currentUserId ?: throw IllegalStateException("currentUserId is null")
         return database.child("users").child(userId)
+        Log.d("A", "async")
     }
 
     /** 本当はsuspendにした方が良いが、一旦避ける
