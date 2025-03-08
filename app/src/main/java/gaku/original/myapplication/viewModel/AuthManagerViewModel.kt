@@ -29,7 +29,7 @@ class AuthManagerViewModel @Inject constructor(
                         Log.d("AuthManagerViewModel", "Signed in with Email:$email")
                         //サインイン直後にやらないと行けない作業はここでやる
                         expenseSharedViewModel.fetchAllExpenses(
-                            onComplete = {
+                            callback = {
                                 expenseSharedViewModel.addExpenseCategoryChildEventListener()
                             }
                         )

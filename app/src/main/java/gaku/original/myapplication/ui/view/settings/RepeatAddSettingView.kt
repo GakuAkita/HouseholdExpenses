@@ -198,7 +198,7 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepeatAddEditDialog(
-    repeatAdd: RepeatAdd,
+    repeatAdd: RepeatAdd,//ここで引数を渡すのは、編集に対応できるようにするため
     allCategories: StateFlow<List<Category>>,
     context: Context,
     onSave: (repeatAdd: RepeatAdd) -> Unit,
@@ -402,17 +402,31 @@ fun RepeatAddEditDialog(
                                             )
                                         )
                                         frequencyOptionsExpanded = false
+                                        Log.d(
+                                            "AkitaDebug",
+                                            "DropdownMenu was selected.${newRepeatAdd}"
+                                        )
                                     }
                                 )
 
                             }
                         }
+
                     }
 
                     if (newRepeatAdd.frequencyInfo.frequency != null) {
+                        Log.d("AkitaDebug", "FrequencyTextField was called!!")
                         //ここで、選択された内容に応じて表示内容を変える
-                        FrequencyTextField(newRepeatAdd.frequencyInfo,
-                            callback = { newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it) })
+                        FrequencyTextField(newRepeatAdd,
+                            callback = {
+                                newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it)
+                                Log.d(
+                                    "AkitaDebug",
+                                    "callback of FrequencyTextField:${newRepeatAdd}"
+                                )
+                            }
+                        )
+                        //newRepeatAddをTextFieldで変更した時、これだと2回このFrequencyTextFieldが呼ばれてるわ。
                     }
                 }
 
@@ -482,9 +496,10 @@ fun RepeatAddEditDialog(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun FrequencyTextField(
-    frequencyInfo: Frequency,
+    passedRepeatAdd: RepeatAdd,
     callback: (Frequency) -> Unit = {}
 ) {
+    Log.d("AkitaDebug", "This is inside of FrequencyTextField")
 
     val constSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
@@ -493,17 +508,16 @@ fun FrequencyTextField(
     var day by remember { mutableStateOf<Int?>(null) }
     val time by remember { mutableStateOf(LocalTime.MIDNIGHT) }
 
-    var newFrequencyInfo by remember { mutableStateOf(frequencyInfo) }
+    var newFrequencyInfo by remember { mutableStateOf(passedRepeatAdd.frequencyInfo.copy()) }
+    Log.d("AkitaDebug", "This is inside of FrequencyTextField before when:${newFrequencyInfo}")
 
     var isTimePickerVisible by remember { mutableStateOf(false) }
 
-    //Recompositionのたびに上書きする
-    newFrequencyInfo = newFrequencyInfo.copy(frequency = frequencyInfo.frequency)
-    when (frequencyInfo.frequency) {
+    when (newFrequencyInfo.frequency) {
         /*******************************************************/
         RepeatFrequency.EVERY_YEAR -> {
             newFrequencyInfo = newFrequencyInfo.copy(
-                frequency = frequencyInfo.frequency,
+                frequency = RepeatFrequency.EVERY_YEAR,
                 dayOfWeek = null,//曜日は必要ない,
             )
             constSpacer()
@@ -519,6 +533,7 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.month?.toString() ?: "",
                         onValueChange = {
+                            Log.d("AkitaDebug", "month onValueChange ${it}")
                             val monthInt = it.toIntOrNull()
                             /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
                             if (it == "" || monthInt == null) {
@@ -531,6 +546,7 @@ fun FrequencyTextField(
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     month = monthInt
                                 )
+                                Log.d("AkitaDebug", "overwritten as ${newFrequencyInfo}")
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -547,6 +563,7 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
+                            Log.d("AkitaDebug", "Here month onValueChange${it}")
                             val dayInt = it.toIntOrNull()
                             if (newFrequencyInfo.month == null) {
                                 /* monthを入力してください。snack barをだしたい */
@@ -566,6 +583,10 @@ fun FrequencyTextField(
                             } else {
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     day = dayInt
+                                )
+                                Log.d(
+                                    "AkitaDebug",
+                                    "month onValueChange newFrequencyInfo:${newFrequencyInfo}"
                                 )
                             }
                         },
@@ -856,8 +877,9 @@ fun FrequencyTextField(
     }
 
     //ここで逐一呼び出し元のfrequencyInfoに代入
+    Log.d("AkitaDebug", "The end of FrequencyTextField but before callback:${newFrequencyInfo}")
     callback(newFrequencyInfo)
-    Log.d("AkitaDebug", "newFrequencyInfo:${newFrequencyInfo}")
+    Log.d("AkitaDebug", "The end of FrequencyTextField:newFrequencyInfo:${newFrequencyInfo}")
 }
 
 
