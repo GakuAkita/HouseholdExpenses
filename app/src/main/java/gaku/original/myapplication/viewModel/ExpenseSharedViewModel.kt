@@ -18,9 +18,11 @@ import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.InitialCategories
 import gaku.original.myapplication.data.generatedType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
@@ -29,6 +31,8 @@ class ExpenseSharedViewModel @Inject constructor(
     private val dbListenerManager: DbListenerManager,
     private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
+    private val className: String = this::class.simpleName ?: "UnableToGetClassName"
+
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
@@ -115,7 +119,7 @@ class ExpenseSharedViewModel @Inject constructor(
         //実行されたタイミングのtimeだけあればよい。
         val firstFetchedTime = System.currentTimeMillis()
 
-        getExpenseRef()?.let {
+        getExpenseRef(callback)?.let {
             //この中ではgetExpenseRefはnullでない
             val queryForAddedExpense =
                 getExpenseRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
@@ -127,7 +131,7 @@ class ExpenseSharedViewModel @Inject constructor(
             return
         }
 
-        getCategoryRef()?.let {
+        getCategoryRef(callback)?.let {
             val queryForAddedCategory =
                 getCategoryRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
             //Category用
@@ -153,24 +157,35 @@ class ExpenseSharedViewModel @Inject constructor(
         if (firebaseAuth.currentUser != null &&
             _allExpenses.value.isEmpty()
         ) {
-            fetchAllExpenses(
-                onStart = {
-                    Log.d("AkitaDebug", "Set loadingstatus as loading")
-                    _expensesLoadingStatus.value = LoadingStatus.LOADING
-                },
-                callback = { status ->
-                    if (status == SuspendFuncStatus.SUCCESS) {
-                        addExpenseCategoryChildEventListener()
-                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
-                        Log.d("AkitaDebug", "Set loadingStatus as Completed")
-                    } else if (status == SuspendFuncStatus.TIMEOUT) {
-                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
-                    } else {
-                        _expensesLoadingStatus.value = LoadingStatus.ERROR
-                        Log.d("AkitaDebug", "Set loadingStatus as Error")
+            viewModelScope.launch {
+                var fetchStatus: SuspendFuncStatus = SuspendFuncStatus.FAILED
+                fetchAllExpenses(
+                    onStart = {
+                        _expensesLoadingStatus.value = LoadingStatus.LOADING
+                    },
+                    callback = { status ->
+                        fetchStatus = status
+                        if (status == SuspendFuncStatus.SUCCESS) {
+                            _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+                        } else if (status == SuspendFuncStatus.TIMEOUT) {
+                            _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
+                        } else {
+                            _expensesLoadingStatus.value = LoadingStatus.ERROR
+                        }
+                    })
+
+                if (fetchStatus == SuspendFuncStatus.SUCCESS) {
+                    addExpenseCategoryChildEventListener { status ->
+                        if (status == SuspendFuncStatus.SUCCESS) {
+                            /* Do Nothing */
+                        } else if (status == SuspendFuncStatus.TIMEOUT) {
+                            /* UI側にうまく行っていないと通知したい */
+                        } else {
+                            /* UI側にうまく行っていないと通知したい */
+                        }
                     }
                 }
-            )
+            }
         } else {
             Log.d("ExpenseSharedViewModel", "User is not signed in.")
         }
@@ -182,10 +197,10 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun addUserInitialData(email: String) {
+    fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit = {}) {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
         viewModelScope.launch {
-            expenseRepository.addUserInitialData(email)
+            expenseRepository.addUserInitialData(email, callback)
         }
         //デフォルトカテゴリーを追加
         for (defaultCategory in InitialCategories.categories) {
@@ -196,13 +211,17 @@ class ExpenseSharedViewModel @Inject constructor(
     suspend fun fetchAllExpenses(
         onStart: () -> Unit = {},
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         onStart()
-        viewModelScope.launch {
-            _allExpenses.value = expenseRepository.fetchUserExpenses(
-                callback = callback
-            )//@TODO エラー対策ができていないな。
+
+        return withContext(Dispatchers.IO) {
+            var ret: SuspendFuncStatus = SuspendFuncStatus.FAILED
+            _allExpenses.value = expenseRepository.fetchAllExpenses { status ->
+                ret = status
+                callback(status)
+            }
             Log.d("ExpenseSharedViewModel", "Expenses:${_allExpenses.value}")
+            ret//こいつを返す
         }
     }
 
@@ -295,13 +314,9 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
 
-    fun fetchAllCategories(callback: (Boolean) -> Unit = {}) {
+    fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}) {
         viewModelScope.launch {
-            _allCategories.value = categoryRepository.fetchAllCategories(
-                callback = { result ->
-                    callback(result)
-                }
-            )
+            _allCategories.value = categoryRepository.fetchAllCategories(callback)
             Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
         }
     }

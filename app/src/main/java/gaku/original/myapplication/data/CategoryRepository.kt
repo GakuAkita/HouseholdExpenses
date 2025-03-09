@@ -8,6 +8,9 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
 import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
 class CategoryRepository @Inject constructor(
@@ -36,29 +39,69 @@ class CategoryRepository @Inject constructor(
         }
 
         try {
-            val snapshot = getCategoryRef()
-            val categories = snapshot.children.mapNotNull {
-                it.getValue(Category::class.java)
+            withTimeout(3000) {
+                val snapshot = categoryRef.get().await()
+                val categories = snapshot.children.mapNotNull {
+                    it.getValue(Category::class.java)
+
+                }
+                Log.d(className, "Fetched Categories: $categories")
+                ret = categories
+                callback(SuspendFuncStatus.SUCCESS)
             }
-            Log.d("CategoryRepository", "Fetched Categories: $categories")
-            callback(true)
-            return categories
+        } catch (e: TimeoutCancellationException) {
+            Log.d(className, "${funcName} Timeout.")
+            callback(SuspendFuncStatus.TIMEOUT)
         } catch (e: Exception) {
-            Log.d("CategoryRepository", "fetchUserExpenses failed. ${e.message}")
-            callback(false)
-            return emptyList()  // エラー時には空のリストを返す
+            Log.d(className, "${funcName} failed. ${e.message}")
+            callback(SuspendFuncStatus.FAILED)
         }
+        return ret  // エラー時には空のリストを返す
     }
 
-    fun addCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        addDataToRTDb(category, categoryRef, callback)
+    suspend fun addCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+        val funcName = ::addCategory.name
+        LogClassFuncCalled(className, funcName)
+        val ref = getCategoryRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+
+        if (ref == null) {
+            return
+        }
+
+        addDataToRTDb(category, ref, callback)
     }
 
-    fun updateCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        updateDataToRTDb(category, { categoryRef }, callback)
+    suspend fun updateCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+        val funcName = ::updateCategory.name
+        LogClassFuncCalled(className, funcName)
+        val ref = getCategoryRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+
+        }
+        if (ref == null) {
+            return
+        }
+        updateDataToRTDb(category, ref, callback)
     }
 
-    fun removeCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        removeDataFromRTDb(category, { categoryRef }, callback)
+    suspend fun removeCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+        val funcName = ::removeCategory.name
+        LogClassFuncCalled(className, funcName)
+        val ref = getCategoryRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+        if (ref == null) {
+            return
+        }
+
+        removeDataFromRTDb(category, ref, callback)
     }
 }

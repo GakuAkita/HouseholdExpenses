@@ -22,7 +22,7 @@ class ExpenseRepository(
     }
 
     //SignUp後にやる操作
-    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit = {}) {
         val funcName: String = ::addUserInitialData.name
         LogClassFuncCalled(className, funcName)
         val userRef = realtimeDbReference.getUserRef { status ->
@@ -62,10 +62,10 @@ class ExpenseRepository(
     }
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
-    suspend fun fetchUserExpenses(
+    suspend fun fetchAllExpenses(
         callback: (SuspendFuncStatus) -> Unit = {}
     ): List<Expense> {
-        val funcName = ::fetchUserExpenses.name
+        val funcName = ::fetchAllExpenses.name
         var ret = emptyList<Expense>()
         LogClassFuncCalled(className, funcName)
 
@@ -91,7 +91,7 @@ class ExpenseRepository(
                 ret = expenses
                 callback(SuspendFuncStatus.SUCCESS)
             }
-        } catch (e: Exception) {
+        } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
             callback(SuspendFuncStatus.TIMEOUT)
         } catch (e: Exception) {
