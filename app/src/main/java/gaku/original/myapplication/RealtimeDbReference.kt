@@ -59,19 +59,21 @@ class RealtimeDbReference @Inject constructor(
         callback: (SuspendFuncStatus) -> Unit = {}
     ): DatabaseReference? {
         var ref: DatabaseReference? = null
+
+        val userRef = getUserRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {//成功のときはスルー
+                callback(status)
+            }
+        }//これで待ってくれる
+
+        if (userRef == null) {
+            return ref
+        }
+
+        //シーケンスみたい。ある処理が終えたら次をスタートして、、みたいな。
         try {
-            //こっちのタイムアウトはgetUserRefのタイムアウトよりも長くしておく必要ある？
-            withTimeout(3000) {
-                var tmp_ref = getUserRef() { status ->
-                    if (status == SuspendFuncStatus.SUCCESS) {
-                        /* Do nothing */
-                    } else if (status == SuspendFuncStatus.TIMEOUT) {
-                        //getUserRefのタイムアウトとgetUserExpenseRefのタイムアウトが区別つくのか？？
-                        callback(SuspendFuncStatus.TIMEOUT)
-                    } else {
-                        callback(SuspendFuncStatus.FAILED)
-                    }
-                }
+            withTimeout(2000) {
+                var tmp_ref = userRef//nullでない
 
                 childrenPath.forEach { childName ->
                     tmp_ref?.let {//null出ない場合
@@ -99,11 +101,9 @@ class RealtimeDbReference @Inject constructor(
         Log.d(className, "${funcName} was called.")
         var ref: DatabaseReference? = null
         val childrenPath = listOf("data", "expenses")
-        try {
-            ref = getUserChildrenRef(childrenPath, funcName, callback)
-        } catch (e: Exception) {
-            /* 引数のcallbackに何をやるかいれる */
-        }
+
+        ref = getUserChildrenRef(childrenPath, funcName, callback)
+
         return ref
     }
 
@@ -113,11 +113,9 @@ class RealtimeDbReference @Inject constructor(
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
         val childrenPath = listOf("data", "categories")
-        try {
-            ref = getUserChildrenRef(childrenPath, funcName, callback)
-        } catch (e: Exception) {
-            /* 引数のcallbackに何をやるかいれる */
-        }
+
+        ref = getUserChildrenRef(childrenPath, funcName, callback)
+
         return ref
     }
 
@@ -126,11 +124,8 @@ class RealtimeDbReference @Inject constructor(
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
         val childrenPath = listOf("settings")
-        try {
-            ref = getUserChildrenRef(childrenPath, funcName, callback)
-        } catch (e: Exception) {
-            /* 引数のcallbackに何をやるかいれる */
-        }
+
+        ref = getUserChildrenRef(childrenPath, funcName, callback)
 
         return ref
     }
@@ -140,11 +135,9 @@ class RealtimeDbReference @Inject constructor(
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
         val childrenPath = listOf("settings", "repeatAdd")
-        try {
-            ref = getUserChildrenRef(childrenPath, funcName, callback)
-        } catch (e: Exception) {
-            /* 引数のcallbackに何をやるかいれる */
-        }
+
+        ref = getUserChildrenRef(childrenPath, funcName, callback)
+
         return ref
     }
 }

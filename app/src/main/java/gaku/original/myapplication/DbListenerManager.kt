@@ -16,6 +16,7 @@ class DbListenerManager @Inject constructor(
 
     /**
      * 上位でもRefを使ってもらうため、ここで定義
+     * 別にここで定義してなくてもいいのか。
      */
     suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
         return realtimeDbReference.getUserExpenseRef(callback)

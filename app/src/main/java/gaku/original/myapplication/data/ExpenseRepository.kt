@@ -14,60 +14,126 @@ import kotlinx.coroutines.withTimeout
 class ExpenseRepository(
     private val realtimeDbReference: RealtimeDbReference
 ) {
+
     suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
         return realtimeDbReference.getUserExpenseRef(callback)
     }
 
     //SignUp後にやる操作
-    suspend fun addUserInitialData(email: String) {
-        val userRef = realtimeDbReference.getUserRef()
-        userRef?.let {
-            userRef.child("email").setValue(email)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        //ユーザーにはinitial dataを追加したかはわからなくていいか。
-                        Log.d("ExpenseRepository", "addUserInitialData successful")
-                    } else {
-                        Log.e("ExpenseRepository", "Failed to add initialData", task.exception)
-                    }
+    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
+        val userRef = realtimeDbReference.getUserRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+        //userRefがnullの場合は、callback(FAILED)はgetUserRefの中で実行されている
+        userRef?.let { ref ->/* userRefのこと */
+            try {
+                withTimeout(2000) {
+                    ref.child("email").setValue(email)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                //ユーザーにはinitial dataを追加したかはわからなくていいか。
+                                Log.d("ExpenseRepository", "addUserInitialData successful")
+                                callback(SuspendFuncStatus.SUCCESS)
+                            } else {
+                                Log.e(
+                                    "ExpenseRepository",
+                                    "Failed to add initialData",
+                                    task.exception
+                                )
+                                throw Exception("Failed to add initialData")
+                            }
+                        }
                 }
+            } catch (e: TimeoutCancellationException) {
+                callback(SuspendFuncStatus.TIMEOUT)
+            } catch (e: Exception) {
+                callback(SuspendFuncStatus.FAILED)
+            }
+        } ?: run {
+            /* nullの場合はスルー */
+            return
         }
     }
+}
 
-    // ユーザーIDに基づいてデータをリストとして返す（非同期）
-    suspend fun fetchUserExpenses(
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): List<Expense> {
-        var ret = emptyList<Expense>()
-        Log.d("ExpenseRepository", "fetchUserExpenses was called.")
-        try {
-            withTimeout(2000) {
-                //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
-                Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
-                val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
-                Log.d("ExpenseRepository", "getUserExpenseRef finished.")
-                val expenses = snapshot.children.mapNotNull {
-                    it.getValue(Expense::class.java)
-                }
-                Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
-                callback(SuspendFuncStatus.SUCCESS)
-                ret = expenses
+// ユーザーIDに基づいてデータをリストとして返す（非同期）
+suspend fun fetchUserExpenses(
+    callback: (SuspendFuncStatus) -> Unit = {}
+): List<Expense> {
+    var ret = emptyList<Expense>()
+    Log.d("ExpenseRepository", "fetchUserExpenses was called.")
+    try {
+        withTimeout(2000) {
+            //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
+            Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
+            val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
+            Log.d("ExpenseRepository", "getUserExpenseRef finished.")
+            val expenses = snapshot.children.mapNotNull {
+                it.getValue(Expense::class.java)
             }
-        } catch (e: Exception) {
-            Log.d("ExpenseRepository", "fetchUserExpenses Timeout.")
+            Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+            callback(SuspendFuncStatus.SUCCESS)
+            ret = expenses
+        }
+    } catch (e: Exception) {
+        Log.d("ExpenseRepository", "fetchUserExpenses Timeout.")
+        callback(SuspendFuncStatus.TIMEOUT)
+    } catch (e: Exception) {
+        Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
+        callback(SuspendFuncStatus.FAILED)
+    }
+    return ret
+}
+
+suspend fun addExpense(
+    expense: Expense,
+    callback: (SuspendFuncStatus) -> Unit = {}
+) {
+
+    val ref = getExpenseRef { status ->
+
+    }
+
+    /**
+     * nullだったらタイムアウトかなにか事故ったということ
+     * ここでreturnしておけばcallbackが二回実行されることはない
+     */
+    if (ref == null) {
+        return
+    }
+
+    addDataToRTDb(expense, ref, callback = callback)
+}
+
+suspend fun updateExpense(
+    expense: Expense,
+    callback: (SuspendFuncStatus) -> Unit = {}
+) {
+    val ref = getExpenseRef(callback = { status ->
+        if (status == SuspendFuncStatus.SUCCESS) {
+            /* Do nothing */
+        } else if (status == SuspendFuncStatus.TIMEOUT) {
             callback(SuspendFuncStatus.TIMEOUT)
-        } catch (e: Exception) {
-            Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
+        } else {
             callback(SuspendFuncStatus.FAILED)
         }
-        return ret
+    })
+
+    if (ref == null) {
+        return
     }
 
-    suspend fun addExpense(
-        expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
-        val ref = getExpenseRef(callback = { status ->
+    updateDataToRTDb(expense, ref, callback = callback)
+}
+
+suspend fun removeExpense(
+    expense: Expense,
+    callback: (SuspendFuncStatus) -> Unit = {}
+) {
+    val ref = async {
+        getExpenseRef(callback = { status ->
             if (status == SuspendFuncStatus.SUCCESS) {
                 /* Do nothing */
             } else if (status == SuspendFuncStatus.TIMEOUT) {
@@ -75,69 +141,13 @@ class ExpenseRepository(
             } else {
                 callback(SuspendFuncStatus.FAILED)
             }
-        })
-
-        /**
-         * nullだったらタイムアウトかなにか事故ったということ
-         * ここでreturnしておけばcallbackが二回実行されることはない
-         */
-        if (ref == null) {
-            return
-        }
-
-        try {
-            withTimeout(2000) {
-                addDataToRTDb(expense, ref, callback = { result ->
-                    if (result) {
-                        callback(SuspendFuncStatus.SUCCESS)
-                    } else {
-                        callback(SuspendFuncStatus.FAILED)
-                    }
-                })
-            }
-        } catch (e: TimeoutCancellationException) {
-            callback(SuspendFuncStatus.TIMEOUT)
-        } catch (e: Exception) {
-            callback(SuspendFuncStatus.FAILED)
-        }
+        }).await()
     }
 
-    suspend fun updateExpense(
-        expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
-        val ref = getExpenseRef(callback = { status ->
-            if (status == SuspendFuncStatus.SUCCESS) {
-                /* Do nothing */
-            } else if (status == SuspendFuncStatus.TIMEOUT) {
-                callback(SuspendFuncStatus.TIMEOUT)
-            } else {
-                callback(SuspendFuncStatus.FAILED)
-            }
-        })
-
-        if(ref==null){
-            return
-        }
-
-        try{
-            withTimeout(3000){
-                updateDataToRTDb(expense, {ref}, callback = { result ->
-                    if (result) {
-                        callback(SuspendFuncStatus.SUCCESS)
-                    } else {
-                        callback(SuspendFuncStatus.FAILED)
-                    }
-                })
-            }
-        }
-        updateDataToRTDb(expense, { expenseRef }, callback)
+    //これすぐ止まっちゃう？
+    if (ref == null) {
+        return
     }
 
-    fun removeExpense(
-        expense: Expense,
-        callback: (Boolean) -> Unit = {}
-    ) {
-        removeDataFromRTDb(expense, { expenseRef }, callback)
-    }
+    removeDataFromRTDb(expense, ref, callback)
 }
