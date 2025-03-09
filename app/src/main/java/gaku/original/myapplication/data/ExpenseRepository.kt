@@ -56,84 +56,62 @@ class ExpenseRepository(
             return
         }
     }
-}
 
-// ユーザーIDに基づいてデータをリストとして返す（非同期）
-suspend fun fetchUserExpenses(
-    callback: (SuspendFuncStatus) -> Unit = {}
-): List<Expense> {
-    var ret = emptyList<Expense>()
-    Log.d("ExpenseRepository", "fetchUserExpenses was called.")
-    try {
-        withTimeout(2000) {
-            //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
-            Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
-            val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
-            Log.d("ExpenseRepository", "getUserExpenseRef finished.")
-            val expenses = snapshot.children.mapNotNull {
-                it.getValue(Expense::class.java)
+    // ユーザーIDに基づいてデータをリストとして返す（非同期）
+    suspend fun fetchUserExpenses(
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): List<Expense> {
+        var ret = emptyList<Expense>()
+        Log.d("ExpenseRepository", "fetchUserExpenses was called.")
+        try {
+            withTimeout(2000) {
+                //オフラインのとき、getUserExpenseRefでずっと待ってしまっている
+                Log.d("ExpenseRepository", "Start waiting for getUserExpenseRef.")
+                val snapshot = realtimeDbReference.getUserExpenseRef().get().await()
+                Log.d("ExpenseRepository", "getUserExpenseRef finished.")
+                val expenses = snapshot.children.mapNotNull {
+                    it.getValue(Expense::class.java)
+                }
+                Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
+                callback(SuspendFuncStatus.SUCCESS)
+                ret = expenses
             }
-            Log.d("ExpenseRepository", "Fetched Expenses: $expenses")
-            callback(SuspendFuncStatus.SUCCESS)
-            ret = expenses
-        }
-    } catch (e: Exception) {
-        Log.d("ExpenseRepository", "fetchUserExpenses Timeout.")
-        callback(SuspendFuncStatus.TIMEOUT)
-    } catch (e: Exception) {
-        Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
-        callback(SuspendFuncStatus.FAILED)
-    }
-    return ret
-}
-
-suspend fun addExpense(
-    expense: Expense,
-    callback: (SuspendFuncStatus) -> Unit = {}
-) {
-
-    val ref = getExpenseRef { status ->
-
-    }
-
-    /**
-     * nullだったらタイムアウトかなにか事故ったということ
-     * ここでreturnしておけばcallbackが二回実行されることはない
-     */
-    if (ref == null) {
-        return
-    }
-
-    addDataToRTDb(expense, ref, callback = callback)
-}
-
-suspend fun updateExpense(
-    expense: Expense,
-    callback: (SuspendFuncStatus) -> Unit = {}
-) {
-    val ref = getExpenseRef(callback = { status ->
-        if (status == SuspendFuncStatus.SUCCESS) {
-            /* Do nothing */
-        } else if (status == SuspendFuncStatus.TIMEOUT) {
+        } catch (e: Exception) {
+            Log.d("ExpenseRepository", "fetchUserExpenses Timeout.")
             callback(SuspendFuncStatus.TIMEOUT)
-        } else {
+        } catch (e: Exception) {
+            Log.d("ExpenseRepository", "fetchUserExpenses failed. ${e.message}")
             callback(SuspendFuncStatus.FAILED)
         }
-    })
-
-    if (ref == null) {
-        return
+        return ret
     }
 
-    updateDataToRTDb(expense, ref, callback = callback)
-}
+    suspend fun addExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
+        val ref = r
 
-suspend fun removeExpense(
-    expense: Expense,
-    callback: (SuspendFuncStatus) -> Unit = {}
-) {
-    val ref = async {
-        getExpenseRef(callback = { status ->
+        val ref = getExpenseRef { status ->
+
+        }
+
+        /**
+         * nullだったらタイムアウトかなにか事故ったということ
+         * ここでreturnしておけばcallbackが二回実行されることはない
+         */
+        if (ref == null) {
+            return
+        }
+
+        addDataToRTDb(expense, ref, callback = callback)
+    }
+
+    suspend fun updateExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
+        val ref = getExpenseRef(callback = { status ->
             if (status == SuspendFuncStatus.SUCCESS) {
                 /* Do nothing */
             } else if (status == SuspendFuncStatus.TIMEOUT) {
@@ -141,13 +119,36 @@ suspend fun removeExpense(
             } else {
                 callback(SuspendFuncStatus.FAILED)
             }
-        }).await()
+        })
+
+        if (ref == null) {
+            return
+        }
+
+        updateDataToRTDb(expense, ref, callback = callback)
     }
 
-    //これすぐ止まっちゃう？
-    if (ref == null) {
-        return
-    }
+    suspend fun removeExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
+        val ref = async {
+            getExpenseRef(callback = { status ->
+                if (status == SuspendFuncStatus.SUCCESS) {
+                    /* Do nothing */
+                } else if (status == SuspendFuncStatus.TIMEOUT) {
+                    callback(SuspendFuncStatus.TIMEOUT)
+                } else {
+                    callback(SuspendFuncStatus.FAILED)
+                }
+            }).await()
+        }
 
-    removeDataFromRTDb(expense, ref, callback)
+        //これすぐ止まっちゃう？
+        if (ref == null) {
+            return
+        }
+
+        removeDataFromRTDb(expense, ref, callback)
+    }
 }
