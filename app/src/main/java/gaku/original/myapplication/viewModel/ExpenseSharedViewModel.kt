@@ -40,12 +40,14 @@ class ExpenseSharedViewModel @Inject constructor(
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
 
-    //realtimeDbReferenceからとっても良いが、引数が増えるのでdbListenerManagerから取る
-    private val expenseRef: DatabaseReference
-        get() = dbListenerManager.expenseRef
+    //realtimeDbReferenceから取っても良いが、引数が増えるのでdbListenerManagerから取る
+    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        return dbListenerManager.getExpenseRef(callback)
+    }
 
-    private val categoryRef: DatabaseReference
-        get() = dbListenerManager.categoryRef
+    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        return dbListenerManager.getCategoryRef(callback)
+    }
 
     //こっちはある時間以降の変更しか見ない
     private val expenseListAddChildEventListener = object : ChildEventListener {
@@ -109,24 +111,34 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     //サインインしたタイミングで実行する
-    fun addExpenseCategoryChildEventListener() {
+    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatus) -> Unit) {
         //実行されたタイミングのtimeだけあればよい。
         val firstFetchedTime = System.currentTimeMillis()
-        val queryForAddedExpense =
-            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-        val queryForAddedCategory =
-            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
 
-        //リスナーを追加
-        //Expense用
-        dbListenerManager.addListener(queryForAddedExpense, expenseListAddChildEventListener)
-        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
+        getExpenseRef()?.let {
+            //この中ではgetExpenseRefはnullでない
+            val queryForAddedExpense =
+                getExpenseRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
+            //リスナーを追加
+            //Expense用
+            dbListenerManager.addListener(queryForAddedExpense, expenseListAddChildEventListener)
+            dbListenerManager.addListener(getExpenseRef(), expenseListWatchChildEventListener)
+        } ?: run {
+            return
+        }
 
-        //Category用
-        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
-        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
+        getCategoryRef()?.let {
+            val queryForAddedCategory =
+                getCategoryRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
+            //Category用
+            dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
+            dbListenerManager.addListener(getExpenseRef(), categoryListWatchChildEventListener)
+        } ?: run {
+            return
+        }
 
         //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
+
     }
 
     fun clearExpenseChildEventListener() {
@@ -172,15 +184,19 @@ class ExpenseSharedViewModel @Inject constructor(
 
     fun addUserInitialData(email: String) {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        expenseRepository.addUserInitialData(email)
-
+        viewModelScope.launch {
+            expenseRepository.addUserInitialData(email)
+        }
         //デフォルトカテゴリーを追加
         for (defaultCategory in InitialCategories.categories) {
             categoryRepository.addCategory(defaultCategory)
         }
     }
 
-    fun fetchAllExpenses(onStart: () -> Unit = {}, callback: (SuspendFuncStatus) -> Unit = {}) {
+    suspend fun fetchAllExpenses(
+        onStart: () -> Unit = {},
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
         onStart()
         viewModelScope.launch {
             _allExpenses.value = expenseRepository.fetchUserExpenses(

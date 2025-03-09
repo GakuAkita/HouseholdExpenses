@@ -38,7 +38,7 @@ class RealtimeDbReference @Inject constructor(
                     callback(SuspendFuncStatus.SUCCESS)
                 } ?: {
                     Log.d(className, "userId is null")
-                    callback(SuspendFuncStatus.FAILED)
+                    throw Exception("userId is null")
                 }
             }
         } catch (e: TimeoutCancellationException) {
@@ -53,7 +53,7 @@ class RealtimeDbReference @Inject constructor(
     }
 
     /* getUserExpensesRefとgetUserCategoryRefで同じことをやっていたので共通化 */
-    suspend fun getUserChildrenRef(
+    private suspend fun getUserChildrenRef(
         childrenPath: List<String>,/* たどり着きたい順に名前をいれていく */
         funcName: String,
         callback: (SuspendFuncStatus) -> Unit = {}

@@ -13,7 +13,7 @@ class DbListenerManager @Inject constructor(
     val listeners: List<Pair<Any, ChildEventListener>> get() = _listeners
 
     // DatabaseReferenceとQueryのどちらも使えるように、getメソッドを定義
-    
+
     /**
      * 上位でもRefを使ってもらうため、ここで定義
      */
@@ -28,7 +28,7 @@ class DbListenerManager @Inject constructor(
     /**
      * リスナーを追加する (DatabaseReferenceまたはQueryに対応)
      */
-    fun addListener(reference: Any, listener: ChildEventListener) {
+    fun addListener(reference: Any?, listener: ChildEventListener) {
         when (reference) {
             is DatabaseReference -> reference.addChildEventListener(listener)
             is Query -> reference.addChildEventListener(listener)
