@@ -3,6 +3,7 @@ package gaku.original.myapplication.data
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
+import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
 import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
@@ -12,13 +13,28 @@ import javax.inject.Inject
 class CategoryRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
+    private val className: String = this::class.simpleName ?: "UnableToGetClassName"
+
     suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
-        return getCategoryRef(callback)
+        return realtimeDbReference.getUserCategoryRef(callback)
     }
 
     suspend fun fetchAllCategories(
-        callback: (Boolean) -> Unit = {}
+        callback: (SuspendFuncStatus) -> Unit = {}
     ): List<Category> {
+        val funcName: String = ::fetchAllCategories.name
+        var ret = emptyList<Category>()
+        LogClassFuncCalled(className, funcName)
+
+        val categoryRef = getCategoryRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+        if (categoryRef == null) {
+            return ret
+        }
+
         try {
             val snapshot = getCategoryRef()
             val categories = snapshot.children.mapNotNull {
