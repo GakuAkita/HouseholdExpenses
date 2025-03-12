@@ -1,45 +1,52 @@
-package gaku.original.myapplication.data.RepositoryUtil
-
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.resume
 
 suspend fun <T : CommonProperty> removeDataFromRTDb(
     data: T,
-    reference: DatabaseReference, // データ参照を取得するための関数
-    callback: (SuspendFuncStatus) -> Unit = {}
-) {
-    try {
-        withTimeout(2000) {
-            val id = data.id
-            if (id.isNullOrEmpty()) {
-                Log.e("updateDataToRTDb", "id is null or empty")
-                throw Exception("id${id} is null or empty")
-            }
-            //上でnullチェックをしているからここで返されることはない
-            val removeRef = reference.child(
-                data.id
-                    ?: throw Exception("Unable to get reference.child(${data.id}) at removeDataFromRTDb")
-            )
+    reference: DatabaseReference,
+    callback: (SuspendFuncStatus) -> Unit // callback を追加
+): SuspendFuncStatus {
+    val funcName = "removeDataFromRTDb"
 
-            // Save the new instance with the generated key
-            removeRef.removeValue()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d("addDataToRTDb", "Data added successfully")
-                        callback(SuspendFuncStatus.SUCCESS)
-                    } else {
-                        Log.e("addDataToRTDb", "Failed to add data", task.exception)
-                        throw Exception("Failed to add Data ${task.exception}")
+    val id = data.id
+    if (id.isNullOrEmpty()) {
+        Log.e(funcName, "id is null or empty")
+        callback(SuspendFuncStatus.FAILED) // idがnullや空なら、失敗をcallbackで通知
+        return SuspendFuncStatus.FAILED // 即終了
+    }
+
+    return try {
+        withTimeout(2000) {
+            suspendCancellableCoroutine { continuation ->
+                val removeRef = reference.child(id)
+
+                removeRef.removeValue()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d(funcName, "Data removed successfully")
+                            callback(SuspendFuncStatus.SUCCESS) // 成功した場合にcallbackを呼び出す
+                            continuation.resume(SuspendFuncStatus.SUCCESS)
+                        } else {
+                            Log.e(funcName, "Failed to remove data", task.exception)
+                            callback(SuspendFuncStatus.FAILED) // 失敗した場合にcallbackを呼び出す
+                            continuation.resume(SuspendFuncStatus.FAILED)
+                        }
                     }
-                }
+            }
         }
     } catch (e: TimeoutCancellationException) {
-        callback(SuspendFuncStatus.TIMEOUT)
+        Log.e(funcName, "Timeout occurred")
+        callback(SuspendFuncStatus.TIMEOUT) // タイムアウトの場合にcallbackを呼び出す
+        return SuspendFuncStatus.TIMEOUT
     } catch (e: Exception) {
-        callback(SuspendFuncStatus.FAILED)
+        Log.e(funcName, "Exception occurred", e)
+        callback(SuspendFuncStatus.FAILED) // 例外が発生した場合にcallbackを呼び出す
+        return SuspendFuncStatus.FAILED
     }
 }

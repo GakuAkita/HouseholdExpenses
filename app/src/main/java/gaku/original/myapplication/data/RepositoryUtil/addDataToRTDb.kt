@@ -1,40 +1,45 @@
-package gaku.original.myapplication.data.RepositoryUtil
-
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.resume
 
 suspend fun <T : CommonProperty> addDataToRTDb(
     data: T,
-    reference: DatabaseReference, // データ参照を取得するための関数
+    reference: DatabaseReference,
     callback: (SuspendFuncStatus) -> Unit = {}
-) {
-    val newDataRef = reference.push() // Generate the unique key
+): SuspendFuncStatus {
+    val funcName = "addDataToRTDb"
 
-    // Create a new instance of data with the generated ID
-    data.id = newDataRef.key//直接上書き
-    data.timestamp = System.currentTimeMillis()//時間を上書き
+    val newDataRef = reference.push()
+    data.id = newDataRef.key
+    data.timestamp = System.currentTimeMillis()
 
-    // Save the new instance with the generated key
-    try {
+    return try {
         withTimeout(2000) {
-            newDataRef.setValue(data)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d("addDataToRTDb", "Data added successfully")
-                        callback(SuspendFuncStatus.SUCCESS)
-                    } else {
-                        Log.e("addDataToRTDb", "Failed to add data", task.exception)
-                        throw Exception("Failed to add data at addDataToRTDb : ${task.exception}")
+            suspendCancellableCoroutine { continuation ->
+                newDataRef.setValue(data)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d(funcName, "Data added successfully")
+                            callback(SuspendFuncStatus.SUCCESS)
+                            continuation.resume(SuspendFuncStatus.SUCCESS) // ✅ 成功したので再開
+                        } else {
+                            Log.e(funcName, "Failed to add data", task.exception)
+                            callback(SuspendFuncStatus.FAILED)
+                            continuation.resume(SuspendFuncStatus.FAILED) // ❌ 失敗したので再開
+                        }
                     }
-                }
+            }
         }
     } catch (e: TimeoutCancellationException) {
         callback(SuspendFuncStatus.TIMEOUT)
+        return SuspendFuncStatus.TIMEOUT
     } catch (e: Exception) {
         callback(SuspendFuncStatus.FAILED)
+        return SuspendFuncStatus.FAILED
     }
 }

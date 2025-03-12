@@ -326,7 +326,9 @@ fun ExpenseAddEditView(
                         if (viewModel.currentTmpExpense.id == null) {
                             //追加する
                             //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
-                            viewModel.addTmpExpenseToDb()
+                            viewModel.addTmpExpenseToDb { status ->
+
+                            }
                             Toast.makeText(
                                 context,
                                 "追加しました",

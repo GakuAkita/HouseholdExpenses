@@ -2,11 +2,14 @@ package gaku.original.myapplication.viewModel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SignInResult
 import gaku.original.myapplication.data.Constants.Status.SingOutResult
 import gaku.original.myapplication.data.Constants.Status.SingUpResult
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,11 +31,23 @@ class AuthManagerViewModel @Inject constructor(
                     if (userId != null) {
                         Log.d("AuthManagerViewModel", "Signed in with Email:$email")
                         //サインイン直後にやらないと行けない作業はここでやる
-                        expenseSharedViewModel.fetchAllExpenses(
-                            callback = {
-                                expenseSharedViewModel.addExpenseCategoryChildEventListener()
+                        viewModelScope.launch {
+                            val fetchStatus = expenseSharedViewModel.fetchAllExpenses(
+                                callback = { status ->
+                                    if (status != SuspendFuncStatus.SUCCESS) {
+                                        callback(SignInResult.SIGN_IN_FAILED)
+                                    }
+                                }
+                            )
+
+                            if (fetchStatus == SuspendFuncStatus.SUCCESS) {
+                                expenseSharedViewModel.addExpenseCategoryChildEventListener {
+                                    if (it != SuspendFuncStatus.SUCCESS) {
+                                        callback(SignInResult.SIGN_IN_FAILED)
+                                    }
+                                }
                             }
-                        )
+                        }
                         expenseSharedViewModel.fetchAllCategories()
                         callback(SignInResult.SUCCESS)
                     } else {
@@ -46,13 +61,24 @@ class AuthManagerViewModel @Inject constructor(
             }
     }
 
-    fun signUp(email: String, password: String, callback: (SingUpResult) -> Unit) {
+    fun signUp(
+        email: String,
+        password: String,
+        onInitialDataAddFailed: () -> Unit,
+        callback: (SingUpResult) -> Unit
+    ) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("AuthManagerViewModel", "Created a user with Email:$email")
                     //アカウント作成後に行う処理はここでやる
-                    expenseSharedViewModel.addUserInitialData(email)
+                    viewModelScope.launch {
+                        expenseSharedViewModel.addUserInitialData(email) {
+                            if (it != SuspendFuncStatus.SUCCESS) {
+                                onInitialDataAddFailed()
+                            }
+                        }
+                    }
                     callback(SingUpResult.SUCCESS)
                 } else {
                     // エラーハンドリング

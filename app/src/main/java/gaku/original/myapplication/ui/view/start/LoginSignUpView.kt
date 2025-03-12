@@ -133,6 +133,9 @@ fun LoginSignUpView(
                     authViewModel.signUp(
                         email = email,
                         password = password,
+                        onInitialDataAddFailed = {
+                            /* サインアップは成功したが、初期データの追加ができなかった。 */
+                        },
                         callback = { status ->
                             when (status) {
                                 SingUpResult.SUCCESS -> {

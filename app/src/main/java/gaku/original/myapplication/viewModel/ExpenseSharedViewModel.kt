@@ -11,7 +11,6 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.CategoryRepository
-import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
@@ -114,35 +113,48 @@ class ExpenseSharedViewModel @Inject constructor(
         override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
     }
 
-    //サインインしたタイミングで実行する
-    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatus) -> Unit) {
+    //サインインしたタイミングで実行する。
+    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatus) -> Unit = {}): SuspendFuncStatus {
         //実行されたタイミングのtimeだけあればよい。
         val firstFetchedTime = System.currentTimeMillis()
+        var ret = SuspendFuncStatus.FAILED
 
-        getExpenseRef(callback)?.let {
-            //この中ではgetExpenseRefはnullでない
-            val queryForAddedExpense =
-                getExpenseRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
-            //リスナーを追加
-            //Expense用
-            dbListenerManager.addListener(queryForAddedExpense, expenseListAddChildEventListener)
-            dbListenerManager.addListener(getExpenseRef(), expenseListWatchChildEventListener)
-        } ?: run {
-            return
+        val expenseRef = getExpenseRef {
+            callback(it)
         }
 
-        getCategoryRef(callback)?.let {
-            val queryForAddedCategory =
-                getCategoryRef()?.orderByChild("timestamp")?.startAt(firstFetchedTime.toDouble())
-            //Category用
-            dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
-            dbListenerManager.addListener(getExpenseRef(), categoryListWatchChildEventListener)
-        } ?: run {
-            return
+        if (expenseRef == null) {
+            return ret
         }
 
+        val categoryRef = getCategoryRef {
+            callback(it)
+        }
+
+        if (categoryRef == null) {
+            return ret
+        }
+
+        val queryForAddedExpense =
+            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+
+        val queryForAddedCategory =
+            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+
+        //Expenseのリスナー
+        dbListenerManager.addListener(
+            queryForAddedExpense,
+            expenseListAddChildEventListener
+        )
+        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
+
+        //Categoryのリスナー
+        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
+        dbListenerManager.addListener(getExpenseRef(), categoryListWatchChildEventListener)
         //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
-
+        /* addListenerが非同期的にうまく行っているか確認する方法はないっぽい。callbackとかない。 */
+        ret = SuspendFuncStatus.SUCCESS
+        return ret
     }
 
     fun clearExpenseChildEventListener() {
@@ -158,13 +170,11 @@ class ExpenseSharedViewModel @Inject constructor(
             _allExpenses.value.isEmpty()
         ) {
             viewModelScope.launch {
-                var fetchStatus: SuspendFuncStatus = SuspendFuncStatus.FAILED
-                fetchAllExpenses(
+                val fetchStatus = fetchAllExpenses(
                     onStart = {
                         _expensesLoadingStatus.value = LoadingStatus.LOADING
                     },
                     callback = { status ->
-                        fetchStatus = status
                         if (status == SuspendFuncStatus.SUCCESS) {
                             _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                         } else if (status == SuspendFuncStatus.TIMEOUT) {
@@ -175,15 +185,7 @@ class ExpenseSharedViewModel @Inject constructor(
                     })
 
                 if (fetchStatus == SuspendFuncStatus.SUCCESS) {
-                    addExpenseCategoryChildEventListener { status ->
-                        if (status == SuspendFuncStatus.SUCCESS) {
-                            /* Do Nothing */
-                        } else if (status == SuspendFuncStatus.TIMEOUT) {
-                            /* UI側にうまく行っていないと通知したい */
-                        } else {
-                            /* UI側にうまく行っていないと通知したい */
-                        }
-                    }
+                    val listenerAddStatus = addExpenseCategoryChildEventListener()
                 }
             }
         } else {
@@ -193,18 +195,21 @@ class ExpenseSharedViewModel @Inject constructor(
         if (firebaseAuth.currentUser != null &&
             _allCategories.value.isEmpty()
         ) {
-            fetchAllCategories()
+            viewModelScope.launch {
+                fetchAllCategories()
+            }
         }
     }
 
-    fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit = {}) {
+    /*@TODO 途中で止まったときに、どうやって復旧させるかとか考えないとな。*/
+    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        viewModelScope.launch {
-            expenseRepository.addUserInitialData(email, callback)
-        }
-        //デフォルトカテゴリーを追加
-        for (defaultCategory in InitialCategories.categories) {
-            categoryRepository.addCategory(defaultCategory)
+        expenseRepository.addUserInitialData(email, callback)
+
+        // デフォルトカテゴリーを並列で追加
+        InitialCategories.categories.forEach { initialCategory ->
+            //こっちは失敗してもいいから、このままでいいや。
+            categoryRepository.addCategory(initialCategory, {})
         }
     }
 
@@ -225,7 +230,7 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun addExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
+    suspend fun addExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
         if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }
@@ -233,22 +238,17 @@ class ExpenseSharedViewModel @Inject constructor(
         if (expense.note == null) {
             expense.note = ""
         }
-
-        viewModelScope.launch {
-            expenseRepository.addExpense(expense, callback)
-        }
+        expenseRepository.addExpense(expense, callback)
     }
 
-    fun updateExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            expenseRepository.updateExpense(expense, callback)
-        }
+    suspend fun updateExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
+
+        expenseRepository.updateExpense(expense, callback)
+
     }
 
-    fun removeExpense(expense: Expense, callback: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            expenseRepository.removeExpense(expense, callback)
-        }
+    suspend fun removeExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
+        expenseRepository.removeExpense(expense, callback)
     }
 
     /*******************Category CRUD関連**************************/
@@ -314,11 +314,9 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
 
-    fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}) {
-        viewModelScope.launch {
-            _allCategories.value = categoryRepository.fetchAllCategories(callback)
-            Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
-        }
+    suspend fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}) {
+        _allCategories.value = categoryRepository.fetchAllCategories(callback)
+        Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
     }
 
     /*
@@ -326,60 +324,45 @@ class ExpenseSharedViewModel @Inject constructor(
     CategoryEditView用の関数を作りそこで被りチェックを入れても良いが、そうすると、
     SharedViewModelを他のviewModelでチェックしてCategoryを追加するときに同じ機能を実装することになる。
     */
-    fun addCategory(category: Category, callback: (CategoryEditStatus) -> Unit = {}) {
+    suspend fun addCategory(
+        category: Category,
+        onDuplicateCategory: () -> Unit = {},
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
+        //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
+            onDuplicateCategory()
         } else {
-            viewModelScope.launch {
-                categoryRepository.addCategory(
-                    category = category,
-                    callback = { result ->
-                        if (result) {
-                            callback(CategoryEditStatus.SUCCESS)
-                        } else {
-                            callback(CategoryEditStatus.FAILED)
-                        }
-                    }
-                )
-            }
+            categoryRepository.addCategory(
+                category = category,
+                callback = callback
+            )
         }
     }
 
-    fun updateCategory(category: Category, callback: (CategoryEditStatus) -> Unit = {}) {
+    suspend fun updateCategory(
+        category: Category,
+        onDuplicateCategory: () -> Unit = {},
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ) {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            callback(CategoryEditStatus.CATEGORY_ALREADY_EXIST)
+            onDuplicateCategory()
         } else {
-            viewModelScope.launch {
-                categoryRepository.updateCategory(
-                    category = category,
-                    callback = { result ->
-                        if (result) {
-                            callback(CategoryEditStatus.SUCCESS)
-                        } else {
-                            callback(CategoryEditStatus.FAILED)
-                        }
-                    }
-                )
-            }
+            categoryRepository.updateCategory(
+                category = category,
+                callback = callback
+            )
+
         }
     }
 
-    fun removeCategory(category: Category, callback: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            categoryRepository.removeCategory(
-                category,
-                callback = { result ->
-                    if (result) {
-                        callback(true)
-                    } else {
-                        callback(false)
-                    }
-
-                }
-            )
-        }
+    suspend fun removeCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+        categoryRepository.removeCategory(
+            category,
+            callback = callback
+        )
     }
 }
