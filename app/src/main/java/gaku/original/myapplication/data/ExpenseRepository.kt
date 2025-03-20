@@ -6,6 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.RepositoryUtil.addSingleDataToRTDb
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -22,44 +23,29 @@ class ExpenseRepository(
     }
 
     //SignUp後にやる操作
-    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun addUserInitialData(
+        email: String,
+        callback: (SuspendFuncStatus) -> Unit
+    ): SuspendFuncStatus {
         val funcName: String = ::addUserInitialData.name
         LogClassFuncCalled(className, funcName)
+        var ret = SuspendFuncStatus.FAILED
+
         val userRef = realtimeDbReference.getUserRef { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
-                callback(status)
+                callback(status) // 失敗時に早期リターン
             }
         }
-        //userRefがnullの場合は、callback(FAILED)はgetUserRefの中で実行されている
-        userRef?.let { ref ->/* userRefのこと */
-            try {
-                withTimeout(2000) {
-                    ref.child("email").setValue(email)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                //ユーザーにはinitial dataを追加したかはわからなくていいか。
-                                Log.d(className, "addUserInitialData successful")
-                                callback(SuspendFuncStatus.SUCCESS)
-                            } else {
-                                Log.e(
-                                    className,
-                                    "Failed to add initialData",
-                                    task.exception
-                                )
-                                throw Exception("Failed to add initialData")
-                            }
-                        }
-                }
-            } catch (e: TimeoutCancellationException) {
-                callback(SuspendFuncStatus.TIMEOUT)
-            } catch (e: Exception) {
-                callback(SuspendFuncStatus.FAILED)
-            }
-        } ?: run {
-            /* nullの場合はスルー */
-            return
+
+        if (userRef == null) {
+            return ret
         }
+
+        ret = addSingleDataToRTDb(email, "email", userRef, callback)
+
+        return ret
     }
+
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchAllExpenses(

@@ -1,16 +1,16 @@
 package gaku.original.myapplication.data
 
+import addDataToRTDb
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.RepositoryUtil.addDataToRTDb
-import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
-import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import removeDataFromRTDb
+import updateDataToRTDb
 import javax.inject.Inject
 
 class RepeatAddRepository @Inject constructor(
@@ -62,52 +62,60 @@ class RepeatAddRepository @Inject constructor(
     suspend fun addRepeatAdd(
         repeatAdd: RepeatAdd,
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         val funcName = ::addRepeatAdd.name
         LogClassFuncCalled(className, funcName)
-        val ref = getRepeatAddRef() { status ->
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getRepeatAddRef() { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (ref == null) {
-            return
+        if (reference == null) {
+            return ret
         }
 
-        addDataToRTDb(repeatAdd, ref, callback)
+        ret = addDataToRTDb(repeatAdd, reference, callback)
+        return ret
     }
 
     suspend fun updateRepeatAdd(
         repeatAdd: RepeatAdd,
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         val funcName = ::updateRepeatAdd.name
         LogClassFuncCalled(className, funcName)
-        val ref = getRepeatAddRef() { status ->
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getRepeatAddRef { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (ref == null) {
-            return
+        if (reference == null) {
+            return ret
         }
-        updateDataToRTDb(repeatAdd, ref, callback)
+        ret = updateDataToRTDb(repeatAdd, reference, callback)
+
+        return ret
     }
 
     suspend fun removeRepeatAdd(
         repeatAdd: RepeatAdd,
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         val funcName = ::removeRepeatAdd.name
         LogClassFuncCalled(className, funcName)
-        val ref = getRepeatAddRef() { status ->
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getRepeatAddRef() { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (ref == null) {
-            return
+        if (reference == null) {
+            return ret
         }
-        removeDataFromRTDb(repeatAdd, ref, callback)
+        ret = removeDataFromRTDb(repeatAdd, reference, callback)
+
+        return ret
     }
 }

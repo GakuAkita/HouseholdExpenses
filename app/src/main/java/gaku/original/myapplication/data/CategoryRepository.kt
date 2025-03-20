@@ -6,11 +6,11 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.RepositoryUtil.removeDataFromRTDb
-import gaku.original.myapplication.data.RepositoryUtil.updateDataToRTDb
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import removeDataFromRTDb
+import updateDataToRTDb
 import javax.inject.Inject
 
 class CategoryRepository @Inject constructor(
@@ -82,32 +82,44 @@ class CategoryRepository @Inject constructor(
         return ret
     }
 
-    suspend fun updateCategory(category: Category, callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun updateCategory(
+        category: Category,
+        callback: (SuspendFuncStatus) -> Unit
+    ): SuspendFuncStatus {
         val funcName = ::updateCategory.name
         LogClassFuncCalled(className, funcName)
-        val ref = getCategoryRef { status ->
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getCategoryRef { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (ref == null) {
-            return
+        if (reference == null) {
+            return ret
         }
-        updateDataToRTDb(category, ref, callback)
+        ret = updateDataToRTDb(category, reference, callback)
+
+        return ret
     }
 
-    suspend fun removeCategory(category: Category, callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun removeCategory(
+        category: Category,
+        callback: (SuspendFuncStatus) -> Unit
+    ): SuspendFuncStatus {
         val funcName = ::removeCategory.name
         LogClassFuncCalled(className, funcName)
-        val ref = getCategoryRef { status ->
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getCategoryRef { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (ref == null) {
-            return
+        if (reference == null) {
+            return ret
         }
 
-        removeDataFromRTDb(category, ref, callback)
+        ret = removeDataFromRTDb(category, reference, callback)
+
+        return ret
     }
 }
