@@ -230,7 +230,10 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    suspend fun addExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
+    suspend fun addExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
         if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }
@@ -241,13 +244,19 @@ class ExpenseSharedViewModel @Inject constructor(
         expenseRepository.addExpense(expense, callback)
     }
 
-    suspend fun updateExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
+    suspend fun updateExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
 
         expenseRepository.updateExpense(expense, callback)
 
     }
 
-    suspend fun removeExpense(expense: Expense, callback: (SuspendFuncStatus) -> Unit = {}) {
+    suspend fun removeExpense(
+        expense: Expense,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
         expenseRepository.removeExpense(expense, callback)
     }
 
@@ -328,7 +337,7 @@ class ExpenseSharedViewModel @Inject constructor(
         category: Category,
         onDuplicateCategory: () -> Unit = {},
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
@@ -345,7 +354,7 @@ class ExpenseSharedViewModel @Inject constructor(
         category: Category,
         onDuplicateCategory: () -> Unit = {},
         callback: (SuspendFuncStatus) -> Unit = {}
-    ) {
+    ): SuspendFuncStatus {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
@@ -359,7 +368,10 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    suspend fun removeCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+    suspend fun removeCategory(
+        category: Category,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
         categoryRepository.removeCategory(
             category,
             callback = callback

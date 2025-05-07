@@ -47,8 +47,8 @@ class AuthManagerViewModel @Inject constructor(
                                     }
                                 }
                             }
+                            expenseSharedViewModel.fetchAllCategories()
                         }
-                        expenseSharedViewModel.fetchAllCategories()
                         callback(SignInResult.SUCCESS)
                     } else {
                         Log.d("AuthManagerViewModel", "SignIn success but userId is null")
