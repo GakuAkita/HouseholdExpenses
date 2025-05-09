@@ -30,26 +30,6 @@ class AuthManagerViewModel @Inject constructor(
                 if (task.isSuccessful) {
                     if (userId != null) {
                         Log.d("AuthManagerViewModel", "Signed in with Email:$email")
-                        //サインイン直後にやらないと行けない作業はここでやる
-                        viewModelScope.launch {
-                            /* ここのviewModelScopeでやるのではなくて、expenseListViewModelのviewModelScopeでやる */
-                            val fetchStatus = expenseSharedViewModel.fetchAllExpenses(
-                                callback = { status ->
-                                    if (status != SuspendFuncStatus.SUCCESS) {
-                                        callback(SignInResult.SIGN_IN_FAILED)
-                                    }
-                                }
-                            )
-
-                            if (fetchStatus == SuspendFuncStatus.SUCCESS) {
-                                expenseSharedViewModel.addExpenseCategoryChildEventListener {
-                                    if (it != SuspendFuncStatus.SUCCESS) {
-                                        callback(SignInResult.SIGN_IN_FAILED)
-                                    }
-                                }
-                            }
-                            expenseSharedViewModel.fetchAllCategories()
-                        }
                         callback(SignInResult.SUCCESS)
                     } else {
                         Log.d("AuthManagerViewModel", "SignIn success but userId is null")
@@ -92,7 +72,7 @@ class AuthManagerViewModel @Inject constructor(
 
     fun signOut(): SingOutResult {
         try {
-            expenseSharedViewModel.clearExpenseChildEventListener()
+            expenseSharedViewModel.onSignedOut()
 
             firebaseAuth.signOut()
             if (userId == null) {
@@ -112,5 +92,4 @@ class AuthManagerViewModel @Inject constructor(
             return SingOutResult.SIGN_OUT_FAILED
         }
     }
-
 }

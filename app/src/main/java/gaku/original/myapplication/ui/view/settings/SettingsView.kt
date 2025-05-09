@@ -82,6 +82,10 @@ fun SettingsView(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 onClick = {
+                    /**
+                     * サインアウトに失敗したときに、FirebaseAuthは空になっているけど、initしちゃったみたいなケースはあるか？？
+                     * そこらへんの対処が必要になるか??
+                     * */
                     //ログアウト機能を実装
                     val ret = viewModel.signOut()
                     if (ret == SingOutResult.SUCCESS) {

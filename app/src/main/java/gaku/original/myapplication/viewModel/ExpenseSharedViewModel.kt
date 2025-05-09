@@ -36,12 +36,19 @@ class ExpenseSharedViewModel @Inject constructor(
     private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
 
+    fun clearAllExpenses() {
+        _allExpenses.value = emptyList()
+    }
+
     //emptyList()のとき、Loadingがうまく行ってないのか、シンプルに何も保存されていないのかの区別がつかない
     private val _expensesLoadingStatus = MutableStateFlow(LoadingStatus.COMPLETED)
     val expensesLoadingStatus: StateFlow<LoadingStatus> get() = _expensesLoadingStatus
 
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
+    fun clearAllCategories() {
+        _allCategories.value = emptyList()
+    }
 
     //realtimeDbReferenceから取っても良いが、引数が増えるのでdbListenerManagerから取る
     suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
@@ -81,7 +88,7 @@ class ExpenseSharedViewModel @Inject constructor(
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onCancelled(error: DatabaseError) {}
         override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d("ExpenseSharedViewModel", "onChildChanged(Expense) was called.")
+            Log.d(className, "onChildChanged(Expense) was called.")
             val updatedExpense = snapshot.getValue(Expense::class.java)
             updatedExpense?.let {
                 viewModelScope.launch {
@@ -92,20 +99,20 @@ class ExpenseSharedViewModel @Inject constructor(
                             expense
                         }
                     }
-                    Log.d("ExpenseSharedViewModel", "Expense updated: ${updatedExpense.id}")
+                    Log.d(className, "Expense updated: ${updatedExpense.id}")
                 }
             }
         }
 
         override fun onChildRemoved(snapshot: DataSnapshot) {
-            Log.d("ExpenseSharedViewModel", "onChildRemoved(Expense) was called.")
+            Log.d(className, "onChildRemoved(Expense) was called.")
             val removedExpense = snapshot.getValue(Expense::class.java)
             removedExpense?.let {
                 viewModelScope.launch {
                     _allExpenses.value = _allExpenses.value.filterNot { expense ->
                         expense.id == removedExpense.id
                     }
-                    Log.d("ExpenseSharedViewModel", "Expense removed: $removedExpense")
+                    Log.d(className, "Expense removed: $removedExpense")
                 }
             }
         }
@@ -150,7 +157,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
         //Categoryのリスナー
         dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
-        dbListenerManager.addListener(getExpenseRef(), categoryListWatchChildEventListener)
+        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
         //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
         /* addListenerが非同期的にうまく行っているか確認する方法はないっぽい。callbackとかない。 */
         ret = SuspendFuncStatus.SUCCESS
@@ -163,43 +170,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     /*******************Expense CRUD関連**************************/
     init {
-        Log.d("ExpenseSharedViewModel", "Init was called.")
-
-        /* これがないと、MainViewに遷移したときに_allExpensesに値が入らない */
-        //@TODO onSignedInという関数を作り、それに初期化処理をいれる
-        if (firebaseAuth.currentUser != null &&
-            _allExpenses.value.isEmpty()
-        ) {
-            viewModelScope.launch {
-                val fetchStatus = fetchAllExpenses(
-                    onStart = {
-                        _expensesLoadingStatus.value = LoadingStatus.LOADING
-                    },
-                    callback = { status ->
-                        if (status == SuspendFuncStatus.SUCCESS) {
-                            _expensesLoadingStatus.value = LoadingStatus.COMPLETED
-                        } else if (status == SuspendFuncStatus.TIMEOUT) {
-                            _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
-                        } else {
-                            _expensesLoadingStatus.value = LoadingStatus.ERROR
-                        }
-                    })
-
-                if (fetchStatus == SuspendFuncStatus.SUCCESS) {
-                    val listenerAddStatus = addExpenseCategoryChildEventListener()
-                }
-            }
-        } else {
-            Log.d("ExpenseSharedViewModel", "User is not signed in.")
-        }
-
-        if (firebaseAuth.currentUser != null &&
-            _allCategories.value.isEmpty()
-        ) {
-            viewModelScope.launch {
-                fetchAllCategories()
-            }
-        }
+        Log.d(className, "Init was called.")
     }
 
 
@@ -219,12 +190,25 @@ class ExpenseSharedViewModel @Inject constructor(
     private val _initFetchedDone = MutableStateFlow(false);
     val initFetchedDone: StateFlow<Boolean> get() = _initFetchedDone
 
+    fun setInitFetchedDone(value: Boolean) {
+        _initFetchedDone.value = value
+    }
+
+    private fun clearPossession() {
+        clearAllExpenses()
+        clearAllCategories()
+        clearExpenseChildEventListener()
+    }
+
     suspend fun onSignedIn(callback: (SuspendFuncStatus) -> Unit) {
         if (_initFetchedDone.value) {
             /* アプリを立ち上げて初回実行時に行う */
-            Log.d("ExpenseSharedViewModel", "")
+            Log.d(className, "すでに実行されている.....")
             return;
         }
+
+        /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
+        clearPossession()
 
         viewModelScope.launch {
             Log.d(className, "init fetch is executed..")
@@ -265,6 +249,11 @@ class ExpenseSharedViewModel @Inject constructor(
             /* 最後にフラグを下げる。@TODO 途中停止なのか判定できたほうがいいか、、、 */
             _initFetchedDone.value = true
         }
+    }
+
+    fun onSignedOut() {
+        clearPossession()
+        setInitFetchedDone(false)
     }
 
 
