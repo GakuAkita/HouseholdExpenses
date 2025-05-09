@@ -85,6 +85,13 @@ fun MainView(
         viewModel.filterExpensesByMonth()
     }
 
+    LaunchedEffect(Unit) {
+        /* 内部で一回だけ実行するようにしている、、 */
+        viewModel.onSignedIn(callback = {
+            Log.d("MainView", "これ大丈夫そう???")
+        })
+    }
+
     //rememberをつけると再コンポーズのとき無駄に走らない
     val monthExpenses by remember { viewModel.filteredExpenses }.collectAsState(initial = emptyList())
     //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意

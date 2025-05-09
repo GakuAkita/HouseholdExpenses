@@ -202,6 +202,7 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
+
     /*@TODO 途中で止まったときに、どうやって復旧させるかとか考えないとな。*/
     suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
@@ -213,6 +214,59 @@ class ExpenseSharedViewModel @Inject constructor(
             categoryRepository.addCategory(initialCategory, {})
         }
     }
+
+    /* これがtrueになっていれば、fetchAllExpensesを走らせる */
+    private val _initFetchedDone = MutableStateFlow(false);
+    val initFetchedDone: StateFlow<Boolean> get() = _initFetchedDone
+
+    suspend fun onSignedIn(callback: (SuspendFuncStatus) -> Unit) {
+        if (_initFetchedDone.value) {
+            /* アプリを立ち上げて初回実行時に行う */
+            Log.d("ExpenseSharedViewModel", "")
+            return;
+        }
+
+        viewModelScope.launch {
+            Log.d(className, "init fetch is executed..")
+            var ret = fetchAllExpenses(
+                onStart = {
+                    _expensesLoadingStatus.value = LoadingStatus.LOADING
+                },
+                callback = { status ->
+                    if (status == SuspendFuncStatus.SUCCESS) {
+                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
+                    } else {
+                        _expensesLoadingStatus.value = LoadingStatus.ERROR
+                    }
+                })
+
+            if (ret != SuspendFuncStatus.SUCCESS) {
+                /* ここでcallbackをいれたいな～ */
+                callback(ret)
+                return@launch
+            }
+
+            ret = fetchAllCategories()
+            if (ret != SuspendFuncStatus.SUCCESS) {
+                callback(ret)
+                return@launch
+            }
+
+
+            ret = addExpenseCategoryChildEventListener(callback)
+            if (ret != SuspendFuncStatus.SUCCESS) {
+                return@launch
+            }
+
+            /* 他にやることがあるのであればここへ、、 */
+
+            /* 最後にフラグを下げる。@TODO 途中停止なのか判定できたほうがいいか、、、 */
+            _initFetchedDone.value = true
+        }
+    }
+
 
     suspend fun fetchAllExpenses(
         onStart: () -> Unit = {},
@@ -226,7 +280,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 ret = status
                 callback(status)
             }
-            Log.d("ExpenseSharedViewModel", "Expenses:${_allExpenses.value}")
+            Log.d(className, "Expenses:${_allExpenses.value}")
             ret//こいつを返す
         }
     }
@@ -265,16 +319,16 @@ class ExpenseSharedViewModel @Inject constructor(
     /* @TODO 将来的にはallExpensesと同じようなローカルに保持しておく。(カテゴリー自体は数が多くならないので今は毎回fetchする感じにする) */
     private val categoryListAddChildEventListener = object : ChildEventListener {
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d("ExpenseSharedViewModel", "onChildAdded(Category) was called.")
+            Log.d(className, "onChildAdded(Category) was called.")
             val newCategory = snapshot.getValue(Category::class.java)
             newCategory?.let {
                 viewModelScope.launch {
                     Log.d(
-                        "ExpenseSharedViewModel",
+                        className,
                         "_allExpenses.value size: ${_allCategories.value.size}"
                     )
                     _allCategories.value += newCategory
-                    Log.d("ExpenseSharedViewModel", "Expense added: $newCategory")
+                    Log.d(className, "Expense added: $newCategory")
                 }
             }
         }
@@ -291,7 +345,7 @@ class ExpenseSharedViewModel @Inject constructor(
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onCancelled(error: DatabaseError) {}
         override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d("ExpenseSharedViewModel", "onChildChanged(Category) was called.")
+            Log.d(className, "onChildChanged(Category) was called.")
             val updatedCategory = snapshot.getValue(Category::class.java)
             updatedCategory?.let {
                 viewModelScope.launch {
@@ -302,20 +356,20 @@ class ExpenseSharedViewModel @Inject constructor(
                             category
                         }
                     }
-                    Log.d("ExpenseSharedViewModel", "Category updated: ${updatedCategory.id}")
+                    Log.d(className, "Category updated: ${updatedCategory.id}")
                 }
             }
         }
 
         override fun onChildRemoved(snapshot: DataSnapshot) {
-            Log.d("ExpenseSharedViewModel", "onChildRemoved(Category) was called.")
+            Log.d(className, "onChildRemoved(Category) was called.")
             val removedExpense = snapshot.getValue(Expense::class.java)
             removedExpense?.let {
                 viewModelScope.launch {
                     _allCategories.value = _allCategories.value.filterNot { expense ->
                         expense.id == removedExpense.id
                     }
-                    Log.d("ExpenseSharedViewModel", "Category removed: $removedExpense")
+                    Log.d(className, "Category removed: $removedExpense")
                 }
             }
         }
