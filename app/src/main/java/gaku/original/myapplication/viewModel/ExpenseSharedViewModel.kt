@@ -166,6 +166,7 @@ class ExpenseSharedViewModel @Inject constructor(
         Log.d("ExpenseSharedViewModel", "Init was called.")
 
         /* これがないと、MainViewに遷移したときに_allExpensesに値が入らない */
+        //@TODO onSignedInという関数を作り、それに初期化処理をいれる
         if (firebaseAuth.currentUser != null &&
             _allExpenses.value.isEmpty()
         ) {
@@ -241,7 +242,7 @@ class ExpenseSharedViewModel @Inject constructor(
         if (expense.note == null) {
             expense.note = ""
         }
-        expenseRepository.addExpense(expense, callback)
+        return expenseRepository.addExpense(expense, callback)
     }
 
     suspend fun updateExpense(
@@ -249,7 +250,7 @@ class ExpenseSharedViewModel @Inject constructor(
         callback: (SuspendFuncStatus) -> Unit = {}
     ): SuspendFuncStatus {
 
-        expenseRepository.updateExpense(expense, callback)
+        return expenseRepository.updateExpense(expense, callback)
 
     }
 
@@ -257,7 +258,7 @@ class ExpenseSharedViewModel @Inject constructor(
         expense: Expense,
         callback: (SuspendFuncStatus) -> Unit = {}
     ): SuspendFuncStatus {
-        expenseRepository.removeExpense(expense, callback)
+        return expenseRepository.removeExpense(expense, callback)
     }
 
     /*******************Category CRUD関連**************************/
@@ -323,9 +324,17 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
 
-    suspend fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}) {
-        _allCategories.value = categoryRepository.fetchAllCategories(callback)
+    suspend fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}): SuspendFuncStatus {
+        var status: SuspendFuncStatus = SuspendFuncStatus.FAILED
+
+        val categories = categoryRepository.fetchAllCategories {
+            status = it
+            callback(it)
+        }
+
+        _allCategories.value = categories
         Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
+        return status
     }
 
     /*
@@ -342,8 +351,9 @@ class ExpenseSharedViewModel @Inject constructor(
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
             onDuplicateCategory()
+            return SuspendFuncStatus.FAILED
         } else {
-            categoryRepository.addCategory(
+            return categoryRepository.addCategory(
                 category = category,
                 callback = callback
             )
@@ -359,8 +369,9 @@ class ExpenseSharedViewModel @Inject constructor(
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
             onDuplicateCategory()
+            return SuspendFuncStatus.FAILED
         } else {
-            categoryRepository.updateCategory(
+            return categoryRepository.updateCategory(
                 category = category,
                 callback = callback
             )
@@ -372,7 +383,7 @@ class ExpenseSharedViewModel @Inject constructor(
         category: Category,
         callback: (SuspendFuncStatus) -> Unit = {}
     ): SuspendFuncStatus {
-        categoryRepository.removeCategory(
+        return categoryRepository.removeCategory(
             category,
             callback = callback
         )

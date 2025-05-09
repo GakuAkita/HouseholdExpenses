@@ -47,6 +47,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.RepeatFrequency
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
@@ -138,16 +139,16 @@ fun RepeatAddSettingView(
                         ).show()
                         if (newRepeatAdd.id == null)//新規追加
                         {
-                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { isSuccess ->
-                                if (isSuccess) {
+                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { status ->
+                                if (status == SuspendFuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */
                                 }
                             })
                         } else {/* 編集 */
-                            viewModel.updateRepeatAdd(newRepeatAdd, callback = { isSuccess ->
-                                if (isSuccess) {
+                            viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
+                                if (status == SuspendFuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */

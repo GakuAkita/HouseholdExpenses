@@ -34,7 +34,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
-import gaku.original.myapplication.data.Constants.Status.CategoryEditStatus
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.CategoryEditViewModel
@@ -108,9 +108,10 @@ fun CategoryAddEditView(
                             //新規追加
                             viewModel.addCategory(
                                 newCategory,
+                                onDuplicateCategory = {/* ダブった場合 */ },
                                 callback = { status ->
                                     when (status) {
-                                        CategoryEditStatus.SUCCESS -> {
+                                        SuspendFuncStatus.SUCCESS -> {
                                             Toast.makeText(
                                                 context,
                                                 "Category Added",
@@ -119,15 +120,15 @@ fun CategoryAddEditView(
                                             showDialog = false
                                         }
 
-                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST -> {
+                                        SuspendFuncStatus.TIMEOUT -> {
                                             Toast.makeText(
                                                 context,
-                                                "The Category Already Exists",
+                                                "Time out!",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
 
-                                        CategoryEditStatus.FAILED -> {
+                                        SuspendFuncStatus.FAILED -> {
                                             Toast.makeText(
                                                 context,
                                                 "Failed to Add Category",
@@ -142,21 +143,24 @@ fun CategoryAddEditView(
                             //編集
                             viewModel.updateCategory(
                                 newCategory,
+                                onDuplicateCategory = {
+                                    Toast.makeText(
+                                        context,
+                                        "The Category Already Exists",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
                                 callback = { status ->
                                     when (status) {
-                                        CategoryEditStatus.SUCCESS -> {
+                                        SuspendFuncStatus.SUCCESS -> {
                                             showDialog = false
                                         }
 
-                                        CategoryEditStatus.CATEGORY_ALREADY_EXIST -> {
-                                            Toast.makeText(
-                                                context,
-                                                "The Category Already Exists",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                        SuspendFuncStatus.TIMEOUT -> {
+
                                         }
 
-                                        CategoryEditStatus.FAILED -> {
+                                        SuspendFuncStatus.FAILED -> {
                                             Toast.makeText(
                                                 context,
                                                 "Failed to Add Category",
@@ -181,10 +185,8 @@ fun CategoryAddEditView(
                     onOK = { categoryRemoved ->
                         viewModel.removeCategory(
                             category = categoryRemoved,
-                            callback = { result ->
-                                if (result) {
-                                    /* 必要そうだったらToastいれる */
-                                } else {
+                            callback = { status ->
+                                if (status == SuspendFuncStatus.FAILED) {
                                     Toast.makeText(
                                         context,
                                         "Failed to Remove Category${categoryRemoved.name}",

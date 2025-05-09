@@ -1,10 +1,10 @@
 package gaku.original.myapplication.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,34 +46,32 @@ class RepeatAddViewModel @Inject constructor(
     fun fetchAllRepeatAddSettings(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             val settings = repeatAddRepository.fetchRepeatAddSettings(
-                callback = { isSuccess ->
-                    if (!isSuccess) {
-                        Log.d("RepeatAddViewModel", "fetchRepeatAddSettings failed.")
-                        //UIに通知したい。
-                    }
+                callback = { status ->
+                    /* 成功失敗時の通知 */
                 }
             )
-            if (settings != null) {
+
+            if (settings.isNotEmpty()) {
                 _repeatAddSettings.value = settings
             }
             onComplete()
         }
     }
 
-    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (Boolean) -> Unit = {}) {
+    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
         //チェックをいれる
         viewModelScope.launch {
             repeatAddRepository.addRepeatAdd(repeatAdd, callback)
         }
     }
 
-    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (Boolean) -> Unit = {}) {
+    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
         viewModelScope.launch {
             repeatAddRepository.updateRepeatAdd(repeatAdd, callback)
         }
     }
 
-    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (Boolean) -> Unit = {}) {
+    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
         viewModelScope.launch {
             repeatAddRepository.removeRepeatAdd(repeatAdd, callback)
         }

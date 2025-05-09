@@ -43,8 +43,6 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.defaultCategory
-import gaku.original.myapplication.data.defaultExpense
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.CalendarDisplay
@@ -83,6 +81,7 @@ fun MainView(
         currentPageMonth = viewModel.getCalendarMonth()
         currentPageYear = viewModel.getCalendarYear()
 
+        Log.d("Akita Debug", "これ走ってる？？")
         viewModel.filterExpensesByMonth()
     }
 
@@ -189,20 +188,6 @@ fun MainView(
                 /* Do nothing */
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                /* サンプルのExpenseを作ってデザインの参考に */
-                val sampleCategory = defaultCategory.copy(
-                    name = "食費"
-                )
-                val sampleExpense = defaultExpense.copy(
-                    amount = 100,
-                    category = sampleCategory
-                )
-                ExpenseItem(
-                    expense = sampleExpense,
-                    onEdit = {}
-                )
-
-
                 LazyColumnScrollbar(//外部ライブラリ
                     state = listState,
                     settings = ScrollbarSettings.Default.copy(
@@ -221,6 +206,7 @@ fun MainView(
                             ExpenseItem(
                                 expense = expense,
                                 onEdit = {
+                                    print("onEdit was tapped...")
                                     //viewModel内の値を転写
                                     viewModel.setToTmpExpense(expense)
                                     //ExpenseAddEditViewに移動

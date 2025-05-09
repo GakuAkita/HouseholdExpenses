@@ -216,9 +216,8 @@ fun ExpenseAddEditView(
             /* カテゴリーの項目 */
             /*************************************************/
 
-            Row(
-
-            ) {
+            Row()
+            {
                 ExposedDropdownMenuBox(
                     expanded = categoryOptionsExpanded,
                     onExpandedChange = {
@@ -256,7 +255,7 @@ fun ExpenseAddEditView(
                             ).show()
                             categoryOptionsExpanded = false
                         }
-                        allCategories.forEachIndexed { index, category ->
+                        allCategories.forEachIndexed { _, category ->
                             DropdownMenuItem(
                                 text = { Text(text = category.name.toString()) },
                                 onClick = {
@@ -326,9 +325,9 @@ fun ExpenseAddEditView(
                         if (viewModel.currentTmpExpense.id == null) {
                             //追加する
                             //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
-                            viewModel.addTmpExpenseToDb { status ->
-
-                            }
+                            viewModel.addTmpExpenseToDb(
+                                onStart = {/* 追加します的な,, */ },
+                                callback = { status -> /*失敗したときの対処*/ })
                             Toast.makeText(
                                 context,
                                 "追加しました",
@@ -336,7 +335,9 @@ fun ExpenseAddEditView(
                             ).show()
                         } else {//idがnullでなかったら編集
                             //このidのExpenseをupdateする
-                            viewModel.updateTmpExpenseToDb()
+                            viewModel.updateTmpExpenseToDb(
+                                onStart = {/* 追加しますてきな？？ */ },
+                                callback = {/* 失敗したときの対応 */ })//@TODO 空だけど、あとで整備
                             Toast.makeText(
                                 context,
                                 "更新する",
@@ -380,7 +381,9 @@ fun ExpenseAddEditView(
                 Button(
                     onClick = {
                         //削除
-                        viewModel.removeTmpExpenseToDb()
+                        viewModel.removeTmpExpenseToDb(
+                            onStart = {},
+                            callback = {/* 失敗したときの処理 */ })
                         //リセット
                         viewModel.resetTmpExpense()
                         //元に戻る
