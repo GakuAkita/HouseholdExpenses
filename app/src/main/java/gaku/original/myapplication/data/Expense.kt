@@ -1,8 +1,8 @@
 package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
+import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.data.Interface.CommonProperty
-import gaku.original.myapplication.fromLocalDateTime
 import java.time.LocalDateTime
 
 data class Expense(

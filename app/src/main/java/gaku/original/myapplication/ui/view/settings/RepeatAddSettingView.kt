@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -49,6 +50,7 @@ import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.getDayOfWeekValues
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
@@ -315,7 +317,7 @@ fun RepeatAddEditDialog(
                         ) {
                             if (categories.value.isEmpty()) {
                                 //何もなかったらToastを出す
-                                Log.d("AkitaDebug", "allCategories is empty")
+                                LogAkitaDebug("allCategories is empty")
                                 categoryOptionsExpanded = false
                             }
                             categories.value.forEachIndexed { _, category ->
@@ -394,7 +396,7 @@ fun RepeatAddEditDialog(
                                     text = { Text(text = freq.replace("_", " ")) },
                                     onClick = {
                                         newRepeatAdd = newRepeatAdd.copy(
-                                            /* ドロップダウンでfrequencyを変えたときは、FrequencyTextFiled内のnewFrequencyInfoをリセット */
+                                            /* ドロップダウンでfrequencyを変えたときは、FrequencyTextField内のnewFrequencyInfoをリセット */
                                             /* ここの値が初期値としてセットされる */
                                             frequencyInfo = newRepeatAdd.frequencyInfo.copy(
                                                 frequency = freq,
@@ -406,8 +408,7 @@ fun RepeatAddEditDialog(
                                             )
                                         )
                                         frequencyOptionsExpanded = false
-                                        Log.d(
-                                            "AkitaDebug",
+                                        LogAkitaDebug(
                                             "DropdownMenu was selected.${newRepeatAdd}"
                                         )
                                     }
@@ -432,13 +433,12 @@ fun RepeatAddEditDialog(
                         FrequencyTextField(newRepeatAdd.frequencyInfo,
                             callback = {
                                 newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it)
-                                Log.d(
-                                    "AkitaDebug",
+                                LogAkitaDebug(
                                     "callback of FrequencyTextField:${newRepeatAdd}"
                                 )
                             }
                         )
-                        Log.d("AkitaDebug", "FrequencyTextField ended??${newRepeatAdd}")
+                        LogAkitaDebug("FrequencyTextField ended??${newRepeatAdd}")
                         //newRepeatAddをTextFieldで変更した時、これだと2回このFrequencyTextFieldが呼ばれてるわ。
                     }
                 }
@@ -512,7 +512,7 @@ fun FrequencyTextField(
     frequencyInfo: Frequency,
     callback: (Frequency) -> Unit = {}
 ) {
-    Log.d("AkitaDebug", "This is inside of FrequencyTextField:${frequencyInfo}")
+    LogAkitaDebug("This is inside of FrequencyTextField:${frequencyInfo}")
 
     val constSpacer = @Composable {
         Spacer(modifier = Modifier.padding(10.dp))
@@ -606,8 +606,7 @@ fun FrequencyTextField(
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     day = dayInt
                                 )
-                                Log.d(
-                                    "AkitaDebug",
+                                LogAkitaDebug(
                                     "month onValueChange newFrequencyInfo:${newFrequencyInfo}"
                                 )
                             }
@@ -715,13 +714,15 @@ fun FrequencyTextField(
         /*******************************************************/
         RepeatFrequency.EVERY_WEEK -> {
             newFrequencyInfo = newFrequencyInfo.copy(
-                frequency = RepeatFrequency.EVERY_MONTH,
+                frequency = RepeatFrequency.EVERY_WEEK,
                 month = null,
                 day = null
             )
             constSpacer()
             //曜日の指定
             /**********作っていく*******/
+            /* これ複数指定したいな、、、 */
+            /* チェックボックスを立てに作る */
 
             //時間の指定
             Row(
@@ -730,6 +731,31 @@ fun FrequencyTextField(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
+                /* 曜日のチェックボックスを作る */
+                Column {
+                    getDayOfWeekValues().forEach { dayOfWeek ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = newFrequencyInfo.dayOfWeek?.contains(dayOfWeek) ?: false,
+                                onCheckedChange = { isChecked ->
+                                    newFrequencyInfo = newFrequencyInfo.copy(
+                                        dayOfWeek = if (isChecked) {
+                                            (newFrequencyInfo.dayOfWeek ?: emptyList()) + dayOfWeek
+                                        } else {
+                                            (newFrequencyInfo.dayOfWeek
+                                                ?: emptyList()).filter { it != dayOfWeek }
+                                        }
+                                    )
+                                    LogAkitaDebug("newFrequencyInfo:${newFrequencyInfo}")
+                                }
+                            )
+                            Text(dayOfWeek)
+                        }
+                    }
+                }
+
+                constSpacer()
+
                 Column {
                     Text("Time")
                     TextField(
@@ -758,7 +784,7 @@ fun FrequencyTextField(
         /*******************************************************/
         RepeatFrequency.WEEKDAYS -> {
             newFrequencyInfo = newFrequencyInfo.copy(
-                frequency = RepeatFrequency.EVERY_MONTH,
+                frequency = RepeatFrequency.WEEKDAYS,
                 month = null,
                 day = null,
                 dayOfWeek = null
@@ -798,7 +824,7 @@ fun FrequencyTextField(
         /*******************************************************/
         RepeatFrequency.WEEKENDS -> {
             newFrequencyInfo = newFrequencyInfo.copy(
-                frequency = RepeatFrequency.EVERY_MONTH,
+                frequency = RepeatFrequency.WEEKENDS,
                 month = null,
                 day = null,
                 dayOfWeek = null
@@ -838,7 +864,7 @@ fun FrequencyTextField(
         /*******************************************************/
         RepeatFrequency.EVERYDAY -> {
             newFrequencyInfo = newFrequencyInfo.copy(
-                frequency = RepeatFrequency.EVERY_MONTH,
+                frequency = RepeatFrequency.EVERYDAY,
                 month = null,
                 day = null,
                 dayOfWeek = null

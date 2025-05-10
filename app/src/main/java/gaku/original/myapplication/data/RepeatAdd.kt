@@ -20,7 +20,7 @@ data class Frequency(
     val frequency: String? = null,
     val month: Int? = null,
     val day: Int? = null,//日付
-    val dayOfWeek: String? = null,//曜日
+    val dayOfWeek: List<String>? = null,//曜日
     val hour: Int? = null,
     val minute: Int? = null,
 )

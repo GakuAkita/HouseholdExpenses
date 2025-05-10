@@ -18,8 +18,8 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
+import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.toLocalDateTime
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -27,15 +27,20 @@ import java.util.Locale
 
 //https://github.com/kizitonwose/Calendar
 @Composable
-fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<Expense>,onDayClicked: (day:CalendarDay) -> Unit={_-> }/* 引数ありで空関数のときはこの_を使った書き方らしい */) {
+fun CalendarDisplay(
+    calendarYear: Int,
+    calendarMonth: Int,
+    monthExpenses: List<Expense>,
+    onDayClicked: (day: CalendarDay) -> Unit = { _ -> }/* 引数ありで空関数のときはこの_を使った書き方らしい */
+) {
     // 現在の年月
-    val calendarYearMonth = YearMonth.of(calendarYear,calendarMonth)
+    val calendarYearMonth = YearMonth.of(calendarYear, calendarMonth)
     // 現在より前の年月
-    val startMonth =  calendarYearMonth.minusMonths(0)
+    val startMonth = calendarYearMonth.minusMonths(0)
     // 現在より後の年月
     val endMonth = calendarYearMonth.plusMonths(0)
     // 曜日
-    val daysOfWeek =  daysOfWeek()
+    val daysOfWeek = daysOfWeek()
     // カレンダーの状態を持つ
     val state = rememberCalendarState(
         startMonth = startMonth,
@@ -50,7 +55,7 @@ fun CalendarDisplay(calendarYear:Int, calendarMonth:Int,monthExpenses:List<Expen
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = { Day(it,monthExpenses,onDayClicked) },
+        dayContent = { Day(it, monthExpenses, onDayClicked) },
         // カレンダーのヘッダー
         monthHeader = { DaysOfWeekTitle(daysOfWeek = daysOfWeek) },
         //ユーザーのスクロール
@@ -75,7 +80,11 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(day: CalendarDay,monthExpenses:List<Expense>,onClicked: (day:CalendarDay) -> Unit = { _ -> }) {
+fun Day(
+    day: CalendarDay,
+    monthExpenses: List<Expense>,
+    onClicked: (day: CalendarDay) -> Unit = { _ -> }
+) {
     // Calculate the total amount of expenses for this day
     val totalExpenseForDay = monthExpenses.filter { expense ->
         toLocalDateTime(expense.datetime)?.toLocalDate() == day.date // Filter expenses by matching the date
@@ -89,8 +98,7 @@ fun Day(day: CalendarDay,monthExpenses:List<Expense>,onClicked: (day:CalendarDay
             .aspectRatio(1f)
             .clickable {
                 onClicked(day)
-            }
-        ,
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(

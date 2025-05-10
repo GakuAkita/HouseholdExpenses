@@ -1,4 +1,4 @@
-package gaku.original.myapplication
+package gaku.original.myapplication.Utility
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

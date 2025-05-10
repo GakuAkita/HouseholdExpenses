@@ -21,3 +21,25 @@ fun getRepeatFrequencyValues(): Array<String> {
         RepeatFrequency.EVERYDAY
     )
 }
+
+object DayOfWeek {
+    const val MON = "Monday"
+    const val TUE = "Tuesday"
+    const val WED = "Wednesday"
+    const val THU = "Thursday"
+    const val FRI = "Friday"
+    const val SAT = "Saturday"
+    const val SUN = "Sunday"
+}
+
+fun getDayOfWeekValues(): Array<String> {
+    return arrayOf(
+        DayOfWeek.SUN,
+        DayOfWeek.MON,
+        DayOfWeek.TUE,
+        DayOfWeek.WED,
+        DayOfWeek.THU,
+        DayOfWeek.FRI,
+        DayOfWeek.SAT,
+    )
+}

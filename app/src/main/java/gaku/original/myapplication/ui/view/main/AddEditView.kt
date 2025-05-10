@@ -51,8 +51,8 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.evalExpression
 import gaku.original.myapplication.Utility.roundToLongOrNull
+import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
