@@ -38,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,8 +48,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.evalExpression
 import gaku.original.myapplication.Utility.roundToLongOrNull
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -82,7 +85,7 @@ fun ExpenseAddEditView(
     var isTimePickerVisible by remember { mutableStateOf(false) }
 
     //計算機用
-    var showSheet by remember { mutableStateOf(false) }
+    var showCalculator by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val allCategories = viewModel.categories
@@ -202,55 +205,45 @@ fun ExpenseAddEditView(
                 TextField(
                     //数値だけ受け付ける感じにしたい
                     value = viewModel.currentTmpExpense.amount?.toString() ?: "",
-                    onValueChange = {
-                        if (it != "" && it.toLongOrNull() == null) {
-                            Toast.makeText(
-                                context,
-                                "数値が大きすぎます。これ以上入力できません",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            //viewModel.updateExpenseInstanceAmount(null)
-                        } else {
-                            viewModel.updateTmpExpenseAmount(it.toLongOrNull())
-                        }
-                    },
+                    onValueChange = {},
                     readOnly = true,
                     enabled = false,
                     label = { Text(text = "Amount") },
                     modifier = Modifier
                         .width(260.dp)
                         .clickable {
-                            showSheet = true
+                            showCalculator = true
                             Log.d(viewName, "Amount was tapped!!!")
                         },
                     colors = enabledTextFiledColorSet()
                 )
             }
 
-            if (showSheet) {
+            if (showCalculator) {
                 ModalBottomSheet(
-                    onDismissRequest = { showSheet = false },
+                    onDismissRequest = { showCalculator = false },
                     sheetState = bottomSheetState
                 ) {
-                    CalculatorUI {
-                        /* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
-                        if (true/* 日本円。設定から制御できるように、、 */) {
-                            val convertedVal = it.roundToLongOrNull()/* 自作 */
-                            if (it != "" && convertedVal == null) {
-                                Toast.makeText(
-                                    context,
-                                    "数値が大きすぎます。これ以上入力できません",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                //viewModel.updateExpenseInstanceAmount(null)
+                    CalculatorUI(
+                        onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
+                            if (true/* 日本円。設定から制御できるように、、 */) {
+                                val convertedVal = it.roundToLongOrNull()/* 自作 */
+                                if (it != "" && convertedVal == null) {
+                                    Toast.makeText(
+                                        context,
+                                        "数値が大きすぎます。これ以上入力できません",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    //viewModel.updateExpenseInstanceAmount(null)
+                                } else {
+                                    viewModel.updateTmpExpenseAmount(convertedVal)
+                                    showCalculator = false
+                                }
                             } else {
-                                viewModel.updateTmpExpenseAmount(convertedVal)
-                                showSheet = false
+                                /* ラウンドしない場合、、 */
                             }
-                        } else {
-                            /* ラウンドしない場合、、 */
                         }
-                    }
+                    )
                 }
             }
 
@@ -371,7 +364,17 @@ fun ExpenseAddEditView(
                             //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
                             viewModel.addTmpExpenseToDb(
                                 onStart = {/* 追加します的な,, */ },
-                                callback = { status -> /*失敗したときの対処*/ })
+                                callback = { status ->
+                                    if (status == SuspendFuncStatus.SUCCESS) {
+                                        /**/
+                                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                                        /**/
+                                    } else if (status == SuspendFuncStatus.FAILED) {
+                                        /*  */
+                                    } else {
+                                        /* よくわからんstatus */
+                                    }
+                                })
                             Toast.makeText(
                                 context,
                                 "追加しました",
@@ -393,7 +396,6 @@ fun ExpenseAddEditView(
                         //メイン画面に戻る
                         navController.navigate(Screen.MainScreen.Content.route)
                     }
-
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(
@@ -522,18 +524,11 @@ fun TimePickerDialog(
 
 @Composable
 fun CalculatorUI(
-    onResult: (String) -> Unit
+    onDecide: (String) -> Unit = {}/* 決定ボタンを作ろうと思ったが、現状無理 */
 ) {
     var input by remember { mutableStateOf("") }
 
-    val buttons = listOf(
-        listOf("7", "8", "9", "÷"),
-        listOf("4", "5", "6", "×"),
-        listOf("1", "2", "3", "-"),
-        listOf("0", ".", "DEL", "+"),
-        listOf("C", "=", "決定")
-    )
-
+    val padDp = 4.dp
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -547,38 +542,222 @@ fun CalculatorUI(
                 .padding(8.dp),
             textAlign = TextAlign.End
         )
+        /* なんだかんだベタ打ちがやりやすい、、 */
+        Row(modifier = Modifier.fillMaxWidth()) {
+            CalculatorButton(
+                label = "C",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+            CalculatorButton(
+                label = "DEL",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+            CalculatorButton(
+                label = "=",
+                initialInput = input,
+                onEqual = {
+                    /* onEqualはCalculatorUIにわたす必要はない。 */
+                    /* 決定ボタンがないから決定ボタン代わり */
+                    input = it
+                    LogAkitaDebug("input計算されてるか？${input}")
+                    onDecide(it/* =input */)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
 
-        buttons.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                row.forEach { label ->
-                    Button(
-                        onClick = {
-                            when (label) {
-                                "C" -> input = ""
-                                "DEL" -> input = input.dropLast(1)
-                                "=" -> {
-                                    try {
-                                        val result = evalExpression(input)
-                                        onResult(result.toString())
-                                    } catch (e: Exception) {
-                                        input = "Error"
-                                    }
-                                }
+            listOf("7", "8", "9").forEach { label ->
+                CalculatorButton(
+                    label = label,
+                    initialInput = input,
+                    onInputChanged = { input = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(padDp)
+                )
+            }
+            CalculatorButton(
+                label = "÷",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            listOf("4", "5", "6").forEach { label ->
+                CalculatorButton(
+                    label = label,
+                    initialInput = input,
+                    onInputChanged = { input = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(padDp)
+                )
+            }
+            CalculatorButton(
+                label = "×",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            listOf("1", "2", "3").forEach { label ->
+                CalculatorButton(
+                    label = label,
+                    initialInput = input,
+                    onInputChanged = { input = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(padDp)
+                )
+            }
+            CalculatorButton(
+                label = "-",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.weight(1f))
+            CalculatorButton(
+                label = "0",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp)
+            )
+            CalculatorButton(
+                label = ".",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp)
+            )
+            CalculatorButton(
+                label = "+",
+                initialInput = input,
+                onInputChanged = { input = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(padDp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        }
+    }
+}
 
-                                else -> input += label
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .weight(1f)
-                    ) {
-                        Text(label, fontSize = 20.sp)
+
+/* callbackは呼び出し側で設定する */
+@Composable
+fun CalculatorButton(
+    modifier: Modifier = Modifier,
+    label: String,
+    initialInput: String,
+    onInputChanged: (String) -> Unit = {},
+    onEqual: (String) -> Unit = {},/* =ボタンを押した時(今のところ決定ボタンと同じ挙動にする。) */
+    /* 将来的にBasicTextFieldでカーソル移動もできるようにする。 */
+
+    onDecide: (String) -> Unit = {},/* 決定ボタンを押した時 */
+    containerColor: Color = MaterialTheme.colorScheme.tertiary,
+    contentColor: Color = MaterialTheme.colorScheme.onTertiary
+) {
+    Button(
+        onClick = {
+
+            var updatedInput = initialInput
+            when (label) {
+                "C" -> {
+                    updatedInput = ""
+                    onInputChanged(updatedInput)
+                }
+
+                "DEL" -> {
+                    updatedInput = updatedInput.dropLast(1)
+                    onInputChanged(updatedInput)
+                }
+
+                "=" -> {
+                    val lastChar = updatedInput.lastOrNull()
+                    val lastIsOperator = lastChar in listOf('+', '-', '×', '÷')
+                    if (updatedInput == "") {
+                        /* ""のまま渡してもエラーが出る */
+                    } else if (updatedInput == ".") {
+                        /* ただの小数点だとエラーが出る */
+                    } else if (lastIsOperator) {
+                        /* 最後の値が演算子になっている */
+                    } else {
+                        updatedInput = evalExpression(updatedInput).toString()
+                        onEqual(updatedInput)
                     }
                 }
+
+                "決定" -> {
+                    onDecide(updatedInput)
+                }
+
+                else -> {
+                    val lastChar = updatedInput.lastOrNull()
+                    val isOperator = label in listOf("+", "-", "×", "÷")
+                    val lastIsOperator = lastChar in listOf('+', '-', '×', '÷')
+
+                    updatedInput = if (isOperator && lastIsOperator) {
+                        /* 演算子が続いたときは返す */
+                        updatedInput.dropLast(1) + label
+                    } else if (label == "." && (lastChar == '.' || lastIsOperator)) {
+                        /* 小数点のあとに小数点押しても反応させない */
+                        /* 演算子のあとに小数点押しても反応させない */
+                        updatedInput
+                    } else if (label == "." && initialInput == "") {
+                        updatedInput
+                    } else {
+                        updatedInput + label
+                    }
+                    onInputChanged(updatedInput)
+                }
             }
-        }
+        },
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
+    ) {
+        Text(label, fontSize = 20.sp)
     }
 }

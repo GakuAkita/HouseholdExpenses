@@ -67,7 +67,7 @@ class ExpenseRepository(
         }
 
         try {
-            withTimeout(3000) {
+            withTimeout(10000) {
                 Log.d(className, "Start waiting for getUserExpenseRef.")
                 val snapshot = expenseRef.get().await()
                 val expenses = snapshot.children.mapNotNull {

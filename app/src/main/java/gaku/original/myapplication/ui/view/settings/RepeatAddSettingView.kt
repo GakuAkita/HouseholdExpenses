@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.RepeatFrequency
@@ -206,7 +207,7 @@ fun RepeatAddEditDialog(
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Log.d("AkitaDebug", "RepeatAddEditDialog Recomposed")
+    LogAkitaDebug("RepeatAddEditDialog Recomposed")
     var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
 
     val categories = allCategories.collectAsState()

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
@@ -84,7 +85,7 @@ fun MainView(
         currentPageMonth = viewModel.getCalendarMonth()
         currentPageYear = viewModel.getCalendarYear()
 
-        Log.d("Akita Debug", "これ走ってる？？")
+        LogAkitaDebug("これ走ってる？？")
         viewModel.filterExpensesByMonth()
     }
 
