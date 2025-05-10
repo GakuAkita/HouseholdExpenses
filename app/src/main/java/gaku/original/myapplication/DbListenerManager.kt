@@ -28,6 +28,7 @@ class DbListenerManager @Inject constructor(
 
     /**
      * リスナーを追加する (DatabaseReferenceまたはQueryに対応)
+     * ミスったときの対応をしておきたい、、、
      */
     fun addListener(reference: Any?, listener: ChildEventListener) {
         when (reference) {

@@ -60,13 +60,11 @@ object AppModule {
         expenseRepository: ExpenseRepository,
         categoryRepository: CategoryRepository,
         dbListenerManager: DbListenerManager,
-        firebaseAuth: FirebaseAuth
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
             categoryRepository,
             dbListenerManager,
-            firebaseAuth
         )
     }
 

@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.main
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,6 +29,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -67,12 +67,18 @@ fun ExpenseAddEditView(
     viewModel: ExpenseAddEditViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val viewName = "ExpenseAddEditView"
+
     //Toastとか用
     val context = LocalContext.current
 
     //日付、時間の選択肢用
     var isDatePickerVisible by remember { mutableStateOf(false) }
     var isTimePickerVisible by remember { mutableStateOf(false) }
+
+    //計算機用
+    var showSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val allCategories = viewModel.categories
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
@@ -203,10 +209,15 @@ fun ExpenseAddEditView(
                             viewModel.updateTmpExpenseAmount(it.toLongOrNull())
                         }
                     },
+                    readOnly = true,
+                    enabled = false,
                     label = { Text(text = "Amount") },
-                    modifier = Modifier.width(260.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
+                    modifier = Modifier
+                        .width(260.dp)
+                        .clickable {
+                            Log.d(viewName, "Amount was tapped!!!")
+                        },
+                    colors = enabledTextFiledColorSet()
                 )
             }
 

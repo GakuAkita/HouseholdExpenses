@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
+/* てかこれ使ってないな、、、 */
 @HiltViewModel
 class UserInfoViewModel @Inject constructor(
-    /* なにもなし */
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     /****************ユーザー管理*****************/
-    val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val _currentUser = MutableStateFlow<FirebaseUser?>(firebaseAuth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser

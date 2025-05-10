@@ -3,7 +3,6 @@ package gaku.original.myapplication.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -28,7 +27,6 @@ class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val dbListenerManager: DbListenerManager,
-    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -194,6 +192,7 @@ class ExpenseSharedViewModel @Inject constructor(
         _initFetchedDone.value = value
     }
 
+    /* このViewModel内で保持しているExpenses等をクリアにしたい。 */
     private fun clearPossession() {
         clearAllExpenses()
         clearAllCategories()

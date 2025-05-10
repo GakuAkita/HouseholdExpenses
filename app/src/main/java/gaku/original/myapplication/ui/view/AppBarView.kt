@@ -102,13 +102,20 @@ fun BottomBarView(
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = {
+                    navController.navigate(item.route) {}
+                    /*  */
                     navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = false
+                            saveState = false
+                        }
+                        launchSingleTop
                         //スタックが積み重なるのを防ぐ？らしい。でも遷移がうまくいかんからいいや。
-//                        popUpTo(navController.graph.findStartDestination().id) {
-//                            saveState = true
-//                        }
-//                        restoreState = true
-//                        launchSingleTop = true
+////                        popUpTo(navController.graph.findStartDestination().id) {
+////                            saveState = true
+////                        }
+////                        restoreState = true
+////                        launchSingleTop = true
                     }
                 },
                 icon = {

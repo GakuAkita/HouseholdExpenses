@@ -1,6 +1,8 @@
 package gaku.original.myapplication
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,6 +37,7 @@ fun Navigation(
     }
 
     NavHost(
+        modifier = Modifier.fillMaxSize()/* これをつけるとnavigateすると左上から右下に行くやつがなくなる？　*/,
         navController = navController,
         startDestination = startDestination
     ) {

@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -60,6 +61,8 @@ fun MainView(
     viewModel: ExpenseListViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
+    val viewName = "MainView"
+
     val topBarName = "What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
@@ -87,15 +90,32 @@ fun MainView(
 
     LaunchedEffect(Unit) {
         /* 内部で一回だけ実行するようにしている、、 */
-        viewModel.onSignedIn(callback = {
-            Log.d("MainView", "これ大丈夫そう???")
+        viewModel.onSignedIn(callback = { status ->
+            when (status) {
+                SuspendFuncStatus.SUCCESS -> {
+                    Log.d(viewName, "サインイン直後にやる処理に失敗しました")
+                }
+
+                SuspendFuncStatus.TIMEOUT -> {
+                    Log.d(viewName, "サインイン直後にやる処理がタイムアウトしました")
+                }
+
+                SuspendFuncStatus.FAILED -> {
+                    Log.d(viewName, "サインイン直後に破る処理に失敗しました")
+                }
+
+                else -> {
+                    Log.d(viewName, "よくわからん処理")
+                }
+            }
         })
     }
 
     //rememberをつけると再コンポーズのとき無駄に走らない
     val monthExpenses by remember { viewModel.filteredExpenses }.collectAsState(initial = emptyList())
     //@TODO 特に問題はないのだが、自分が思うよりもmonthExpensesが動いている(配列変わってなくても)ので注意
-    Log.d("MainView", "monthExpenses loaded:${monthExpenses.size}")
+    //あ～わからんけど、LoadingStateが変わったときとか逐一走ってんのかな、
+    Log.d(viewName, "monthExpenses loaded:${monthExpenses.size}")
 
     val expensesLoadingStatus by remember { viewModel.expensesLoadingStatus }.collectAsState()
 
@@ -173,7 +193,7 @@ fun MainView(
                 snapshotFlow { calendarPagerState.currentPage }
                     .distinctUntilChanged()
                     .collect { currentPage ->
-                        Log.d("MainView", "Calendar pager state changed: $currentPage")
+                        Log.d(viewName, "Calendar pager state changed: $currentPage")
                         when {
                             currentPage > previousCalendarPage -> viewModel.incrementMonth()
                             currentPage < previousCalendarPage -> viewModel.decrementMonth()
