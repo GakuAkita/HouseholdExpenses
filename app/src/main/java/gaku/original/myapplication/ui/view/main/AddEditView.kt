@@ -22,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,11 +40,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.Utility.evalExpression
+import gaku.original.myapplication.Utility.roundToLongOrNull
 import gaku.original.myapplication.toLocalDateTime
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -215,10 +220,38 @@ fun ExpenseAddEditView(
                     modifier = Modifier
                         .width(260.dp)
                         .clickable {
+                            showSheet = true
                             Log.d(viewName, "Amount was tapped!!!")
                         },
                     colors = enabledTextFiledColorSet()
                 )
+            }
+
+            if (showSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSheet = false },
+                    sheetState = bottomSheetState
+                ) {
+                    CalculatorUI {
+                        /* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
+                        if (true/* 日本円。設定から制御できるように、、 */) {
+                            val convertedVal = it.roundToLongOrNull()/* 自作 */
+                            if (it != "" && convertedVal == null) {
+                                Toast.makeText(
+                                    context,
+                                    "数値が大きすぎます。これ以上入力できません",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                //viewModel.updateExpenseInstanceAmount(null)
+                            } else {
+                                viewModel.updateTmpExpenseAmount(convertedVal)
+                                showSheet = false
+                            }
+                        } else {
+                            /* ラウンドしない場合、、 */
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.padding(8.dp))
@@ -485,4 +518,67 @@ fun TimePickerDialog(
         },
         text = { content() }
     )
+}
+
+@Composable
+fun CalculatorUI(
+    onResult: (String) -> Unit
+) {
+    var input by remember { mutableStateOf("") }
+
+    val buttons = listOf(
+        listOf("7", "8", "9", "÷"),
+        listOf("4", "5", "6", "×"),
+        listOf("1", "2", "3", "-"),
+        listOf("0", ".", "DEL", "+"),
+        listOf("C", "=", "決定")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = input,
+            fontSize = 32.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            textAlign = TextAlign.End
+        )
+
+        buttons.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                row.forEach { label ->
+                    Button(
+                        onClick = {
+                            when (label) {
+                                "C" -> input = ""
+                                "DEL" -> input = input.dropLast(1)
+                                "=" -> {
+                                    try {
+                                        val result = evalExpression(input)
+                                        onResult(result.toString())
+                                    } catch (e: Exception) {
+                                        input = "Error"
+                                    }
+                                }
+
+                                else -> input += label
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .weight(1f)
+                    ) {
+                        Text(label, fontSize = 20.sp)
+                    }
+                }
+            }
+        }
+    }
 }
