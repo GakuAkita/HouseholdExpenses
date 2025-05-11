@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -34,7 +33,6 @@ fun SwipeToRevealItem(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
     ) {
         // 背景
         Box(

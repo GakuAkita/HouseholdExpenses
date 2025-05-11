@@ -6,9 +6,11 @@ import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,7 +43,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -77,6 +81,7 @@ fun RepeatAddSettingView(
     viewModel: RepeatAddViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val funcName = "RepeatAddSettingView"
     val context = LocalContext.current
 
     var showAddEditDialog by remember { mutableStateOf(false) }
@@ -120,11 +125,44 @@ fun RepeatAddSettingView(
                 userScrollEnabled = true
             ) {
                 items(repeatAddSettings) { repeatAdd ->
-                    RepeatAddItem(repeatAdd) {
-                        /* 編集をしたい */
-                        editedRepeatAdd = repeatAdd
-                        showAddEditDialog = true
-                    }
+                    RepeatAddItem(
+                        repeatAdd,
+                        onEdit = {
+                            /* 編集をしたい */
+                            editedRepeatAdd = repeatAdd
+                            showAddEditDialog = true
+                        },
+                        onDelete = {
+                            /* 削除をする */
+                            viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
+                                when (status) {
+                                    SuspendFuncStatus.SUCCESS -> {
+                                        /* 再度読み込む、、 */
+                                        viewModel.fetchAllRepeatAddSettings()
+                                    }
+
+                                    SuspendFuncStatus.TIMEOUT -> {
+                                        Toast.makeText(
+                                            context,
+                                            "削除できませんでした。タイムアウトしました",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+
+                                    SuspendFuncStatus.FAILED -> {
+                                        Toast.makeText(
+                                            context,
+                                            "削除に失敗しました",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+
+                                    else -> {
+                                        Log.d(funcName, "Unknown SuspendFunc status $status")
+                                    }
+                                }
+                            })
+                        })
                 }
             }
 
@@ -179,21 +217,35 @@ fun RepeatAddSettingView(
 }
 
 @Composable
-fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
+fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () -> Unit = {}) {
     val fontSize = 20.sp
 
+    /* スクリーンの横幅を取得する */
+    val configuration = LocalConfiguration.current
+    val screenWidthPx = configuration.screenWidthDp.dp
+    val density = LocalDensity.current
+    val horizontalMaxOffset = with(density) { screenWidthPx.toPx() * 0.2f }
+
     SwipeToRevealItem(
+        horizontalMaxOffset = -horizontalMaxOffset,
         backgroundColor = MaterialTheme.colorScheme.error,
         hiddenContent = {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.onError
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(with(density) { (horizontalMaxOffset).toDp() })/* 引き出し領域の中央にDeleteアイコンを配置 */,
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onError
+                )
+            }
         },
         onClick = {
-            /* 削除する */
-        }
+            onDelete()
+        },
     ) {
         Row(
             modifier = Modifier
