@@ -98,9 +98,11 @@ fun ExpenseAddEditView(
             TopBarView(
                 title = "What is essential is invisible to the eye",
                 onBackNavClicked = {
-                    navController.navigate(Screen.MainScreen.Content.route)
+//                    navController.navigate(Screen.MainScreen.Content.route)
+                    navController.popBackStack()
                 },
-                navController = navController
+                navController = navController,
+                showBackButton = true
             )
         },
         bottomBar = { BottomBarView(navController) }
@@ -528,6 +530,8 @@ fun CalculatorUI(
 ) {
     var input by remember { mutableStateOf("") }
 
+    val hasOperator = input.contains(Regex("[+\\-×÷]"))
+
     val padDp = 4.dp
     Column(
         modifier = Modifier
@@ -564,8 +568,9 @@ fun CalculatorUI(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
+
             CalculatorButton(
-                label = "=",
+                label = if (hasOperator) "=" else "決定",
                 initialInput = input,
                 onEqual = {
                     /* onEqualはCalculatorUIにわたす必要はない。 */
@@ -712,7 +717,7 @@ fun CalculatorButton(
                     onInputChanged(updatedInput)
                 }
 
-                "=" -> {
+                "=", "決定" -> {
                     val lastChar = updatedInput.lastOrNull()
                     val lastIsOperator = lastChar in listOf('+', '-', '×', '÷')
                     if (updatedInput == "") {
@@ -725,10 +730,6 @@ fun CalculatorButton(
                         updatedInput = evalExpression(updatedInput).toString()
                         onEqual(updatedInput)
                     }
-                }
-
-                "決定" -> {
-                    onDecide(updatedInput)
                 }
 
                 else -> {

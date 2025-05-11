@@ -49,8 +49,6 @@ fun SettingsView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text("User ID : ${viewModel.userId}")
-
             SettingRow(
                 onClick = {
                     navController.navigate(Screen.SettingScreen.UserInfo.route)

@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -90,7 +91,9 @@ fun RepeatAddSettingView(
 
     Scaffold(
         topBar = {
-            TopBarView("SettingsView作成中")
+            TopBarView("繰り返し追加", navController = navController, onBackNavClicked = {
+                navController.popBackStack()
+            }, showBackButton = true)
         },
 
         bottomBar = { BottomBarView(navController) }
@@ -100,22 +103,16 @@ fun RepeatAddSettingView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(top = 30.dp)
         ) {
             /**
              * ここで検索とかできるようにしたいなあ～
              */
-            Button(
-                onClick = {
-                    showAddEditDialog = true
-                }
-            ) {
-                Text("Show Dialog(Test)")
-            }
-
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 userScrollEnabled = true
             ) {
                 items(repeatAddSettings) { repeatAdd ->
@@ -125,6 +122,14 @@ fun RepeatAddSettingView(
                         showAddEditDialog = true
                     }
                 }
+            }
+
+            Button(
+                onClick = {
+                    showAddEditDialog = true
+                }
+            ) {
+                Text("追加する")
             }
 
             if (showAddEditDialog) {
@@ -171,29 +176,33 @@ fun RepeatAddSettingView(
 
 @Composable
 fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
+    val fontSize = 20.sp
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
             .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
             .clickable {
                 onEdit()
-            },
+            }
+            .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "${repeatAdd.frequencyInfo.frequency?.replace("_", " ")}",
             modifier = Modifier.weight(1f),
+            fontSize = fontSize,
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
             text = "${repeatAdd.expense.amount}",
             modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Left//左寄せ
+            fontSize = fontSize,
+            textAlign = TextAlign.Left,//左寄せ
         )
         Text(
             text = "${repeatAdd.expense.category?.name}",
             modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
             textAlign = TextAlign.Left
         )
     }
@@ -483,7 +492,7 @@ fun RepeatAddEditDialog(
                             onSave(newRepeatAdd)
                         } else {
                             //エラーをUIに通知する
-                            Log.d("AkitaDebug", errorMsg)
+                            LogAkitaDebug(errorMsg)
                         }
                     }
                 ) {
@@ -531,7 +540,7 @@ fun FrequencyTextField(
         frequency = frequencyInfo.frequency
     )
     /* 上書き必要 */
-    Log.d("AkitaDebug", "This is inside of FrequencyTextField before when:${newFrequencyInfo}")
+    LogAkitaDebug("This is inside of FrequencyTextField before when:${newFrequencyInfo}")
 
     var isTimePickerVisible by remember { mutableStateOf(false) }
 
@@ -555,7 +564,7 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.month?.toString() ?: "",
                         onValueChange = {
-                            Log.d("AkitaDebug", "month onValueChange ${it}")
+                            LogAkitaDebug("month onValueChange ${it}")
                             val monthInt = it.toIntOrNull()
                             /* これ日付がちゃんと存在するかもチェックしたほうが良いな */
                             if (it == "" || monthInt == null) {
@@ -568,7 +577,7 @@ fun FrequencyTextField(
                                 newFrequencyInfo = newFrequencyInfo.copy(
                                     month = monthInt
                                 )
-                                Log.d("AkitaDebug", "overwritten as ${newFrequencyInfo}")
+                                LogAkitaDebug("overwritten as ${newFrequencyInfo}")
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -585,7 +594,7 @@ fun FrequencyTextField(
                         modifier = Modifier.width(50.dp),
                         value = newFrequencyInfo.day?.toString() ?: "",
                         onValueChange = {
-                            Log.d("AkitaDebug", "Here month onValueChange${it}")
+                            LogAkitaDebug("Here month onValueChange${it}")
                             val dayInt = it.toIntOrNull()
                             if (newFrequencyInfo.month == null) {
                                 /* monthを入力してください。snack barをだしたい */
@@ -925,9 +934,9 @@ fun FrequencyTextField(
     }
 
     //ここで逐一呼び出し元のfrequencyInfoに代入
-    Log.d("AkitaDebug", "The end of FrequencyTextField but before callback:${newFrequencyInfo}")
+    LogAkitaDebug("The end of FrequencyTextField but before callback:${newFrequencyInfo}")
     callback(newFrequencyInfo)
-    Log.d("AkitaDebug", "The end of FrequencyTextField:newFrequencyInfo:${newFrequencyInfo}")
+    LogAkitaDebug("The end of FrequencyTextField:newFrequencyInfo:${newFrequencyInfo}")
 }
 
 

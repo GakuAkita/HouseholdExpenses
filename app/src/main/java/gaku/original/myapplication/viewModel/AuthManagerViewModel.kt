@@ -24,6 +24,9 @@ class AuthManagerViewModel @Inject constructor(
     val userId: String?
         get() = firebaseAuth.currentUser?.uid
 
+    val email: String?
+        get() = firebaseAuth.currentUser?.email
+
     fun signIn(email: String, password: String, callback: (SignInResult) -> Unit) {
         firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->

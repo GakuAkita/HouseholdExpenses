@@ -30,6 +30,7 @@ data class BottomNavigationItem(
 @Composable
 fun TopBarView(
     title: String,
+    showBackButton: Boolean = false,
     onBackNavClicked: () -> Unit = {},
     navController: NavController? = null
 ) {
@@ -40,23 +41,19 @@ fun TopBarView(
         ),
         title = { Text(text = title, fontSize = 16.sp) },
         navigationIcon = {
-            if (navController != null) {
-                //現在のルートを取得
-                val navBackStateEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStateEntry?.destination?.route
-                //ExpenseAddEditViewからMainScreenContentに戻るとき
-                //ExpenseAddEditViewだけ表示する
-                if (currentRoute == Screen.MainScreen.ExpenseAddEdit.route ||
-                    currentRoute == Screen.MainScreen.CategoryAddEdit.route
-                ) {
-                    IconButton(onClick = onBackNavClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                            contentDescription = "back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
+//            if (navController != null) {
+//                //現在のルートを取得
+//                val navBackStateEntry by navController.currentBackStackEntryAsState()
+//                val currentRoute = navBackStateEntry?.destination?.route
+//                //ExpenseAddEditViewからMainScreenContentに戻るとき
+//                //ExpenseAddEditViewだけ表示する
+
+            if (showBackButton) IconButton(onClick = onBackNavClicked) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = "back",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     )

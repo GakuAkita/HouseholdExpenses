@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -8,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -21,7 +23,12 @@ fun UserInfoView(
 ) {
     Scaffold(
         topBar = {
-            TopBarView("SettingsView作成中")
+            TopBarView(
+                "ユーザー情報",
+                onBackNavClicked = { navController.popBackStack() },
+                showBackButton = true,
+                navController = navController
+            )
         },
 
         bottomBar = { BottomBarView(navController) }
@@ -32,8 +39,22 @@ fun UserInfoView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(
+                    top = 30.dp,
+                )
+                .padding(horizontal = 10.dp)
         ) {
-            Text("ユーザー情報")
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+            ) {
+                Text("ユーザーID:")
+                Text("${viewModel.userId}")
+            }
+            Row {
+                Text("Email:")
+                Text("${viewModel.email}")
+            }
         }
     }
 }
