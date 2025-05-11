@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +27,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -57,6 +60,7 @@ import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultFrequency
 import gaku.original.myapplication.data.defaultRepeatAdd
+import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
@@ -177,34 +181,45 @@ fun RepeatAddSettingView(
 @Composable
 fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
     val fontSize = 20.sp
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
-            .clickable {
-                onEdit()
-            }
-            .padding(vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
+
+    SwipeToRevealItem(
+        backgroundColor = MaterialTheme.colorScheme.error,
+        hiddenContent = {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = MaterialTheme.colorScheme.onError
+            )
+        }
     ) {
-        Text(
-            text = "${repeatAdd.frequencyInfo.frequency?.replace("_", " ")}",
-            modifier = Modifier.weight(1f),
-            fontSize = fontSize,
-            textAlign = TextAlign.Left//左寄せ
-        )
-        Text(
-            text = "${repeatAdd.expense.amount}",
-            modifier = Modifier.weight(1f),
-            fontSize = fontSize,
-            textAlign = TextAlign.Left,//左寄せ
-        )
-        Text(
-            text = "${repeatAdd.expense.category?.name}",
-            modifier = Modifier.weight(1f),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Left
-        )
+        Row(
+            modifier = Modifier
+                .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+                .clickable {
+                    onEdit()
+                }
+                .padding(vertical = 5.dp, horizontal = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${repeatAdd.frequencyInfo.frequency?.replace("_", " ")}",
+                modifier = Modifier.weight(1f),
+                fontSize = fontSize,
+                textAlign = TextAlign.Left//左寄せ
+            )
+            Text(
+                text = "${repeatAdd.expense.amount}",
+                modifier = Modifier.weight(1f),
+                fontSize = fontSize,
+                textAlign = TextAlign.Left,//左寄せ
+            )
+            Text(
+                text = "${repeatAdd.expense.category?.name}",
+                modifier = Modifier.weight(1f),
+                fontSize = 20.sp,
+                textAlign = TextAlign.Left
+            )
+        }
     }
 }
 
