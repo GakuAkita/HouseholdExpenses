@@ -32,7 +32,6 @@ fun TopBarView(
     title: String,
     showBackButton: Boolean = false,
     onBackNavClicked: () -> Unit = {},
-    navController: NavController? = null
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(

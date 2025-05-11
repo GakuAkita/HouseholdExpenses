@@ -101,7 +101,6 @@ fun ExpenseAddEditView(
 //                    navController.navigate(Screen.MainScreen.Content.route)
                     navController.popBackStack()
                 },
-                navController = navController,
                 showBackButton = true
             )
         },

@@ -88,7 +88,9 @@ fun SettingsView(
                     val ret = viewModel.signOut()
                     if (ret == SingOutResult.SUCCESS) {
                         Toast.makeText(context, "ログアウトしました", Toast.LENGTH_SHORT).show()
-                        navController.navigate(Screen.StartScreen.Start.route)
+                        navController.navigate(Screen.StartScreen.Start.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     } else if (ret == SingOutResult.SIGN_OUT_FAILED) {
                         Toast.makeText(context, "ログアウトに失敗しました", Toast.LENGTH_SHORT)
                             .show()

@@ -27,7 +27,6 @@ fun UserInfoView(
                 "ユーザー情報",
                 onBackNavClicked = { navController.popBackStack() },
                 showBackButton = true,
-                navController = navController
             )
         },
 

@@ -7,16 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +26,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SignInResult
 import gaku.original.myapplication.data.Constants.Status.SingUpResult
+import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 
@@ -46,21 +42,10 @@ fun LoginSignUpView(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                if (isLogin) {
-                    Text("Login")
-                } else {
-                    Text("SignUp")
-                }
-            },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.StartScreen.Start.route)
-                    }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "戻る")
-                    }
-                }
-            )
+            TopBarView(
+                title = if (isLogin) "Login" else "SignUp",
+                showBackButton = true,
+                onBackNavClicked = { navController.popBackStack() })
         }
     ) {
         val context = LocalContext.current
@@ -102,7 +87,7 @@ fun LoginSignUpView(
                                         .show()
                                     navController.navigate(Screen.MainScreen.Content.route) {
                                         //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
-                                        popUpTo(Screen.StartScreen.Start.route) {
+                                        popUpTo(0) {
                                             inclusive = true
                                         }
                                     }

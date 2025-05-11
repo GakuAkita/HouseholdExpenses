@@ -58,7 +58,6 @@ fun CategoryAddEditView(
                 onBackNavClicked = {
                     navController.popBackStack()
                 },
-                navController = navController
             )
         },
         bottomBar = { BottomBarView(navController) }

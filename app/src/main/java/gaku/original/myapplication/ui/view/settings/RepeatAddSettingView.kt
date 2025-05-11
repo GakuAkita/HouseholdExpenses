@@ -91,7 +91,7 @@ fun RepeatAddSettingView(
 
     Scaffold(
         topBar = {
-            TopBarView("繰り返し追加", navController = navController, onBackNavClicked = {
+            TopBarView("繰り返し追加", onBackNavClicked = {
                 navController.popBackStack()
             }, showBackButton = true)
         },
