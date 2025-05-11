@@ -30,6 +30,12 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
+    fun provideFirestoreReference(firebaseAuth: FirebaseAuth): FirestoreReference {
+        return FirestoreReference(firebaseAuth)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
     fun provideDbListenerManager(realtimeDbReference: RealtimeDbReference): DbListenerManager {
         return DbListenerManager(realtimeDbReference)
     }
