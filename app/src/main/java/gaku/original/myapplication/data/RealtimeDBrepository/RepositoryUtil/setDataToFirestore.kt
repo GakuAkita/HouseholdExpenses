@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.RepositoryUtil
+package gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil
 
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
@@ -12,6 +12,7 @@ suspend fun addSingleDataToRTDb(
     data: Any, /* 文字列、数値、booleanのどれか */
     keyName: String,/* キーの名前(childの名前) */
     reference: DatabaseReference,
+    timeout: Long = 2000,
     callback: (SuspendFuncStatus) -> Unit = {}
 ): SuspendFuncStatus {
     val funcName = "addSingleDataToRTDb"
@@ -30,7 +31,7 @@ suspend fun addSingleDataToRTDb(
     }
 
     return try {
-        withTimeout(2000) {
+        withTimeout(timeout) {
             suspendCancellableCoroutine { continuation ->
                 reference.child(keyName).setValue(data)
                     .addOnCompleteListener { task ->

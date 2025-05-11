@@ -29,16 +29,12 @@ class FirestoreReference @Inject constructor(
         return currentUserId?.let { getUsersColRef().document(it) }
     }
 
-    fun getDataColRef(): CollectionReference? {
-        return getUserDocRef()?.collection("data")
+    fun getExpensesColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("expenses")
     }
 
-    fun getExpensesDocRef(): DocumentReference? {
-        return getDataColRef()?.document("expenses")
-    }
-
-    fun getCategoriesDocRef(): DocumentReference? {
-        return getDataColRef()?.document("categories")
+    fun getCategoriesColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("categories")
     }
 
 

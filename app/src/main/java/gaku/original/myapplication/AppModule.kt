@@ -6,9 +6,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import gaku.original.myapplication.data.CategoryRepository
-import gaku.original.myapplication.data.ExpenseRepository
-import gaku.original.myapplication.data.RepeatAddRepository
+import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
+import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
+import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
 

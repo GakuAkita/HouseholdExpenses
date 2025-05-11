@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data
+package gaku.original.myapplication.data.RealtimeDBrepository
 
 import addDataToRTDb
 import android.util.Log
@@ -6,6 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.RepeatAdd
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -13,40 +14,40 @@ import removeDataFromRTDb
 import updateDataToRTDb
 import javax.inject.Inject
 
-class CategoryRepository @Inject constructor(
+class RepeatAddRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit): DatabaseReference? {
-        return realtimeDbReference.getUserCategoryRef(callback)
+    suspend fun getRepeatAddRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+        return realtimeDbReference.getUserRepeatAddRef(callback)
     }
 
-    suspend fun fetchAllCategories(
-        callback: (SuspendFuncStatus) -> Unit
-    ): List<Category> {
-        val funcName: String = ::fetchAllCategories.name
-        var ret = emptyList<Category>()
+    // ユーザーIDに基づいてデータをリストとして返す（非同期）
+    suspend fun fetchRepeatAddSettings(
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): List<RepeatAdd> {
+        val funcName = ::fetchRepeatAddSettings.name
+        var ret = emptyList<RepeatAdd>()
         LogClassFuncCalled(className, funcName)
-
-        val categoryRef = getCategoryRef { status ->
+        val repeatAddRef = getRepeatAddRef { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
-        if (categoryRef == null) {
+
+        if (repeatAddRef == null) {
             return ret
         }
 
         try {
             withTimeout(3000) {
-                val snapshot = categoryRef.get().await()
-                val categories = snapshot.children.mapNotNull {
-                    it.getValue(Category::class.java)
-
+                val snapshot = repeatAddRef.get().await()
+                val repeatAdds = snapshot.children.mapNotNull {
+                    it.getValue(RepeatAdd::class.java)
                 }
-                Log.d(className, "Fetched Categories: $categories")
-                ret = categories
+                Log.d(className, "Fetched RepeatAdd: $repeatAdds")
+                ret = repeatAdds
                 callback(SuspendFuncStatus.SUCCESS)
             }
         } catch (e: TimeoutCancellationException) {
@@ -56,60 +57,17 @@ class CategoryRepository @Inject constructor(
             Log.d(className, "${funcName} failed. ${e.message}")
             callback(SuspendFuncStatus.FAILED)
         }
-        return ret  // エラー時には空のリストを返す
-    }
-
-    suspend fun addCategory(
-        category: Category,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
-        val funcName = ::addCategory.name
-        var ret = SuspendFuncStatus.FAILED
-        LogClassFuncCalled(className, funcName)
-        val ref = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
-                callback(status)
-            }
-        }
-
-        if (ref == null) {
-            callback(SuspendFuncStatus.FAILED)
-            return SuspendFuncStatus.FAILED
-        }
-
-        ret = addDataToRTDb(category, ref, callback)
-
         return ret
     }
 
-    suspend fun updateCategory(
-        category: Category,
-        callback: (SuspendFuncStatus) -> Unit
+    suspend fun addRepeatAdd(
+        repeatAdd: RepeatAdd,
+        callback: (SuspendFuncStatus) -> Unit = {}
     ): SuspendFuncStatus {
-        val funcName = ::updateCategory.name
+        val funcName = ::addRepeatAdd.name
         LogClassFuncCalled(className, funcName)
         var ret = SuspendFuncStatus.FAILED
-        val reference = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
-                callback(status)
-            }
-        }
-        if (reference == null) {
-            return ret
-        }
-        ret = updateDataToRTDb(category, reference, callback)
-
-        return ret
-    }
-
-    suspend fun removeCategory(
-        category: Category,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
-        val funcName = ::removeCategory.name
-        LogClassFuncCalled(className, funcName)
-        var ret = SuspendFuncStatus.FAILED
-        val reference = getCategoryRef { status ->
+        val reference = getRepeatAddRef() { status ->
             if (status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
@@ -118,7 +76,46 @@ class CategoryRepository @Inject constructor(
             return ret
         }
 
-        ret = removeDataFromRTDb(category, reference, callback)
+        ret = addDataToRTDb(repeatAdd, reference, callback)
+        return ret
+    }
+
+    suspend fun updateRepeatAdd(
+        repeatAdd: RepeatAdd,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
+        val funcName = ::updateRepeatAdd.name
+        LogClassFuncCalled(className, funcName)
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getRepeatAddRef { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+        if (reference == null) {
+            return ret
+        }
+        ret = updateDataToRTDb(repeatAdd, reference, callback)
+
+        return ret
+    }
+
+    suspend fun removeRepeatAdd(
+        repeatAdd: RepeatAdd,
+        callback: (SuspendFuncStatus) -> Unit = {}
+    ): SuspendFuncStatus {
+        val funcName = ::removeRepeatAdd.name
+        LogClassFuncCalled(className, funcName)
+        var ret = SuspendFuncStatus.FAILED
+        val reference = getRepeatAddRef() { status ->
+            if (status != SuspendFuncStatus.SUCCESS) {
+                callback(status)
+            }
+        }
+        if (reference == null) {
+            return ret
+        }
+        ret = removeDataFromRTDb(repeatAdd, reference, callback)
 
         return ret
     }

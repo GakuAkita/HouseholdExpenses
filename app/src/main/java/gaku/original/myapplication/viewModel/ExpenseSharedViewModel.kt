@@ -9,12 +9,12 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.DbListenerManager
 import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.CategoryRepository
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.ExpenseRepository
 import gaku.original.myapplication.data.InitialCategories
+import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
+import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

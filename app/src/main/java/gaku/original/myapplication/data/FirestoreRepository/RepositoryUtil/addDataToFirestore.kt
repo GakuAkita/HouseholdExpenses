@@ -1,30 +1,38 @@
 import android.util.Log
-import com.google.firebase.database.DatabaseReference
+import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 
-suspend fun <T : CommonProperty> addDataToRTDb(
+suspend fun <T : CommonProperty> addDataToFirestore(
     data: T,
-    reference: DatabaseReference,
-    callback: (SuspendFuncStatus) -> Unit = {}
-): SuspendFuncStatus {
-    val funcName = "addDataToRTDb"
+    reference: CollectionReference,
+    timeout: Long = 3000,
+    callback: (SuspendFuncStatusInfo) -> Unit = {}
+): SuspendFuncStatusInfo {
+    val funcName = "addDataToFirestore"
 
-    val newDataRef = reference.push()
-    data.id = newDataRef.key
     data.timestamp = System.currentTimeMillis()
 
     return try {
-        withTimeout(2000) {
+        withTimeout(timeout) {
+            //Firestoreにデータを一回追加(ここでIDが生成される)
+            val newDataRef = reference.add(data).await()
+
+            //生成されたIDをインスタンスに設定
+
             suspendCancellableCoroutine { continuation ->
-                newDataRef.setValue(data)
+                reference.add(data)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Log.d(funcName, "Data added successfully")
+                            val documentReference = task.result
+                            val documentId = docu
                             callback(SuspendFuncStatus.SUCCESS)
                             continuation.resume(SuspendFuncStatus.SUCCESS) // ✅ 成功したので再開
                         } else {
