@@ -190,6 +190,9 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit) {
                 contentDescription = "Delete",
                 tint = MaterialTheme.colorScheme.onError
             )
+        },
+        onClick = {
+            /* 削除する */
         }
     ) {
         Row(
