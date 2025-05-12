@@ -8,6 +8,6 @@ data class ErrorInfo(
 )
 
 data class SuspendFuncStatusInfo(
-    val state: SuspendFuncStatus,
+    val status: SuspendFuncStatus,
     val errorMessage: String
 )
