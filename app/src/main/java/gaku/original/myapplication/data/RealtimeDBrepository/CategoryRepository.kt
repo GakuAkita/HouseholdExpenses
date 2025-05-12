@@ -78,7 +78,7 @@ class CategoryRepository @Inject constructor(
             return SuspendFuncStatus.FAILED
         }
 
-        ret = addDataToRTDb(category, ref, callback)
+        ret = addDataToRTDb(category, ref, callback = callback)
 
         return ret
     }
@@ -98,7 +98,7 @@ class CategoryRepository @Inject constructor(
         if (reference == null) {
             return ret
         }
-        ret = updateDataToRTDb(category, reference, callback)
+        ret = updateDataToRTDb(category, reference, callback = callback)
 
         return ret
     }
@@ -119,7 +119,7 @@ class CategoryRepository @Inject constructor(
             return ret
         }
 
-        ret = removeDataFromRTDb(category, reference, callback)
+        ret = removeDataFromRTDb(category, reference, callback = callback)
 
         return ret
     }

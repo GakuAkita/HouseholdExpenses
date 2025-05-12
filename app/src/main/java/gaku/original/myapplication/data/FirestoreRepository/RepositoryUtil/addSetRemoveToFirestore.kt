@@ -114,3 +114,45 @@ suspend fun setDataToFirestore(
         return statusInfo
     }
 }
+
+suspend fun removeDocument(
+    reference: DocumentReference,
+    timeout: Long = 3000,  // デフォルトのタイムアウト時間（ミリ秒）
+    callback: (SuspendFuncStatusInfo) -> Unit = {}
+): SuspendFuncStatusInfo {
+    return try {
+        // タイムアウトを設定して削除処理
+        withTimeout(timeout) {
+            suspendCancellableCoroutine { continuation ->
+                reference.delete()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                            callback(statusInfo)
+                            continuation.resume(statusInfo)
+                        } else {
+                            val statusInfo = SuspendFuncStatusInfo(
+                                SuspendFuncStatus.FAILED,
+                                task.exception?.message ?: "Failed to delete document"
+                            )
+                            callback(statusInfo)
+                            continuation.resume(statusInfo)
+                        }
+                    }
+            }
+        }
+    } catch (e: TimeoutCancellationException) {
+        val statusInfo =
+            SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトが発生しました。")
+        callback(statusInfo)
+        return statusInfo
+    } catch (e: Exception) {
+        val statusInfo =
+            SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                e.message ?: "不明なエラーが発生しました"
+            )
+        callback(statusInfo)
+        return statusInfo
+    }
+}

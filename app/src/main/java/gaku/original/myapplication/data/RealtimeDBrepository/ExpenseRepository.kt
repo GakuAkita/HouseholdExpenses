@@ -42,7 +42,7 @@ class ExpenseRepository(
             return ret
         }
 
-        ret = addSingleDataToRTDb(email, "email", userRef, callback)
+        ret = addSingleDataToRTDb(email, "email", userRef, callback = callback)
 
         return ret
     }
@@ -153,7 +153,7 @@ class ExpenseRepository(
             return ret
         }
 
-        ret = removeDataFromRTDb(expense, reference, callback)
+        ret = removeDataFromRTDb(expense, reference, callback = callback)
         return ret
     }
 }
