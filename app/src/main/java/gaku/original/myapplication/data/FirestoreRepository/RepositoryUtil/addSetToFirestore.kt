@@ -18,7 +18,7 @@ suspend fun addDataToFirestore(
     data: Any,
     reference: CollectionReference,
     timeout: Long = 3000,
-    callback: (SuspendFuncStatusInfo, DocumentReference?) -> Unit = { _, _ -> }
+    callback: (SuspendFuncStatusInfo) -> Unit = { _ -> }
 ): Pair<SuspendFuncStatusInfo, DocumentReference?> {
     return try {
         withTimeout(timeout) {
@@ -26,19 +26,23 @@ suspend fun addDataToFirestore(
                 reference.add(data)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                            callback(statusInfo)
                             continuation.resume(
                                 Pair(
-                                    SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, ""),
+                                    statusInfo,
                                     task.result
                                 )
                             )
                         } else {
+                            val statusInfo = SuspendFuncStatusInfo(
+                                SuspendFuncStatus.FAILED,
+                                task.exception?.message ?: "不明なエラーが発生しました"
+                            )
+                            callback(statusInfo)
                             continuation.resume(
                                 Pair(
-                                    SuspendFuncStatusInfo(
-                                        SuspendFuncStatus.FAILED,
-                                        task.exception?.message ?: "不明なエラーが発生しました"
-                                    ),
+                                    statusInfo,
                                     null
                                 )
                             )
@@ -47,13 +51,19 @@ suspend fun addDataToFirestore(
             }
         }
     } catch (e: TimeoutCancellationException) {
+        val statusInfo =
+            SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトが発生しました。")
+        callback(statusInfo)
         Pair(
-            SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトが発生しました。"),
+            statusInfo,
             null
         )
     } catch (e: Exception) {
+        val statusInfo =
+            SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
+        callback(statusInfo)
         Pair(
-            SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー"),
+            statusInfo,
             null
         )
     }
@@ -68,7 +78,7 @@ suspend fun setDataToFirestore(
     timeout: Long = 3000,
     reference: DocumentReference,
     callback: (SuspendFuncStatusInfo) -> Unit = {},
-): SuspendFuncStatus {
+): SuspendFuncStatusInfo {
     val funcName = "setDataToFirestore"
 
     return try {
@@ -78,26 +88,28 @@ suspend fun setDataToFirestore(
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Log.d(funcName, "Data ($data) was set successfully")
-                            callback(SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, ""))
-                            continuation.resume(SuspendFuncStatus.SUCCESS)
+                            val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                            callback(statusInfo)
+                            continuation.resume(statusInfo)
                         } else {
                             Log.e(funcName, "Failed to set data $data", task.exception)
-                            callback(
-                                SuspendFuncStatusInfo(
-                                    SuspendFuncStatus.FAILED,
-                                    task.exception?.message ?: "不明なエラーが発生しました"
-                                )
+                            val statusInfo = SuspendFuncStatusInfo(
+                                SuspendFuncStatus.FAILED,
+                                task.exception?.message ?: "不明なエラーが発生しました"
                             )
-                            continuation.resume(SuspendFuncStatus.FAILED)
+                            callback(statusInfo)
+                            continuation.resume(statusInfo)
                         }
                     }
             }
         }
     } catch (e: TimeoutCancellationException) {
-        callback(SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました。"))
-        return SuspendFuncStatus.TIMEOUT
+        val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました。")
+        callback(statusInfo)
+        return statusInfo
     } catch (e: Exception) {
-        callback(SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "${e.message}"))
-        return SuspendFuncStatus.FAILED
+        val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "${e.message}")
+        callback(statusInfo)
+        return statusInfo
     }
 }
