@@ -72,6 +72,7 @@ suspend fun addDataToFirestore(
 
 /**
  * reference.addなのか、reference.setだけが違うから、それ以外を共通化
+ * これほぼupdateDataだな。
  * */
 suspend fun setDataToFirestore(
     data: Any,
