@@ -6,6 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
+import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
@@ -40,6 +42,12 @@ object AppModule {
         return DbListenerManager(realtimeDbReference)
     }
 
+    @Provides
+    @ActivityRetainedScoped
+    fun provideFirestoreListenerManager(firestoreReference: FirestoreReference): FirestoreListenerManager {
+        return FirestoreListenerManager(firestoreReference)
+    }
+
     /************************** Repository類 ******************************/
     @Provides
     @ActivityRetainedScoped
@@ -58,12 +66,24 @@ object AppModule {
     fun provideRepeatAddRepository(realtimeDbReference: RealtimeDbReference): RepeatAddRepository {
         return RepeatAddRepository(realtimeDbReference)
     }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideExpenseFirestoreRepository(firestoreReference: FirestoreReference): ExpenseFirestoreRepository {
+        return ExpenseFirestoreRepository(firestoreReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideCategoryFirestoreRepository(firestoreReference: FirestoreReference): CategoryFirestoreRepository {
+        return CategoryFirestoreRepository(firestoreReference)
+    }
     /* ------------------------------------------------------------------ */
 
     @Provides
     @ActivityRetainedScoped//つけなくてもよい？
     fun provideExpenseSharedViewModel(
-        expenseRepository: ExpenseRepository,
+        expenseRepository: ExpenseFirestoreRepository,
         categoryRepository: CategoryRepository,
         dbListenerManager: DbListenerManager,
     ): ExpenseSharedViewModel {

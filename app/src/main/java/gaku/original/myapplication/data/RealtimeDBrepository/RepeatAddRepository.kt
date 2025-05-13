@@ -76,7 +76,7 @@ class RepeatAddRepository @Inject constructor(
             return ret
         }
 
-        ret = addDataToRTDb(repeatAdd, reference, callback)
+        ret = addDataToRTDb(repeatAdd, reference, callback = callback)
         return ret
     }
 
@@ -95,7 +95,7 @@ class RepeatAddRepository @Inject constructor(
         if (reference == null) {
             return ret
         }
-        ret = updateDataToRTDb(repeatAdd, reference, callback)
+        ret = updateDataToRTDb(repeatAdd, reference, callback = callback)
 
         return ret
     }
@@ -115,7 +115,7 @@ class RepeatAddRepository @Inject constructor(
         if (reference == null) {
             return ret
         }
-        ret = removeDataFromRTDb(repeatAdd, reference, callback)
+        ret = removeDataFromRTDb(repeatAdd, reference, callback = callback)
 
         return ret
     }

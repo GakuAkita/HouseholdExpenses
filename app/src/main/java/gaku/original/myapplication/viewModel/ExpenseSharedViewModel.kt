@@ -12,9 +12,9 @@ import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.InitialCategories
 import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
-import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
-    private val expenseRepository: ExpenseRepository,
+    private val expenseRepository: ExpenseFirestoreRepository,
     private val categoryRepository: CategoryRepository,
     private val dbListenerManager: DbListenerManager,
 ) : ViewModel() {
