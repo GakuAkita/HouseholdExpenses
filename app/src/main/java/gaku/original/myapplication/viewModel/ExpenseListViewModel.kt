@@ -7,8 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,6 +69,7 @@ class ExpenseListViewModel @Inject constructor(
     val expensesLoadingStatus: StateFlow<LoadingStatus> get() = expenseSharedViewModel.expensesLoadingStatus
 
     init {
+        /* なんでこれ必要なんだ？ */
         observeAllExpenses()
     }
 
@@ -146,7 +147,7 @@ class ExpenseListViewModel @Inject constructor(
         )
     }
 
-    suspend fun onSignedIn(callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
         /* SharedViewModelのviewModelScopeで処理 */
         val ret = expenseSharedViewModel.onSignedIn(callback)
     }

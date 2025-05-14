@@ -7,6 +7,7 @@ import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -49,7 +50,7 @@ class CategoryFirestoreRepository(
         if (ref == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.FAILED,
-                "Expensesコレクションが参照できませんでした"
+                "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
         }
@@ -78,7 +79,7 @@ class CategoryFirestoreRepository(
     suspend fun fetchAllCategories(
         timeout: Long = 10000,
         callback: (SuspendFuncStatusInfo) -> Unit
-    ): List<Category> {
+    ): FetchResult<List<Category>> {
         val funcName = ::fetchAllCategories.name
         var ret = emptyList<Category>()
         LogClassFuncCalled(className, funcName)
@@ -86,16 +87,17 @@ class CategoryFirestoreRepository(
         val categoryRef = getCategoriesColRef()
 
         if (categoryRef == null) {
-            callback(
-                SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
-                    "Expensesコレクションが参照できませんでした"
-                )
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "Categoriesコレクションが参照できませんでした"
             )
-            return ret
+
+            callback(statusInfo)
+
+            return FetchResult(statusInfo.status, statusInfo.errorMessage)
         }
 
-        try {
+        return try {
             withTimeout(timeout) {
                 val snapshot = categoryRef.get().await()
 
@@ -105,25 +107,28 @@ class CategoryFirestoreRepository(
                         ?: throw Exception("Categoryへの変換に失敗 docId=${doc.id}")
                     list.add(expense)
                 }
-                ret = list
 
                 Log.d(className, "Fetched Categories: $ret")
-                callback(SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, ""))
+                val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                callback(statusInfo)
+
+                /* 戻り値 */
+                FetchResult(statusInfo.status, statusInfo.errorMessage, list)
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
             val statusInfo =
                 SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました")
             callback(statusInfo)
-            ret = emptyList()
+
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
             val statusInfo =
                 SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
             callback(statusInfo)
-            ret = emptyList()
-        }
 
-        return ret
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
+        }
     }
 }

@@ -238,31 +238,29 @@ class ExpenseSharedViewModel @Inject constructor(
                 onStart = {
                     _expensesLoadingStatus.value = LoadingStatus.LOADING
                 },
-                callback = { status ->
-                    if (status == SuspendFuncStatus.SUCCESS) {
+                callback = { statusInfo ->
+                    if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
-                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                    } else if (statusInfo.status == SuspendFuncStatus.TIMEOUT) {
                         _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
                     } else {
                         _expensesLoadingStatus.value = LoadingStatus.ERROR
                     }
                 })
 
-            if (ret != SuspendFuncStatus.SUCCESS) {
-                /* ここでcallbackをいれたいな～ */
+            if (ret.status != SuspendFuncStatus.SUCCESS) {
                 callback(ret)
                 return@launch
             }
 
             ret = fetchAllCategories()
-            if (ret != SuspendFuncStatus.SUCCESS) {
+            if (ret.status != SuspendFuncStatus.SUCCESS) {
                 callback(ret)
                 return@launch
             }
 
-
             ret = addExpenseCategoryChildEventListener(callback)
-            if (ret != SuspendFuncStatus.SUCCESS) {
+            if (ret.status != SuspendFuncStatus.SUCCESS) {
                 return@launch
             }
 
@@ -285,16 +283,23 @@ class ExpenseSharedViewModel @Inject constructor(
     ): SuspendFuncStatusInfo {
         onStart()
 
-        _allExpenses.value = expenseRepository.fetchAllExpenses(callback = callback)
+        val fetchStatusInfo = expenseRepository.fetchAllExpenses(callback = callback)
+
+        val statusInfo = fetchStatusInfo.toSuspendFuncStatusInfo()
+
+        /* 成功したときだけ書き換える。 */
+        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+            _allExpenses.value = fetchStatusInfo.data ?: emptyList()
+        }
         Log.d(className, "Expenses:${_allExpenses.value}")
 
-        return
+        return statusInfo
     }
 
     suspend fun addExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }
@@ -307,8 +312,8 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun updateExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
 
         return expenseRepository.updateExpense(expense, callback)
 
@@ -316,8 +321,8 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun removeExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         return expenseRepository.removeExpense(expense, callback)
     }
 
@@ -384,17 +389,15 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
 
-    suspend fun fetchAllCategories(callback: (SuspendFuncStatus) -> Unit = {}): SuspendFuncStatus {
-        var status: SuspendFuncStatus = SuspendFuncStatus.FAILED
+    suspend fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}): SuspendFuncStatusInfo {
 
-        val categories = categoryRepository.fetchAllCategories {
-            status = it
-            callback(it)
+        val fetchResult = categoryRepository.fetchAllCategories(callback = callback)
+
+        if (fetchResult.status == SuspendFuncStatus.SUCCESS) {
+            _allCategories.value = fetchResult.data ?: emptyList()
         }
-
-        _allCategories.value = categories
-        Log.d("CategoryViewModel", "Categories:${_allCategories.value}")
-        return status
+        Log.d("ExpenseSharedViewModel", "Categories:${_allCategories.value}")
+        return fetchResult.toSuspendFuncStatusInfo()
     }
 
     /*
@@ -404,14 +407,17 @@ class ExpenseSharedViewModel @Inject constructor(
     */
     suspend fun addCategory(
         category: Category,
-        onDuplicateCategory: () -> Unit = {},
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            onDuplicateCategory()
-            return SuspendFuncStatus.FAILED
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "${category.name} はすでに存在しています。"
+            )
+            callback(statusInfo)
+            return statusInfo
         } else {
             return categoryRepository.addCategory(
                 category = category,
@@ -422,27 +428,29 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun updateCategory(
         category: Category,
-        onDuplicateCategory: () -> Unit = {},
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            onDuplicateCategory()
-            return SuspendFuncStatus.FAILED
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "${category.name}はすでに存在しています。"
+            )
+            callback(statusInfo)
+            return statusInfo
         } else {
             return categoryRepository.updateCategory(
                 category = category,
                 callback = callback
             )
-
         }
     }
 
     suspend fun removeCategory(
         category: Category,
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         return categoryRepository.removeCategory(
             category,
             callback = callback

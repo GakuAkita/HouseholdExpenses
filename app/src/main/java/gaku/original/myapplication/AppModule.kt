@@ -87,13 +87,13 @@ object AppModule {
     @ActivityRetainedScoped//つけなくてもよい？
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseFirestoreRepository,
-        categoryRepository: CategoryRepository,
-        dbListenerManager: DbListenerManager,
+        categoryRepository: CategoryFirestoreRepository,
+        listenerManager: ListenerManager,
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
             categoryRepository,
-            dbListenerManager,
+            listenerManager,
         )
     }
 

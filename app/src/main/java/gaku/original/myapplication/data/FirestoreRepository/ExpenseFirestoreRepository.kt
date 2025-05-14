@@ -8,7 +8,7 @@ import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.ExpenseFetchResult
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
@@ -115,7 +115,7 @@ class ExpenseFirestoreRepository(
     suspend fun fetchAllExpenses(
         timeout: Long = 10000,
         callback: (SuspendFuncStatusInfo) -> Unit
-    ): ExpenseFetchResult {
+    ): FetchResult<List<Expense>> {
         val funcName = ::fetchAllExpenses.name
         LogClassFuncCalled(className, funcName)
 
@@ -127,7 +127,7 @@ class ExpenseFirestoreRepository(
                 "Expensesコレクションが参照できませんでした"
             )
             callback(statusInfo)
-            return ExpenseFetchResult(
+            return FetchResult(
                 statusInfo.status,
                 statusInfo.errorMessage
             )
@@ -149,7 +149,7 @@ class ExpenseFirestoreRepository(
                 callback(statusInfo)
 
                 /* 戻り値 */
-                ExpenseFetchResult(
+                FetchResult(
                     statusInfo.status,
                     statusInfo.errorMessage,
                     list
@@ -162,7 +162,7 @@ class ExpenseFirestoreRepository(
             callback(statusInfo)
 
             /* 戻り値 */
-            ExpenseFetchResult(
+            FetchResult(
                 statusInfo.status,
                 statusInfo.errorMessage
             )
@@ -173,7 +173,7 @@ class ExpenseFirestoreRepository(
             callback(statusInfo)
 
             /* 戻り値 */
-            ExpenseFetchResult(
+            FetchResult(
                 statusInfo.status,
                 statusInfo.errorMessage
             )

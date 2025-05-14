@@ -12,8 +12,12 @@ data class SuspendFuncStatusInfo(
     val errorMessage: String,
 )
 
-data class ExpenseFetchResult(
+data class FetchResult<T>(
     val status: SuspendFuncStatus,
     val errorMessage: String,
-    val data: List<Expense> = emptyList()
-)
+    val data: T? = null
+) {
+    fun toSuspendFuncStatusInfo(): SuspendFuncStatusInfo {
+        return SuspendFuncStatusInfo(status, errorMessage)
+    }
+}
