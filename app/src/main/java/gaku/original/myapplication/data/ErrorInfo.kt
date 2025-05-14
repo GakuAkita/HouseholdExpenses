@@ -9,5 +9,11 @@ data class ErrorInfo(
 
 data class SuspendFuncStatusInfo(
     val status: SuspendFuncStatus,
-    val errorMessage: String
+    val errorMessage: String,
+)
+
+data class ExpenseFetchResult(
+    val status: SuspendFuncStatus,
+    val errorMessage: String,
+    val data: List<Expense> = emptyList()
 )

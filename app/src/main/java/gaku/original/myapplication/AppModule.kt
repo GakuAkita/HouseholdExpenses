@@ -44,8 +44,8 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideFirestoreListenerManager(firestoreReference: FirestoreReference): FirestoreListenerManager {
-        return FirestoreListenerManager(firestoreReference)
+    fun provideListenerManager(): ListenerManager {
+        return ListenerManager()
     }
 
     /************************** Repository類 ******************************/
@@ -69,8 +69,11 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideExpenseFirestoreRepository(firestoreReference: FirestoreReference): ExpenseFirestoreRepository {
-        return ExpenseFirestoreRepository(firestoreReference)
+    fun provideExpenseFirestoreRepository(
+        firebaseAuth: FirebaseAuth,
+        firestoreReference: FirestoreReference
+    ): ExpenseFirestoreRepository {
+        return ExpenseFirestoreRepository(firebaseAuth, firestoreReference)
     }
 
     @Provides

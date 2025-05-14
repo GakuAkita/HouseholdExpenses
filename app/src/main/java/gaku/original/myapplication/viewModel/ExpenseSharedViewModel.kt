@@ -6,27 +6,26 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import gaku.original.myapplication.DbListenerManager
+import com.google.firebase.firestore.CollectionReference
+import gaku.original.myapplication.ListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.InitialCategories
-import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.generatedType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
-    private val categoryRepository: CategoryRepository,
-    private val dbListenerManager: DbListenerManager,
+    private val categoryRepository: CategoryFirestoreRepository,
+    private val listenerManager: ListenerManager
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -49,12 +48,20 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     //realtimeDbReferenceから取っても良いが、引数が増えるのでdbListenerManagerから取る
-    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
-        return dbListenerManager.getExpenseRef(callback)
+//    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+//        return dbListenerManager.getExpenseRef(callback)
+//    }
+
+//    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+//        return dbListenerManager.getCategoryRef(callback)
+//    }
+
+    fun getExpensesColRef(): CollectionReference? {
+        return expenseRepository.getExpensesColRef()
     }
 
-    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
-        return dbListenerManager.getCategoryRef(callback)
+    fun getCategoriesRef(): CollectionReference? {
+        return categoryRepository.getCategoriesColRef()
     }
 
     //こっちはある時間以降の変更しか見ない
@@ -119,51 +126,58 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     //サインインしたタイミングで実行する。
-    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatus) -> Unit = {}): SuspendFuncStatus {
+    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatusInfo) -> Unit = {}): SuspendFuncStatusInfo {
         //実行されたタイミングのtimeだけあればよい。
         val firstFetchedTime = System.currentTimeMillis()
         var ret = SuspendFuncStatus.FAILED
 
-        val expenseRef = getExpenseRef {
-            callback(it)
-        }
+        val expenseRef = getExpensesColRef()
 
         if (expenseRef == null) {
-            return ret
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "Expensesコレクションが取得できませんでした"
+            )
+            callback(statusInfo)
+            return statusInfo
         }
 
-        val categoryRef = getCategoryRef {
-            callback(it)
-        }
+        val categoryRef = getCategoriesRef()
 
         if (categoryRef == null) {
-            return ret
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "Categoriesコレクションが取得できませんでした"
+            )
+            callback(statusInfo)
+            return statusInfo
         }
 
-        val queryForAddedExpense =
-            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-
-        val queryForAddedCategory =
-            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-
-        //Expenseのリスナー
-        dbListenerManager.addListener(
-            queryForAddedExpense,
-            expenseListAddChildEventListener
-        )
-        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
-
-        //Categoryのリスナー
-        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
-        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
-        //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
-        /* addListenerが非同期的にうまく行っているか確認する方法はないっぽい。callbackとかない。 */
-        ret = SuspendFuncStatus.SUCCESS
-        return ret
+        return SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "デバッグ中、、、")
+//        val queryForAddedExpense =
+//            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+//
+//        val queryForAddedCategory =
+//            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
+//
+//        //Expenseのリスナー
+//        dbListenerManager.addListener(
+//            queryForAddedExpense,
+//            expenseListAddChildEventListener
+//        )
+//        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
+//
+//        //Categoryのリスナー
+//        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
+//        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
+//        //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
+//        /* addListenerが非同期的にうまく行っているか確認する方法はないっぽい。callbackとかない。 */
+//        ret = SuspendFuncStatus.SUCCESS
+//        return ret
     }
 
     fun clearExpenseChildEventListener() {
-        dbListenerManager.removeAllListeners()
+        listenerManager.removeAllListeners()
     }
 
     /*******************Expense CRUD関連**************************/
@@ -173,15 +187,24 @@ class ExpenseSharedViewModel @Inject constructor(
 
 
     /*@TODO 途中で止まったときに、どうやって復旧させるかとか考えないとな。*/
-    suspend fun addUserInitialData(email: String, callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun addUserInitialData(
+        email: String,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        expenseRepository.addUserInitialData(email, callback)
+        val statusInfo = expenseRepository.addUserInitialData(email, callback)
+        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+            return statusInfo
+        }
 
         // デフォルトカテゴリーを並列で追加
         InitialCategories.categories.forEach { initialCategory ->
             //こっちは失敗してもいいから、このままでいいや。
             categoryRepository.addCategory(initialCategory, {})
         }
+
+        /* カテゴリーはミスってもいいや */
+        return statusInfo
     }
 
     /* これがtrueになっていれば、fetchAllExpensesを走らせる */
@@ -199,7 +222,7 @@ class ExpenseSharedViewModel @Inject constructor(
         clearExpenseChildEventListener()
     }
 
-    suspend fun onSignedIn(callback: (SuspendFuncStatus) -> Unit) {
+    suspend fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
         if (_initFetchedDone.value) {
             /* アプリを立ち上げて初回実行時に行う */
             Log.d(className, "すでに実行されている.....")
@@ -258,19 +281,14 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun fetchAllExpenses(
         onStart: () -> Unit = {},
-        callback: (SuspendFuncStatus) -> Unit = {}
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
         onStart()
 
-        return withContext(Dispatchers.IO) {
-            var ret: SuspendFuncStatus = SuspendFuncStatus.FAILED
-            _allExpenses.value = expenseRepository.fetchAllExpenses { status ->
-                ret = status
-                callback(status)
-            }
-            Log.d(className, "Expenses:${_allExpenses.value}")
-            ret//こいつを返す
-        }
+        _allExpenses.value = expenseRepository.fetchAllExpenses(callback = callback)
+        Log.d(className, "Expenses:${_allExpenses.value}")
+
+        return
     }
 
     suspend fun addExpense(

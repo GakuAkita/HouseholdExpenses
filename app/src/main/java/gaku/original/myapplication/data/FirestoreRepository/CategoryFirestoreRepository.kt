@@ -23,7 +23,7 @@ class CategoryFirestoreRepository(
         return firestoreReference.getCategoriesColRef()
     }
 
-    suspend fun addExpense(
+    suspend fun addCategory(
         category: Category,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
@@ -58,7 +58,7 @@ class CategoryFirestoreRepository(
         return statusInfo
     }
 
-    suspend fun removeExpense(
+    suspend fun removeCategory(
         category: Category,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {

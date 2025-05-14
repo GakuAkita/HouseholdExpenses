@@ -74,7 +74,7 @@ getCategoryRef()
 }
 
 
-RealtimeDbReference ..> DbListenerManager : CI
+%% RealtimeDbReference ..> DbListenerManager : CI
 RealtimeDbReference ..> ExpenseRepository : CI
 RealtimeDbReference ..> CategoryRepository :CI
 DbListenerManager <..> RealtimeDatabase :リスナー管理
@@ -85,7 +85,7 @@ class AuthManagerViewModel {
     signOut()
 }
 %%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
-%% DbListenerManager ..> UserManageViewModel :CI 
+%% DbListenerManager ..> UserManageViewModel :CI
 %% UserManageViewModel ..> RealtimeDbReference : CI
 
 class RealtimeDatabase{
@@ -103,4 +103,4 @@ FirebaseAuth ..> AuthManagerViewModel :CI
 
 FirebaseAuth ..> RealtimeDbReference :CI<br>userId取得
 
-````
+```
