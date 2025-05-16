@@ -29,6 +29,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        Log.d(className, "${className}Cleared!!!!")
         clearPossession()
     }
 
@@ -137,6 +138,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     /* このViewModel内で保持しているExpenses等をクリアにしたい。 */
     fun clearPossession() {
+        Log.d(className, "clearPossession was called.")
         clearAllExpenses()
         clearAllCategories()
         clearAllListeners()
@@ -151,7 +153,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
         clearPossession()
-
+        _expensesLoadingStatus.value = LoadingStatus.LOADING
         /**
          * このfetchもどっちでやるか要件等だな、
          */

@@ -80,7 +80,9 @@ class ExpenseListViewModel @Inject constructor(
         currentPageMonth: Int,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
-        clearPossession()
+        /* カテゴリーはクリアしない！！ */
+        expenseSharedViewModel.clearAllExpenses()
+        expenseSharedViewModel.clearAllListeners()
         fetchMonthsExpensesInternal(currentPageYear, currentPageMonth, callback = { status ->
             if (status.status == SuspendFuncStatus.SUCCESS) {
                 /* 成功のときのみ、リスナーを追加 */
@@ -110,10 +112,6 @@ class ExpenseListViewModel @Inject constructor(
             toMonth,
             callback = callback
         )
-    }
-
-    fun clearPossession() {
-        expenseSharedViewModel.clearPossession()
     }
 
     init {

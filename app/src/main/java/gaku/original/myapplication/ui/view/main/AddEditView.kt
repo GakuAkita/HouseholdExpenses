@@ -284,6 +284,7 @@ fun ExpenseAddEditView(
                         expanded = categoryOptionsExpanded,
                         onDismissRequest = { categoryOptionsExpanded = false }
                     ) {
+                        LogAkitaDebug("Allcategories???=${allCategories}")
                         if (allCategories.isEmpty()) {
                             //何もなかったらToastを出す
                             Toast.makeText(
