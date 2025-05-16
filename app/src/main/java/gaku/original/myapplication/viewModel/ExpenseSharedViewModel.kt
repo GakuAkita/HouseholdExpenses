@@ -3,11 +3,8 @@ package gaku.original.myapplication.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.firestore.CollectionReference
-import gaku.original.myapplication.ListenerManager
+import gaku.original.myapplication.FirestoreListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -20,21 +17,22 @@ import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.YearMonth
 import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
     private val categoryRepository: CategoryFirestoreRepository,
-    private val listenerManager: ListenerManager
+    private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
-    private val _allExpenses = MutableStateFlow<List<Expense>>(emptyList())
-    val allExpenses: StateFlow<List<Expense>> get() = _allExpenses
+    private val _storedExpenses = MutableStateFlow<List<Expense>>(emptyList())
+    val allExpenses: StateFlow<List<Expense>> get() = _storedExpenses
 
     fun clearAllExpenses() {
-        _allExpenses.value = emptyList()
+        _storedExpenses.value = emptyList()
     }
 
     //emptyList()のとき、Loadingがうまく行ってないのか、シンプルに何も保存されていないのかの区別がつかない
@@ -64,120 +62,44 @@ class ExpenseSharedViewModel @Inject constructor(
         return categoryRepository.getCategoriesColRef()
     }
 
-    //こっちはある時間以降の変更しか見ない
-    private val expenseListAddChildEventListener = object : ChildEventListener {
-        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d("ExpenseSharedViewModel", "onChildAdded(Expense) was called.")
-            val newExpense = snapshot.getValue(Expense::class.java)
-            newExpense?.let {
-                viewModelScope.launch {
-                    Log.d(
-                        "ExpenseSharedViewModel",
-                        "_allExpenses.value size: ${_allExpenses.value.size}"
-                    )
-                    _allExpenses.value += newExpense
-                    Log.d("ExpenseSharedViewModel", "Expense added: $newExpense")
-                }
-            }
-        }
-
-        override fun onCancelled(error: DatabaseError) {}
-        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-        override fun onChildRemoved(snapshot: DataSnapshot) {}
-        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+    /* Expense関連はここにまとめておく */
+    fun addExpensesListeners(yearMonth: YearMonth) {
+        addExpenseListenerModifiedRemoved(yearMonth)
+        addExpenseListenerAdded(yearMonth)
     }
 
-    //変更されたときや取り除かれたとき常に監視する
-    private val expenseListWatchChildEventListener = object : ChildEventListener {
-
-        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
-        override fun onCancelled(error: DatabaseError) {}
-        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d(className, "onChildChanged(Expense) was called.")
-            val updatedExpense = snapshot.getValue(Expense::class.java)
-            updatedExpense?.let {
-                viewModelScope.launch {
-                    _allExpenses.value = _allExpenses.value.map { expense ->
-                        if (expense.id == updatedExpense.id) {
-                            updatedExpense
-                        } else {
-                            expense
-                        }
+    fun addExpenseListenerModifiedRemoved(yearMonth: YearMonth = YearMonth.now()) {
+        listenerManager.listenToExpensesModifiedRemoved(
+            yearMonth = yearMonth,
+            onModified = {
+                /* _allExpensesを更新する */
+                _storedExpenses.value = _storedExpenses.value.map { expense ->
+                    if (expense.id == it.id) {
+                        it
+                    } else {
+                        expense
                     }
-                    Log.d(className, "Expense updated: ${updatedExpense.id}")
                 }
-            }
-        }
-
-        override fun onChildRemoved(snapshot: DataSnapshot) {
-            Log.d(className, "onChildRemoved(Expense) was called.")
-            val removedExpense = snapshot.getValue(Expense::class.java)
-            removedExpense?.let {
-                viewModelScope.launch {
-                    _allExpenses.value = _allExpenses.value.filterNot { expense ->
-                        expense.id == removedExpense.id
-                    }
-                    Log.d(className, "Expense removed: $removedExpense")
+            },
+            onRemoved = {
+                _allExpenses.value = _allExpenses.value.filter { expense ->
+                    expense.id != it.id
                 }
-            }
-        }
-
-        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            })
     }
 
-    //サインインしたタイミングで実行する。
-    suspend fun addExpenseCategoryChildEventListener(callback: (SuspendFuncStatusInfo) -> Unit = {}): SuspendFuncStatusInfo {
-        //実行されたタイミングのtimeだけあればよい。
-        val firstFetchedTime = System.currentTimeMillis()
-        var ret = SuspendFuncStatus.FAILED
-
-        val expenseRef = getExpensesColRef()
-
-        if (expenseRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Expensesコレクションが取得できませんでした"
-            )
-            callback(statusInfo)
-            return statusInfo
-        }
-
-        val categoryRef = getCategoriesRef()
-
-        if (categoryRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Categoriesコレクションが取得できませんでした"
-            )
-            callback(statusInfo)
-            return statusInfo
-        }
-
-        return SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "デバッグ中、、、")
-//        val queryForAddedExpense =
-//            expenseRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-//
-//        val queryForAddedCategory =
-//            categoryRef.orderByChild("timestamp").startAt(firstFetchedTime.toDouble())
-//
-//        //Expenseのリスナー
-//        dbListenerManager.addListener(
-//            queryForAddedExpense,
-//            expenseListAddChildEventListener
-//        )
-//        dbListenerManager.addListener(expenseRef, expenseListWatchChildEventListener)
-//
-//        //Categoryのリスナー
-//        dbListenerManager.addListener(queryForAddedCategory, categoryListAddChildEventListener)
-//        dbListenerManager.addListener(categoryRef, categoryListWatchChildEventListener)
-//        //リスナーが溜まっているかどうかは、UIに表示してみればよいか。
-//        /* addListenerが非同期的にうまく行っているか確認する方法はないっぽい。callbackとかない。 */
-//        ret = SuspendFuncStatus.SUCCESS
-//        return ret
+    fun addExpenseListenerAdded(yearMonth: YearMonth = YearMonth.now()) {
+        listenerManager.listenToNewExpensesOnly(
+            onAdded = {
+                /* _allExpensesに追加する */
+                /* 取得月の範囲内に入っているかここでフィルターしてもいいな。 */
+                /* まあ、どうせListViewでフィルターかけるからいいか。 */
+                _allExpenses.value += it
+            })
     }
 
     fun clearExpenseChildEventListener() {
-        listenerManager.removeAllListeners()
+        listenerManager.clearAllListeners()
     }
 
     /*******************Expense CRUD関連**************************/
@@ -241,6 +163,8 @@ class ExpenseSharedViewModel @Inject constructor(
                 callback = { statusInfo ->
                     if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+
+                        /* fetchしたあとにリスナーを追加しないとだめだわ。 */
                     } else if (statusInfo.status == SuspendFuncStatus.TIMEOUT) {
                         _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
                     } else {
@@ -258,12 +182,6 @@ class ExpenseSharedViewModel @Inject constructor(
                 callback(ret)
                 return@launch
             }
-
-            ret = addExpenseCategoryChildEventListener(callback)
-            if (ret.status != SuspendFuncStatus.SUCCESS) {
-                return@launch
-            }
-
             /* 他にやることがあるのであればここへ、、 */
 
             /* 最後にフラグを下げる。@TODO 途中停止なのか判定できたほうがいいか、、、 */
@@ -276,7 +194,25 @@ class ExpenseSharedViewModel @Inject constructor(
         setInitFetchedDone(false)
     }
 
+    suspend fun fetchMonthExpenses(
+        fromMonth: YearMonth,
+        toMonth: YearMonth,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): SuspendFuncStatusInfo {
+        val fetchResult = expenseRepository.fetchMonthsExpenses(
+            fromMonth,
+            toMonth,
+            callback = callback
+        )
+        val statusInfo = fetchResult.toSuspendFuncStatusInfo()
 
+        return statusInfo
+    }
+
+
+    /**
+     * これは使わない
+     */
     suspend fun fetchAllExpenses(
         onStart: () -> Unit = {},
         callback: (SuspendFuncStatusInfo) -> Unit = {}
@@ -295,6 +231,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
         return statusInfo
     }
+
 
     suspend fun addExpense(
         expense: Expense,
@@ -327,68 +264,6 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /*******************Category CRUD関連**************************/
-    /* @TODO 将来的にはallExpensesと同じようなローカルに保持しておく。(カテゴリー自体は数が多くならないので今は毎回fetchする感じにする) */
-    private val categoryListAddChildEventListener = object : ChildEventListener {
-        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d(className, "onChildAdded(Category) was called.")
-            val newCategory = snapshot.getValue(Category::class.java)
-            newCategory?.let {
-                viewModelScope.launch {
-                    Log.d(
-                        className,
-                        "_allExpenses.value size: ${_allCategories.value.size}"
-                    )
-                    _allCategories.value += newCategory
-                    Log.d(className, "Expense added: $newCategory")
-                }
-            }
-        }
-
-        override fun onCancelled(error: DatabaseError) {}
-        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-        override fun onChildRemoved(snapshot: DataSnapshot) {}
-        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-    }
-
-    //変更されたときや取り除かれたとき常に監視する
-    private val categoryListWatchChildEventListener = object : ChildEventListener {
-
-        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
-        override fun onCancelled(error: DatabaseError) {}
-        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-            Log.d(className, "onChildChanged(Category) was called.")
-            val updatedCategory = snapshot.getValue(Category::class.java)
-            updatedCategory?.let {
-                viewModelScope.launch {
-                    _allCategories.value = _allCategories.value.map { category ->
-                        if (category.id == updatedCategory.id) {
-                            updatedCategory
-                        } else {
-                            category
-                        }
-                    }
-                    Log.d(className, "Category updated: ${updatedCategory.id}")
-                }
-            }
-        }
-
-        override fun onChildRemoved(snapshot: DataSnapshot) {
-            Log.d(className, "onChildRemoved(Category) was called.")
-            val removedExpense = snapshot.getValue(Expense::class.java)
-            removedExpense?.let {
-                viewModelScope.launch {
-                    _allCategories.value = _allCategories.value.filterNot { expense ->
-                        expense.id == removedExpense.id
-                    }
-                    Log.d(className, "Category removed: $removedExpense")
-                }
-            }
-        }
-
-        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-    }
-
-
     suspend fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}): SuspendFuncStatusInfo {
 
         val fetchResult = categoryRepository.fetchAllCategories(callback = callback)

@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -78,21 +78,21 @@ class ExpenseAddEditViewModel @Inject constructor(
         tmpExpenseViewModel.resetTmpExpense()
     }
 
-    fun addTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatus) -> Unit) {
+    fun addTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
             expenseSharedViewModel.addExpense(currentTmpExpense, callback)
         }
     }
 
-    fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatus) -> Unit) {
+    fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
             expenseSharedViewModel.updateExpense(currentTmpExpense, callback)
         }
     }
 
-    fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatus) -> Unit) {
+    fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
             expenseSharedViewModel.removeExpense(currentTmpExpense, callback)

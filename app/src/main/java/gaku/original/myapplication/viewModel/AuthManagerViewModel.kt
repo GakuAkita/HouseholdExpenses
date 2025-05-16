@@ -58,7 +58,7 @@ class AuthManagerViewModel @Inject constructor(
                     //アカウント作成後に行う処理はここでやる
                     viewModelScope.launch {
                         expenseSharedViewModel.addUserInitialData(email) {
-                            if (it != SuspendFuncStatus.SUCCESS) {
+                            if (it.status != SuspendFuncStatus.SUCCESS) {
                                 onInitialDataAddFailed()
                             }
                         }

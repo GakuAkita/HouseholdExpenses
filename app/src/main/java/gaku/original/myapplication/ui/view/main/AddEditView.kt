@@ -366,11 +366,11 @@ fun ExpenseAddEditView(
                             viewModel.addTmpExpenseToDb(
                                 onStart = {/* 追加します的な,, */ },
                                 callback = { status ->
-                                    if (status == SuspendFuncStatus.SUCCESS) {
+                                    if (status.status == SuspendFuncStatus.SUCCESS) {
                                         /**/
-                                    } else if (status == SuspendFuncStatus.TIMEOUT) {
+                                    } else if (status.status == SuspendFuncStatus.TIMEOUT) {
                                         /**/
-                                    } else if (status == SuspendFuncStatus.FAILED) {
+                                    } else if (status.status == SuspendFuncStatus.FAILED) {
                                         /*  */
                                     } else {
                                         /* よくわからんstatus */

@@ -107,9 +107,8 @@ fun CategoryAddEditView(
                             //新規追加
                             viewModel.addCategory(
                                 newCategory,
-                                onDuplicateCategory = {/* ダブった場合 */ },
                                 callback = { status ->
-                                    when (status) {
+                                    when (status.status) {
                                         SuspendFuncStatus.SUCCESS -> {
                                             Toast.makeText(
                                                 context,
@@ -142,15 +141,9 @@ fun CategoryAddEditView(
                             //編集
                             viewModel.updateCategory(
                                 newCategory,
-                                onDuplicateCategory = {
-                                    Toast.makeText(
-                                        context,
-                                        "The Category Already Exists",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                },
+
                                 callback = { status ->
-                                    when (status) {
+                                    when (status.status) {
                                         SuspendFuncStatus.SUCCESS -> {
                                             showDialog = false
                                         }
@@ -185,7 +178,7 @@ fun CategoryAddEditView(
                         viewModel.removeCategory(
                             category = categoryRemoved,
                             callback = { status ->
-                                if (status == SuspendFuncStatus.FAILED) {
+                                if (status.status == SuspendFuncStatus.FAILED) {
                                     Toast.makeText(
                                         context,
                                         "Failed to Remove Category${categoryRemoved.name}",

@@ -44,8 +44,8 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideListenerManager(): ListenerManager {
-        return ListenerManager()
+    fun provideFirestoreListenerManager(firestoreReference: FirestoreReference): FirestoreListenerManager {
+        return FirestoreListenerManager(firestoreReference)
     }
 
     /************************** Repository類 ******************************/
@@ -88,12 +88,13 @@ object AppModule {
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseFirestoreRepository,
         categoryRepository: CategoryFirestoreRepository,
-        listenerManager: ListenerManager,
+//        listenerManager: DbListenerManager,
+        firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
             categoryRepository,
-            listenerManager,
+            firestoreListenerManager,
         )
     }
 

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,25 +18,23 @@ class CategoryEditViewModel @Inject constructor(
 
     fun addCategory(
         category: Category,
-        onDuplicateCategory: () -> Unit,
-        callback: (SuspendFuncStatus) -> Unit = {}
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
-            expenseSharedViewModel.addCategory(category, onDuplicateCategory, callback)
+            expenseSharedViewModel.addCategory(category, callback)
         }
     }
 
     fun updateCategory(
         category: Category,
-        onDuplicateCategory: () -> Unit,
-        callback: (SuspendFuncStatus) -> Unit = {}
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
-            expenseSharedViewModel.updateCategory(category, onDuplicateCategory, callback)
+            expenseSharedViewModel.updateCategory(category, callback)
         }
     }
 
-    fun removeCategory(category: Category, callback: (SuspendFuncStatus) -> Unit = {}) {
+    fun removeCategory(category: Category, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             expenseSharedViewModel.removeCategory(category, callback)
         }

@@ -92,7 +92,7 @@ fun MainView(
     LaunchedEffect(Unit) {
         /* 内部で一回だけ実行するようにしている、、 */
         viewModel.onSignedIn(callback = { status ->
-            when (status) {
+            when (status.status) {
                 SuspendFuncStatus.SUCCESS -> {
                     Log.d(viewName, "サインイン直後にやる処理に失敗しました")
                 }

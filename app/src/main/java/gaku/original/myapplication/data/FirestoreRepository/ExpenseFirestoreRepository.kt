@@ -16,6 +16,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import removeDataFromFirestore
 import updateDataToFirestore
+import java.time.YearMonth
 
 class ExpenseFirestoreRepository(
     private val firebaseAuth: FirebaseAuth,/* まあ、FirestoreReference内で持っているけどこっちでも持っている */
@@ -111,6 +112,59 @@ class ExpenseFirestoreRepository(
         val statusInfo = removeDataFromFirestore(expense, ref, callback = callback)
         return statusInfo
     }
+
+    suspend fun fetchMonthsExpenses(
+        fromMonth: YearMonth,
+        toMonth: YearMonth,
+        timeout: Long = 10000,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): FetchResult<List<Expense>> {
+        val funcName = ::fetchMonthsExpenses.name
+        LogClassFuncCalled(className, funcName)
+
+        val expenseRef = getExpensesColRef()
+        if (expenseRef == null) {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "Expensesコレクションが参照できませんでした"
+            )
+            callback(statusInfo)
+            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+        }
+
+        // ISO 8601 の文字列範囲を生成（UTCで扱う想定）
+        val startDateTime =
+            fromMonth.atDay(1).atStartOfDay().toString() + "Z" // "2025-03-01T00:00:00Z"
+        val endDateTime =
+            toMonth.plusMonths(1).atDay(1).atStartOfDay().toString() + "Z" // "2025-06-01T00:00:00Z"
+
+        return try {
+            withTimeout(timeout) {
+                val snapshot = expenseRef
+                    .whereGreaterThanOrEqualTo("datetime", startDateTime)
+                    .whereLessThan("datetime", endDateTime)
+                    .get()
+                    .await()
+
+                val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+
+                val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                callback(statusInfo)
+                FetchResult(statusInfo.status, statusInfo.errorMessage, list)
+            }
+        } catch (e: TimeoutCancellationException) {
+            val statusInfo =
+                SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました")
+            callback(statusInfo)
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
+        } catch (e: Exception) {
+            val statusInfo =
+                SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
+            callback(statusInfo)
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
+        }
+    }
+
 
     suspend fun fetchAllExpenses(
         timeout: Long = 10000,
