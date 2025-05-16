@@ -3,7 +3,6 @@ package gaku.original.myapplication.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreListenerManager
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
@@ -45,23 +44,6 @@ class ExpenseSharedViewModel @Inject constructor(
         _allCategories.value = emptyList()
     }
 
-    //realtimeDbReferenceから取っても良いが、引数が増えるのでdbListenerManagerから取る
-//    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
-//        return dbListenerManager.getExpenseRef(callback)
-//    }
-
-//    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
-//        return dbListenerManager.getCategoryRef(callback)
-//    }
-
-    fun getExpensesColRef(): CollectionReference? {
-        return expenseRepository.getExpensesColRef()
-    }
-
-    fun getCategoriesRef(): CollectionReference? {
-        return categoryRepository.getCategoriesColRef()
-    }
-
     /* Expense関連はここにまとめておく */
     fun addExpensesListeners(yearMonth: YearMonth) {
         addExpenseListenerModifiedRemoved(yearMonth)
@@ -82,7 +64,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 }
             },
             onRemoved = {
-                _allExpenses.value = _allExpenses.value.filter { expense ->
+                _storedExpenses.value = _storedExpenses.value.filter { expense ->
                     expense.id != it.id
                 }
             })
@@ -94,11 +76,11 @@ class ExpenseSharedViewModel @Inject constructor(
                 /* _allExpensesに追加する */
                 /* 取得月の範囲内に入っているかここでフィルターしてもいいな。 */
                 /* まあ、どうせListViewでフィルターかけるからいいか。 */
-                _allExpenses.value += it
+                _storedExpenses.value += it
             })
     }
 
-    fun clearExpenseChildEventListener() {
+    fun clearAllListeners() {
         listenerManager.clearAllListeners()
     }
 
@@ -141,7 +123,7 @@ class ExpenseSharedViewModel @Inject constructor(
     private fun clearPossession() {
         clearAllExpenses()
         clearAllCategories()
-        clearExpenseChildEventListener()
+        clearAllListeners()
     }
 
     suspend fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
@@ -194,7 +176,7 @@ class ExpenseSharedViewModel @Inject constructor(
         setInitFetchedDone(false)
     }
 
-    suspend fun fetchMonthExpenses(
+    suspend fun fetchMonthsExpenses(
         fromMonth: YearMonth,
         toMonth: YearMonth,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
@@ -206,9 +188,12 @@ class ExpenseSharedViewModel @Inject constructor(
         )
         val statusInfo = fetchResult.toSuspendFuncStatusInfo()
 
+        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+            _storedExpenses.value = fetchResult.data ?: emptyList()
+        }
+        Log.d(className, "Expenses:${_storedExpenses.value}")
         return statusInfo
     }
-
 
     /**
      * これは使わない
@@ -225,9 +210,9 @@ class ExpenseSharedViewModel @Inject constructor(
 
         /* 成功したときだけ書き換える。 */
         if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
-            _allExpenses.value = fetchStatusInfo.data ?: emptyList()
+            _storedExpenses.value = fetchStatusInfo.data ?: emptyList()
         }
-        Log.d(className, "Expenses:${_allExpenses.value}")
+        Log.d(className, "Expenses:${_storedExpenses.value}")
 
         return statusInfo
     }
@@ -285,7 +270,7 @@ class ExpenseSharedViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
         //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
-        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
+        val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.FAILED,
@@ -306,7 +291,7 @@ class ExpenseSharedViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
-        val isNameAlreadyExists = allCategories.value.any { it.name == category.name }
+        val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.FAILED,
