@@ -61,9 +61,9 @@ class AuthManagerViewModel @Inject constructor(
                             if (it.status != SuspendFuncStatus.SUCCESS) {
                                 onInitialDataAddFailed()
                             }
+                            callback(SingUpResult.SUCCESS)
                         }
                     }
-                    callback(SingUpResult.SUCCESS)
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"

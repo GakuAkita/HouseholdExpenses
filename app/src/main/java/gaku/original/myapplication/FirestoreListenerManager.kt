@@ -3,6 +3,7 @@ package gaku.original.myapplication
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.Utility.fromLocalDateTime
+import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import java.time.LocalTime
 import java.time.YearMonth
@@ -16,7 +17,7 @@ class FirestoreListenerManager @Inject constructor(
 
     /**
      * Expensesは
-     * 追加された直近直後1ヶ月だけ取得
+     * 追加された直近直後数ヶ月だけ取得
      * カレンダーのページが無限スクロールできようにするのであれば、
      * カレンダーがスクロールされるたびにリスナーを入れ替えて、、みたいなことをしないとだめだわ。
      * 考えることが多すぎる。
@@ -24,7 +25,7 @@ class FirestoreListenerManager @Inject constructor(
     fun listenToExpensesModifiedRemoved(
         key: String = "expenses_modified_removed",/* 自分で設定する */
         yearMonth: YearMonth,
-        monthNum: Long = 3,/* 前後何ヶ月分検知するか */
+        monthNum: Long,/* 前後何ヶ月分検知するか */
         onModified: (Expense) -> Unit,
         onRemoved: (Expense) -> Unit
     ) {
@@ -99,8 +100,8 @@ class FirestoreListenerManager @Inject constructor(
 
     fun listenToCategoriesModifiedRemoved(
         key: String = "categories_modified_removed",/* 自分で設定する */
-        onModified: (Expense) -> Unit,
-        onRemoved: (Expense) -> Unit
+        onModified: (Category) -> Unit,
+        onRemoved: (Category) -> Unit
     ) {
         _listenerMap[key]?.remove()
 
@@ -110,10 +111,10 @@ class FirestoreListenerManager @Inject constructor(
 
                 for (change in snapshot.documentChanges) {
                     val doc = change.document
-                    val expense = doc.toObject(Expense::class.java).copy(id = doc.id)
+                    val category = doc.toObject(Category::class.java).copy(id = doc.id)
                     when (change.type) {
-                        DocumentChange.Type.MODIFIED -> onModified(expense)
-                        DocumentChange.Type.REMOVED -> onRemoved(expense)
+                        DocumentChange.Type.MODIFIED -> onModified(category)
+                        DocumentChange.Type.REMOVED -> onRemoved(category)
                         else -> {
                             /* Addは別のリスナーを追加する。 */
                         }
@@ -134,7 +135,7 @@ class FirestoreListenerManager @Inject constructor(
     fun listenToNewCategoriesOnly(
         key: String = "categories_add",
         nowTimestamp: Long = System.currentTimeMillis(),/* nowが取れないわけがない。 */
-        onAdded: (Expense) -> Unit
+        onAdded: (Category) -> Unit
     ) {
         _listenerMap[key]?.remove()
 
@@ -146,8 +147,8 @@ class FirestoreListenerManager @Inject constructor(
                     for (change in snapshot.documentChanges) {
                         if (change.type == DocumentChange.Type.ADDED) {
                             val doc = change.document
-                            val expense = doc.toObject(Expense::class.java).copy(id = doc.id)
-                            onAdded(expense)
+                            val category = doc.toObject(Category::class.java).copy(id = doc.id)
+                            onAdded(category)
                         }
                     }
                 }

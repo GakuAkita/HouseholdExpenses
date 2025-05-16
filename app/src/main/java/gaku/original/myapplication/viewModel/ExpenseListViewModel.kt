@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.Utility.toLocalDateTime
+import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.delay
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import javax.inject.Inject
 
 /*
@@ -35,25 +38,26 @@ class ExpenseListViewModel @Inject constructor(
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
     /********************* MainView用*******************************/
-    private val calendarDate = LocalDate.now()//こいつはmutableStateである必要はない
+    private var centerCalendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
     private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
     val monthOffset: StateFlow<Int> = _monthOffset
 
     fun getCalendarYear(): Int {
-        return calendarDate.plusMonths(monthOffset.value.toLong()).year
+        return centerCalendarDate.plusMonths(monthOffset.value.toLong()).year
     }
 
     fun getCalendarMonth(): Int {
-        return calendarDate.plusMonths(monthOffset.value.toLong()).monthValue
+        return centerCalendarDate.plusMonths(monthOffset.value.toLong()).monthValue
     }
+
 
     fun resetMonthOffset() {
         _monthOffset.value = 0
     }
 
-    fun updateMonthOffset(offset: Int) {
-        _monthOffset.value = offset
+    fun updateCenterCalendarDate(year: Int, month: Int) {
+        centerCalendarDate = LocalDate.of(year, month, 1)
     }
 
     fun incrementMonth() {
@@ -65,18 +69,62 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     /********* Expense配列の管理 ***********/
-    val allExpenses: List<Expense> get() = expenseSharedViewModel.allExpenses.value
+    val storedExpenses: List<Expense> get() = expenseSharedViewModel.storedExpenses.value
     val expensesLoadingStatus: StateFlow<LoadingStatus> get() = expenseSharedViewModel.expensesLoadingStatus
+
+    /**
+     * カレンダーのページが行き過ぎたときはローカルで保持しているExpensesを更新する
+     */
+    fun updateStoredExpenses(
+        currentPageYear: Int,
+        currentPageMonth: Int,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        clearPossession()
+        fetchMonthsExpensesInternal(currentPageYear, currentPageMonth, callback = { status ->
+            if (status.status == SuspendFuncStatus.SUCCESS) {
+                /* 成功のときのみ、リスナーを追加 */
+                expenseSharedViewModel.addAllListeners(
+                    yearMonth = YearMonth.of(
+                        currentPageYear,
+                        currentPageMonth
+                    )
+                )
+            }
+            callback(status)
+        })
+    }
+
+    private fun fetchMonthsExpensesInternal(
+        currentPageYear: Int,
+        currentPageMonth: Int,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        val fromMonth =
+            YearMonth.of(currentPageYear, currentPageMonth).minusMonths(MONTH_RANGE)
+        val toMonth =
+            YearMonth.of(currentPageYear, currentPageMonth).plusMonths(MONTH_RANGE)
+        /* SharedViewModel内で非同期処理をする。ここでは呼び出すだけ */
+        expenseSharedViewModel.fetchMonthsExpenses(
+            fromMonth,
+            toMonth,
+            callback = callback
+        )
+    }
+
+    fun clearPossession() {
+        expenseSharedViewModel.clearPossession()
+    }
 
     init {
         /* なんでこれ必要なんだ？ */
-        observeAllExpenses()
+        observeStoredExpenses()
     }
 
     //allExpenseが更新されたときに
-    private fun observeAllExpenses() {
+    private fun observeStoredExpenses() {
         viewModelScope.launch {
-            expenseSharedViewModel.allExpenses.collectLatest {
+            expenseSharedViewModel.storedExpenses.collectLatest {
                 filterExpensesByMonth()
             }
         }
@@ -87,7 +135,7 @@ class ExpenseListViewModel @Inject constructor(
 
     suspend fun waitForInitialization() {
         /* nullのまま.valueをするとクラッシュするので、待たせる */
-        while (filteredExpenses == null || allExpenses == null) {
+        while (filteredExpenses == null || storedExpenses == null) {
             Log.d("ExpenseListViewModel", "Waiting for initialization...")
             delay(100) // 100msごとに再確認
         }
@@ -104,7 +152,7 @@ class ExpenseListViewModel @Inject constructor(
             val targetYear = getCalendarYear()
             val targetMonth = getCalendarMonth()
 
-            _filteredExpenses.value = expenseSharedViewModel.allExpenses.value
+            _filteredExpenses.value = expenseSharedViewModel.storedExpenses.value
                 .filter { expense ->
                     val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
                     val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
@@ -122,7 +170,7 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     /*
-    A:AllExpensesを取って、それを月ごとに抽出
+    A:storedExpensesを取って、それを月ごとに抽出
     B:前後12ヶ月分だけローカルに保存して、ローカルと変化があったときに同期させる
     C:
     */

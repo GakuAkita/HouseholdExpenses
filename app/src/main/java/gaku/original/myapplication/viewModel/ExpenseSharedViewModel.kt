@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.FirestoreListenerManager
+import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
@@ -24,11 +26,22 @@ class ExpenseSharedViewModel @Inject constructor(
     private val categoryRepository: CategoryFirestoreRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
+
+    override fun onCleared() {
+        super.onCleared()
+        clearPossession()
+    }
+
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
+
+    /**
+     * また大規模にリファクタリングしたほうがいいかもな、
+     * ViewModelがでかくなってきた。
+     */
 
     //@TODO 総データ量が多くないので、データをすべて引っ張ってくる仕様だが、将来的には数ヶ月分だけとってくる形にする
     private val _storedExpenses = MutableStateFlow<List<Expense>>(emptyList())
-    val allExpenses: StateFlow<List<Expense>> get() = _storedExpenses
+    val storedExpenses: StateFlow<List<Expense>> get() = _storedExpenses
 
     fun clearAllExpenses() {
         _storedExpenses.value = emptyList()
@@ -45,14 +58,17 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /* Expense関連はここにまとめておく */
-    fun addExpensesListeners(yearMonth: YearMonth) {
+    fun addAllListeners(yearMonth: YearMonth) {
         addExpenseListenerModifiedRemoved(yearMonth)
         addExpenseListenerAdded(yearMonth)
+        addCategoryListenerModifiedRemoved()
+        addCategoryListenerAdded()
     }
 
     fun addExpenseListenerModifiedRemoved(yearMonth: YearMonth = YearMonth.now()) {
         listenerManager.listenToExpensesModifiedRemoved(
             yearMonth = yearMonth,
+            monthNum = MONTH_RANGE,
             onModified = {
                 /* _allExpensesを更新する */
                 _storedExpenses.value = _storedExpenses.value.map { expense ->
@@ -120,28 +136,30 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /* このViewModel内で保持しているExpenses等をクリアにしたい。 */
-    private fun clearPossession() {
+    fun clearPossession() {
         clearAllExpenses()
         clearAllCategories()
         clearAllListeners()
     }
 
-    suspend fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
         if (_initFetchedDone.value) {
             /* アプリを立ち上げて初回実行時に行う */
             Log.d(className, "すでに実行されている.....")
-            return;
+            return
         }
 
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
         clearPossession()
 
+        /**
+         * このfetchもどっちでやるか要件等だな、
+         */
         viewModelScope.launch {
             Log.d(className, "init fetch is executed..")
-            var ret = fetchAllExpenses(
-                onStart = {
-                    _expensesLoadingStatus.value = LoadingStatus.LOADING
-                },
+            var ret = fetchMonthsExpensesInternal(
+                fromMonth = YearMonth.now().minusMonths(3),
+                toMonth = YearMonth.now().plusMonths(3),
                 callback = { statusInfo ->
                     if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
@@ -155,15 +173,19 @@ class ExpenseSharedViewModel @Inject constructor(
                 })
 
             if (ret.status != SuspendFuncStatus.SUCCESS) {
+                addAllListeners(YearMonth.now())
                 callback(ret)
                 return@launch
             }
 
             ret = fetchAllCategories()
             if (ret.status != SuspendFuncStatus.SUCCESS) {
+                LogAkitaDebug("Unable to get categories!!")
                 callback(ret)
                 return@launch
             }
+
+            addAllListeners(YearMonth.now())
             /* 他にやることがあるのであればここへ、、 */
 
             /* 最後にフラグを下げる。@TODO 途中停止なのか判定できたほうがいいか、、、 */
@@ -176,7 +198,40 @@ class ExpenseSharedViewModel @Inject constructor(
         setInitFetchedDone(false)
     }
 
-    suspend fun fetchMonthsExpenses(
+    /**
+     * fetch関連はこのViewModel内で行う！
+     */
+    fun fetchMonthsExpenses(
+        fromMonth: YearMonth,
+        toMonth: YearMonth,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        _expensesLoadingStatus.value = LoadingStatus.LOADING
+        viewModelScope.launch {
+            fetchMonthsExpensesInternal(fromMonth, toMonth, callback = { stausInfo ->
+                when (stausInfo.status) {
+                    SuspendFuncStatus.SUCCESS -> {
+                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+                    }
+
+                    SuspendFuncStatus.TIMEOUT -> {
+                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
+                    }
+
+                    SuspendFuncStatus.FAILED -> {
+                        _expensesLoadingStatus.value = LoadingStatus.ERROR
+                    }
+
+                    else -> {
+                        /* 何もしない */
+                    }
+                }
+                callback(stausInfo)
+            })
+        }
+    }
+
+    private suspend fun fetchMonthsExpensesInternal(
         fromMonth: YearMonth,
         toMonth: YearMonth,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
@@ -198,7 +253,8 @@ class ExpenseSharedViewModel @Inject constructor(
     /**
      * これは使わない
      */
-    suspend fun fetchAllExpenses(
+
+    private suspend fun fetchAllExpensesInternal(
         onStart: () -> Unit = {},
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
@@ -314,6 +370,33 @@ class ExpenseSharedViewModel @Inject constructor(
         return categoryRepository.removeCategory(
             category,
             callback = callback
+        )
+    }
+
+    fun addCategoryListenerModifiedRemoved() {
+        listenerManager.listenToCategoriesModifiedRemoved(
+            onModified = {
+                /* _allExpensesを更新する */
+                _allCategories.value = _allCategories.value.map { category ->
+                    if (category.id == it.id) {
+                        it
+                    } else {
+                        category
+                    }
+                }
+            },
+            onRemoved = {
+                _allCategories.value = _allCategories.value.filter { category ->
+                    category.id != it.id
+                }
+            })
+    }
+
+    fun addCategoryListenerAdded() {
+        listenerManager.listenToNewCategoriesOnly(
+            onAdded = {
+                _allCategories.value += it
+            }
         )
     }
 }

@@ -43,6 +43,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.toLocalDateTime
+import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
@@ -81,9 +82,40 @@ fun MainView(
     var currentPageYear = viewModel.getCalendarYear()
     // monthOffsetが変更されたときに再実行する処理
     LaunchedEffect(monthOffset) {
+        LogAkitaDebug("monthOffset is changed:$monthOffset currentPageMonth:$currentPageMonth currentPageYear:$currentPageYear")
         // monthOffsetが変更されたときに再実行する処理をここに書く
         currentPageMonth = viewModel.getCalendarMonth()
         currentPageYear = viewModel.getCalendarYear()
+
+        if (monthOffset > MONTH_RANGE || monthOffset < -MONTH_RANGE) {
+            /* ログインしたてはmonthOffsetが0なので、ここに入らない！！ */
+
+            /* 中心の月から外れたら、storedExpensesを更新する */
+            viewModel.updateCenterCalendarDate(currentPageYear, currentPageMonth)//カレンダーの中心を更新
+            viewModel.resetMonthOffset()//オフセットをリセット
+
+            LogAkitaDebug("ローカルのExpenseを更新します！！")
+
+            //リスナーの管理も中でやる
+            viewModel.updateStoredExpenses(
+                currentPageYear,
+                currentPageMonth,
+                callback = { statusInfo ->
+                    when (statusInfo.status) {
+                        SuspendFuncStatus.SUCCESS -> {
+                        }
+
+                        SuspendFuncStatus.TIMEOUT -> {
+                            /* スナックバーを出したい */
+                        }
+
+                        SuspendFuncStatus.FAILED -> {
+                            /* スナックバーを出したい。 */
+                        }
+                    }
+                }
+            )
+        } /* Expensesの更新が必要なときはtrueにする */
 
         LogAkitaDebug("これ走ってる？？")
         viewModel.filterExpensesByMonth()

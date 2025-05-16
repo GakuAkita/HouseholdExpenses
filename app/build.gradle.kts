@@ -52,6 +52,10 @@ android {
 }
 
 dependencies {
+    /* これがないとjava.lang.SecurityException: Unknown calling package name 'com.google.android.gms'というエラーが出る */
+    /* ビルドで失敗するから一旦無視 */
+//    implementation("com.google.android.gms:play-services:17.0.0")
+
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.database.ktx)
     implementation("com.google.firebase:firebase-firestore")
