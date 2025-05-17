@@ -20,6 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -251,8 +252,24 @@ fun MainView(
                 ) { CircularProgressIndicator() }
             } else if (expensesLoadingStatus == LoadingStatus.TIMEOUT) {
                 Text("Timeout!!!")
+                Button(
+                    onClick = {
+                        viewModel.updateStoredExpenses(
+                            currentPageYear,
+                            currentPageMonth,
+                            callback = {}
+                        )
+                    },
+                ) { Text("再読み込み") }
             } else if (expensesLoadingStatus == LoadingStatus.ERROR) {
                 Text("Unable to get Expenses properly. Please contact the developer.")
+                Button(onClick = {
+                    viewModel.updateStoredExpenses(
+                        currentPageYear,
+                        currentPageMonth,
+                        callback = {}
+                    )
+                }) { Text("再読み込み") }
             } else {
                 /* Do nothing */
             }
