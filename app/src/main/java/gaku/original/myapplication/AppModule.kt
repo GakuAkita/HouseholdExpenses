@@ -8,6 +8,7 @@ import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
@@ -81,6 +82,13 @@ object AppModule {
     fun provideCategoryFirestoreRepository(firestoreReference: FirestoreReference): CategoryFirestoreRepository {
         return CategoryFirestoreRepository(firestoreReference)
     }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideRepeatAddFirestoreRepository(firestoreReference: FirestoreReference): RepeatAddFirestoreRepository {
+        return RepeatAddFirestoreRepository(firestoreReference)
+    }
+
     /* ------------------------------------------------------------------ */
 
     @Provides
@@ -88,7 +96,6 @@ object AppModule {
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseFirestoreRepository,
         categoryRepository: CategoryFirestoreRepository,
-//        listenerManager: DbListenerManager,
         firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(

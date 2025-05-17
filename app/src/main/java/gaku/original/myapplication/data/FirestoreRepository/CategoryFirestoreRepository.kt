@@ -80,7 +80,6 @@ class CategoryFirestoreRepository(
         callback: (SuspendFuncStatusInfo) -> Unit
     ): FetchResult<List<Category>> {
         val funcName = ::fetchAllCategories.name
-        var ret = emptyList<Category>()
         LogClassFuncCalled(className, funcName)
 
         val categoryRef = getCategoriesColRef()
@@ -102,12 +101,12 @@ class CategoryFirestoreRepository(
 
                 val list = mutableListOf<Category>()
                 for (doc in snapshot.documents) {
-                    val expense = doc.toObject(Category::class.java)
+                    val category = doc.toObject(Category::class.java)
                         ?: throw Exception("Categoryへの変換に失敗 docId=${doc.id}")
-                    list.add(expense)
+                    list.add(category)
                 }
 
-                Log.d(className, "Fetched Categories: $ret")
+                Log.d(className, "Fetched Categories: $list")
                 val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
                 callback(statusInfo)
 

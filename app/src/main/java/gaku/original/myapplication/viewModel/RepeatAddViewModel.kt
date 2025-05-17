@@ -5,8 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
+import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.RepeatAdd
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RepeatAddViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val repeatAddRepository: RepeatAddRepository
+    private val repeatAddRepository: RepeatAddFirestoreRepository
 ) : ViewModel() {
 
 //    private val _tmpRepeatAdd = mutableStateOf<RepeatAdd>(
@@ -43,35 +44,36 @@ class RepeatAddViewModel @Inject constructor(
     val repeatAddSettings: StateFlow<List<RepeatAdd>> get() = _repeatAddSettings
 
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
-    fun fetchAllRepeatAddSettings(onComplete: () -> Unit = {}) {
+    fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val settings = repeatAddRepository.fetchRepeatAddSettings(
+            val fetchResult = repeatAddRepository.fetchAllRepeatAdd(
                 callback = { status ->
                     /* 成功失敗時の通知 */
                 }
             )
-
-            if (settings.isNotEmpty()) {
-                _repeatAddSettings.value = settings
+            val statusInfo = fetchResult.toSuspendFuncStatusInfo()
+            if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+                _repeatAddSettings.value = fetchResult.data ?: emptyList()
+            } else {
+                _repeatAddSettings.value = emptyList()
             }
-            onComplete()
         }
     }
 
-    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
+    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         //チェックをいれる
         viewModelScope.launch {
             repeatAddRepository.addRepeatAdd(repeatAdd, callback)
         }
     }
 
-    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
+    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             repeatAddRepository.updateRepeatAdd(repeatAdd, callback)
         }
     }
 
-    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatus) -> Unit = {}) {
+    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             repeatAddRepository.removeRepeatAdd(repeatAdd, callback)
         }
