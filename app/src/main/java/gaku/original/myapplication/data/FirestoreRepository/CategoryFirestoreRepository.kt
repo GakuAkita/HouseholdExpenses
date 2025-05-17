@@ -37,7 +37,6 @@ class CategoryFirestoreRepository(
             return statusInfo
         }
 
-        /* タイムアウトは設定しない */
         val statusInfo = addDataWithIdToFirestore(category, ref, callback = callback)
         return statusInfo
     }

@@ -29,6 +29,7 @@ class ExpenseFirestoreRepository(
     }
 
     //SignUp後にやる操作
+    //この関数ここにある必要ないな、、
     suspend fun addUserInitialData(
         email: String,
         callback: (SuspendFuncStatusInfo) -> Unit
