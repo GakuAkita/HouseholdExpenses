@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.view.main
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,12 +15,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +40,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.CategoryEditViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun CategoryAddEditView(
@@ -51,6 +54,11 @@ fun CategoryAddEditView(
     val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
 
     val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
     Scaffold(
         topBar = {
             TopBarView(
@@ -60,6 +68,7 @@ fun CategoryAddEditView(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
         Column(
@@ -110,28 +119,22 @@ fun CategoryAddEditView(
                                 callback = { status ->
                                     when (status.status) {
                                         SuspendFuncStatus.SUCCESS -> {
-                                            Toast.makeText(
-                                                context,
-                                                "Category Added",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar("Category Added")
+                                            }
                                             showDialog = false
                                         }
 
                                         SuspendFuncStatus.TIMEOUT -> {
-                                            Toast.makeText(
-                                                context,
-                                                "Time out!",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar("Time out!")
+                                            }
                                         }
 
                                         SuspendFuncStatus.FAILED -> {
-                                            Toast.makeText(
-                                                context,
-                                                "Failed to Add Category",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar("Failed to Add Category")
+                                            }
                                         }
                                     }
 
@@ -153,11 +156,9 @@ fun CategoryAddEditView(
                                         }
 
                                         SuspendFuncStatus.FAILED -> {
-                                            Toast.makeText(
-                                                context,
-                                                "Failed to Add Category",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar("Failed to Add Category")
+                                            }
                                         }
                                     }
 
@@ -179,11 +180,9 @@ fun CategoryAddEditView(
                             category = categoryRemoved,
                             callback = { status ->
                                 if (status.status == SuspendFuncStatus.FAILED) {
-                                    Toast.makeText(
-                                        context,
-                                        "Failed to Remove Category${categoryRemoved.name}",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("Failed to Remove Category${categoryRemoved.name}")
+                                    }
                                 }
                             }
                         )

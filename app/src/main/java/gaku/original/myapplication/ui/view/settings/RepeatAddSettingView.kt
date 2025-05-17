@@ -302,12 +302,6 @@ fun RepeatAddEditDialog(
     LaunchedEffect(amountWarning) {
         //amountWarningは表示したらすぐ消す
         if (amountWarning) {
-//            val toast = Toast.makeText(
-//                context,
-//                "これ以上入力できません。数値が大きすぎます。",
-//                Toast.LENGTH_LONG
-//            )
-//            toast.show()
             scope.launch {
                 snackBarHostState.showSnackbar("これ以上入力できません。数値が大きすぎます")
             }
