@@ -128,12 +128,12 @@ class ExpenseSharedViewModel @Inject constructor(
         return statusInfo
     }
 
-    /* これがtrueになっていれば、fetchAllExpensesを走らせる */
-    private val _initFetchedDone = MutableStateFlow(false);
-    val initFetchedDone: StateFlow<Boolean> get() = _initFetchedDone
+    /*  */
+    private val _isFirstSignIn = MutableStateFlow(true);
+    val isFirstSignIn: StateFlow<Boolean> get() = _isFirstSignIn
 
-    fun setInitFetchedDone(value: Boolean) {
-        _initFetchedDone.value = value
+    fun setIsFirstSignIn(value: Boolean) {
+        _isFirstSignIn.value = value
     }
 
     /* このViewModel内で保持しているExpenses等をクリアにしたい。 */
@@ -145,12 +145,6 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
-        if (_initFetchedDone.value) {
-            /* アプリを立ち上げて初回実行時に行う */
-            Log.d(className, "すでに実行されている.....")
-            return
-        }
-
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
         clearPossession()
         _expensesLoadingStatus.value = LoadingStatus.LOADING
@@ -189,15 +183,12 @@ class ExpenseSharedViewModel @Inject constructor(
 
             addAllListeners(YearMonth.now())
             /* 他にやることがあるのであればここへ、、 */
-
-            /* 最後にフラグを下げる。@TODO 途中停止なのか判定できたほうがいいか、、、 */
-            _initFetchedDone.value = true
         }
     }
 
     fun onSignedOut() {
         clearPossession()
-        setInitFetchedDone(false)
+        setIsFirstSignIn(true)
     }
 
     /**

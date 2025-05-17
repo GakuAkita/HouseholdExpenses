@@ -37,6 +37,12 @@ class ExpenseListViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
+    private val className: String = this::class.simpleName ?: "UnableToGetClassName"
+
+    init {
+        Log.d(className, "Init was called")
+    }
+
     /********************* MainView用*******************************/
     private var centerCalendarDate = LocalDate.now()//こいつはmutableStateである必要はない
 
@@ -66,6 +72,13 @@ class ExpenseListViewModel @Inject constructor(
 
     fun decrementMonth() {
         _monthOffset.value--
+    }
+
+    /**
+     * 過去の表示月と、現在時刻の表示
+     */
+    fun getPageDiffFromCenter() {
+
     }
 
     /********* Expense配列の管理 ***********/
@@ -140,8 +153,8 @@ class ExpenseListViewModel @Inject constructor(
         //Log.d("ExpenseListViewModel", "Initialization complete.")
     }
 
-    private val _monthTotal = MutableStateFlow(0L)
-    val monthTotal: StateFlow<Long> = _monthTotal
+    private val _monthTotalExpense = MutableStateFlow(0L)
+    val monthTotalExpense: StateFlow<Long> = _monthTotalExpense
 
 
     fun filterExpensesByMonth() {
@@ -162,7 +175,7 @@ class ExpenseListViewModel @Inject constructor(
             Log.d("ExpenseListViewModel", "filterExpensesByMonth was executed.↓")
             Log.d("ExpenseListViewModel", "${_filteredExpenses.value}")
 
-            _monthTotal.value =
+            _monthTotalExpense.value =
                 _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
         }
     }
@@ -193,8 +206,17 @@ class ExpenseListViewModel @Inject constructor(
         )
     }
 
-    suspend fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
-        /* SharedViewModelのviewModelScopeで処理 */
-        val ret = expenseSharedViewModel.onSignedIn(callback)
+    /***************** サインイン後特別 ***************************/
+    fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
+        /* サインイン時には、ユーザーが変わっているので、カレンダーのページも元に戻す */
+        if (expenseSharedViewModel.isFirstSignIn.value) {
+            /* サインイン時にやることがある */
+            centerCalendarDate = LocalDate.now()
+            resetMonthOffset()
+            expenseSharedViewModel.onSignedIn { statusInfo ->
+                callback(statusInfo)
+            }
+            expenseSharedViewModel.setIsFirstSignIn(false)
+        }
     }
 }

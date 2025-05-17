@@ -70,13 +70,14 @@ fun MainView(
 
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
+    /* 最初のページは、現在時刻と */
     val calendarPagerState =
-        rememberPagerState(initialPage = calendarHorizontalInitialPage) { 2 * calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
+        rememberPagerState(initialPage = 12) { 2 * calendarHorizontalInitialPage + 1 }//前後12ヶ月と現在の月=25ページ
     var previousCalendarPage by remember { mutableIntStateOf(calendarPagerState.currentPage) }
 
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
     val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
-    val monthTotal by viewModel.monthTotal.collectAsState()
+    val monthTotalExpense by viewModel.monthTotalExpense.collectAsState()
 
     var currentPageMonth = viewModel.getCalendarMonth()
     var currentPageYear = viewModel.getCalendarYear()
@@ -191,7 +192,7 @@ fun MainView(
             ) {
                 Text("${currentPageYear}-${currentPageMonth}")
                 Spacer(modifier = Modifier.padding(10.dp))
-                Text("Monthly Total:${monthTotal}")
+                Text("Monthly Total:${monthTotalExpense}")
             }
 
             Row(
