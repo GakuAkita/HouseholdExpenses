@@ -1,7 +1,7 @@
 package gaku.original.myapplication.ui.view.main
 
+import android.annotation.SuppressLint
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -36,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,6 +59,7 @@ import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -69,6 +72,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 カレンダーの日付を叩いてきたときはその日付と時間(今の時間)をデフォルトでいれる
  */
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseAddEditView(
@@ -90,6 +94,11 @@ fun ExpenseAddEditView(
 
     val allCategories = viewModel.categories
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
 
     Scaffold(
         topBar = {
@@ -230,11 +239,9 @@ fun ExpenseAddEditView(
                             if (true/* 日本円。設定から制御できるように、、 */) {
                                 val convertedVal = it.roundToLongOrNull()/* 自作 */
                                 if (it != "" && convertedVal == null) {
-                                    Toast.makeText(
-                                        context,
-                                        "数値が大きすぎます。これ以上入力できません",
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
+                                    }
                                     //viewModel.updateExpenseInstanceAmount(null)
                                 } else {
                                     viewModel.updateTmpExpenseAmount(convertedVal)
@@ -287,11 +294,9 @@ fun ExpenseAddEditView(
                         LogAkitaDebug("Allcategories???=${allCategories}")
                         if (allCategories.isEmpty()) {
                             //何もなかったらToastを出す
-                            Toast.makeText(
-                                context,
-                                "カテゴリーが何も登録されていません。\n編集ボタンから追加してください",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            scope.launch {//なんかここエラー出るぞ？
+                                snackBarHostState.showSnackbar("カテゴリーが何も登録されていません。\n編集ボタンから追加してください")
+                            }
                             categoryOptionsExpanded = false
                         }
                         allCategories.forEachIndexed { _, category ->
@@ -348,17 +353,13 @@ fun ExpenseAddEditView(
                     /* きちんと値が入っているかチェック */
                     if (viewModel.currentTmpExpense.amount == null) {
                         /*amount入っていないので弾く*/
-                        Toast.makeText(
-                            context,
-                            "金額が入力されていません。\n保存できません",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        scope.launch {
+                            snackBarHostState.showSnackbar("金額が入力されていません。\n保存できません")
+                        }
                     } else if (viewModel.currentTmpExpense.category == null) {
-                        Toast.makeText(
-                            context,
-                            "Categoryが選択されていません。\n保存できません",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        scope.launch {
+                            snackBarHostState.showSnackbar("Categoryが選択されていません。\n保存できません")
+                        }
                     } else {
                         //idがnullなら新規作成ってこと
                         if (viewModel.currentTmpExpense.id == null) {
@@ -377,21 +378,17 @@ fun ExpenseAddEditView(
                                         /* よくわからんstatus */
                                     }
                                 })
-                            Toast.makeText(
-                                context,
-                                "追加しました",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            scope.launch {
+                                snackBarHostState.showSnackbar("追加しました")
+                            }
                         } else {//idがnullでなかったら編集
                             //このidのExpenseをupdateする
                             viewModel.updateTmpExpenseToDb(
                                 onStart = {/* 追加しますてきな？？ */ },
                                 callback = {/* 失敗したときの対応 */ })//@TODO 空だけど、あとで整備
-                            Toast.makeText(
-                                context,
-                                "更新する",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            scope.launch {
+                                snackBarHostState.showSnackbar("更新する")
+                            }
                         }
                         //リセットする
                         viewModel.resetTmpExpense()

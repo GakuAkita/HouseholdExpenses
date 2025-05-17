@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.view.settings
 
-import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,17 +32,20 @@ import gaku.original.myapplication.data.Constants.Status.SingOutResult
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsView(
     viewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = {
             TopBarView("SettingsView作成中")
         },
-
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
         val context = LocalContext.current
@@ -87,17 +93,20 @@ fun SettingsView(
                     //ログアウト機能を実装
                     val ret = viewModel.signOut()
                     if (ret == SingOutResult.SUCCESS) {
-                        Toast.makeText(context, "ログアウトしました", Toast.LENGTH_SHORT).show()
+                        scope.launch {
+                            snackBarHostState.showSnackbar("ログアウトしました")
+                        }
                         navController.navigate(Screen.StartScreen.Start.route) {
                             popUpTo(0) { inclusive = true }
                         }
                     } else if (ret == SingOutResult.SIGN_OUT_FAILED) {
-                        Toast.makeText(context, "ログアウトに失敗しました", Toast.LENGTH_SHORT)
-                            .show()
+                        scope.launch {
+                            snackBarHostState.showSnackbar("ログアウトに失敗しました")
+                        }
                     }
                 }
             ) {
-                Text("LogOut(仮)")
+                Text("LogOut")
             }
         }
     }

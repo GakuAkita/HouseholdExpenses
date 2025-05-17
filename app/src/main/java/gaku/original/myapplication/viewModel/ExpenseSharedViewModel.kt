@@ -246,7 +246,6 @@ class ExpenseSharedViewModel @Inject constructor(
     /**
      * これは使わない
      */
-
     private suspend fun fetchAllExpensesInternal(
         onStart: () -> Unit = {},
         callback: (SuspendFuncStatusInfo) -> Unit = {}

@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.firebase.database.ktx)
     implementation("com.google.firebase:firebase-firestore")
 
+    implementation(platform("androidx.compose:compose-bom:2025.01.01"))
+
     val calendar_version = "2.6.0"
     val scrollbar_version = "2.2.0"
     val viewModel_version = "2.8.5"

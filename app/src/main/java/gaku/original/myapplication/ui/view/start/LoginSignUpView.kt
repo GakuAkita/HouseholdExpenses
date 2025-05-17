@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.view.start
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,14 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +29,9 @@ import gaku.original.myapplication.data.Constants.Status.SignInResult
 import gaku.original.myapplication.data.Constants.Status.SingUpResult
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginSignUpView(
     authViewModel: AuthManagerViewModel = hiltViewModel(),
@@ -40,13 +41,19 @@ fun LoginSignUpView(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
+
     Scaffold(
         topBar = {
             TopBarView(
                 title = if (isLogin) "Login" else "SignUp",
                 showBackButton = true,
                 onBackNavClicked = { navController.popBackStack() })
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) {
         val context = LocalContext.current
 
@@ -82,9 +89,9 @@ fun LoginSignUpView(
                         callback = { status ->
                             when (status) {
                                 SignInResult.SUCCESS -> {
-                                    //ログインしたときにExpensesを更新
-                                    Toast.makeText(context, "ログインしました", Toast.LENGTH_SHORT)
-                                        .show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("ログインしました")
+                                    }
                                     navController.navigate(Screen.MainScreen.Content.route) {
                                         //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
                                         popUpTo(0) {
@@ -95,20 +102,16 @@ fun LoginSignUpView(
 
                                 SignInResult.USER_ID_NULL -> {
                                     //ログインしたが、ユーザーIDが空
-                                    Toast.makeText(
-                                        context,
-                                        "ログインしましたがユーザーIDが空です\nログアウトします",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("ログインしましたがユーザーIDが空です\nログアウトします")
+                                    }
                                     //これログアウトしてしまいたいな。
                                 }
 
                                 SignInResult.SIGN_IN_FAILED -> {
-                                    Toast.makeText(
-                                        context,
-                                        "ログインに失敗しました",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("ログインに失敗しました")
+                                    }
                                 }
                             }
                         }
@@ -124,11 +127,9 @@ fun LoginSignUpView(
                         callback = { status ->
                             when (status) {
                                 SingUpResult.SUCCESS -> {
-                                    Toast.makeText(
-                                        context,
-                                        "アカウントを作成しました。ログインします",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("アカウントを作成しました。ログインします")
+                                    }
                                     //SignUpができたら即ログインする。
                                     authViewModel.signIn(
                                         email = email,
@@ -141,20 +142,15 @@ fun LoginSignUpView(
 
                                                 SignInResult.USER_ID_NULL -> {
                                                     //ログアウトする
-                                                    Toast.makeText(
-                                                        context,
-                                                        "アカウント作成しましたが、ユーザーIDが空です",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                    scope.launch {
+                                                        snackBarHostState.showSnackbar("アカウント作成しましたが、ユーザーIDが空です")
+                                                    }
                                                 }
 
                                                 SignInResult.SIGN_IN_FAILED -> {
-                                                    //もう一度ログインする
-                                                    Toast.makeText(
-                                                        context,
-                                                        "アカウント作成しましたが、ログインに失敗しました",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                    scope.launch {
+                                                        snackBarHostState.showSnackbar("アカウント作成しましたが、ログインに失敗しました")
+                                                    }
                                                 }
                                             }
                                         }
@@ -162,19 +158,15 @@ fun LoginSignUpView(
                                 }
 
                                 SingUpResult.USER_ID_NULL -> {
-                                    Toast.makeText(
-                                        context,
-                                        "アカウント作成しましたが、ユーザーIDが空です",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("アカウント作成しましたが、ユーザーIDが空です")
+                                    }
                                 }
 
                                 SingUpResult.SIGN_UP_FAILED -> {
-                                    Toast.makeText(
-                                        context,
-                                        "アカウント作成に失敗しました",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("アカウント作成に失敗しました")
+                                    }
                                 }
                             }
                         }

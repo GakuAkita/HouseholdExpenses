@@ -1,8 +1,6 @@
 package gaku.original.myapplication.ui.view.settings
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +30,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,8 +71,10 @@ import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.ui.view.main.DialWithDialog
 import gaku.original.myapplication.viewModel.RepeatAddViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -94,6 +97,9 @@ fun RepeatAddSettingView(
 
     val listState = rememberLazyListState()
 
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(Unit) {
         viewModel.fetchAllRepeatAddSettings()
     }
@@ -104,7 +110,7 @@ fun RepeatAddSettingView(
                 navController.popBackStack()
             }, showBackButton = true)
         },
-
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
 
@@ -135,26 +141,22 @@ fun RepeatAddSettingView(
                         onDelete = {
                             /* 削除をする */
                             viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
-                                when (status) {
+                                when (status.status) {
                                     SuspendFuncStatus.SUCCESS -> {
                                         /* 再度読み込む、、 */
                                         viewModel.fetchAllRepeatAddSettings()
                                     }
 
                                     SuspendFuncStatus.TIMEOUT -> {
-                                        Toast.makeText(
-                                            context,
-                                            "削除できませんでした。タイムアウトしました",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar("削除できませんでした。タイムアウトしました")
+                                        }
                                     }
 
                                     SuspendFuncStatus.FAILED -> {
-                                        Toast.makeText(
-                                            context,
-                                            "削除に失敗しました",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar("削除に失敗しました")
+                                        }
                                     }
 
                                     else -> {
@@ -178,19 +180,13 @@ fun RepeatAddSettingView(
                 RepeatAddEditDialog(
                     repeatAdd = editedRepeatAdd,
                     allCategories = allCategories,
-                    context = context,
                     onSave = { newRepeatAdd ->
                         //ここに関数を挟んで、
                         showAddEditDialog = false
-                        Toast.makeText(
-                            context,
-                            "Repeat Add Setting を追加したいな",
-                            Toast.LENGTH_LONG
-                        ).show()
                         if (newRepeatAdd.id == null)//新規追加
                         {
                             viewModel.addRepeatAddSetting(newRepeatAdd, callback = { status ->
-                                if (status == SuspendFuncStatus.SUCCESS) {
+                                if (status.status == SuspendFuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */
@@ -198,7 +194,7 @@ fun RepeatAddSettingView(
                             })
                         } else {/* 編集 */
                             viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
-                                if (status == SuspendFuncStatus.SUCCESS) {
+                                if (status.status == SuspendFuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */
@@ -209,7 +205,9 @@ fun RepeatAddSettingView(
                     onDismiss = {
                         showAddEditDialog = false
                         editedRepeatAdd = defaultRepeatAdd
-                    }
+                    },
+                    scope = scope,
+                    snackBarHostState = snackBarHostState
                 )
             }
         }
@@ -284,9 +282,10 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () ->
 fun RepeatAddEditDialog(
     repeatAdd: RepeatAdd,//ここで引数を渡すのは、編集に対応できるようにするため
     allCategories: StateFlow<List<Category>>,
-    context: Context,
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
+    scope: CoroutineScope,
+    snackBarHostState: SnackbarHostState
 ) {
     LogAkitaDebug("RepeatAddEditDialog Recomposed")
     var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
@@ -303,17 +302,19 @@ fun RepeatAddEditDialog(
     LaunchedEffect(amountWarning) {
         //amountWarningは表示したらすぐ消す
         if (amountWarning) {
-            val toast = Toast.makeText(
-                context,
-                "これ以上入力できません。数値が大きすぎます。",
-                Toast.LENGTH_LONG
-            )
-            toast.show()
+//            val toast = Toast.makeText(
+//                context,
+//                "これ以上入力できません。数値が大きすぎます。",
+//                Toast.LENGTH_LONG
+//            )
+//            toast.show()
+            scope.launch {
+                snackBarHostState.showSnackbar("これ以上入力できません。数値が大きすぎます")
+            }
 
             delay(2000)
 
             amountWarning = false
-            toast.cancel()
         }
     }
 

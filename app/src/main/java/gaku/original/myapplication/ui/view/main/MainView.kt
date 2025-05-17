@@ -3,6 +3,7 @@ package gaku.original.myapplication.ui.view.main
 import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -243,7 +245,10 @@ fun MainView(
             Spacer(modifier = Modifier.padding(10.dp))
 
             if (expensesLoadingStatus == LoadingStatus.LOADING) {
-                Text("Loading.........")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) { CircularProgressIndicator() }
             } else if (expensesLoadingStatus == LoadingStatus.TIMEOUT) {
                 Text("Timeout!!!")
             } else if (expensesLoadingStatus == LoadingStatus.ERROR) {
