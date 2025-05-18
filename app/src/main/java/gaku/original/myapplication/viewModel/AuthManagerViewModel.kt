@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SignInResult
+import gaku.original.myapplication.data.Constants.Status.SignUpResult
 import gaku.original.myapplication.data.Constants.Status.SingOutResult
-import gaku.original.myapplication.data.Constants.Status.SingUpResult
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -49,7 +49,7 @@ class AuthManagerViewModel @Inject constructor(
         email: String,
         password: String,
         onInitialDataAddFailed: () -> Unit,
-        callback: (SingUpResult) -> Unit
+        callback: (SignUpResult) -> Unit
     ) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -61,14 +61,14 @@ class AuthManagerViewModel @Inject constructor(
                             if (it.status != SuspendFuncStatus.SUCCESS) {
                                 onInitialDataAddFailed()
                             }
-                            callback(SingUpResult.SUCCESS)
+                            callback(SignUpResult.SUCCESS)
                         }
                     }
                 } else {
                     // エラーハンドリング
                     val errorMessage = task.exception?.message ?: "Unknown error occurred"
                     Log.d("AuthManagerViewModel", "signUp failed:$errorMessage")
-                    callback(SingUpResult.SIGN_UP_FAILED)
+                    callback(SignUpResult.SIGN_UP_FAILED)
                 }
             }
     }

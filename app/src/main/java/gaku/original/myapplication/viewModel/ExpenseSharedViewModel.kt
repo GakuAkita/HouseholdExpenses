@@ -113,17 +113,19 @@ class ExpenseSharedViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        val statusInfo = expenseRepository.addUserInitialData(email, callback)
+        val statusInfo = expenseRepository.addUserInitialData(email, callback = {})
         if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+            callback(statusInfo)
             return statusInfo
         }
 
-        // デフォルトカテゴリーを並列で追加
-        InitialCategories.categories.forEach { initialCategory ->
-            //こっちは失敗してもいいから、このままでいいや。
+        // デフォルトカテゴリを追加
+        for (initialCategory in InitialCategories.categories) {
+            /* まあこれは、失敗してもいいか */
             categoryRepository.addCategory(initialCategory, {})
         }
 
+        callback(statusInfo)
         /* カテゴリーはミスってもいいや */
         return statusInfo
     }
@@ -201,8 +203,8 @@ class ExpenseSharedViewModel @Inject constructor(
     ) {
         _expensesLoadingStatus.value = LoadingStatus.LOADING
         viewModelScope.launch {
-            fetchMonthsExpensesInternal(fromMonth, toMonth, callback = { stausInfo ->
-                when (stausInfo.status) {
+            fetchMonthsExpensesInternal(fromMonth, toMonth, callback = { statusInfo ->
+                when (statusInfo.status) {
                     SuspendFuncStatus.SUCCESS -> {
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                     }
@@ -219,7 +221,7 @@ class ExpenseSharedViewModel @Inject constructor(
                         /* 何もしない */
                     }
                 }
-                callback(stausInfo)
+                callback(statusInfo)
             })
         }
     }

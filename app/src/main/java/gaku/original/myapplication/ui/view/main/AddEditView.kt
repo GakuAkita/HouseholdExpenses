@@ -314,7 +314,7 @@ fun ExpenseAddEditView(
 
                 }
 
-                // ゴミ箱ボタン
+                // カテゴリー編集ボタン
                 IconButton(
                     onClick = {
                         navController.navigate(Screen.MainScreen.CategoryAddEdit.route)

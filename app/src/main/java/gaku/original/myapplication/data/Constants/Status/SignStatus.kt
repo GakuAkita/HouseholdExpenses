@@ -6,7 +6,7 @@ enum class SignInResult {
     SIGN_IN_FAILED      // サインアップ失敗
 }
 
-enum class SingUpResult {
+enum class SignUpResult {
     SUCCESS,            // サインアップ成功
     USER_ID_NULL,       // サインアップ成功したがUIDがnull
     SIGN_UP_FAILED      // サインアップ失敗
