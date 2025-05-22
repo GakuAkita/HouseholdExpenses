@@ -96,11 +96,13 @@ object AppModule {
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseFirestoreRepository,
         categoryRepository: CategoryFirestoreRepository,
+        repeatAddRepository: RepeatAddFirestoreRepository,
         firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
             categoryRepository,
+            repeatAddRepository,
             firestoreListenerManager,
         )
     }

@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.main
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CategoryAddEditView(
     viewModel: CategoryEditViewModel = hiltViewModel(),
+
     navController: NavController
 ) {
     var editedCategory by remember { mutableStateOf(Category(name = null)) }
@@ -119,22 +121,30 @@ fun CategoryAddEditView(
                                 callback = { status ->
                                     when (status.status) {
                                         SuspendFuncStatus.SUCCESS -> {
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar("Category Added")
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                "カテゴリーを追加しました",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             showDialog = false
                                         }
 
                                         SuspendFuncStatus.TIMEOUT -> {
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar("Time out!")
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                status.errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            showDialog = false
                                         }
 
                                         SuspendFuncStatus.FAILED -> {
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar("Failed to Add Category")
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                status.errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            showDialog = false
                                         }
                                     }
 
@@ -149,16 +159,29 @@ fun CategoryAddEditView(
                                     when (status.status) {
                                         SuspendFuncStatus.SUCCESS -> {
                                             showDialog = false
+                                            Toast.makeText(
+                                                context,
+                                                "カテゴリーを編集しました",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
 
                                         SuspendFuncStatus.TIMEOUT -> {
-
+                                            Toast.makeText(
+                                                context,
+                                                status.errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            showDialog = false
                                         }
 
                                         SuspendFuncStatus.FAILED -> {
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar("Failed to Add Category")
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                status.errorMessage,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            showDialog = false
                                         }
                                     }
 
@@ -179,9 +202,9 @@ fun CategoryAddEditView(
                         viewModel.removeCategory(
                             category = categoryRemoved,
                             callback = { status ->
-                                if (status.status == SuspendFuncStatus.FAILED) {
+                                if (status.status != SuspendFuncStatus.SUCCESS) {
                                     scope.launch {
-                                        snackBarHostState.showSnackbar("Failed to Remove Category${categoryRemoved.name}")
+                                        snackBarHostState.showSnackbar("${status.errorMessage}:${categoryRemoved.name}")
                                     }
                                 }
                             }

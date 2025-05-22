@@ -12,7 +12,9 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.InitialCategories
+import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.generatedType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,7 @@ import javax.inject.Inject
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
     private val categoryRepository: CategoryFirestoreRepository,
+    private val repeatAddRepository: RepeatAddFirestoreRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 
@@ -349,22 +352,94 @@ class ExpenseSharedViewModel @Inject constructor(
             )
             callback(statusInfo)
             return statusInfo
-        } else {
-            return categoryRepository.updateCategory(
-                category = category,
-                callback = callback
-            )
         }
+
+        /* 繰り返し追加に存在するときは、チェックして、そこをupdateする */
+        val resultStatus = repeatAddRepository.fetchAllRepeatAdd(callback = {})
+        if (resultStatus.status != SuspendFuncStatus.SUCCESS) {
+            val statusInfo = resultStatus
+            callback(statusInfo.toSuspendFuncStatusInfo())
+            return statusInfo.toSuspendFuncStatusInfo()
+        }
+        val repeatAddList: List<RepeatAdd> = resultStatus.data ?: emptyList()
+
+        val categoryUpdateStatus = categoryRepository.updateCategory(
+            category = category,
+            callback = {}
+        )
+        if (categoryUpdateStatus.status != SuspendFuncStatus.SUCCESS) {
+            callback(categoryUpdateStatus)
+            return categoryUpdateStatus
+        }
+
+        for (repeatAdd in repeatAddList) {
+            if (repeatAdd.expense.category?.id == category.id) {
+                repeatAdd.expense.category = category
+                /* 変数をあてておかないとすぐreturnしてしまう。 */
+                val status = repeatAddRepository.updateRepeatAdd(repeatAdd, callback = {})
+            }
+        }
+        callback(categoryUpdateStatus)
+        return categoryUpdateStatus
     }
 
     suspend fun removeCategory(
         category: Category,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
+        if (category.id == null) {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "カテゴリーIDがnullのため、削除できません。"
+            )
+            callback(statusInfo)
+            return statusInfo
+        }
+
+        val statusInfo = checkRepeatAddExists(category.id ?: "", callback = {})
+        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+            LogAkitaDebug(statusInfo.errorMessage)
+            callback(statusInfo)
+            return statusInfo
+        }
+
         return categoryRepository.removeCategory(
             category,
             callback = callback
         )
+    }
+
+    /* カテゴリーが繰り返し追加に登録されているかチェックする */
+    suspend fun checkRepeatAddExists(
+        categoryId: String,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
+        val resultStatus = repeatAddRepository.fetchAllRepeatAdd(callback = {})
+        if (resultStatus.status != SuspendFuncStatus.SUCCESS) {
+            val statusInfo = resultStatus
+            callback(statusInfo.toSuspendFuncStatusInfo())
+            return statusInfo.toSuspendFuncStatusInfo()
+        }
+
+        val repeatAddList: List<RepeatAdd> = resultStatus.data ?: emptyList()
+        /* 内部でチェックする */
+        val exists = repeatAddList.any { it.expense.category?.id == categoryId }
+        if (exists) {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "このカテゴリは繰り返し追加に登録されています。\n" +
+                        "繰り返し追加を削除してから、カテゴリを削除してください。"
+            )
+            callback(statusInfo)
+            return statusInfo
+        } else {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.SUCCESS,
+                ""
+            )
+            callback(statusInfo)
+            return statusInfo
+        }
     }
 
     fun addCategoryListenerModifiedRemoved() {

@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CategoryEditViewModel @Inject constructor(
-    private val expenseSharedViewModel: ExpenseSharedViewModel
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
 ) : ViewModel() {
 
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
@@ -29,13 +29,18 @@ class CategoryEditViewModel @Inject constructor(
         category: Category,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
+        /**
+         * 繰り返し追加に存在していたらそこも更新する
+         */
         viewModelScope.launch {
             expenseSharedViewModel.updateCategory(category, callback)
         }
     }
 
+
     fun removeCategory(category: Category, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
+            /* 内部に繰り返し追加に入っていないかチェックしている */
             expenseSharedViewModel.removeCategory(category, callback)
         }
     }
