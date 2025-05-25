@@ -4,7 +4,7 @@ export interface Frequency {
   frequency?: string; // "everyday" | "weekly" | "monthly" | "yearly" としてもOK
   month?: number;
   day?: number;
-  dayOfWeek?: string[];
+  dayOfWeek?: number[];
   hour?: number;
   minute?: number;
 }

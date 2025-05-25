@@ -1,5 +1,4 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
-import { convertDayNamesToNums } from "../../constants/DayOfWeek";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
 import {
@@ -61,9 +60,7 @@ export class RepeatAddProcessor {
             message: `曜日が保存されていません repeatAdd:${repeatAdd.id}`,
           };
         }
-
-        const daysOfWeekNums = convertDayNamesToNums(daysOfWeek);
-        datesArr = getSpecificWeekdaysOfMonth(year, month, daysOfWeekNums);
+        datesArr = getSpecificWeekdaysOfMonth(year, month, daysOfWeek);
         break;
 
       case RepeatFrequency.WEEKENDS:

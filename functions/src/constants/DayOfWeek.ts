@@ -29,16 +29,16 @@ export const WEEKDAYS = [
 ];
 
 // 文字列 → 番号
-export const DayOfWeekNameToNum: { [key: string]: DayOfWeekNum } =
-  Object.fromEntries(
-    Object.entries(DayOfWeekLabels).map(([numStr, name]) => [
-      name.toLowerCase(),
-      Number(numStr),
-    ])
-  ) as { [key: string]: DayOfWeekNum };
+// export const DayOfWeekNameToNum: { [key: string]: DayOfWeekNum } =
+//   Object.fromEntries(
+//     Object.entries(DayOfWeekLabels).map(([numStr, name]) => [
+//       name.toLowerCase(),
+//       Number(numStr),
+//     ])
+//   ) as { [key: string]: DayOfWeekNum };
 
-export function convertDayNamesToNums(dayNames: string[]): DayOfWeekNum[] {
-  return dayNames
-    .map((name) => DayOfWeekNameToNum[name.toLowerCase()])
-    .filter((num): num is DayOfWeekNum => num !== undefined);
-}
+// export function convertDayNamesToNums(dayNames: number[]): DayOfWeekNum[] {
+//   return dayNames
+//     .map((name) => DayOfWeekNameToNum[name.toLowerCase()])
+//     .filter((num): num is DayOfWeekNum => num !== undefined);
+// }

@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
-import { DayOfWeekLabels, DayOfWeekNameToNum } from "./constants/DayOfWeek";
+import { DayOfWeekNum } from "./constants/DayOfWeek";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
@@ -53,7 +53,7 @@ const init_add = async () => {
     expense: sampleExpense,
     frequencyInfo: {
       frequency: RepeatFrequency.EVERY_WEEK, //everydayはOK、
-      dayOfWeek: [DayOfWeekLabels[DayOfWeekNameToNum.MON]], // 週の曜日を指定
+      dayOfWeek: [DayOfWeekNum.MON], // 週の曜日を指定
       hour: 9,
       minute: 30,
     },

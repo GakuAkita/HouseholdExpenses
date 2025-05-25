@@ -24,7 +24,7 @@ export class RepeatAddService {
   ): Promise<FirestoreAddResult> {
     try {
       const repeatAddRef = this.getUserRepeatAddColRef(userId);
-      const docRef = await repeatAddRef.add(repeatAddData);
+      const docRef = await repeatAddRef.add(repeatAddData); //ここで事故ってる
       return {
         status: FuncStatus.SUCCESS,
         id: docRef.id,
