@@ -31,7 +31,8 @@ export class RepeatAddProcessor {
   getTargetDateFromRepeatAdd(
     repeatAdd: RepeatAdd,
     year: number,
-    month: number /* 1~12 */
+    month: number /* 1~12 */,
+    filter_datetime: Date | null = null /* フィルター用のdatetime。nullならフィルターなし */
   ): FuncResultWithData<Date[]> {
     /* 時間だけは共通なので、時間を取得しておく */
     const hour = repeatAdd.frequencyInfo.hour;
@@ -126,6 +127,15 @@ export class RepeatAddProcessor {
     }
 
     const retDates = setTimeToDates(datesArr, hour, minute);
+    if (filter_datetime != null) {
+      /* filter_datetimeが指定されている場合は、filter_datetime以降のものだけを返す */
+      const filteredDates = retDates.filter((date) => date >= filter_datetime);
+      return {
+        status: FuncStatus.SUCCESS,
+        data: filteredDates,
+      };
+    }
+
     return {
       status: FuncStatus.SUCCESS,
       data: retDates,
