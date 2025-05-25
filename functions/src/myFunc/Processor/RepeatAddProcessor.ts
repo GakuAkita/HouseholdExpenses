@@ -88,7 +88,29 @@ export class RepeatAddProcessor {
         break;
 
       case RepeatFrequency.EVERY_YEAR:
-        /*  */
+        /* repeatAddの月が引数の月が一致していたら今月追加 */
+        const _month = repeatAdd.frequencyInfo.month;
+        const _dayOfYear = repeatAdd.frequencyInfo.day;
+        if (_month == null || _dayOfYear == null) {
+          return {
+            status: FuncStatus.ERROR,
+            message: `freqでmonthまたはdayが設定されていません。month:${_month} day:${_dayOfYear}`,
+          };
+        }
+        if (_month === month) {
+          /* ここまで来て初めて日付を取得できる */
+          const _dateOfYear = getSingleDayOfMonth(year, month, _dayOfYear);
+          if (_dateOfYear == null) {
+            return {
+              status: FuncStatus.ERROR,
+              message: `${year}/${month}/${_dayOfYear}は存在しません`,
+            };
+          }
+          datesArr = [_dateOfYear];
+        } else {
+          /* 月が違うときは追加しないから空 */
+          datesArr = [];
+        }
         break;
 
       default:
