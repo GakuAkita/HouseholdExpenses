@@ -211,6 +211,7 @@ export class RepeatAddProcessor {
 
     let addedExpenseCount = 0;
     for (const repeatAdd of Object.values(repeatAdds)) {
+      addedExpenseCount = 0; // 初期化
       const targetResult = this.getTargetDateFromRepeatAdd(
         repeatAdd,
         currentYear,
@@ -244,6 +245,12 @@ export class RepeatAddProcessor {
         } else {
           addedExpenseCount++;
         }
+      }
+
+      if (addedExpenseCount !== targetDates.length) {
+        console.warn(
+          `Not all expenses were added for repeat add ${repeatAdd.id}. Added: ${addedExpenseCount}, Target: ${targetDates.length}`
+        );
       }
     }
     return {

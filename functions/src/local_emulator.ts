@@ -1,10 +1,14 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
+import { DayOfWeekLabels, DayOfWeekNameToNum } from "./constants/DayOfWeek";
+import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
+import { Category } from "./type/Category";
+import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
 
 // 環境変数を読み込む
@@ -25,49 +29,49 @@ const repeatAddProcessor = new RepeatAddProcessor(
   expenseService
 );
 
-// const main = async () => {
-//   const userId: string = "testUser";
+const init_add = async () => {
+  const userId: string = "testUser";
 
-//   await userService.addUserCol(userId);
+  await userService.addUserCol(userId);
 
-//   const sampleCategory: Category = {
-//     id: "category1",
-//     timestamp: Date.now(),
-//     name: "Food",
-//     enabled: true,
-//   };
-//   const sampleExpense: Expense = {
-//     timestamp: Date.now(),
-//     amount: 100,
-//     category: sampleCategory,
-//   };
-//   expenseService.addExpenseWithId(userId, sampleExpense);
+  const sampleCategory: Category = {
+    id: "category1",
+    timestamp: Date.now(),
+    name: "Food",
+    enabled: true,
+  };
+  const sampleExpense: Expense = {
+    timestamp: Date.now(),
+    amount: 100,
+    category: sampleCategory,
+  };
+  // expenseService.addExpenseWithId(userId, sampleExpense);
 
-//   const sampleRepeatAdd = {
-//     id: "Ld0bXW2F6kfuySfG1jqy",
-//     timestamp: Date.now(),
-//     expense: sampleExpense,
-//     frequencyInfo: {
-//       frequency: "every_week",
-//       dayOfWeek: ["Monday", "Wednesday"],
-//       hour: 10,
-//       minute: 30,
-//     },
-//   };
-//   const ret = await repeatAddService.addRepeatAddWithId(
-//     userId,
-//     sampleRepeatAdd
-//   );
-//   if (ret.status === FuncStatus.SUCCESS) {
-//     console.log("RepeatAdd updated successfully:", ret);
-//   } else {
-//     console.error("Failed to update RepeatAdd:", ret.message);
-//   }
+  const sampleRepeatAdd = {
+    id: "Ld0bXW2F6kfuySfG1jqy",
+    timestamp: Date.now(),
+    expense: sampleExpense,
+    frequencyInfo: {
+      frequency: RepeatFrequency.EVERY_WEEK, //everydayはOK、
+      dayOfWeek: [DayOfWeekLabels[DayOfWeekNameToNum.MON]], // 週の曜日を指定
+      hour: 9,
+      minute: 30,
+    },
+  };
+  const ret = await repeatAddService.addRepeatAddWithId(
+    userId,
+    sampleRepeatAdd
+  );
+  if (ret.status === FuncStatus.SUCCESS) {
+    console.log("addRepeatAddWithId success", ret);
+  } else {
+    console.error("Failed to update RepeatAdd:", ret.message);
+  }
 
-//   console.log("Data written to emulator.");
-// };
+  console.log("Data written to emulator.");
+};
 
-// main();
+init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -85,7 +89,6 @@ const schedule_func = async () => {
   console.log(`Found ${userIds.length} users.`);
   for (const uid of userIds) {
     repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
-    break; // 1人のユーザのみ処理
   }
 };
-schedule_func();
+// schedule_func();
