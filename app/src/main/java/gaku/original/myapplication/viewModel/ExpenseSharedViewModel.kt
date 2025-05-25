@@ -275,6 +275,7 @@ class ExpenseSharedViewModel @Inject constructor(
         expense: Expense,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
+        /* ここでMANUALにしている */
         if (expense.generatedType == null) {
             expense.generatedType = generatedType.MANUAL
         }

@@ -12,3 +12,7 @@ export interface FuncResult {
 export interface FirestoreAddResult extends FuncResult {
   id?: string; // 成功時に追加されたドキュメントのID
 }
+
+export interface FuncResultWithData<T> extends FuncResult {
+  data?: T; // 成功時に返されるデータ
+}

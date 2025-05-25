@@ -40,10 +40,12 @@ val defaultExpense = Expense(
 )
 
 /* 使われていない？↓ */
+/* firebase functions側と一致させないとまずい */
 class generatedType {
     companion object {
         const val AUTO = "auto"
         const val MANUAL = "manual"
+        const val REPEAT_ADD = "repeat_add" // 繰り返し追加で追加するやつ
     }
 }
 
