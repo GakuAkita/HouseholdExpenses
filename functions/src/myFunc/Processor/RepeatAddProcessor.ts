@@ -1,7 +1,12 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
 import { convertDayNamesToNums } from "../../constants/DayOfWeek";
+import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import {
+  FuncResult,
+  FuncResultWithData,
+  FuncStatus,
+} from "../../type/FuncStatus";
 import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
@@ -124,6 +129,116 @@ export class RepeatAddProcessor {
     return {
       status: FuncStatus.SUCCESS,
       data: retDates,
+    };
+  }
+
+  async addExpenseFromRepeatAdd(
+    userId: string,
+    repeatAdd: RepeatAdd,
+    datetime: Date
+  ): Promise<FuncResult> {
+    const expense = repeatAdd.expense;
+    if (expense == null) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Expense is null for repeat add ${repeatAdd.id}.`,
+      };
+    }
+
+    /* 必要なものを加えていかないと、、 */
+    expense.generatedType = `${GeneratedType.REPEAT_ADD}_${repeatAdd.id}`;
+    expense.datetime = datetime.toISOString();
+    expense.timestamp = Date.now();
+
+    const addExpenseStatus = await this.expenseService.addExpenseWithId(
+      userId,
+      expense
+    );
+    if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to add expense for repeat add ${repeatAdd.id}: ${addExpenseStatus.message}`,
+      };
+    }
+
+    /* ここまできたら成功 */
+    return {
+      status: FuncStatus.SUCCESS,
+      message: `Expense added successfully for repeat add ${repeatAdd.id}.`,
+    };
+  }
+
+  /**
+   * あるユーザーのrepeatAddをすべて取得して、
+   * 各repeatAddからexpenseを追加していく
+   */
+  async addExpensesFromAllRepeatAdd(userId: string): Promise<FuncResult> {
+    console.log("Processing user ID:", userId);
+    /* まずはユーザーのRepeatAddをすべて取ってくる */
+    const repeatAddsStatus = await this.repeatAddService.getAllRepeatAdds(
+      userId
+    );
+    if (repeatAddsStatus.status !== FuncStatus.SUCCESS) {
+      /* 失敗したらエラーを出して終了 */
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to retrieve repeat adds for user ${userId}: ${repeatAddsStatus.message}`,
+      };
+    }
+    const repeatAdds = repeatAddsStatus.data;
+    if (repeatAdds == null) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `No repeat adds found for user ${userId}.`,
+      };
+    }
+
+    /* 次で使うので現在の年と月を取得 */
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 月は0から始まるので+1
+    /* 取得したrepeatAddを回して */
+
+    let addedExpenseCount = 0;
+    for (const repeatAdd of Object.values(repeatAdds)) {
+      const targetResult = this.getTargetDateFromRepeatAdd(
+        repeatAdd,
+        currentYear,
+        currentMonth
+      );
+      if (targetResult.status !== FuncStatus.SUCCESS) {
+        console.error(
+          `Failed to get target dates for repeat add ${repeatAdd.id}: ${targetResult.message}`
+        );
+        continue;
+      }
+      const targetDates = targetResult.data;
+      if (targetDates == null) {
+        console.error(`No target dates found for repeat add ${repeatAdd.id}.`);
+        continue;
+      }
+
+      /* targetDatesをループして、expenseに加えていく */
+      for (const targetDate of targetDates) {
+        const addExpenseStatus = await this.addExpenseFromRepeatAdd(
+          userId,
+          repeatAdd,
+          targetDate
+        );
+        if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
+          console.error(
+            `Failed to add expense for repeat add ${
+              repeatAdd.id
+            } on ${targetDate.toISOString()}: ${addExpenseStatus.message}`
+          );
+        } else {
+          addedExpenseCount++;
+        }
+      }
+    }
+    return {
+      status: FuncStatus.SUCCESS,
+      message: `Processed repeat adds for user ${userId}.`,
     };
   }
 }

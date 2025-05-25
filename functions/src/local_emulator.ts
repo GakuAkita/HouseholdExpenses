@@ -83,38 +83,9 @@ const schedule_func = async () => {
     return;
   }
   console.log(`Found ${userIds.length} users.`);
-  for (const uid in userIds) {
-    console.log("Processing user ID:", uid);
-    /* まずはユーザーのRepeatAddをすべて取ってくる */
-    const repeatAddsStatus = await repeatAddService.getAllRepeatAdds(uid);
-    if (repeatAddsStatus.status !== FuncStatus.SUCCESS) {
-      console.error(
-        `Failed to retrieve repeat adds for user ${uid}: ${repeatAddsStatus.message}`
-      );
-      continue; // 次のユーザへ
-    }
-    const repeatAdds = repeatAddsStatus.data;
-    if (Object.keys(repeatAdds).length === 0) {
-      console.log(`No repeat adds found for user ${uid}.`);
-      continue; // 次のユーザへ
-    }
+  for (const uid of userIds) {
+    repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
     break; // 1人のユーザのみ処理
-  }
-
-  if (retResult.status !== "success") {
-    console.error("Failed to retrieve repeat adds:", retResult.message);
-    return;
-  }
-
-  const repeatAdds = retResult.data;
-  for (const repeatAddId in repeatAdds) {
-    const repeatAdd = repeatAdds[repeatAddId];
-    console.log(`Processing RepeatAdd ID: ${repeatAddId}`);
-    const targetDates = repeatAddProcessor.getTargetDateFromRepeatAdd(
-      repeatAdd,
-      2025,
-      5 // 例: 2025年5月のデータを取得
-    );
   }
 };
 schedule_func();
