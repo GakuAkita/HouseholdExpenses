@@ -4,7 +4,7 @@ import { WEEKDAYS, WEEKENDS } from "../../constants/DayOfWeek";
  * 引数に曜日の配列を渡すと、
  * その月の曜日の日を全部返してくれる
  */
-function getSpecificWeekdaysOfMonth(
+export function getSpecificWeekdaysOfMonth(
   year: number,
   month: number,
   targetDays: number[] /* 番号で渡す。DayOfWeekに対応 */
@@ -26,19 +26,19 @@ function getSpecificWeekdaysOfMonth(
   return retDays;
 }
 
-function getWeekendsOfMonth(year: number, month: number): Date[] {
+export function getWeekendsOfMonth(year: number, month: number): Date[] {
   const weekends: number[] = WEEKENDS;
   const retDays = getSpecificWeekdaysOfMonth(year, month, weekends);
   return retDays;
 }
 
-function getWeekdaysOfMonth(year: number, month: number): Date[] {
+export function getWeekdaysOfMonth(year: number, month: number): Date[] {
   const weekdays: number[] = WEEKDAYS;
   const retDays = getSpecificWeekdaysOfMonth(year, month, weekdays);
   return retDays;
 }
 
-function getEverydayOfMonth(year: number, month: number): Date[] {
+export function getEverydayOfMonth(year: number, month: number): Date[] {
   const retDays: Date[] = [];
   const targetMonth = month - 1; // Date は 0〜11 なので -1 する
 
@@ -57,7 +57,7 @@ function getEverydayOfMonth(year: number, month: number): Date[] {
  * 作っておく必要はないが、
  * 他の関数が月1~12なので、それに合わせて月の入力を1~12の関数を作っておく
  */
-function getSingleDayOfMonth(
+export function getSingleDayOfMonth(
   year: number,
   month: number,
   day: number
@@ -71,4 +71,19 @@ function getSingleDayOfMonth(
   }
 
   return null; // 無効な日付の場合は null を返す
+}
+
+/**
+ * Date[]の配列に時間をセットする
+ */
+export function setTimeToDates(
+  dates: Date[],
+  hour: number,
+  minute: number
+): Date[] {
+  return dates.map((date) => {
+    const newDate = new Date(date); // コピーを作る
+    newDate.setHours(hour, minute, 0, 0);
+    return newDate;
+  });
 }
