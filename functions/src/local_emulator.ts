@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
-import { DayOfWeekNum } from "./constants/DayOfWeek";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
@@ -52,8 +51,7 @@ const init_add = async () => {
     timestamp: Date.now(),
     expense: sampleExpense,
     frequencyInfo: {
-      frequency: RepeatFrequency.EVERY_WEEK, //everydayはOK、
-      dayOfWeek: [DayOfWeekNum.MON], // 週の曜日を指定
+      frequency: RepeatFrequency.WEEKENDS, //everydayはOK、every_weekはOK、weekendsは
       hour: 9,
       minute: 30,
     },
@@ -71,7 +69,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-init_add();
+// init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -91,4 +89,4 @@ const schedule_func = async () => {
     repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
   }
 };
-// schedule_func();
+schedule_func();

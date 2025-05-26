@@ -22,24 +22,18 @@ fun getRepeatFrequencyValues(): Array<String> {
     )
 }
 
-object DayOfWeek {
-    const val MON = "Monday"
-    const val TUE = "Tuesday"
-    const val WED = "Wednesday"
-    const val THU = "Thursday"
-    const val FRI = "Friday"
-    const val SAT = "Saturday"
-    const val SUN = "Sunday"
-}
+enum class DayOfWeek(val value: Int, val label: String) {
+    SUN(0, "Sunday"),
+    MON(1, "Monday"),
+    TUE(2, "Tuesday"),
+    WED(3, "Wednesday"),
+    THU(4, "Thursday"),
+    FRI(5, "Friday"),
+    SAT(6, "Saturday");
 
-fun getDayOfWeekValues(): Array<String> {
-    return arrayOf(
-        DayOfWeek.SUN,
-        DayOfWeek.MON,
-        DayOfWeek.TUE,
-        DayOfWeek.WED,
-        DayOfWeek.THU,
-        DayOfWeek.FRI,
-        DayOfWeek.SAT,
-    )
+    companion object {
+        fun fromValue(value: Int): DayOfWeek? = entries.find { it.value == value }
+
+        fun getLabels(): List<String> = entries.map { it.label }
+    }
 }

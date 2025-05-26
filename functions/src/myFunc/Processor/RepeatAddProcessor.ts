@@ -14,6 +14,7 @@ import {
   getSingleDayOfMonth,
   getSpecificWeekdaysOfMonth,
   getWeekdaysOfMonth,
+  getWeekendsOfMonth,
   setTimeToDates,
 } from "../utility/getDays";
 
@@ -64,7 +65,7 @@ export class RepeatAddProcessor {
         break;
 
       case RepeatFrequency.WEEKENDS:
-        datesArr = getWeekdaysOfMonth(year, month);
+        datesArr = getWeekendsOfMonth(year, month);
         break;
 
       case RepeatFrequency.WEEKDAYS:
