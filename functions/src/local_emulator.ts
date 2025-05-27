@@ -51,7 +51,9 @@ const init_add = async () => {
     timestamp: Date.now(),
     expense: sampleExpense,
     frequencyInfo: {
-      frequency: RepeatFrequency.WEEKENDS, //everydayはOK、every_weekはOK、weekendsは
+      frequency: RepeatFrequency.EVERY_YEAR, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
+      month: 5,
+      day: 2,
       hour: 9,
       minute: 30,
     },

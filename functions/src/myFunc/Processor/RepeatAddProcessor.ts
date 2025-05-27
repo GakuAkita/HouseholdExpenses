@@ -46,6 +46,7 @@ export class RepeatAddProcessor {
     const freq = repeatAdd.frequencyInfo.frequency;
 
     let datesArr: Date[] = [];
+    console.log(`This is {freq}`);
     switch (freq) {
       case RepeatFrequency.EVERYDAY:
         datesArr = getEverydayOfMonth(year, month);
