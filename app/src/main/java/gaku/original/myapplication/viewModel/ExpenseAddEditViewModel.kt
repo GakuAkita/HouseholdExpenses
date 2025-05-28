@@ -8,6 +8,7 @@ import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -24,8 +25,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         get() = tmpExpenseViewModel.tmpExpense.value
 
     //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
-    val categories: List<Category>
-        get() = expenseSharedViewModel.allCategories.value
+    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     // 日付のみを更新する
     fun updateTmpExpenseDate(newDate: LocalDate) {
@@ -96,6 +96,21 @@ class ExpenseAddEditViewModel @Inject constructor(
         onStart()
         viewModelScope.launch {
             expenseSharedViewModel.removeExpense(currentTmpExpense, callback)
+        }
+    }
+
+    /* カテゴリーを更新する。通信エラーが起きているとカテゴリーが取れていないときがある */
+    fun updateStoredCategories(
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        expenseSharedViewModel.clearAllCategories()
+        viewModelScope.launch {
+            expenseSharedViewModel.fetchAllCategories(
+                callback = {
+                    expenseSharedViewModel.addCategoryListeners()
+                    callback(it)
+                }
+            )
         }
     }
 }

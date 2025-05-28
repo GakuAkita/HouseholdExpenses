@@ -469,4 +469,9 @@ class ExpenseSharedViewModel @Inject constructor(
             }
         )
     }
+
+    fun addCategoryListeners() {
+        addCategoryListenerAdded()
+        addCategoryListenerModifiedRemoved()
+    }
 }

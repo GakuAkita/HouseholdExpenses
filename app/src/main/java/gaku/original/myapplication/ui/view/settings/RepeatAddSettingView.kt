@@ -57,9 +57,9 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.Constants.getDayOfWeekValues
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
@@ -807,23 +807,25 @@ fun FrequencyTextField(
             ) {
                 /* 曜日のチェックボックスを作る */
                 Column {
-                    getDayOfWeekValues().forEach { dayOfWeek ->
+                    DayOfWeek.entries.forEach { dayOfWeek ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
-                                checked = newFrequencyInfo.dayOfWeek?.contains(dayOfWeek) ?: false,
+                                checked = newFrequencyInfo.dayOfWeek?.contains(dayOfWeek.value)
+                                    ?: false,
                                 onCheckedChange = { isChecked ->
                                     newFrequencyInfo = newFrequencyInfo.copy(
                                         dayOfWeek = if (isChecked) {
-                                            (newFrequencyInfo.dayOfWeek ?: emptyList()) + dayOfWeek
+                                            (newFrequencyInfo.dayOfWeek
+                                                ?: emptyList()) + dayOfWeek.value
                                         } else {
                                             (newFrequencyInfo.dayOfWeek
-                                                ?: emptyList()).filter { it != dayOfWeek }
+                                                ?: emptyList()).filter { it != dayOfWeek.value }
                                         }
                                     )
-                                    LogAkitaDebug("newFrequencyInfo:${newFrequencyInfo}")
+                                    LogAkitaDebug("newFrequencyInfo: $newFrequencyInfo")
                                 }
                             )
-                            Text(dayOfWeek)
+                            Text(text = dayOfWeek.label) // ← 修正ポイント
                         }
                     }
                 }

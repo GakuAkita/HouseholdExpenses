@@ -166,8 +166,7 @@ fun MainView(
                     //必ずAddなのでリセットで
                     viewModel.resetTmpExpense()
 
-                    /*月は現在のカレンダーの時間をいれる??まあいっか。*/
-
+                    /*月は現在のカレンダーの時間をいれる??*/
                     /* Addに飛ぶ */
                     navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                 },

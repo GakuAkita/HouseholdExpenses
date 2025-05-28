@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -35,6 +38,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,7 +97,9 @@ fun ExpenseAddEditView(
     var showCalculator by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val allCategories = viewModel.categories
+    /* StateFlowあたりよくわかっていない、、ちゃんと勉強しないと */
+    val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
+
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -268,7 +274,43 @@ fun ExpenseAddEditView(
                 ExposedDropdownMenuBox(
                     expanded = categoryOptionsExpanded,
                     onExpandedChange = {
-                        categoryOptionsExpanded = !categoryOptionsExpanded
+                        if (categoryOptionsExpanded == false) {
+                            //@TODO ここうまく機能していない。
+                            if (allCategories.isEmpty()) {
+                                viewModel.updateStoredCategories { statusInfo ->
+                                    if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+                                        if (allCategories.isEmpty()) {
+                                            //何もなかったらToastを出す
+                                            LogAkitaDebug("Properly fetched categories")
+                                            scope.launch {//なんかここエラー出るぞ？
+                                                snackBarHostState.showSnackbar(
+                                                    "カテゴリーが何も登録されていません。\n編集ボタンから追加してください",
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        } else {
+                                            categoryOptionsExpanded = true
+                                        }
+                                    } else {
+                                        LogAkitaDebug("Fail msg:${statusInfo.errorMessage}")
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar(
+                                                "カテゴリーが取得できていません。",
+                                                actionLabel = "OK",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                        categoryOptionsExpanded = false
+                                    }
+                                }
+                            } else {
+                                /* カテゴリーがちゃんと入っていればtrueになる */
+                                categoryOptionsExpanded = true
+                            }
+                        } else {
+                            categoryOptionsExpanded = false
+                        }
                     }
                 ) {
 
@@ -294,13 +336,6 @@ fun ExpenseAddEditView(
                         onDismissRequest = { categoryOptionsExpanded = false }
                     ) {
                         LogAkitaDebug("Allcategories???=${allCategories}")
-                        if (allCategories.isEmpty()) {
-                            //何もなかったらToastを出す
-                            scope.launch {//なんかここエラー出るぞ？
-                                snackBarHostState.showSnackbar("カテゴリーが何も登録されていません。\n編集ボタンから追加してください")
-                            }
-                            categoryOptionsExpanded = false
-                        }
                         allCategories.forEachIndexed { _, category ->
                             DropdownMenuItem(
                                 text = { Text(text = category.name.toString()) },
@@ -323,6 +358,19 @@ fun ExpenseAddEditView(
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
                         contentDescription = "Edit Category"
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        viewModel.updateStoredCategories {
+                            /* カテゴリーを更新する */
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Update"
                     )
                 }
             }

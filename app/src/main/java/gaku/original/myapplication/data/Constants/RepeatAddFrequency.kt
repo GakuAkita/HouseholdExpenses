@@ -22,6 +22,7 @@ fun getRepeatFrequencyValues(): Array<String> {
     )
 }
 
+/* dayOfWeek.valueで数値、dayOfWeek.labelで文字列がでる */
 enum class DayOfWeek(val value: Int, val label: String) {
     SUN(0, "Sunday"),
     MON(1, "Monday"),
