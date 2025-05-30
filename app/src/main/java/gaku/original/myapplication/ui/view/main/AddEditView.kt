@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,6 +58,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.evalExpression
 import gaku.original.myapplication.Utility.roundToLongOrNull
+import gaku.original.myapplication.Utility.toInstantUTC
 import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -66,6 +67,7 @@ import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -86,8 +88,8 @@ fun ExpenseAddEditView(
 ) {
     val viewName = "ExpenseAddEditView"
 
-    //Toastとか用
-    val context = LocalContext.current
+    var selectedDate by remember { mutableStateOf<LocalDate?>(viewModel.getTimeZoneDate()) }
+    var selectedTime by remember { mutableStateOf<LocalTime?>(viewModel.getTimeZoneTime()) }
 
     //日付、時間の選択肢用
     var isDatePickerVisible by remember { mutableStateOf(false) }
@@ -98,13 +100,18 @@ fun ExpenseAddEditView(
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     /* StateFlowあたりよくわかっていない、、ちゃんと勉強しないと */
-    val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
+    val allCategories by viewModel.allCategories.collectAsState(initial = emptyList())
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
         SnackbarHostState()
+    }
+
+    /* デバッグ用 */
+    LaunchedEffect(allCategories) {
+        Log.d("UI", "Categories updated in UI: $allCategories")
     }
 
     Scaffold(
@@ -174,7 +181,7 @@ fun ExpenseAddEditView(
                 Spacer(modifier = Modifier.padding(8.dp))
 
                 TextField(
-                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(timeFormat)
+                    value = toInstantUTC(viewModel.currentTmpExpense.datetime)?.format(timeFormat)
                         ?: "時間が入っていません",
                     onValueChange = {},
                     enabled = false,
@@ -276,20 +283,22 @@ fun ExpenseAddEditView(
                     onExpandedChange = {
                         if (categoryOptionsExpanded == false) {
                             //@TODO ここうまく機能していない。
-                            if (allCategories.isEmpty()) {
+                            if (allCategories.isEmpty()) {/* allCategories.isEmpty() */
                                 viewModel.updateStoredCategories { statusInfo ->
                                     if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+                                        LogAkitaDebug("Properly fetched categories　${allCategories}")
                                         if (allCategories.isEmpty()) {
                                             //何もなかったらToastを出す
-                                            LogAkitaDebug("Properly fetched categories")
-                                            scope.launch {//なんかここエラー出るぞ？
-                                                snackBarHostState.showSnackbar(
-                                                    "カテゴリーが何も登録されていません。\n編集ボタンから追加してください",
-                                                    actionLabel = "OK",
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                            }
+                                            /* だめだ。思ったとおりに動かん。 */
+//                                            scope.launch {//なんかここエラー出るぞ？
+//                                                snackBarHostState.showSnackbar(
+//                                                    "カテゴリーが何も登録されていません。\n編集ボタンから追加してください",
+//                                                    actionLabel = "OK",
+//                                                    duration = SnackbarDuration.Short
+//                                                )
+//                                            }
                                         } else {
+                                            /* ちゃんとカテゴリーがあるので表示する */
                                             categoryOptionsExpanded = true
                                         }
                                     } else {
@@ -404,11 +413,19 @@ fun ExpenseAddEditView(
                     if (viewModel.currentTmpExpense.amount == null) {
                         /*amount入っていないので弾く*/
                         scope.launch {
-                            snackBarHostState.showSnackbar("金額が入力されていません。\n保存できません")
+                            snackBarHostState.showSnackbar(
+                                "金額が入力されていません。\n保存できません",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Long
+                            )
                         }
                     } else if (viewModel.currentTmpExpense.category == null) {
                         scope.launch {
-                            snackBarHostState.showSnackbar("Categoryが選択されていません。\n保存できません")
+                            snackBarHostState.showSnackbar(
+                                "Categoryが選択されていません。\n保存できません",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Long
+                            )
                         }
                     } else {
                         //idがnullなら新規作成ってこと

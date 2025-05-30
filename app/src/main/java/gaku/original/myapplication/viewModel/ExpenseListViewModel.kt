@@ -4,8 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.Utility.fromLocalDateTime
-import gaku.original.myapplication.Utility.toLocalDateTime
+import gaku.original.myapplication.Utility.AppTimeZone
+import gaku.original.myapplication.Utility.fromInstantUTC
+import gaku.original.myapplication.Utility.toInstantUTC
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -163,14 +165,20 @@ class ExpenseListViewModel @Inject constructor(
             val targetYear = getCalendarYear()
             val targetMonth = getCalendarMonth()
 
+            /**
+             * UTCから設定のタイムゾーンに変えてフィルターしないとだめだな。
+             * storedExpensesの段階ではISOで入っている。
+             */
             _filteredExpenses.value = expenseSharedViewModel.storedExpenses.value
                 .filter { expense ->
-                    val expenseYear = toLocalDateTime(expense.datetime)?.year ?: 0
-                    val expenseMonth = toLocalDateTime(expense.datetime)?.monthValue ?: 0
+                    val instant = runCatching { Instant.parse(expense.datetime) }.getOrNull()
+                    val localDateTime = instant?.atZone(AppTimeZone.zoneId)?.toLocalDateTime()
+                    val expenseYear = localDateTime?.year
+                    val expenseMonth = localDateTime?.monthValue
                     expenseYear == targetYear && expenseMonth == targetMonth
                 }
                 .sortedByDescending {
-                    it.datetime
+                    toInstantUTC(it.datetime)
                 }
             Log.d("ExpenseListViewModel", "filterExpensesByMonth was executed.↓")
             Log.d("ExpenseListViewModel", "${_filteredExpenses.value}")
@@ -195,13 +203,18 @@ class ExpenseListViewModel @Inject constructor(
         tmpExpenseViewModel.resetTmpExpense()
     }
 
-    /* カレンダーからAddEditする場合の関数。日付だけ変えて他は初期値 */
+    /**
+     * カレンダーからAddEditする場合の関数
+     * UI上で生成したDateTimeになるようなUTCを生成して、
+     * それをExpenseのdatetimeにセットする。
+     */
     fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime) {
+        val utcInstant: Instant = newDateTime.atZone(AppTimeZone.zoneId).toInstant()
         tmpExpenseViewModel.resetTmpExpense()
         tmpExpenseViewModel.updateTmpExpense(
             tmpExpenseViewModel.tmpExpense.value.copy(
                 //datetimeはStringなので注意!!! 変換必要
-                datetime = fromLocalDateTime(newDateTime)
+                datetime = fromInstantUTC(utcInstant)
             )
         )
     }

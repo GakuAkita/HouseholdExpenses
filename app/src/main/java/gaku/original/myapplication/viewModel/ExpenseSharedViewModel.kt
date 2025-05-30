@@ -308,7 +308,7 @@ class ExpenseSharedViewModel @Inject constructor(
         val fetchResult = categoryRepository.fetchAllCategories(callback = callback)
 
         if (fetchResult.status == SuspendFuncStatus.SUCCESS) {
-            _allCategories.value = fetchResult.data ?: emptyList()
+            _allCategories.value = (fetchResult.data ?: emptyList()).toList()
         }
         Log.d("ExpenseSharedViewModel", "Categories:${_allCategories.value}")
         return fetchResult.toSuspendFuncStatusInfo()

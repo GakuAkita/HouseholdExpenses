@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
@@ -57,6 +58,7 @@ import gaku.original.myapplication.viewModel.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -212,11 +214,19 @@ fun MainView(
                         calendarMonth = viewModel.getCalendarMonth(),
                         monthExpenses = viewModel.filteredExpenses.collectAsState().value,
                         onDayClicked = { day ->
+                            val instant: Instant = Instant.now()
                             val inputDate: LocalDate = day.date
-                            val inputTime: LocalTime = LocalTime.now()//今の時間でもいいし、00:00:00でもいいな
+
+                            /* UTCの時間を設定の時間に変換して、それをLocalTimeにする */
+                            val inputTime: LocalTime =
+                                instant.atZone(AppTimeZone.zoneId).toLocalTime()
                             val newDatetime: LocalDateTime =
                                 inputDate.atTime(inputTime)//LocalDateTimeに変換
                             Log.d("Akita Debug", "$inputDate")
+                            /**
+                             * このnewDatetimeは設定のタイムゾーンの日付で、
+                             * ViewModel内でUTCに変換する
+                             */
                             viewModel.setToTmpExpenseFromCalendar(newDatetime)
                             //ExpenseAddEditViewに移動
                             navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)

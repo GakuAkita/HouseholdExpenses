@@ -1,9 +1,9 @@
 package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
-import gaku.original.myapplication.Utility.fromLocalDateTime
+import gaku.original.myapplication.Utility.fromInstantUTC
 import gaku.original.myapplication.data.Interface.CommonProperty
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class Expense(
     override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1
@@ -32,7 +32,7 @@ val defaultCategory = Category(
 
 val defaultExpense = Expense(
     id = null,
-    datetime = fromLocalDateTime(LocalDateTime.now()),
+    datetime = fromInstantUTC(Instant.now()),
     amount = null,
     category = null,
     note = null,

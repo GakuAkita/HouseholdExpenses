@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.fromLocalDateTime
+import gaku.original.myapplication.Utility.toInstantUTC
 import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +28,21 @@ class ExpenseAddEditViewModel @Inject constructor(
 
     //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
+
+    /* 設定のタイムゾーンに合わせて現在日付 */
+    fun getTimeZoneDate(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate {
+        /* とりあえず日本で固定 */
+        toInstantUTC(currentTmpExpense.datetime)
+        val _zoneId: ZoneId = ZoneId.of("Asia/Tokyo")
+        return LocalDate.now(_zoneId)
+    }
+
+    /* 設定のタイムゾーンに合わせた現在時間 */
+    fun getTimeZoneTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime {
+        /* とりあえず日本で固定 */
+        val _zoneId: ZoneId = ZoneId.of("Asia/Tokyo")
+        return LocalTime.now(_zoneId)
+    }
 
     // 日付のみを更新する
     fun updateTmpExpenseDate(newDate: LocalDate) {
