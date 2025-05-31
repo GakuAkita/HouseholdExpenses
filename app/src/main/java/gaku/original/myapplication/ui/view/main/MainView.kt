@@ -46,7 +46,6 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogAkitaDebug
-import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -291,6 +290,7 @@ fun MainView(
                         thumbSelectedColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
+                    LogAkitaDebug("monthExpenses? ${monthExpenses}")
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -328,7 +328,9 @@ fun ExpenseItem(expense: Expense, onEdit: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "${toLocalDateTime(expense.datetime)?.dayOfMonth}日",
+            text = "${
+                AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.dayOfMonth ?: 0
+            }日",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
             textAlign = TextAlign.Left//左寄せ

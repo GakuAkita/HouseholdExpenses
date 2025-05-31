@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.AppTimeZone
+import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.fromInstantUTC
 import gaku.original.myapplication.Utility.toInstantUTC
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
@@ -166,16 +167,22 @@ class ExpenseListViewModel @Inject constructor(
             val targetMonth = getCalendarMonth()
 
             /**
-             * UTCから設定のタイムゾーンに変えてフィルターしないとだめだな。
+             * UTCから設定のタイムゾーンに変えてフィルターする。
              * storedExpensesの段階ではISOで入っている。
              */
+            Log.d("ExpenseListViewModel", "storedExpenses:${storedExpenses}↓")
             _filteredExpenses.value = expenseSharedViewModel.storedExpenses.value
                 .filter { expense ->
-                    val instant = runCatching { Instant.parse(expense.datetime) }.getOrNull()
-                    val localDateTime = instant?.atZone(AppTimeZone.zoneId)?.toLocalDateTime()
-                    val expenseYear = localDateTime?.year
-                    val expenseMonth = localDateTime?.monthValue
-                    expenseYear == targetYear && expenseMonth == targetMonth
+                    LogAkitaDebug(
+                        "expense:${expense.datetime} filtered:${
+                            AppTimeZone.isoStringToLocalDateTime(
+                                expense.datetime
+                            )
+                        }"
+                    )
+                    AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.let { localDateTime ->
+                        localDateTime.year == targetYear && localDateTime.monthValue == targetMonth
+                    } ?: false
                 }
                 .sortedByDescending {
                     toInstantUTC(it.datetime)

@@ -2,7 +2,6 @@ package gaku.original.myapplication
 
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ListenerRegistration
-import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import java.time.LocalTime
@@ -31,9 +30,9 @@ class FirestoreListenerManager @Inject constructor(
     ) {
         // 月初と月末を Timestamp に変換
         val startStr =
-            fromLocalDateTime(yearMonth.minusMonths(monthNum).atDay(1).atStartOfDay())!!
+            yearMonth.minusMonths(monthNum).atDay(1).atStartOfDay().toString()
         val endStr =
-            fromLocalDateTime(yearMonth.plusMonths(monthNum).atEndOfMonth().atTime(LocalTime.MAX))!!
+            yearMonth.plusMonths(monthNum).atEndOfMonth().atTime(LocalTime.MAX).toString()
 
 
         // すでに登録されていれば削除

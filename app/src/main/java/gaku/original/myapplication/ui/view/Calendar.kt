@@ -18,7 +18,7 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.OutDateStyle
 import com.kizitonwose.calendar.core.daysOfWeek
-import gaku.original.myapplication.Utility.toLocalDateTime
+import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Expense
 import java.time.DayOfWeek
 import java.time.YearMonth
@@ -87,7 +87,8 @@ fun Day(
 ) {
     // Calculate the total amount of expenses for this day
     val totalExpenseForDay = monthExpenses.filter { expense ->
-        toLocalDateTime(expense.datetime)?.toLocalDate() == day.date // Filter expenses by matching the date
+        AppTimeZone.isoStringToLocalDateTime(expense.datetime)
+            ?.toLocalDate() == day.date // Filter expenses by matching the date
     }.mapNotNull { expense ->
         // Convert the expense amount to a numeric type, assuming it might be String or nullable.
         expense.amount

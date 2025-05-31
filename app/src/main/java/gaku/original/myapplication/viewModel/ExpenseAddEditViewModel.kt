@@ -3,9 +3,7 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.Utility.fromLocalDateTime
 import gaku.original.myapplication.Utility.toInstantUTC
-import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -44,31 +42,9 @@ class ExpenseAddEditViewModel @Inject constructor(
         return LocalTime.now(_zoneId)
     }
 
-    // 日付のみを更新する
-    fun updateTmpExpenseDate(newDate: LocalDate) {
+    fun updateTmpExpenseDatetime(datetimeStr: String) {
         tmpExpenseViewModel.updateTmpExpense(
-            currentTmpExpense.copy(
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentTmpExpense.datetime)
-                        ?.withYear(newDate.year)
-                        ?.withMonth(newDate.monthValue)
-                        ?.withDayOfMonth(newDate.dayOfMonth)
-                )
-            )
-        )
-    }
-
-    // 時間のみを更新する
-    fun updateTmpExpenseTime(newTime: LocalTime) {
-        tmpExpenseViewModel.updateTmpExpense(
-            currentTmpExpense.copy(
-                datetime = fromLocalDateTime(
-                    toLocalDateTime(currentTmpExpense.datetime)
-                        ?.withHour(newTime.hour)
-                        ?.withMinute(newTime.minute)
-                        ?.withSecond(newTime.second)
-                )
-            )
+            currentTmpExpense.copy(datetime = datetimeStr)
         )
     }
 

@@ -55,11 +55,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.evalExpression
 import gaku.original.myapplication.Utility.roundToLongOrNull
-import gaku.original.myapplication.Utility.toInstantUTC
-import gaku.original.myapplication.Utility.toLocalDateTime
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.view.BottomBarView
@@ -109,6 +108,59 @@ fun ExpenseAddEditView(
         SnackbarHostState()
     }
 
+    fun handleSaveClick() {
+        if (selectedDate == null || selectedTime == null) {
+            scope.launch {
+                snackBarHostState.showSnackbar("日付と時間が選択されていません", actionLabel = "OK")
+            }
+            return
+        }
+
+        if (viewModel.currentTmpExpense.amount == null) {
+            scope.launch {
+                snackBarHostState.showSnackbar("金額が入力されていません", actionLabel = "OK")
+            }
+            return
+        }
+
+        val dateTime = LocalDateTime.of(selectedDate, selectedTime)
+        val isoStr = AppTimeZone.localDateTimeToIsoString(dateTime)
+        if (isoStr == null) {
+            scope.launch {
+                snackBarHostState.showSnackbar(
+                    "日付と時間の変換に失敗しました\n管理者に連絡してください",
+                    actionLabel = "OK"
+                )
+            }
+        }
+//        LogAkitaDebug("converted String ${isoStr}")
+        /* isoStrがnullであることはない。上でチェックしている。 */
+        viewModel.updateTmpExpenseDatetime(isoStr!!)
+
+        if (viewModel.currentTmpExpense.id == null) {
+            viewModel.addTmpExpenseToDb(onStart = {}, callback = {
+                /* 成功のときのみ */
+                if (it.status == SuspendFuncStatus.SUCCESS) {
+                    scope.launch {
+                        snackBarHostState.showSnackbar("追加しました")
+                    }
+                    viewModel.resetTmpExpense()
+                    navController.navigate(Screen.MainScreen.Content.route)
+                }
+            })
+        } else {
+            viewModel.updateTmpExpenseToDb(onStart = {}, callback = {
+                if (it.status == SuspendFuncStatus.SUCCESS) {
+                    scope.launch {
+                        snackBarHostState.showSnackbar("更新する")
+                    }
+                    viewModel.resetTmpExpense()
+                    navController.navigate(Screen.MainScreen.Content.route)
+                }
+            })
+        }
+    }
+
     /* デバッグ用 */
     LaunchedEffect(allCategories) {
         Log.d("UI", "Categories updated in UI: $allCategories")
@@ -147,7 +199,7 @@ fun ExpenseAddEditView(
                 horizontalArrangement = Arrangement.Absolute.Left
             ) {
                 TextField(
-                    value = toLocalDateTime(viewModel.currentTmpExpense.datetime)?.format(dateFormat)
+                    value = selectedDate?.format(dateFormat)
                         ?: "日付が入っていません",
                     onValueChange = {},
                     enabled = false,
@@ -166,13 +218,13 @@ fun ExpenseAddEditView(
                         onDateSelected = { dateMillis ->
                             // 選択された日付を処理
                             dateMillis?.let {
-                                val selectedDate = LocalDateTime
-                                    .ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
-                                    .toLocalDate() // 日付部分のみ取得
-
-                                // 選択された日付で Expense インスタンスを更新
-                                viewModel.updateTmpExpenseDate(selectedDate)
+                                //ただの日付だけ
+                                val _selectedDate =
+                                    Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
+                                        .toLocalDate()
+                                selectedDate = _selectedDate
                             }
+                            isDatePickerVisible = false
                         },
                         onDismiss = { isDatePickerVisible = false }
                     )
@@ -181,7 +233,7 @@ fun ExpenseAddEditView(
                 Spacer(modifier = Modifier.padding(8.dp))
 
                 TextField(
-                    value = toInstantUTC(viewModel.currentTmpExpense.datetime)?.format(timeFormat)
+                    value = selectedTime?.format(timeFormat)
                         ?: "時間が入っていません",
                     onValueChange = {},
                     enabled = false,
@@ -199,21 +251,20 @@ fun ExpenseAddEditView(
                 //Clickableの中身はComposable関数を入れられないらしい？だからここで分けて書いている
                 if (isTimePickerVisible) {
                     //nullでないときのみ時刻を表示
-                    viewModel.currentTmpExpense.datetime?.let {
-                        DialWithDialog(
-                            onConfirm = { selectedTime ->
-                                // 選択した時間を取得して ViewModel に更新
-                                val newTime = LocalTime.of(selectedTime.hour, selectedTime.minute)
-                                viewModel.updateTmpExpenseTime(newTime)
-                                isTimePickerVisible = false
-                            },
-                            onDismiss = {
-                                isTimePickerVisible = false
-                            },
-                            //@HACK let内に入っているからnullなわけないけど一応気をつけて
-                            initialDateTime = toLocalDateTime(it)!!
-                        )
-                    }
+                    DialWithDialog(
+                        onConfirm = { it ->
+                            // 選択した時間を取得して ViewModel に更新
+                            val _newTime = LocalTime.of(it.hour, it.minute)
+                            selectedTime = _newTime
+                            isTimePickerVisible = false
+                        },
+                        onDismiss = {
+                            isTimePickerVisible = false
+                        },
+                        //基本的に値は入っているが、なにかおかしくなった時用にLocalDateTimeをいれておく。
+                        initialDateTime = selectedTime?.atDate(selectedDate)
+                            ?: LocalDateTime.now()/* ここLocalDateTimeじゃないとだめなのか。日付だけなのに。 */
+                    )
                 }
 
             }
@@ -409,59 +460,7 @@ fun ExpenseAddEditView(
             /*************************************************/
             Button(
                 onClick = {
-                    /* きちんと値が入っているかチェック */
-                    if (viewModel.currentTmpExpense.amount == null) {
-                        /*amount入っていないので弾く*/
-                        scope.launch {
-                            snackBarHostState.showSnackbar(
-                                "金額が入力されていません。\n保存できません",
-                                actionLabel = "OK",
-                                duration = SnackbarDuration.Long
-                            )
-                        }
-                    } else if (viewModel.currentTmpExpense.category == null) {
-                        scope.launch {
-                            snackBarHostState.showSnackbar(
-                                "Categoryが選択されていません。\n保存できません",
-                                actionLabel = "OK",
-                                duration = SnackbarDuration.Long
-                            )
-                        }
-                    } else {
-                        //idがnullなら新規作成ってこと
-                        if (viewModel.currentTmpExpense.id == null) {
-                            //追加する
-                            //引数はないけど(詳しくはメソッドの中身見て)、この時点でのTmpExpenseを追加する
-                            viewModel.addTmpExpenseToDb(
-                                onStart = {/* 追加します的な,, */ },
-                                callback = { status ->
-                                    if (status.status == SuspendFuncStatus.SUCCESS) {
-                                        /**/
-                                    } else if (status.status == SuspendFuncStatus.TIMEOUT) {
-                                        /**/
-                                    } else if (status.status == SuspendFuncStatus.FAILED) {
-                                        /*  */
-                                    } else {
-                                        /* よくわからんstatus */
-                                    }
-                                })
-                            scope.launch {
-                                snackBarHostState.showSnackbar("追加しました")
-                            }
-                        } else {//idがnullでなかったら編集
-                            //このidのExpenseをupdateする
-                            viewModel.updateTmpExpenseToDb(
-                                onStart = {/* 追加しますてきな？？ */ },
-                                callback = {/* 失敗したときの対応 */ })//@TODO 空だけど、あとで整備
-                            scope.launch {
-                                snackBarHostState.showSnackbar("更新する")
-                            }
-                        }
-                        //リセットする
-                        viewModel.resetTmpExpense()
-                        //メイン画面に戻る
-                        navController.navigate(Screen.MainScreen.Content.route)
-                    }
+                    handleSaveClick()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(

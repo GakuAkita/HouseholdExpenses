@@ -27,7 +27,7 @@ const schedule_repeatAdd = async () => {
 exports.monthly_repeatAddJob = onSchedule(
   {
     schedule: "0 1 1 * *", // 毎月1日 1:00 JST
-    timeZone: "Asia/Tokyo", // 日本時間に設定
+    timeZone: "Asia/Tokyo", // 日本時間に設定。これ変えたほうがいいな。じゃないと、日本がこの時間のときに、他の国はこの時間じゃない。
     concurrency: 1,
   },
   async (context) => {
