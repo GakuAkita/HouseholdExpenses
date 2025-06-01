@@ -3,7 +3,6 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
@@ -62,12 +61,10 @@ class RepeatAddViewModel @Inject constructor(
     }
 
     fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
-        /* タイムゾーンをいれる */
-        val repeatAddWithTimeZone = repeatAdd.copy(zoneId = AppTimeZone.zoneId.id)
 
         //チェックをいれる
         viewModelScope.launch {
-            repeatAddRepository.addRepeatAdd(repeatAddWithTimeZone, callback)
+            repeatAddRepository.addRepeatAdd(repeatAdd, callback)
         }
     }
 

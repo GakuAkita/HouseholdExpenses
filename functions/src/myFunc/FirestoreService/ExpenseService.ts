@@ -71,14 +71,22 @@ export class ExpenseService {
     userId: string,
     expenseData: Expense
   ): Promise<FuncResult> {
-    const addStatus = await this.addExpense(userId, expenseData);
-    if (addStatus.status !== FuncStatus.SUCCESS) return addStatus;
-    if (!addStatus.id)
+    try {
+      const expensesRef = this.getUserExpensesColRef(userId);
+      const newDocRef = expensesRef.doc(); // IDを事前に生成
+      expenseData.id = newDocRef.id; // expense にセット
+
+      await newDocRef.set(expenseData); // 一発で書き込み
+
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `Expense added with ID: ${newDocRef.id}`,
+      };
+    } catch (error: any) {
       return {
         status: FuncStatus.ERROR,
-        message: "Failed to retrieve the added expense ID.",
+        message: `Failed to add expense with ID: ${error.message}`,
       };
-    expenseData.id = addStatus.id;
-    return this.updateExpense(userId, expenseData);
+    }
   }
 }

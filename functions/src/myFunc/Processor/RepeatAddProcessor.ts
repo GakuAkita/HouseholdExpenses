@@ -144,7 +144,7 @@ export class RepeatAddProcessor {
   async addExpenseFromRepeatAdd(
     userId: string,
     repeatAdd: RepeatAdd,
-    datetime: Date
+    targetDate: Date
   ): Promise<FuncResult> {
     const expense = repeatAdd.expense;
     if (expense == null) {
@@ -156,8 +156,10 @@ export class RepeatAddProcessor {
 
     /* 必要なものを加えていかないと、、 */
     expense.generatedType = `${GeneratedType.REPEAT_ADD}_${repeatAdd.id}`;
-    expense.datetime = datetime.toISOString();
     expense.timestamp = Date.now();
+
+    /* targetDate自体は扱い的には、自分のタイムゾーン。だから、それを変える */
+    expense.datetime = targetDate.toISOString();
 
     const addExpenseStatus = await this.expenseService.addExpenseWithId(
       userId,
@@ -231,6 +233,7 @@ export class RepeatAddProcessor {
 
       /* targetDatesをループして、expenseに加えていく */
       for (const targetDate of targetDates) {
+        /* このtargetDateは、 */
         const addExpenseStatus = await this.addExpenseFromRepeatAdd(
           userId,
           repeatAdd,

@@ -14,7 +14,6 @@ data class RepeatAdd(
      * monthly:何日の何時？
      * yearly:何月何日の何時?
      */
-    val zoneId: String? = null,
     /* Timezone ID, e.g., "Asia/Tokyo" */
 ) : CommonProperty
 
