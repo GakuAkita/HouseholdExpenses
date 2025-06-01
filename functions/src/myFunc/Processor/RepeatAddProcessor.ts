@@ -163,7 +163,7 @@ export class RepeatAddProcessor {
     expense.timestamp = Date.now();
 
     /* targetDate自体は扱い的には、自分のタイムゾーン。だから、それを変える */
-    expense.datetime = targetDate.toISOString();
+    expense.datetime = convertToUTCIsoString(targetDate, timeZone);
 
     const addExpenseStatus = await this.expenseService.addExpenseWithId(
       userId,
@@ -280,4 +280,10 @@ export class RepeatAddProcessor {
       message: `Processed repeat adds for user ${userId}.`,
     };
   }
+}
+function convertToUTCIsoString(
+  targetDate: Date,
+  timeZone: string
+): string | undefined {
+  throw new Error("Function not implemented.");
 }
