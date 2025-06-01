@@ -1,5 +1,8 @@
 package gaku.original.myapplication.Utility
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -7,12 +10,24 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 object AppTimeZone {
-    val zoneId: ZoneId get() = ZoneId.of("Asia/Tokyo") // アプリケーションのタイムゾーンを固定する
+    private val _zoneIdFlow = MutableStateFlow(ZoneId.of("Asia/Tokyo"))
+    val zoneIdFlow: StateFlow<ZoneId> = _zoneIdFlow.asStateFlow()
+
+    var currentZoneId: ZoneId
+        get() = _zoneIdFlow.value
+        private set(value) {
+            _zoneIdFlow.value = value
+        }
+
+    fun updateZoneId(newZoneId: ZoneId) {
+        currentZoneId = newZoneId
+        // 必要に応じて他の処理を追加
+    }
 
     fun isoStringToLocalDateTime(isoString: String?): LocalDateTime? {
         return try {
             val instant = Instant.parse(isoString)
-            LocalDateTime.ofInstant(instant, zoneId)
+            LocalDateTime.ofInstant(instant, currentZoneId)
         } catch (e: DateTimeParseException) {
             null
         }
@@ -22,14 +37,14 @@ object AppTimeZone {
      * 引数のローカル日時を設定のタイムゾーンとして捉えてそれをISOStringに変換する
      */
     fun localDateTimeToIsoString(localDateTime: LocalDateTime?): String? {
-        return localDateTime?.atZone(zoneId)  // ローカル日時をユーザータイムゾーンとみなす
+        return localDateTime?.atZone(currentZoneId)  // ローカル日時をユーザータイムゾーンとみなす
             ?.toInstant()                     // UTCに変換
             ?.toString()                      // ISO 8601（Z付き）文字列へ
     }
 
     /* タイムゾーンの現在時刻を取得。 */
     fun getCurrentTimeInZone(): LocalDateTime {
-        return LocalDateTime.now(zoneId)
+        return LocalDateTime.now(currentZoneId)
     }
 
     /* UTCの時間をLocalDateTimeで取得 */
@@ -43,6 +58,6 @@ object AppTimeZone {
     }
 
     fun fromInstantUTC(instant: Instant?): String? {
-        return instant?.atZone(zoneId)?.toInstant()?.toString()
+        return instant?.atZone(currentZoneId)?.toInstant()?.toString()
     }
 }

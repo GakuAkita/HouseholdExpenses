@@ -13,6 +13,7 @@ import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.InitialCategories
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -27,6 +28,7 @@ class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
     private val categoryRepository: CategoryFirestoreRepository,
     private val repeatAddRepository: RepeatAddFirestoreRepository,
+    private val userSettingsRepository: UserSettingsFirestoreRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 
@@ -116,7 +118,7 @@ class ExpenseSharedViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        val statusInfo = expenseRepository.addUserInitialData(email, callback = {})
+        val statusInfo = userSettingsRepository.addUserInitialData(email, callback = {})
         if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
             callback(statusInfo)
             return statusInfo

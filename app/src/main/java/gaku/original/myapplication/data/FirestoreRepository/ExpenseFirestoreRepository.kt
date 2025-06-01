@@ -2,14 +2,12 @@ package gaku.original.myapplication.data.FirestoreRepository
 
 import addDataWithIdToFirestore
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -19,47 +17,12 @@ import updateDataToFirestore
 import java.time.YearMonth
 
 class ExpenseFirestoreRepository(
-    private val firebaseAuth: FirebaseAuth,/* まあ、FirestoreReference内で持っているけどこっちでも持っている */
     private val firestoreReference: FirestoreReference
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     fun getExpensesColRef(): CollectionReference? {
         return firestoreReference.getExpensesColRef()
-    }
-
-    //SignUp後にやる操作
-    //この関数ここにある必要ないな、、
-    suspend fun addUserInitialData(
-        email: String,
-        callback: (SuspendFuncStatusInfo) -> Unit
-    ): SuspendFuncStatusInfo {
-        val funcName: String = ::addUserInitialData.name
-        LogClassFuncCalled(className, funcName)
-
-        val userRef = firestoreReference.getUserDocRef()
-        if (userRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "ユーザーIDが空でユーザーDocを取得できませんでした。"
-            )
-            callback(statusInfo)
-            return statusInfo
-        }
-
-        val uid = firebaseAuth.currentUser?.uid
-        if (uid == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "ユーザーIDが空です。"
-            )
-            callback(statusInfo)
-            return statusInfo
-        }
-        val newMap = mapOf("email" to email, "id" to uid)
-
-        val statusInfo = setDataToFirestore(newMap, reference = userRef, callback = callback)
-        return statusInfo
     }
 
     suspend fun addExpense(

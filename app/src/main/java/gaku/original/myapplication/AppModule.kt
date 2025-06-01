@@ -9,6 +9,7 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
@@ -71,10 +72,9 @@ object AppModule {
     @Provides
     @ActivityRetainedScoped
     fun provideExpenseFirestoreRepository(
-        firebaseAuth: FirebaseAuth,
         firestoreReference: FirestoreReference
     ): ExpenseFirestoreRepository {
-        return ExpenseFirestoreRepository(firebaseAuth, firestoreReference)
+        return ExpenseFirestoreRepository(firestoreReference)
     }
 
     @Provides
@@ -89,6 +89,15 @@ object AppModule {
         return RepeatAddFirestoreRepository(firestoreReference)
     }
 
+    @Provides
+    @ActivityRetainedScoped
+    fun provideUserSettingsFirestoreRepository(
+        firebaseAuth: FirebaseAuth,
+        firestoreReference: FirestoreReference
+    ): UserSettingsFirestoreRepository {
+        return UserSettingsFirestoreRepository(firebaseAuth, firestoreReference)
+    }
+
     /* ------------------------------------------------------------------ */
 
     @Provides
@@ -97,12 +106,14 @@ object AppModule {
         expenseRepository: ExpenseFirestoreRepository,
         categoryRepository: CategoryFirestoreRepository,
         repeatAddRepository: RepeatAddFirestoreRepository,
+        userSettingsRepository: UserSettingsFirestoreRepository,
         firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
             categoryRepository,
             repeatAddRepository,
+            userSettingsRepository,
             firestoreListenerManager,
         )
     }

@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.SetOptions
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
@@ -74,34 +75,40 @@ suspend fun addDataToFirestore(
  * reference.addなのか、reference.setだけが違うから、それ以外を共通化
  * これほぼupdateDataだな。
  * */
-suspend fun setDataToFirestore(
+suspend fun setDataToFirestoreWithOption(
     data: Any,
     timeout: Long = 3000,
     reference: DocumentReference,
+    setOptions: SetOptions? = null,
     callback: (SuspendFuncStatusInfo) -> Unit = {},
 ): SuspendFuncStatusInfo {
-    val funcName = "setDataToFirestore"
+    val funcName = "setDataToFirestoreWithOption"
 
     return try {
         withTimeout(timeout) {
             suspendCancellableCoroutine { continuation ->
-                reference.set(data)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Log.d(funcName, "Data ($data) was set successfully")
-                            val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                            callback(statusInfo)
-                            continuation.resume(statusInfo)
-                        } else {
-                            Log.e(funcName, "Failed to set data $data", task.exception)
-                            val statusInfo = SuspendFuncStatusInfo(
-                                SuspendFuncStatus.FAILED,
-                                task.exception?.message ?: "不明なエラーが発生しました"
-                            )
-                            callback(statusInfo)
-                            continuation.resume(statusInfo)
-                        }
+                val task = if (setOptions != null) {
+                    reference.set(data, setOptions)
+                } else {
+                    reference.set(data)
+                }
+
+                task.addOnCompleteListener { result ->
+                    if (result.isSuccessful) {
+                        Log.d(funcName, "Data ($data) was set successfully")
+                        val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                        callback(statusInfo)
+                        continuation.resume(statusInfo)
+                    } else {
+                        Log.e(funcName, "Failed to set data $data", result.exception)
+                        val statusInfo = SuspendFuncStatusInfo(
+                            SuspendFuncStatus.FAILED,
+                            result.exception?.message ?: "不明なエラーが発生しました"
+                        )
+                        callback(statusInfo)
+                        continuation.resume(statusInfo)
                     }
+                }
             }
         }
     } catch (e: TimeoutCancellationException) {
@@ -114,6 +121,38 @@ suspend fun setDataToFirestore(
         return statusInfo
     }
 }
+
+suspend fun setDataToFirestore(
+    data: Any,
+    timeout: Long = 3000,
+    reference: DocumentReference,
+    callback: (SuspendFuncStatusInfo) -> Unit = {},
+): SuspendFuncStatusInfo {
+    return setDataToFirestoreWithOption(
+        data = data,
+        timeout = timeout,
+        reference = reference,
+        setOptions = null, // merge しない通常の set
+        callback = callback
+    )
+}
+
+/* setなんだけど、存在しなければ作る */
+suspend fun mergeDataToFirestore(
+    data: Any,
+    timeout: Long = 3000,
+    reference: DocumentReference,
+    callback: (SuspendFuncStatusInfo) -> Unit = {},
+): SuspendFuncStatusInfo {
+    return setDataToFirestoreWithOption(
+        data = data,
+        timeout = timeout,
+        reference = reference,
+        setOptions = SetOptions.merge(), // merge する
+        callback = callback
+    )
+}
+
 
 suspend fun removeDocument(
     reference: DocumentReference,
