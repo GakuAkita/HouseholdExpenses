@@ -3,7 +3,6 @@ package gaku.original.myapplication.data
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
-import java.time.LocalDateTime
 
 data class Expense(
     override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1
@@ -32,7 +31,7 @@ val defaultCategory = Category(
 
 val defaultExpense = Expense(
     id = null,
-    datetime = AppTimeZone.localDateTimeToIsoString(LocalDateTime.now()),
+    datetime = AppTimeZone.getCurrentTimeInUTCString(),
     amount = null,
     category = null,
     note = null,

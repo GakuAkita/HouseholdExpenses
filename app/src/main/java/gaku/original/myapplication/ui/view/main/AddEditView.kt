@@ -163,6 +163,7 @@ fun ExpenseAddEditView(
 
     /* デバッグ用 */
     LaunchedEffect(allCategories) {
+        viewModel.getTimeZoneDate()
         Log.d("UI", "Categories updated in UI: $allCategories")
     }
 

@@ -33,7 +33,9 @@
 - done:::ToastからsnackBarに変更
 - done:::タイムアウト、失敗時のときの、再読み込みボタンを作成
 - done:::サインアップの時、データはちゃんと登録されているが、カテゴリーがローカルに落とせていない。途中で止まる
-- 時間の統一。ISOに統一し、ViewModel内で日本時間に変換。ReactやFirebase functionsの方も統一。LocalDateTimeはまずい。
+- done:::時間の統一。ISOに統一し、ViewModel内で日本時間に変換。ReactやFirebase
+  functionsの方も統一。LocalDateTimeはまずい。
+- RepeatAddもタイムゾーンの要素を加える。じゃないと、ずれる。
 - 認証を二段階にする
 - デザインを整える
 - エラー対策 ErrorInfoをどれにも含めたほうが拡張性が良いような、、、

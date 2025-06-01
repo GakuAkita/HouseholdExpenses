@@ -38,7 +38,6 @@ class ExpenseAddEditViewModel @Inject constructor(
 
     /* 設定のタイムゾーンに合わせた現在時間 */
     fun getTimeZoneTime(): LocalTime {
-        /* とりあえず日本で固定 */
         AppTimeZone.isoStringToLocalDateTime(currentTmpExpense.datetime)?.let {
             return it.toLocalTime()
         }

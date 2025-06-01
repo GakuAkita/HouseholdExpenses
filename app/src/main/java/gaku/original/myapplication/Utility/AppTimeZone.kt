@@ -3,6 +3,7 @@ package gaku.original.myapplication.Utility
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 object AppTimeZone {
@@ -31,6 +32,15 @@ object AppTimeZone {
         return LocalDateTime.now(zoneId)
     }
 
+    /* UTCの時間をLocalDateTimeで取得 */
+    fun getCurrentTimeInUTC(): LocalDateTime {
+        return LocalDateTime.now(ZoneId.of("UTC"))
+    }
+
+    fun getCurrentTimeInUTCString(): String? {
+        // UTCの現在時刻をISO 8601形式の文字列で返す
+        return getCurrentTimeInUTC().toInstant(ZoneOffset.UTC).toString()
+    }
 
     fun fromInstantUTC(instant: Instant?): String? {
         return instant?.atZone(zoneId)?.toInstant()?.toString()
