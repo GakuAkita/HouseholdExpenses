@@ -1,4 +1,5 @@
 import { onSchedule } from "firebase-functions/scheduler";
+import { TimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
 
@@ -27,7 +28,7 @@ const schedule_repeatAdd = async () => {
 exports.monthly_repeatAddJob = onSchedule(
   {
     schedule: "0 1 1 * *", // 毎月1日 1:00 JST
-    timeZone: "Asia/Tokyo", // 現在時刻の設定も日本にしているから、大丈夫。
+    timeZone: TimeZone.JST, // 現在時刻の設定も日本にしているから、大丈夫。
     concurrency: 1,
   },
   async (_) => {

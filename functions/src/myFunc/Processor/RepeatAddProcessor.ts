@@ -1,6 +1,7 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
+import { TimeZone } from "../../constants/TimeZone";
 import {
   FuncResult,
   FuncResultWithData,
@@ -9,6 +10,7 @@ import {
 import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
+import { SettingsService } from "../FirestoreService/SettingsService";
 import {
   getEverydayOfMonth,
   getSingleDayOfMonth,
@@ -21,7 +23,8 @@ import {
 export class RepeatAddProcessor {
   constructor(
     private repeatAddService: RepeatAddService,
-    private expenseService: ExpenseService
+    private expenseService: ExpenseService,
+    private settingsService: SettingsService
   ) {}
 
   /**
@@ -144,7 +147,8 @@ export class RepeatAddProcessor {
   async addExpenseFromRepeatAdd(
     userId: string,
     repeatAdd: RepeatAdd,
-    targetDate: Date
+    targetDate: Date,
+    timeZone: string = "Asia/Tokyo" /* タイムゾーン。デフォルトは東京時間 */
   ): Promise<FuncResult> {
     const expense = repeatAdd.expense;
     if (expense == null) {
@@ -204,13 +208,27 @@ export class RepeatAddProcessor {
       };
     }
 
+    /* 設定のタイムゾーンを取得してくる */
+    const userTimeZoneStatus = await this.settingsService.getUserTimeZone(
+      userId
+    );
+    if (userTimeZoneStatus.status !== FuncStatus.SUCCESS) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to retrieve user time zone for ${userId}: ${userTimeZoneStatus.message}`,
+      };
+    }
+    const userTimeZone = userTimeZoneStatus.data;
+
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
-    const tokyonow = DateTime.now().setZone("Asia/Tokyo");
+    const tokyonow = DateTime.now().setZone(
+      TimeZone.JST
+    ); /* トリガーに合わせる */
     const currentYear = tokyonow.getFullYear();
     const currentMonth = tokyonow.getMonth() + 1; // 月は0から始まるので+1
-    /* 取得したrepeatAddを回して */
 
+    /* 取得したrepeatAddを回して */
     let addedExpenseCount = 0;
     for (const repeatAdd of Object.values(repeatAdds)) {
       addedExpenseCount = 0; // 初期化
@@ -237,7 +255,8 @@ export class RepeatAddProcessor {
         const addExpenseStatus = await this.addExpenseFromRepeatAdd(
           userId,
           repeatAdd,
-          targetDate
+          targetDate,
+          userTimeZone /* ユーザーの設定をみる！！！ */
         );
         if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
           console.error(

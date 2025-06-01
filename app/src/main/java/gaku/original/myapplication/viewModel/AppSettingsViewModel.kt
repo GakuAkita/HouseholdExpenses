@@ -21,6 +21,7 @@ class AppSettingsViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             userPreferencesRepository.setUserTimeZone(timeZone, callback = callback)
+//            AppTimeZone.updateStrZoneId("UTC")
         }
     }
 }

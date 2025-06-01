@@ -6,6 +6,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -19,6 +21,7 @@ fun AppSettingsView(
     viewModel: AppSettingsViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val zoneId by AppTimeZone.zoneIdFlow.collectAsState()
     Scaffold(
         topBar = {
             TopBarView(
@@ -33,7 +36,7 @@ fun AppSettingsView(
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-            Text("現在の設定:${AppTimeZone.currentZoneId.id}")
+            Text("現在の設定:${zoneId}")
             Button(
                 onClick = {
                     viewModel.setUserTimeZone(
@@ -43,6 +46,7 @@ fun AppSettingsView(
                     )
                 }
             ) { Text("設定読み込む") }
+            Text("現在は変更不可能")
         }
     }
 }
