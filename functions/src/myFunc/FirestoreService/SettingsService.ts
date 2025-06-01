@@ -18,6 +18,26 @@ export class SettingsService {
     return this.getSettingsColRef(userId).doc("userPreferences");
   }
 
+  async addUserPreferences(
+    userId: string,
+    preferences: UserPreferences
+  ): Promise<FuncResultWithData<UserPreferences>> {
+    try {
+      const docRef = this.getUserPreferencesDocRef(userId);
+      await docRef.set(preferences, { merge: true });
+      return {
+        status: FuncStatus.SUCCESS,
+        data: preferences,
+        message: `User preferences for ${userId} added successfully.`,
+      };
+    } catch (error: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to add user preferences for ${userId}: ${error.message}`,
+      };
+    }
+  }
+
   async getUserPreferences(
     userId: string
   ): Promise<FuncResultWithData<UserPreferences>> {

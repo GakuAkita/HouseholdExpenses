@@ -1,7 +1,7 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
-import { TimeZone } from "../../constants/TimeZone";
+import { TriggerTimeZone } from "../../constants/TimeZone";
 import {
   FuncResult,
   FuncResultWithData,
@@ -11,6 +11,7 @@ import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
 import { SettingsService } from "../FirestoreService/SettingsService";
+import { convertToUtcIsoString } from "../utility/dateConverter";
 import {
   getEverydayOfMonth,
   getSingleDayOfMonth,
@@ -49,7 +50,7 @@ export class RepeatAddProcessor {
     const freq = repeatAdd.frequencyInfo.frequency;
 
     let datesArr: Date[] = [];
-    console.log(`This is {freq}`);
+    console.log(`This is ${freq}`);
     switch (freq) {
       case RepeatFrequency.EVERYDAY:
         datesArr = getEverydayOfMonth(year, month);
@@ -163,7 +164,7 @@ export class RepeatAddProcessor {
     expense.timestamp = Date.now();
 
     /* targetDate自体は扱い的には、自分のタイムゾーン。だから、それを変える */
-    expense.datetime = convertToUTCIsoString(targetDate, timeZone);
+    expense.datetime = convertToUtcIsoString(targetDate, timeZone);
 
     const addExpenseStatus = await this.expenseService.addExpenseWithId(
       userId,
@@ -222,11 +223,10 @@ export class RepeatAddProcessor {
 
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
-    const tokyonow = DateTime.now().setZone(
-      TimeZone.JST
-    ); /* トリガーに合わせる */
-    const currentYear = tokyonow.getFullYear();
-    const currentMonth = tokyonow.getMonth() + 1; // 月は0から始まるので+1
+    const triggerRegionTime =
+      DateTime.now().setZone(TriggerTimeZone); /* トリガーに合わせる */
+    const currentYear = triggerRegionTime.year;
+    const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1
 
     /* 取得したrepeatAddを回して */
     let addedExpenseCount = 0;
@@ -280,10 +280,4 @@ export class RepeatAddProcessor {
       message: `Processed repeat adds for user ${userId}.`,
     };
   }
-}
-function convertToUTCIsoString(
-  targetDate: Date,
-  timeZone: string
-): string | undefined {
-  throw new Error("Function not implemented.");
 }
