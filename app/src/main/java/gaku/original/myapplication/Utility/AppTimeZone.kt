@@ -17,9 +17,22 @@ object AppTimeZone {
         }
     }
 
+    /**
+     * 引数のローカル日時を設定のタイムゾーンとして捉えてそれをISOStringに変換する
+     */
     fun localDateTimeToIsoString(localDateTime: LocalDateTime?): String? {
         return localDateTime?.atZone(zoneId)  // ローカル日時をユーザータイムゾーンとみなす
             ?.toInstant()                     // UTCに変換
             ?.toString()                      // ISO 8601（Z付き）文字列へ
+    }
+
+    /* タイムゾーンの現在時刻を取得。 */
+    fun getCurrentTimeInZone(): LocalDateTime {
+        return LocalDateTime.now(zoneId)
+    }
+
+
+    fun fromInstantUTC(instant: Instant?): String? {
+        return instant?.atZone(zoneId)?.toInstant()?.toString()
     }
 }

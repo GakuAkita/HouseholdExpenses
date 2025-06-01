@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogAkitaDebug
-import gaku.original.myapplication.Utility.fromInstantUTC
-import gaku.original.myapplication.Utility.toInstantUTC
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -18,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -185,7 +182,7 @@ class ExpenseListViewModel @Inject constructor(
                     } ?: false
                 }
                 .sortedByDescending {
-                    toInstantUTC(it.datetime)
+                    AppTimeZone.isoStringToLocalDateTime(it.datetime)
                 }
             Log.d("ExpenseListViewModel", "filterExpensesByMonth was executed.↓")
             Log.d("ExpenseListViewModel", "${_filteredExpenses.value}")
@@ -215,13 +212,16 @@ class ExpenseListViewModel @Inject constructor(
      * UI上で生成したDateTimeになるようなUTCを生成して、
      * それをExpenseのdatetimeにセットする。
      */
-    fun setToTmpExpenseFromCalendar(newDateTime: LocalDateTime) {
-        val utcInstant: Instant = newDateTime.atZone(AppTimeZone.zoneId).toInstant()
+    fun setToTmpExpenseFromCalendar(newDateTimeZone: LocalDateTime) {
+        /**
+         * 入力は設定タイムゾーンの時間なので、UTCになおしてそれを
+         */
+        val utcStr = AppTimeZone.localDateTimeToIsoString(newDateTimeZone)
         tmpExpenseViewModel.resetTmpExpense()
         tmpExpenseViewModel.updateTmpExpense(
             tmpExpenseViewModel.tmpExpense.value.copy(
                 //datetimeはStringなので注意!!! 変換必要
-                datetime = fromInstantUTC(utcInstant)
+                datetime = utcStr
             )
         )
     }

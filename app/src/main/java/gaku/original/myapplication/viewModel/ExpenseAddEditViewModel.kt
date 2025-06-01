@@ -3,7 +3,7 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.Utility.toInstantUTC
+import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,18 +27,22 @@ class ExpenseAddEditViewModel @Inject constructor(
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     /* 設定のタイムゾーンに合わせて現在日付 */
-    fun getTimeZoneDate(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate {
+    fun getTimeZoneDate(): LocalDate {
         /* とりあえず日本で固定 */
-        toInstantUTC(currentTmpExpense.datetime)
-        val _zoneId: ZoneId = ZoneId.of("Asia/Tokyo")
-        return LocalDate.now(_zoneId)
+        AppTimeZone.isoStringToLocalDateTime(currentTmpExpense.datetime)?.let {
+            return it.toLocalDate()
+        }
+
+        return LocalDate.now(AppTimeZone.zoneId)
     }
 
     /* 設定のタイムゾーンに合わせた現在時間 */
-    fun getTimeZoneTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime {
+    fun getTimeZoneTime(): LocalTime {
         /* とりあえず日本で固定 */
-        val _zoneId: ZoneId = ZoneId.of("Asia/Tokyo")
-        return LocalTime.now(_zoneId)
+        AppTimeZone.isoStringToLocalDateTime(currentTmpExpense.datetime)?.let {
+            return it.toLocalTime()
+        }
+        return LocalTime.now(AppTimeZone.zoneId)
     }
 
     fun updateTmpExpenseDatetime(datetimeStr: String) {

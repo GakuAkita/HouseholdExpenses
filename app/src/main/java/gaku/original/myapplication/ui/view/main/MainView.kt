@@ -57,10 +57,7 @@ import gaku.original.myapplication.viewModel.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 @Composable
 fun MainView(
@@ -141,10 +138,6 @@ fun MainView(
                 SuspendFuncStatus.FAILED -> {
                     Log.d(viewName, "サインイン直後に破る処理に失敗しました")
                 }
-
-                else -> {
-                    Log.d(viewName, "よくわからん処理")
-                }
             }
         })
     }
@@ -213,20 +206,38 @@ fun MainView(
                         calendarMonth = viewModel.getCalendarMonth(),
                         monthExpenses = viewModel.filteredExpenses.collectAsState().value,
                         onDayClicked = { day ->
-                            val instant: Instant = Instant.now()
-                            val inputDate: LocalDate = day.date
+                            /* カレンダー */
+                            val year: Int = day.date.year
+                            val month: Int = day.date.monthValue
+                            val dayInt: Int = day.date.dayOfMonth
 
                             /* UTCの時間を設定の時間に変換して、それをLocalTimeにする */
-                            val inputTime: LocalTime =
-                                instant.atZone(AppTimeZone.zoneId).toLocalTime()
-                            val newDatetime: LocalDateTime =
-                                inputDate.atTime(inputTime)//LocalDateTimeに変換
-                            Log.d("Akita Debug", "$inputDate")
+                            val zoneDateTime = AppTimeZone.getCurrentTimeInZone()
+
+//                            Log.d(
+//                                "Debug",
+//                                "year=${year::class}, month=${month::class}, day=${day::class}"
+//                            )
+//                            Log.d(
+//                                "Debug",
+//                                "hour=${zoneDateTime.hour::class}, minute=${zoneDateTime.minute::class}, second=${zoneDateTime.second::class}"
+//                            )
+
+                            val inputDateTime = LocalDateTime.of(
+                                year,
+                                month,
+                                dayInt,
+                                zoneDateTime.hour,
+                                zoneDateTime.minute,
+                                zoneDateTime.second
+                            )
+
+                            Log.d("Akita Debug", "$inputDateTime")
                             /**
                              * このnewDatetimeは設定のタイムゾーンの日付で、
                              * ViewModel内でUTCに変換する
                              */
-                            viewModel.setToTmpExpenseFromCalendar(newDatetime)
+                            viewModel.setToTmpExpenseFromCalendar(inputDateTime)
                             //ExpenseAddEditViewに移動
                             navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
                         }

@@ -1,10 +1,7 @@
 package gaku.original.myapplication.Utility
 
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-
 // ISO形式（Z付き＝UTC基準）例: 2025-05-28T01:23:45Z
-private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
+//private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
 
 //fun fromLocalDateTime(dateTime: LocalDateTime?): String? {
 //    return dateTime?.format(formatter)
@@ -14,10 +11,10 @@ private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
 //    return dateTimeString?.let { LocalDateTime.parse(it, formatter) }
 //}
 
-fun fromInstantUTC(instant: Instant?): String? {
-    return instant?.let { formatter.format(it) }
-}
-
-fun toInstantUTC(instantString: String?): Instant? {
-    return instantString?.let { Instant.parse(it) }
-}
+//fun fromInstantUTC(instant: Instant?): String? {
+//    return instant?.let { formatter.format(it) }
+//}
+//
+//fun toInstantUTC(instantString: String?): Instant? {
+//    return instantString?.let { Instant.parse(it) }
+//}
