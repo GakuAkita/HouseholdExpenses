@@ -1,14 +1,17 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
+import { TimeZone } from "./constants/TimeZone";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
+import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
+import { UserPreferences } from "./type/UserPreferences";
 
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
@@ -22,10 +25,12 @@ const db = fsService.getDb();
 const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
+const settingsService = new SettingsService(db);
 
 const repeatAddProcessor = new RepeatAddProcessor(
   repeatAddService,
-  expenseService
+  expenseService,
+  settingsService
 );
 
 const init_add = async () => {
@@ -52,11 +57,15 @@ const init_add = async () => {
     expense: sampleExpense,
     frequencyInfo: {
       frequency: RepeatFrequency.EVERY_YEAR, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
-      month: 5,
+      month: 6,
       day: 2,
       hour: 9,
       minute: 30,
     },
+  };
+
+  const sampleUserPreferences: UserPreferences = {
+    timeZone: TimeZone.JST,
   };
   const ret = await repeatAddService.addRepeatAddWithId(
     userId,
@@ -66,6 +75,17 @@ const init_add = async () => {
     console.log("addRepeatAddWithId success", ret);
   } else {
     console.error("Failed to update RepeatAdd:", ret.message);
+  }
+
+  const set_ret = await settingsService.addUserPreferences(
+    userId,
+    sampleUserPreferences
+  );
+
+  if (set_ret.status === FuncStatus.SUCCESS) {
+    console.log("addRepeatAddWithId success", set_ret);
+  } else {
+    console.error("Failed to update RepeatAdd:", set_ret.message);
   }
 
   console.log("Data written to emulator.");
@@ -88,7 +108,8 @@ const schedule_func = async () => {
   }
   console.log(`Found ${userIds.length} users.`);
   for (const uid of userIds) {
-    repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
+    const ret = await repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
+    console.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
 schedule_func();

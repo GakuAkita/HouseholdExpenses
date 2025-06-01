@@ -14,5 +14,4 @@ export interface RepeatAdd {
   timestamp?: number;
   expense: Expense;
   frequencyInfo: Frequency;
-  zoneId: string;
 }
