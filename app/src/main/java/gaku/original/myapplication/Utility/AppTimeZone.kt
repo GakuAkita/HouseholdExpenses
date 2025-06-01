@@ -24,6 +24,16 @@ object AppTimeZone {
         // 必要に応じて他の処理を追加
     }
 
+    fun updateStrZoneId(newZoneId: String) {
+        try {
+            val zoneId = ZoneId.of(newZoneId)
+            updateZoneId(zoneId)
+        } catch (e: DateTimeParseException) {
+            // 無効なタイムゾーンIDの場合の処理
+            LogAkitaDebug("Invalid ZoneId: $newZoneId")
+        }
+    }
+
     fun isoStringToLocalDateTime(isoString: String?): LocalDateTime? {
         return try {
             val instant = Instant.parse(isoString)

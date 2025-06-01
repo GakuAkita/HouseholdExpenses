@@ -33,7 +33,7 @@ class ExpenseAddEditViewModel @Inject constructor(
             return it.toLocalDate()
         }
 
-        return LocalDate.now(AppTimeZone.zoneId)
+        return AppTimeZone.getCurrentTimeInZone().toLocalDate()
     }
 
     /* 設定のタイムゾーンに合わせた現在時間 */
@@ -41,7 +41,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         AppTimeZone.isoStringToLocalDateTime(currentTmpExpense.datetime)?.let {
             return it.toLocalTime()
         }
-        return LocalTime.now(AppTimeZone.zoneId)
+        return AppTimeZone.getCurrentTimeInZone().toLocalTime()
     }
 
     fun updateTmpExpenseDatetime(datetimeStr: String) {

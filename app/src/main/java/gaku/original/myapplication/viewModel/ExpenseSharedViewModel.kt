@@ -189,7 +189,9 @@ class ExpenseSharedViewModel @Inject constructor(
             }
 
             addAllListeners(YearMonth.now())
+
             /* 他にやることがあるのであればここへ、、 */
+
         }
     }
 
@@ -476,4 +478,7 @@ class ExpenseSharedViewModel @Inject constructor(
         addCategoryListenerAdded()
         addCategoryListenerModifiedRemoved()
     }
+
+    /******************* ユーザー設定関係 **************************/
+
 }

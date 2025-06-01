@@ -40,4 +40,15 @@ class FirestoreReference @Inject constructor(
     fun getRepeatAddColRef(): CollectionReference? {
         return getUserDocRef()?.collection("repeatAdd")
     }
+
+    fun getSettingsColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("settings")
+    }
+
+    /**
+     * users/{userId}/settings/userPreferences
+     * */
+    fun getUserPreferencesDocRef(): DocumentReference? {
+        return getSettingsColRef()?.document("userPreferences")
+    }
 }
