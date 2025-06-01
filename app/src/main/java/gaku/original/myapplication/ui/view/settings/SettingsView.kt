@@ -63,9 +63,13 @@ fun SettingsView(
                 Text("ユーザー情報", modifier = Modifier.padding(start = 10.dp))
             }
 
-            SettingRow {
+            SettingRow(
+                onClick = {
+                    navController.navigate(Screen.SettingScreen.AppSettings.route)
+                }
+            ) {
                 //タイムゾーンはアラートでいいか。
-                Text(text = "タイムゾーン設定(未実装)", modifier = Modifier.padding(start = 10.dp))
+                Text(text = "タイムゾーン設定", modifier = Modifier.padding(start = 10.dp))
             }
 
             SettingRow(

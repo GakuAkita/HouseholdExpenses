@@ -4,7 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.defaultExpense
+import gaku.original.myapplication.data.getDefaultExpense
 import javax.inject.Inject
 
 class TemporaryExpenseViewModel @Inject constructor(
@@ -15,7 +15,7 @@ class TemporaryExpenseViewModel @Inject constructor(
     /*** AddEditとMainViewのデータの受け渡しに使う ***/
     // 内部で状態を管理する
     private val _tmpExpense = mutableStateOf(
-        defaultExpense
+        getDefaultExpense()
     )
 
     // 外部には読み取り専用のインターフェースを公開
@@ -29,6 +29,6 @@ class TemporaryExpenseViewModel @Inject constructor(
 
     // tmpExpenseを一旦リセットする
     fun resetTmpExpense() {
-        _tmpExpense.value = defaultExpense
+        _tmpExpense.value = getDefaultExpense()
     }
 }

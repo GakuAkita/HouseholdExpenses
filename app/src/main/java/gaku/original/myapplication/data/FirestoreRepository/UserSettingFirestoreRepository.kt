@@ -5,10 +5,13 @@ import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.mergeDataToFirestore
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.UserPreferences
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
 class UserSettingsFirestoreRepository(
@@ -62,13 +65,14 @@ class UserSettingsFirestoreRepository(
     }
 
     /**
-     * タイムゾーンを設定する。idやemailと同じ領域に保存する。
+     * タイムゾーンを設定する。
+     * これはdata classでsetするのではなくて、zoneId単体でセットする
      */
     suspend fun setUserTimeZone(
         zoneId: String = "Asia/Tokyo",
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
-        val ref = firestoreReference.getUserDocRef()
+        val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.FAILED,
@@ -77,7 +81,7 @@ class UserSettingsFirestoreRepository(
             return statusInfo
         }
 
-        val newMap = mapOf(timeZoneKey to zoneId)
+        val newMap = mapOf(UserPreferences.FIELD_TIME_ZONE to zoneId)
         val statusInfo = mergeDataToFirestore(newMap, reference = ref, callback = {
             if (it.status == SuspendFuncStatus.SUCCESS) {
                 /* ローカル側のタイムゾーンにセットする */
@@ -89,73 +93,106 @@ class UserSettingsFirestoreRepository(
         return statusInfo
     }
 
-    suspend fun getUserPreferences(
-        timeout: Long = 3000,
+    /**
+     * UserPreferencesを全部取ってきて、
+     * その中からタイムゾーンだけ取り出す
+     */
+    suspend fun getUserTimeZone(
         callback: (SuspendFuncStatusInfo) -> Unit
-    ): SuspendFuncStatusInfo {
-        val funcName = ::getUserPreferences.name
-        LogClassFuncCalled(className, funcName)
-
-        val docRef = firestoreReference.getUserPreferencesDocRef()
-        if (docRef == null) {
+    ): FetchResult<String> {
+        val fetchResult = fetchUserPreferences()
+        if (fetchResult.status != SuspendFuncStatus.SUCCESS) {
             val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Userドキュメントが参照できませんでした"
+                fetchResult.status,
+                fetchResult.errorMessage ?: "UserPreferencesの取得に失敗しました"
             )
             callback(statusInfo)
-            return statusInfo
+            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+        }
+
+        /* 取得はできたけどnullだったら、、 */
+        val userPreferences = fetchResult.data
+        if (userPreferences == null) {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "UserPreferencesデータがnullです"
+            )
+            callback(statusInfo)
+            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+        }
+
+        AppTimeZone.updateStrZoneId(userPreferences.timeZone)
+        val statusInfo = SuspendFuncStatusInfo(
+            SuspendFuncStatus.SUCCESS,
+            ""
+        )
+        callback(statusInfo)
+        return FetchResult(statusInfo.status, statusInfo.errorMessage, userPreferences.timeZone)
+    }
+
+    /**
+     * UserPreferencesを全部取ってくる。特定の項目だけではなく。
+     */
+    suspend fun fetchUserPreferences(
+        timeout: Long = 3000,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): FetchResult<UserPreferences> {
+        val funcName = ::fetchUserPreferences.name
+        LogClassFuncCalled(className, funcName)
+
+        val ref = firestoreReference.getUserPreferencesDocRef()
+        if (ref == null) {
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "UserPreferencesドキュメントが参照できませんでした"
+            )
+            callback(statusInfo)
+            return FetchResult(statusInfo.status, statusInfo.errorMessage)
         }
 
         return try {
             withTimeout(timeout) {
-
+                val snapshot = ref.get().await()
+                if (snapshot.exists()) {
+                    val preferences = snapshot.toObject(UserPreferences::class.java)
+                    if (preferences != null) {
+                        val statusInfo = SuspendFuncStatusInfo(
+                            SuspendFuncStatus.SUCCESS,
+                            ""
+                        )
+                        callback(statusInfo)
+                        FetchResult(statusInfo.status, statusInfo.errorMessage, preferences)
+                    } else {
+                        val statusInfo = SuspendFuncStatusInfo(
+                            SuspendFuncStatus.FAILED,
+                            "UserPreferencesデータの変換に失敗しました"
+                        )
+                        callback(statusInfo)
+                        FetchResult(statusInfo.status, statusInfo.errorMessage)
+                    }
+                } else {
+                    val statusInfo = SuspendFuncStatusInfo(
+                        SuspendFuncStatus.FAILED,
+                        "ドキュメントが存在しません"
+                    )
+                    callback(statusInfo)
+                    FetchResult(statusInfo.status, statusInfo.errorMessage)
+                }
             }
         } catch (e: TimeoutCancellationException) {
-
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.TIMEOUT,
+                "タイムアウトしました"
+            )
+            callback(statusInfo)
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
         } catch (e: Exception) {
-
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                e.message ?: "不明なエラー"
+            )
+            callback(statusInfo)
+            FetchResult(statusInfo.status, statusInfo.errorMessage)
         }
-
     }
-
-//    suspend fun getUserTimeZone(
-//        timeout: Long = 3000,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
-//        val funcName = ::getUserTimeZone.name
-//        LogClassFuncCalled(className, funcName)
-//
-//        val ref = firestoreReference.getUserDocRef()
-//        if (ref == null) {
-//            val statusInfo = SuspendFuncStatusInfo(
-//                SuspendFuncStatus.FAILED,
-//                "Userドキュメントが参照できませんでした"
-//            )
-//            return statusInfo
-//        }
-//
-//        return try {
-//            withTimeout(timeout) {
-//                val snapshot = ref.get().await()
-//            }
-//
-//        } catch (e: TimeoutCancellationException) {
-//            Log.d(className, "$funcName Timeout.")
-//            val statusInfo =
-//                SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました")
-//            callback(statusInfo)
-//
-//            statusInfo
-//        } catch (e: Exception) {
-//            Log.d(className, "$funcName failed. ${e.message}")
-//            val statusInfo =
-//                SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
-//            callback(statusInfo)
-//
-//            FetchResult(statusInfo.status, statusInfo.errorMessage)
-//        }
-//
-//        return statusInfo
-//    }
-
 }

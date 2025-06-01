@@ -5,7 +5,7 @@ import gaku.original.myapplication.data.Interface.CommonProperty
 data class RepeatAdd(
     override var id: String? = null,
     override var timestamp: Long? = null,/* When this RepeatAdd was registered */
-    val expense: Expense = defaultExpense,
+    val expense: Expense = getDefaultExpense(),
     val frequencyInfo: Frequency = defaultFrequency,
     /* everyday? weekly? monthly? yearly? */
     /**
@@ -38,7 +38,7 @@ val defaultFrequency = Frequency(
 val defaultRepeatAdd = RepeatAdd(
     id = null,
     timestamp = null,
-    expense = defaultExpense.copy(
+    expense = getDefaultExpense().copy(
         datetime = null,
         timestamp = null
     ),

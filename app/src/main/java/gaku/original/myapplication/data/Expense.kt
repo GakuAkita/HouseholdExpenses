@@ -29,14 +29,17 @@ val defaultCategory = Category(
     enabled = true
 )
 
-val defaultExpense = Expense(
-    id = null,
-    datetime = AppTimeZone.getCurrentTimeInUTCString(),
-    amount = null,
-    category = null,
-    note = null,
-    generatedType = null
-)
+
+fun getDefaultExpense(): Expense {
+    return Expense(
+        id = null,
+        datetime = AppTimeZone.getCurrentTimeInUTCString(),
+        amount = null,
+        category = null,
+        note = null,
+        generatedType = null
+    )
+}
 
 /* 使われていない？↓ */
 /* firebase functions側と一致させないとまずい */

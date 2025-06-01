@@ -62,7 +62,7 @@ object AppTimeZone {
         return LocalDateTime.now(ZoneId.of("UTC"))
     }
 
-    fun getCurrentTimeInUTCString(): String? {
+    fun getCurrentTimeInUTCString(): String {
         // UTCの現在時刻をISO 8601形式の文字列で返す
         return getCurrentTimeInUTC().toInstant(ZoneOffset.UTC).toString()
     }

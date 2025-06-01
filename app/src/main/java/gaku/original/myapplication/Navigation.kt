@@ -12,6 +12,7 @@ import gaku.original.myapplication.ui.view.NotCategorizedView
 import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.MainView
+import gaku.original.myapplication.ui.view.settings.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.UserInfoView
@@ -87,6 +88,9 @@ fun Navigation(
         }
         composable(Screen.SettingScreen.RepeatAdd.route) {
             RepeatAddSettingView(navController = navController)
+        }
+        composable(Screen.SettingScreen.AppSettings.route) {
+            AppSettingsView(navController = navController)
         }
     }
 }
