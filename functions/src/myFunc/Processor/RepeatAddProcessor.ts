@@ -203,9 +203,10 @@ export class RepeatAddProcessor {
     }
 
     /* 次で使うので現在の年と月を取得 */
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 月は0から始まるので+1
+    const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
+    const tokyonow = DateTime.now().setZone("Asia/Tokyo");
+    const currentYear = tokyonow.getFullYear();
+    const currentMonth = tokyonow.getMonth() + 1; // 月は0から始まるので+1
     /* 取得したrepeatAddを回して */
 
     let addedExpenseCount = 0;
