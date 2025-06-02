@@ -1,5 +1,6 @@
 package gaku.original.myapplication.Utility
 
+import gaku.original.myapplication.data.Constants.TimeZoneOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,7 +60,7 @@ object AppTimeZone {
 
     /* UTCの時間をLocalDateTimeで取得 */
     fun getCurrentTimeInUTC(): LocalDateTime {
-        return LocalDateTime.now(ZoneId.of("UTC"))
+        return LocalDateTime.now(ZoneId.of(TimeZoneOption.JAPAN.id))
     }
 
     fun getCurrentTimeInUTCString(): String {
