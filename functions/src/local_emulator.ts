@@ -1,5 +1,4 @@
 import * as dotenv from "dotenv";
-import functions from "firebase-functions/v1"; /* これならいけるのか？？ */
 import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
@@ -119,19 +118,6 @@ const schedule_func = async () => {
     console.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
-schedule_func();
+// schedule_func();
 
-const onUserCreate = () => {
-  const sampleUid = "akita_gaku";
-  userSettingsProcessor.setInitialUserSettings(sampleUid, "g@gmail.com");
-};
-
-// ユーザー作成時のトリガー
-exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
-  console.log("User created:", user.uid);
-  if (!user.email) {
-    console.error("user email is undefined.");
-    return;
-  }
-  await userSettingsProcessor.setInitialUserSettings(user.uid, user.email!!);
-});
+// userSettingsProcessor.setInitialUserSettings("akita", "gaku@gmail.com");

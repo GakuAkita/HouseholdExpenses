@@ -1,11 +1,8 @@
-import * as admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/scheduler";
-import { onRequest } from "firebase-functions/v2/https";
+import * as functions from "firebase-functions/v1";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
-
-admin.initializeApp();
 
 const { userService, repeatAddProcessor, userSettingsProcessor } =
   initializeServices();
@@ -43,9 +40,19 @@ exports.monthly_repeatAddJob = onSchedule(
 );
 
 /**
- * リクエストが来たときに走らせる。
- * 認証済みの場合のみ受け取る
+ * ユーザーが作成されたときに走らせる
+ * 注意：Gen1はnode18以前でないとdeployに失敗する。package.jsonの"engines"の"node"をアップデートしてはいけない！
+ * 今のところ、Gen2にonUserCreateみたいな関数はないので、nodeもこのままにしておく。2025/6/4
  */
-exports.helloWorld = onRequest((request, response) => {
-  response.send("Hello from Firebase!");
+exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
+  const uid = user.uid;
+  const email = user.email;
+
+  console.log(`New user created! id:${uid} email:${email}`);
+
+  if (email == undefined) {
+    console.error("Unable to get Email..");
+  } else {
+    userSettingsProcessor.setInitialUserSettings(uid, email);
+  }
 });
