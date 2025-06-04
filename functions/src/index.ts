@@ -1,9 +1,14 @@
+import * as admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/scheduler";
+import { onRequest } from "firebase-functions/v2/https";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
 
-const { userService, repeatAddProcessor } = initializeServices();
+admin.initializeApp();
+
+const { userService, repeatAddProcessor, userSettingsProcessor } =
+  initializeServices();
 
 const schedule_repeatAdd = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -36,3 +41,11 @@ exports.monthly_repeatAddJob = onSchedule(
     await schedule_repeatAdd();
   }
 );
+
+/**
+ * リクエストが来たときに走らせる。
+ * 認証済みの場合のみ受け取る
+ */
+exports.helloWorld = onRequest((request, response) => {
+  response.send("Hello from Firebase!");
+});

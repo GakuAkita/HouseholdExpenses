@@ -25,3 +25,5 @@ export const getMyFirestore = (options?: admin.AppOptions) => {
   initMyFirebaseAdmin(options);
   return admin.firestore();
 };
+
+export { admin };

@@ -1,5 +1,10 @@
 import { Firestore } from "firebase-admin/firestore";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import {
+  FuncResult,
+  FuncResultWithData,
+  FuncStatus,
+} from "../../type/FuncStatus";
+import { UserData } from "../../type/UserData";
 
 export class UserService {
   private db: Firestore;
@@ -12,9 +17,13 @@ export class UserService {
     return this.db.collection("users");
   }
 
+  private getUserDocRef(userId: string) {
+    return this.getUsersColRef().doc(userId);
+  }
+
   async addUserCol(userId: string): Promise<FuncResultWithData<string>> {
     try {
-      await this.getUsersColRef().doc(userId).set({});
+      await this.getUserDocRef(userId).set({});
       return {
         status: FuncStatus.SUCCESS,
         data: userId,
@@ -24,6 +33,25 @@ export class UserService {
       return {
         status: FuncStatus.ERROR,
         message: `Failed to add user ${userId}: ${error.message}`,
+      };
+    }
+  }
+
+  async setUserData(
+    userId: string,
+    data: UserData,
+    merge: boolean = true
+  ): Promise<FuncResult> {
+    try {
+      await this.getUserDocRef(userId).set(data, { merge });
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `Data for user ${userId} set successfully.`,
+      };
+    } catch (error: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to set data for user ${userId}: ${error.message}`,
       };
     }
   }

@@ -4,6 +4,7 @@ import { RepeatAddService } from "./FirestoreService/RepeatAddService";
 import { SettingsService } from "./FirestoreService/SettingsService";
 import { UserService } from "./FirestoreService/UserService";
 import { RepeatAddProcessor } from "./Processor/RepeatAddProcessor";
+import { UserSettingsProcessor } from "./Processor/UserSettingsProcessor";
 
 export const initializeServices = () => {
   const fsService = new FirestoreService();
@@ -18,11 +19,16 @@ export const initializeServices = () => {
     expenseService,
     settingsService
   );
+  const userSettingsProcessor = new UserSettingsProcessor(
+    userService,
+    settingsService
+  );
 
   return {
     userService,
     expenseService,
     repeatAddService,
     repeatAddProcessor,
+    userSettingsProcessor,
   };
 };

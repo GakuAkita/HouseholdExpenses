@@ -127,6 +127,7 @@ class ExpenseSharedViewModel @Inject constructor(
             return statusInfo
         }
 
+
         // デフォルトカテゴリを追加
         for (initialCategory in InitialCategories.categories) {
             /* まあこれは、失敗してもいいか */

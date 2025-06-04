@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+import functions from "firebase-functions/v1"; /* これならいけるのか？？ */
 import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
@@ -8,6 +9,7 @@ import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
+import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
@@ -30,6 +32,11 @@ const settingsService = new SettingsService(db);
 const repeatAddProcessor = new RepeatAddProcessor(
   repeatAddService,
   expenseService,
+  settingsService
+);
+
+const userSettingsProcessor = new UserSettingsProcessor(
+  userService,
   settingsService
 );
 
@@ -113,3 +120,18 @@ const schedule_func = async () => {
   }
 };
 schedule_func();
+
+const onUserCreate = () => {
+  const sampleUid = "akita_gaku";
+  userSettingsProcessor.setInitialUserSettings(sampleUid, "g@gmail.com");
+};
+
+// ユーザー作成時のトリガー
+exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
+  console.log("User created:", user.uid);
+  if (!user.email) {
+    console.error("user email is undefined.");
+    return;
+  }
+  await userSettingsProcessor.setInitialUserSettings(user.uid, user.email!!);
+});

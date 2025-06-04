@@ -56,6 +56,7 @@ class AuthManagerViewModel @Inject constructor(
                 if (task.isSuccessful) {
                     Log.d("AuthManagerViewModel", "Created a user with Email:$email")
                     //アカウント作成後に行う処理はここでやる
+                    /* やっぱfirebase側で行ってもらうわ。 */
                     viewModelScope.launch {
                         expenseSharedViewModel.addUserInitialData(email) {
                             if (it.status != SuspendFuncStatus.SUCCESS) {
