@@ -12,7 +12,7 @@ enum class SignUpResult {
     SIGN_UP_FAILED      // サインアップ失敗
 }
 
-enum class SingOutResult {
+enum class SignOutResult {
     SUCCESS,            // サインアウト成功
     SIGN_OUT_FAILED     // サインアウト失敗
 }

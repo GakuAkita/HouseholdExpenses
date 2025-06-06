@@ -262,9 +262,9 @@ fun ExpenseAddEditView(
                         onDismiss = {
                             isTimePickerVisible = false
                         },
-                        //基本的に値は入っているが、なにかおかしくなった時用にLocalDateTimeをいれておく。
+                        //基本的に値は入っているが、なにかおかしくなった時用にタイムゾーンの時間を入れておく。
                         initialDateTime = selectedTime?.atDate(selectedDate)
-                            ?: LocalDateTime.now()/* ここLocalDateTimeじゃないとだめなのか。日付だけなのに。 */
+                            ?: AppTimeZone.getCurrentTimeInZone()
                     )
                 }
 

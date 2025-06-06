@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.Utility.getLastDayOfMonth
 import gaku.original.myapplication.data.Category
@@ -75,7 +76,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalTime
 
 
@@ -996,7 +996,7 @@ fun FrequencyTextField(
                 isTimePickerVisible = false
             },
             //@HACK let内に入っているからnullなわけないけど一応気をつけて
-            initialDateTime = LocalDate.now().atTime(time)
+            initialDateTime = AppTimeZone.getCurrentTimeInZone().toLocalDate().atTime(time)
         )
     }
 

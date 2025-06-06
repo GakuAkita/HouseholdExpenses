@@ -24,6 +24,10 @@ class FirestoreReference @Inject constructor(
 
     /**
      * users/{userId}
+     * あ～今になっておもったけど、これだとsignUpの処理が事故るかもな。
+     * 例えば、最初のサインアップして、一回止めて別のアカウントでサインアップした時、
+     * デフォルトのカテゴリーを追加する処理の途中でこのuidが切り替わってしまう。
+     * 途中で確実に失敗する。
      * */
     fun getUserDocRef(): DocumentReference? {
         return currentUserId?.let { getUsersColRef().document(it) }

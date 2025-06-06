@@ -21,3 +21,9 @@ data class FetchResult<T>(
         return SuspendFuncStatusInfo(status, errorMessage)
     }
 }
+
+data class SuspendFuncStatusInfoWithCode(
+    val status: SuspendFuncStatus,
+    val errorMessage: String,
+    val errorCode: String? = null
+)

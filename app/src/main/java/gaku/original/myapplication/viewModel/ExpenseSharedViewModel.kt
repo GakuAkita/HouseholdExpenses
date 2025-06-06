@@ -66,7 +66,7 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /* Expense関連はここにまとめておく */
-    fun addAllListeners(yearMonth: YearMonth) {
+    fun addAllListeners(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
         addExpenseListenerModifiedRemoved(yearMonth)
         addExpenseListenerAdded(yearMonth)
         addCategoryListenerModifiedRemoved()
@@ -74,7 +74,7 @@ class ExpenseSharedViewModel @Inject constructor(
         addUserPreferencesListener()
     }
 
-    fun addExpenseListenerModifiedRemoved(yearMonth: YearMonth = YearMonth.now()) {
+    fun addExpenseListenerModifiedRemoved(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
         listenerManager.listenToExpensesModifiedRemoved(
             yearMonth = yearMonth,
             monthNum = MONTH_RANGE,
@@ -95,7 +95,7 @@ class ExpenseSharedViewModel @Inject constructor(
             })
     }
 
-    fun addExpenseListenerAdded(yearMonth: YearMonth = YearMonth.now()) {
+    fun addExpenseListenerAdded(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
         listenerManager.listenToNewExpensesOnly(
             onAdded = {
                 /* _allExpensesに追加する */
@@ -114,31 +114,6 @@ class ExpenseSharedViewModel @Inject constructor(
         Log.d(className, "Init was called.")
     }
 
-
-    /*@TODO 途中で止まったときに、どうやって復旧させるかとか考えないとな。*/
-    suspend fun addUserInitialData(
-        email: String,
-        callback: (SuspendFuncStatusInfo) -> Unit
-    ): SuspendFuncStatusInfo {
-        //呼び出すだけ。関数名が全く同じなので変えたほうが良いかも
-        val statusInfo = userSettingsRepository.addUserInitialData(email, callback = {})
-        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
-            callback(statusInfo)
-            return statusInfo
-        }
-
-
-        // デフォルトカテゴリを追加
-        for (initialCategory in InitialCategories.categories) {
-            /* まあこれは、失敗してもいいか */
-            categoryRepository.addCategory(initialCategory, {})
-        }
-
-        callback(statusInfo)
-        /* カテゴリーはミスってもいいや */
-        return statusInfo
-    }
-
     /*  */
     private val _isFirstSignIn = MutableStateFlow(true);
     val isFirstSignIn: StateFlow<Boolean> get() = _isFirstSignIn
@@ -155,6 +130,22 @@ class ExpenseSharedViewModel @Inject constructor(
         clearAllListeners()
     }
 
+    fun addInitialCategories(uid: String, callback: (SuspendFuncStatusInfo)) {
+        viewModelScope.launch {
+            for (category in InitialCategories.categories) {
+                categoryRepository.addCategory(category, callback = {
+                    /* 失敗しても次に行く。この処理は失敗しても良い */
+                })
+            }
+        }
+    }
+
+    fun onSignedUp(callback: (SuspendFuncStatusInfo) -> Unit) {
+        setIsFirstSignIn(false)//これでonSignInを走らせないようにする
+
+        addAllListeners()
+    }
+
     fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
         clearPossession()
@@ -164,9 +155,16 @@ class ExpenseSharedViewModel @Inject constructor(
          */
         viewModelScope.launch {
             Log.d(className, "init fetch is executed..")
+
+            /**
+             * ここの時間はUTC!!
+             * なぜならfetchMonthsExpensesInternalでは
+             * datetime(UTCで保存)に対してクエリしているから。
+             */
+            val utcYearMonth = AppTimeZone.getCurrentUtcYearMonth()
             var ret = fetchMonthsExpensesInternal(
-                fromMonth = YearMonth.now().minusMonths(3),
-                toMonth = YearMonth.now().plusMonths(3),
+                fromMonth = utcYearMonth.minusMonths(3),
+                toMonth = utcYearMonth.plusMonths(3),
                 callback = { statusInfo ->
                     if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
                         _expensesLoadingStatus.value = LoadingStatus.COMPLETED
@@ -180,7 +178,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 })
 
             if (ret.status != SuspendFuncStatus.SUCCESS) {
-                addAllListeners(YearMonth.now())
+                addAllListeners()
                 callback(ret)
                 return@launch
             }
@@ -191,8 +189,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 callback(ret)
                 return@launch
             }
-
-            addAllListeners(YearMonth.now())
+            addAllListeners()
 
             /* 他にやることがあるのであればここへ、、 */
 
@@ -201,7 +198,9 @@ class ExpenseSharedViewModel @Inject constructor(
 
     fun onSignedOut() {
         clearPossession()
-        setIsFirstSignIn(true)
+        setIsFirstSignIn(true)//
+        /* サインアップした時用に、 タイムゾーンを日本にしておく*/
+        AppTimeZone.updateStrZoneId(TimeZoneOption.JAPAN.id)
     }
 
     /**
@@ -318,7 +317,7 @@ class ExpenseSharedViewModel @Inject constructor(
         if (fetchResult.status == SuspendFuncStatus.SUCCESS) {
             _allCategories.value = (fetchResult.data ?: emptyList()).toList()
         }
-        Log.d("ExpenseSharedViewModel", "Categories:${_allCategories.value}")
+        Log.d(className, "Categories:${_allCategories.value}")
         return fetchResult.toSuspendFuncStatusInfo()
     }
 

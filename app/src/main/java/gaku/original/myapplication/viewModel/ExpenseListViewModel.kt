@@ -44,7 +44,8 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     /********************* MainView用*******************************/
-    private var centerCalendarDate = LocalDate.now()//こいつはmutableStateである必要はない
+    private var centerCalendarDate =
+        AppTimeZone.getCurrentTimeInZone().toLocalDate()//こいつはmutableStateである必要はない
 
     private val _monthOffset = MutableStateFlow(0) // MutableStateFlowに変更
     val monthOffset: StateFlow<Int> = _monthOffset
@@ -231,7 +232,7 @@ class ExpenseListViewModel @Inject constructor(
         /* サインイン時には、ユーザーが変わっているので、カレンダーのページも元に戻す */
         if (expenseSharedViewModel.isFirstSignIn.value) {
             /* サインイン時にやることがある */
-            centerCalendarDate = LocalDate.now()
+            centerCalendarDate = AppTimeZone.getCurrentTimeInZone().toLocalDate()
             resetMonthOffset()
             expenseSharedViewModel.onSignedIn { statusInfo ->
                 callback(statusInfo)

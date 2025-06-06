@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
@@ -66,6 +67,11 @@ object AppTimeZone {
     fun getCurrentTimeInUTCString(): String {
         // UTCの現在時刻をISO 8601形式の文字列で返す
         return getCurrentTimeInUTC().toInstant(ZoneOffset.UTC).toString()
+    }
+
+    /* UTCのYearMonth。カレンダーに使う */
+    fun getCurrentUtcYearMonth(): YearMonth {
+        return YearMonth.from(LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
     }
 
     fun fromInstantUTC(instant: Instant?): String? {

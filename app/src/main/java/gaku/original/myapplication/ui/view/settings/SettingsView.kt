@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Constants.Status.SingOutResult
+import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.ui.view.BottomBarView
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
@@ -96,14 +96,14 @@ fun SettingsView(
                      * */
                     //ログアウト機能を実装
                     val ret = viewModel.signOut()
-                    if (ret == SingOutResult.SUCCESS) {
+                    if (ret == SignOutResult.SUCCESS) {
                         scope.launch {
                             snackBarHostState.showSnackbar("ログアウトしました")
                         }
                         navController.navigate(Screen.StartScreen.Start.route) {
                             popUpTo(0) { inclusive = true }
                         }
-                    } else if (ret == SingOutResult.SIGN_OUT_FAILED) {
+                    } else if (ret == SignOutResult.SIGN_OUT_FAILED) {
                         scope.launch {
                             snackBarHostState.showSnackbar("ログアウトに失敗しました")
                         }
