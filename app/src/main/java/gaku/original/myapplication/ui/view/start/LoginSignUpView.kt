@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,6 +43,8 @@ fun LoginSignUpView(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    var isLoginState by remember { mutableStateOf(isLogin) }
 
     var loading by remember { mutableStateOf(false) }
 
@@ -73,14 +78,12 @@ fun LoginSignUpView(
     Scaffold(
         topBar = {
             TopBarView(
-                title = if (isLogin) "Login" else "SignUp",
+                title = if (isLoginState) "Login" else "SignUp",
                 showBackButton = true,
                 onBackNavClicked = { navController.popBackStack() })
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) {
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -106,107 +109,122 @@ fun LoginSignUpView(
             Spacer(modifier = Modifier.height(30.dp))
 
             if (!loading) {
-                Button(onClick = {
-                    loading = true
-                    Log.d("LoginSignUpView", "LoginSignUpView: ボタンが押されました。")
-                    if (isLogin) {//Login画面の場合の処理
-                        //ログイン作業
-                        authViewModel.signInWithCallback(
-                            email = email,
-                            password = password,
-                            callback = { status ->
-                                when (status.status) {
-                                    SuspendFuncStatus.SUCCESS -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "ログインしました",
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                        navController.navigate(Screen.MainScreen.Content.route) {
-                                            //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
-                                            popUpTo(0) {
-                                                inclusive = true
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isLoginState) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.tertiary
+                    ),
+                    onClick = {
+                        loading = true
+                        Log.d("LoginSignUpView", "LoginSignUpView: ボタンが押されました。")
+                        if (isLoginState) {//Login画面の場合の処理
+                            //ログイン作業
+                            authViewModel.signInWithCallback(
+                                email = email,
+                                password = password,
+                                callback = { status ->
+                                    when (status.status) {
+                                        SuspendFuncStatus.SUCCESS -> {
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    "ログインしました",
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Long
+                                                )
                                             }
-                                        }
-                                    }
-
-                                    SuspendFuncStatus.TIMEOUT -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "ログインできずタイムアウトしました",
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                        loading = false
-                                    }
-
-                                    SuspendFuncStatus.FAILED -> {
-                                        val errorMsg = getSignInErrorMsgFromCode(status.errorCode)
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                errorMsg,
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                        loading = false
-                                    }
-                                }
-                            }
-                        )
-                    } else {//SignUpの場合の処理
-                        //サインアップ作業
-                        authViewModel.signUpWithCallback(
-                            email,
-                            password,
-                            callback = { status ->
-                                when (status.status) {
-                                    SuspendFuncStatus.SUCCESS -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "アカウントを作成しました。メールアドレス認証をしてください。\nログイン画面に遷移します",
-                                                actionLabel = "OK"
-                                            )
-                                            //ユーザーにスナックバーを読ませる少し待つ。
-                                            kotlinx.coroutines.delay(2000L)
-                                            //もし途中で他の画面に行ってしまった場合どうなるだろう？
-                                            navController.navigate(Screen.StartScreen.Login.route) {
+                                            navController.navigate(Screen.MainScreen.Content.route) {
                                                 //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
                                                 popUpTo(0) {
                                                     inclusive = true
                                                 }
                                             }
                                         }
-                                    }
 
-                                    SuspendFuncStatus.TIMEOUT -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "タイムアウトしました。アカウント作成に失敗しました",
-                                                actionLabel = "OK"
-                                            )
+                                        SuspendFuncStatus.TIMEOUT -> {
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    "ログインできずタイムアウトしました",
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                            loading = false
                                         }
-                                        loading = false
-                                    }
 
-                                    SuspendFuncStatus.FAILED -> {
-                                        scope.launch {
+                                        SuspendFuncStatus.FAILED -> {
                                             val errorMsg =
-                                                getSignUpErrorMsgFromCode(status.errorCode)
-                                            snackBarHostState.showSnackbar(
-                                                errorMsg,
-                                                actionLabel = "OK"
-                                            )
+                                                getSignInErrorMsgFromCode(status.errorCode)
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    errorMsg,
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                            loading = false
                                         }
-                                        loading = false
                                     }
                                 }
-                            }
-                        )
-                    }
-                })
+                            )
+                        } else {//SignUpの場合の処理
+                            //サインアップ作業
+                            authViewModel.signUpWithCallback(
+                                email,
+                                password,
+                                callback = { status ->
+                                    when (status.status) {
+                                        SuspendFuncStatus.SUCCESS -> {
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    "アカウントを作成しました。メールアドレス認証をしてください。\n認証後、ログインボタンを押してください",
+                                                    actionLabel = "OK",
+                                                )
+                                                //ユーザーにスナックバーを読ませる少し待つ。
+//                                            kotlinx.coroutines.delay(2000L)
+//                                            //もし途中で他の画面に行ってしまった場合どうなるだろう？
+//                                            navController.navigate(Screen.StartScreen.Login.route) {
+//                                                //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
+//                                                popUpTo(0) {
+//                                                    inclusive = true
+//                                                }
+//                                            }
+                                                //サインアップに成功したら画面がログイン画面に切り替わる
+                                                //※画面のUIが変わっているだけでルートは変わっていない!!
+                                            }
+                                            loading = false
+                                            isLoginState = true
+                                        }
+
+                                        SuspendFuncStatus.TIMEOUT -> {
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar(
+                                                    "タイムアウトしました。アカウント作成に失敗しました",
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                            loading = false
+                                        }
+
+                                        SuspendFuncStatus.FAILED -> {
+                                            scope.launch {
+                                                val errorMsg =
+                                                    getSignUpErrorMsgFromCode(status.errorCode)
+                                                snackBarHostState.showSnackbar(
+                                                    errorMsg,
+                                                    actionLabel = "OK",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                            loading = false
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    })
                 {
-                    if (isLogin) {
+                    if (isLoginState) {
                         Text("Login")
                     } else {
                         Text("SignUp")

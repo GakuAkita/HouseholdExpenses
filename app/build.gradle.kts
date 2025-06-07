@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")//version宣言しなくて大丈夫かな。kotlin("kapt") version "2.0.21"だとエラーでからこの書き方だけど。
     id("com.google.gms.google-services")
     id("dagger.hilt.android.plugin")
+    id("kotlin-parcelize")
 }
 
 android {
