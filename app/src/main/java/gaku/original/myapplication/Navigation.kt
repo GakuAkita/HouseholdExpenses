@@ -31,7 +31,7 @@ fun Navigation(
 
     /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
     val startDestination: String
-    if (authManagerViewModel.isSignedIn) {
+    if (authManagerViewModel.isSignedIn && authManagerViewModel.isEmailVerified == true) {
         startDestination = Screen.MainScreen.Content.route
     } else {
         startDestination = Screen.StartScreen.Start.route

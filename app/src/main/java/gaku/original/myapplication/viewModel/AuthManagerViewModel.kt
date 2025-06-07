@@ -29,6 +29,9 @@ class AuthManagerViewModel @Inject constructor(
     val isSignedIn: Boolean
         get() = firebaseAuth.currentUser != null
 
+    val isEmailVerified: Boolean?
+        get() = firebaseAuth.currentUser?.isEmailVerified
+
     val userId: String?
         get() = firebaseAuth.currentUser?.uid
 
@@ -38,18 +41,35 @@ class AuthManagerViewModel @Inject constructor(
     suspend fun signIn(
         email: String,
         password: String,
+        isEmailVerification: Boolean = true,
         callback: (SuspendFuncStatusInfoWithCode) -> Unit
     ): SuspendFuncStatusInfoWithCode {
         return try {
             withTimeout(10000) {
                 firebaseAuth.signInWithEmailAndPassword(email, password).await()
-                val uid = firebaseAuth.currentUser?.uid
-                if (uid.isNullOrEmpty()) {
+                if (firebaseAuth.currentUser == null ||
+                    firebaseAuth.currentUser?.uid.isNullOrEmpty()
+                ) {
                     /* まず起こり得ないが、uidが入っているかチェック */
                     val statusInfo = SuspendFuncStatusInfoWithCode(
                         status = SuspendFuncStatus.FAILED,
                         errorMessage = "ユーザーIDが取得できませんでした"
                     )
+                    signOut()//サインアウトしなくてもメイン画面にはいけないと思うが。念の為
+                    callback(statusInfo)
+                    return@withTimeout statusInfo
+                }
+
+                if (
+                    firebaseAuth.currentUser?.isEmailVerified == false &&
+                    isEmailVerification
+                ) {
+                    val statusInfo = SuspendFuncStatusInfoWithCode(
+                        status = SuspendFuncStatus.FAILED,
+                        errorCode = "_EMAIL_NOT_VERIFIED",
+                        errorMessage = "Emailが認証されていません。認証メールを再送します。"
+                    )
+                    signOut()
                     callback(statusInfo)
                     return@withTimeout statusInfo
                 }
@@ -88,11 +108,29 @@ class AuthManagerViewModel @Inject constructor(
     suspend fun signUp(
         email: String,
         password: String,
+        isSendEmailVerification: Boolean = true,
         callback: (SuspendFuncStatusInfoWithCode) -> Unit
     ): SuspendFuncStatusInfoWithCode {
         return try {
             withTimeout(10000) {
                 firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+                if (firebaseAuth.currentUser == null ||
+                    firebaseAuth.currentUser?.uid.isNullOrEmpty()
+                ) {
+                    /* まず起こり得ないが、uidが入っているかチェック */
+                    val statusInfo = SuspendFuncStatusInfoWithCode(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "ユーザーIDが取得できませんでした"
+                    )
+                    signOut()//サインアウトしなくてもメイン画面にはいけないと思うが。念の為
+                    callback(statusInfo)
+                    return@withTimeout statusInfo
+                }
+
+                if (isSendEmailVerification) {
+                    firebaseAuth.currentUser?.sendEmailVerification()
+                }
+
                 val statusInfo = SuspendFuncStatusInfoWithCode(
                     status = SuspendFuncStatus.SUCCESS,
                     errorMessage = ""
@@ -155,35 +193,35 @@ class AuthManagerViewModel @Inject constructor(
     fun signInWithCallback(
         email: String,
         password: String,
+        isEmailVerification: Boolean = true,
         callback: (SuspendFuncStatusInfoWithCode) -> Unit
     ) {
         viewModelScope.launch {
-            signIn(email, password, callback)
+            signIn(email, password, isEmailVerification, callback = callback)
         }
     }
 
-    fun signUpSignInWithCallback(
+    fun signUpWithCallback(
         email: String,
         password: String,
+        isSendEmailVerification: Boolean = true,
         callback: (SuspendFuncStatusInfoWithCode) -> Unit
     ) {
         viewModelScope.launch {
-            val signUpStatus = signUp(email, password, callback = {})
+            val signUpStatus =
+                signUp(
+                    email,
+                    password,
+                    isSendEmailVerification = isSendEmailVerification,
+                    callback = {})
             if (signUpStatus.status != SuspendFuncStatus.SUCCESS) {
                 callback(signUpStatus)
                 return@launch
             }
 
-            val signInStatus = signIn(email, password, callback = {})
-            if (signInStatus.status != SuspendFuncStatus.SUCCESS) {
-                callback(signInStatus)
-                return@launch
-            }
-            callback(signInStatus)
+            //成功したときのみ
+            expenseSharedViewModel.addInitialCategories(callback = {})
+            callback(signUpStatus)
         }
-    }
-
-    fun onSignedUp() {
-
     }
 }

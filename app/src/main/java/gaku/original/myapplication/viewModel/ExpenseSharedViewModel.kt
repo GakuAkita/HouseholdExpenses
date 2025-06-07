@@ -130,7 +130,7 @@ class ExpenseSharedViewModel @Inject constructor(
         clearAllListeners()
     }
 
-    fun addInitialCategories(uid: String, callback: (SuspendFuncStatusInfo)) {
+    fun addInitialCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             for (category in InitialCategories.categories) {
                 categoryRepository.addCategory(category, callback = {

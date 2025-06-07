@@ -26,8 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Constants.Status.SignInResult
-import gaku.original.myapplication.data.Constants.Status.SignUpResult
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
@@ -56,6 +54,7 @@ fun LoginSignUpView(
             "ERROR_USER_DISABLED" -> "このアカウントは無効です。"
             "ERROR_USER_NOT_FOUND" -> "ユーザーが存在しません。"
             "ERROR_WRONG_PASSWORD" -> "パスワードが間違っています。"
+            "_EMAIL_NOT_VERIFIED" -> "メールアドレスが認証されていません。認証メールを再送します。"
             else -> "ログインに失敗しました。"
         }
         return message
@@ -66,7 +65,7 @@ fun LoginSignUpView(
             "ERROR_INVALID_EMAIL" -> "メールアドレスの形式が正しくありません。"
             "ERROR_WEAK_PASSWORD" -> "パスワードが弱すぎます。6文字以上にしてください。"
             "ERROR_OPERATION_NOT_ALLOWED" -> "この操作は許可されていません。"
-            else -> ""
+            else -> "アカウント作成に失敗しました"
         }
         return message
     }
@@ -111,6 +110,7 @@ fun LoginSignUpView(
                     loading = true
                     Log.d("LoginSignUpView", "LoginSignUpView: ボタンが押されました。")
                     if (isLogin) {//Login画面の場合の処理
+                        //ログイン作業
                         authViewModel.signInWithCallback(
                             email = email,
                             password = password,
@@ -138,105 +138,74 @@ fun LoginSignUpView(
                                                 actionLabel = "OK"
                                             )
                                         }
+                                        loading = false
                                     }
 
                                     SuspendFuncStatus.FAILED -> {
                                         val errorMsg = getSignInErrorMsgFromCode(status.errorCode)
                                         scope.launch {
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar(
-                                                    errorMsg,
-                                                    actionLabel = "OK"
-                                                )
-                                            }
+                                            snackBarHostState.showSnackbar(
+                                                errorMsg,
+                                                actionLabel = "OK"
+                                            )
                                         }
+                                        loading = false
                                     }
                                 }
                             }
                         )
                     } else {//SignUpの場合の処理
+                        //サインアップ作業
                         authViewModel.signUpWithCallback(
                             email,
                             password,
-                            callback = {status->
-                                when(status.status){
-                                    SuspendFuncStatus.SUCCESS->{
+                            callback = { status ->
+                                when (status.status) {
+                                    SuspendFuncStatus.SUCCESS -> {
                                         scope.launch {
                                             snackBarHostState.showSnackbar(
-                                                "アカウントを作成しました。ログインします",
-                                                actionLabel = "OK")
+                                                "アカウントを作成しました。メールアドレス認証をしてください。\nログイン画面に遷移します",
+                                                actionLabel = "OK"
+                                            )
+                                            //ユーザーにスナックバーを読ませる少し待つ。
+                                            kotlinx.coroutines.delay(2000L)
+                                            //もし途中で他の画面に行ってしまった場合どうなるだろう？
+                                            navController.navigate(Screen.StartScreen.Login.route) {
+                                                //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
+                                                popUpTo(0) {
+                                                    inclusive = true
+                                                }
+                                            }
                                         }
-
                                     }
 
-                                    SuspendFuncStatus.TIMEOUT->{
+                                    SuspendFuncStatus.TIMEOUT -> {
                                         scope.launch {
-
+                                            snackBarHostState.showSnackbar(
+                                                "タイムアウトしました。アカウント作成に失敗しました",
+                                                actionLabel = "OK"
+                                            )
                                         }
+                                        loading = false
                                     }
-                                    SuspendFuncStatus.FAILED->{
+
+                                    SuspendFuncStatus.FAILED -> {
                                         scope.launch {
-
+                                            val errorMsg =
+                                                getSignUpErrorMsgFromCode(status.errorCode)
+                                            snackBarHostState.showSnackbar(
+                                                errorMsg,
+                                                actionLabel = "OK"
+                                            )
                                         }
-
-                                    }                                    }
+                                        loading = false
+                                    }
                                 }
-                            }}
+                            }
                         )
-//                        authViewModel.signUp(
-//                            email = email,
-//                            password = password,
-//                            callback = { status ->
-//                                when (status) {
-//                                    SignUpResult.SUCCESS -> {
-//                                        scope.launch {
-//                                            snackBarHostState.showSnackbar("アカウントを作成しました。ログインします")
-//                                        }
-//                                        //SignUpができたら即ログインする。
-//                                        authViewModel.signIn(
-//                                            email = email,
-//                                            password = password,
-//                                            callback = { signInStatus ->
-//                                                when (signInStatus) {
-//                                                    SignInResult.SUCCESS -> {
-//                                                        navController.navigate(Screen.MainScreen.Content.route)
-//                                                    }
-//
-//                                                    SignInResult.USER_ID_NULL -> {
-//                                                        //ログアウトする
-//                                                        scope.launch {
-//                                                            snackBarHostState.showSnackbar("アカウント作成しましたが、ユーザーIDが空です")
-//                                                        }
-//                                                    }
-//
-//                                                    SignInResult.SIGN_IN_FAILED -> {
-//                                                        scope.launch {
-//                                                            snackBarHostState.showSnackbar("アカウント作成しましたが、ログインに失敗しました")
-//                                                        }
-//                                                    }
-//                                                }
-//                                            }
-//                                        )
-//                                    }
-//
-//                                    SignUpResult.USER_ID_NULL -> {
-//                                        scope.launch {
-//                                            snackBarHostState.showSnackbar("アカウント作成しましたが、ユーザーIDが空です")
-//                                        }
-//                                    }
-//
-//                                    SignUpResult.SIGN_UP_FAILED -> {
-//                                        scope.launch {
-//                                            snackBarHostState.showSnackbar("アカウント作成に失敗しました")
-//                                        }
-//                                    }
-//                                }
-//                                loading = false
-//                            }
-//                        )
-//                    }
-                }
-                ) {
+                    }
+                })
+                {
                     if (isLogin) {
                         Text("Login")
                     } else {
