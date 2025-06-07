@@ -94,6 +94,7 @@ class AuthManagerViewModel @Inject constructor(
                 errorMessage = e.message ?: "予期せぬエラーが発生しました",
                 errorCode = e.errorCode
             )
+            callback(statusInfo)
             statusInfo
         } catch (e: Exception) {
             val statusInfo = SuspendFuncStatusInfoWithCode(

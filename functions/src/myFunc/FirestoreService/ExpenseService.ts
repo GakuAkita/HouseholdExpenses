@@ -48,13 +48,17 @@ export class ExpenseService {
       };
     const expenseRef = this.getUserExpensesColRef(userId).doc(expenseData.id);
     try {
-      const docSnapshot = await expenseRef.get();
-      if (!docSnapshot.exists)
-        return {
-          status: FuncStatus.ERROR,
-          message: `Expense with ID ${expenseData.id} does not exist.`,
-        };
-      await expenseRef.set(expenseData);
+      // const docSnapshot = await expenseRef.get();
+      // if (!docSnapshot.exists)
+      //   return {
+      //     status: FuncStatus.ERROR,
+      //     message: `Expense with ID ${expenseData.id} does not exist.`,
+      //   };
+      // await expenseRef.set(expenseData);
+
+      /* ここはデバッグしていない!!! */
+      const { id, ...updatedExpense } = expenseData;
+      await expenseRef.update(updatedExpense);
       return {
         status: FuncStatus.SUCCESS,
         message: `Expense with ID ${expenseData.id} updated successfully.`,
