@@ -21,39 +21,40 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 
 @Composable
-fun StartView(navController: NavHostController){
+fun StartView(navController: NavHostController) {
     Column(
-        modifier= Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-    ){
-        Text(text="The App will never be completed.\n" +
-                " It will continue to grow as long as there is imagination left in the world.",
+    ) {
+        Text(
+            text = "The App will never be completed.\n" +
+                    " It will continue to grow as long as there is imagination left in the world.",
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier=Modifier.size(10.dp))
+        Spacer(modifier = Modifier.size(10.dp))
 
 //        Text(text="このアプリは永遠に完成しない。\n"+
 //                    "この世界に想像力が残っている限り、成長し続ける。",
 //            textAlign = TextAlign.Center
 //        )
 
-        Spacer(modifier=Modifier.size(10.dp))
+        Spacer(modifier = Modifier.size(10.dp))
 
-        Row (
-            modifier=Modifier.fillMaxWidth(),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
-        ){
-            val buttonWidth=150
+        ) {
+            val buttonWidth = 150
             Button(
                 modifier = Modifier.width(buttonWidth.dp),
                 onClick = {
                     navController.navigate(Screen.StartScreen.SignUp.route)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
                 )
             ) {
                 Text("Sign Up")
