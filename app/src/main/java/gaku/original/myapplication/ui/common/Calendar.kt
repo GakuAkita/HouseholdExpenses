@@ -1,17 +1,20 @@
 package gaku.original.myapplication.ui.common
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -55,7 +58,14 @@ fun CalendarDisplay(
     HorizontalCalendar(
         state = state,
         // 日付を表示する部分
-        dayContent = { Day(it, monthExpenses, onDayClicked) },
+        dayContent = {
+            Day(
+                it,
+                monthExpenses,
+                onDayClicked,
+                isToday = it.date == AppTimeZone.getCurrentTimeInZone().toLocalDate()
+            )
+        },
         // カレンダーのヘッダー
         monthHeader = { DaysOfWeekTitle(daysOfWeek = daysOfWeek) },
         //ユーザーのスクロール
@@ -83,7 +93,8 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 fun Day(
     day: CalendarDay,
     monthExpenses: List<Expense>,
-    onClicked: (day: CalendarDay) -> Unit = { _ -> }
+    onClicked: (day: CalendarDay) -> Unit = { _ -> },
+    isToday: Boolean = false
 ) {
     // Calculate the total amount of expenses for this day
     val totalExpenseForDay = monthExpenses.filter { expense ->
@@ -97,6 +108,13 @@ fun Day(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
+            .then(
+                if (isToday) Modifier.border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(10.dp)
+                ) else Modifier
+            )
             .clickable {
                 onClicked(day)
             },
