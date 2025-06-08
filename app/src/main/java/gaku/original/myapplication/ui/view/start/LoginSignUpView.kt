@@ -34,7 +34,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
 import kotlinx.coroutines.launch
 
 

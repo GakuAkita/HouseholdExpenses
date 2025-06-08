@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.main
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -11,6 +11,7 @@ import gaku.original.myapplication.data.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

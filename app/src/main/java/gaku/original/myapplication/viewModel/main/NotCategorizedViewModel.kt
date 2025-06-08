@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.main
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

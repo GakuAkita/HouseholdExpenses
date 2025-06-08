@@ -11,7 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.NotCategorizedViewModel
+import gaku.original.myapplication.viewModel.main.NotCategorizedViewModel
 
 /* 使わない..... */
 @Composable

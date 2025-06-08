@@ -63,7 +63,7 @@ import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
 import gaku.original.myapplication.utility.roundToLongOrNull
-import gaku.original.myapplication.viewModel.ExpenseAddEditViewModel
+import gaku.original.myapplication.viewModel.main.ExpenseAddEditViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate

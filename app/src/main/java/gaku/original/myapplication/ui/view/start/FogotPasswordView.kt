@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.ForgotPasswordViewModel
+import gaku.original.myapplication.viewModel.start.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
 
 @Composable

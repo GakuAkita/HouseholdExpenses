@@ -1,10 +1,11 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject

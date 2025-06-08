@@ -14,7 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
 
 @Composable
 fun UserInfoView(

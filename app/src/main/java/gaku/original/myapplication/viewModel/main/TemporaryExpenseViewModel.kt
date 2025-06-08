@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.main
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf

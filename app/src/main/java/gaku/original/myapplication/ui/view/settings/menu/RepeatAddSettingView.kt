@@ -71,7 +71,7 @@ import gaku.original.myapplication.ui.view.main.DialWithDialog
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getLastDayOfMonth
-import gaku.original.myapplication.viewModel.RepeatAddViewModel
+import gaku.original.myapplication.viewModel.settings.RepeatAddViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow

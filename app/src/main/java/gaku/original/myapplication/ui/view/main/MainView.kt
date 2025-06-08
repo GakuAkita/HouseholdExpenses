@@ -53,7 +53,7 @@ import gaku.original.myapplication.ui.common.CalendarDisplay
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.ExpenseListViewModel
+import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings

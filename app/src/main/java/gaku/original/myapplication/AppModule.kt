@@ -14,7 +14,7 @@ import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
-import gaku.original.myapplication.viewModel.TemporaryExpenseViewModel
+import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)

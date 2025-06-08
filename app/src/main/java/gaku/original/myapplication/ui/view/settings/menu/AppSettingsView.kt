@@ -28,7 +28,7 @@ import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.AppTimeZone
-import gaku.original.myapplication.viewModel.AppSettingsViewModel
+import gaku.original.myapplication.viewModel.settings.AppSettingsViewModel
 import kotlinx.coroutines.launch
 
 @Composable

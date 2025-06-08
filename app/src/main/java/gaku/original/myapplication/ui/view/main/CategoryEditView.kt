@@ -40,7 +40,7 @@ import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.CategoryEditViewModel
+import gaku.original.myapplication.viewModel.main.CategoryEditViewModel
 import kotlinx.coroutines.launch
 
 @Composable

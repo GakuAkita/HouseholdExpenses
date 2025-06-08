@@ -20,7 +20,7 @@ import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
-import gaku.original.myapplication.viewModel.AuthManagerViewModel
+import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
 
 
 @Composable

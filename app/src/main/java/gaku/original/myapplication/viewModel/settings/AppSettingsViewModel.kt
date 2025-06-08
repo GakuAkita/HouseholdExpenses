@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
