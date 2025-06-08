@@ -43,6 +43,11 @@ class ExpenseListViewModel @Inject constructor(
         Log.d(className, "Init was called")
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(className, "${className} was cleared!!")
+    }
+
     /********************* MainView用*******************************/
     private var centerCalendarDate =
         AppTimeZone.getCurrentTimeInZone().toLocalDate()//こいつはmutableStateである必要はない
