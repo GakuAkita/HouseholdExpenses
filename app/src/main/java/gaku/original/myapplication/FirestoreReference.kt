@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.firestore
-import gaku.original.myapplication.data.dataClass.MailAutoExtrInternalType
+import gaku.original.myapplication.data.dataClass.MailAutoExtractionCommon
 import javax.inject.Inject
 
 /* @TODO throwを出してしまうとアプリがクラッシュするらしい。したがって、nullのときの回避策を作る必要ある。*/
@@ -69,8 +69,7 @@ class FirestoreReference @Inject constructor(
     /**
      * users/{userId}/mailAutoExtraction 配下のDocReference
      */
-    fun getMailAutoExtractionDocRef(type: MailAutoExtrInternalType): DocumentReference? {
-        return getMailAutoExtractionColRef()?.document(type.documentName)
+    fun getMailAutoExtractionInternalDocRef(instance: MailAutoExtractionCommon): DocumentReference? {
+        return getMailAutoExtractionColRef()?.document(instance.documentName)
     }
-
 }

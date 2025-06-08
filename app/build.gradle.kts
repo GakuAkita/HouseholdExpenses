@@ -59,7 +59,6 @@ dependencies {
 
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.database.ktx)
-    implementation("com.google.firebase:firebase-firestore")
 
     implementation(platform("androidx.compose:compose-bom:2025.01.01"))
 
@@ -86,6 +85,9 @@ dependencies {
     //Splash-screen用
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    //nestedClassを使うため
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
     /**************************Room DB用************************************/
     // Roomのコアライブラリ
     implementation("androidx.room:room-runtime:$room_version")
@@ -97,6 +99,7 @@ dependencies {
     /************************** firebase ***********************************/
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
     /************************** Dagger-hilt ***********************************/
     implementation("com.google.dagger:hilt-android:$hilt_version")
@@ -118,6 +121,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(kotlin("reflect"))
 }
 
 kapt {

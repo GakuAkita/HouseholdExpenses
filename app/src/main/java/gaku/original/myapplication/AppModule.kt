@@ -8,6 +8,7 @@ import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.MailAutoExtractionFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
@@ -96,6 +97,14 @@ object AppModule {
         firestoreReference: FirestoreReference
     ): UserSettingsFirestoreRepository {
         return UserSettingsFirestoreRepository(firebaseAuth, firestoreReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideMailAutoExtractionFirestoreRepository(
+        firestoreReference: FirestoreReference
+    ): MailAutoExtractionFirestoreRepository {
+        return MailAutoExtractionFirestoreRepository(firestoreReference)
     }
 
     /* ------------------------------------------------------------------ */

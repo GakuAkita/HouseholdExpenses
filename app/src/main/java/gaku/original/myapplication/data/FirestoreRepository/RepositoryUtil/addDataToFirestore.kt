@@ -6,8 +6,7 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 suspend fun <T : CommonProperty> addDataWithIdToFirestore(
     data: T,
     reference: CollectionReference,
-    addTimeout: Long = 3000,
-    setTimeout: Long = 3000,
+    timeout: Long = 3000,
     callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
     val funcName = "addDataWithIdToFirestore"
@@ -20,7 +19,7 @@ suspend fun <T : CommonProperty> addDataWithIdToFirestore(
 
     val docRef = reference.document(id)
 
-    val setStatus = setDataToFirestore(data, setTimeout, docRef, callback)
+    val setStatus = setDataToFirestore(data, timeout, docRef, callback)
 
     return setStatus
 }

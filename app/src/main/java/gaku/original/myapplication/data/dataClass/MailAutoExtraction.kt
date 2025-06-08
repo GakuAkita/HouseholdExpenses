@@ -1,8 +1,11 @@
 package gaku.original.myapplication.data.dataClass
 
-/**
- * 楽天Payのメール抽出
- */
+import kotlin.reflect.KClass
+
+interface MailAutoExtractionCommon {
+    val enabled: Boolean
+    val documentName: String
+}
 
 data class MailAutoExtraction(
     val enabled: Boolean = true//ここをfalseにしたら全部止めるみたいな仕様にするか。
@@ -12,48 +15,43 @@ data class MailAutoExtraction(
      * 定義していく
      */
     data class RakutenPay(
-        val enabled: Boolean = false,
-        val shopCategoryAssignments: Map<String, String>?/* {"shop名" : "categoryID"}として保存 */
-    ) {
-        companion object {
-            const val documentName = "rakuten_pay"
-        }
+        override val enabled: Boolean = false,
+        val shopCategoryAssignments: Map<String, String>? = null/* {"shop名" : "categoryID"}として保存 */
+    ) : MailAutoExtractionCommon {
+        override val documentName = "rakuten_pay"
     }
 
     data class ShikokuElectricPower(
-        val enabled: Boolean = false,
+        override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) {
-        companion object {
-            const val documentName = "shikoku_electric_power"
-        }
+    ) : MailAutoExtractionCommon {
+        override val documentName = "shikoku_electric_power"
     }
 
     data class AmazonKindle(
-        val enabled: Boolean = false,
+        override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) {
-        companion object {
-            const val documentName = "amazon_kindle"
-        }
+    ) : MailAutoExtractionCommon {
+        override val documentName = "amazon_kindle"
     }
 
     data class AmazonItem(
-        val enabled: Boolean = false,
+        override val enabled: Boolean = false,
         val itemCategoryAssignments: Map<String, String>? = null,
-    ) {
-        companion object {
-            const val documentName = "amazon_item"
-        }
+    ) : MailAutoExtractionCommon {
+        override val documentName = "amazon_item"
     }
-    
-    //内部data classが増えたらenumにも追加する
 }
 
-enum class MailAutoExtrInternalType(val documentName: String) {
-    RakutenPay(MailAutoExtraction.RakutenPay.documentName),
-    ShikokuElectricPower(MailAutoExtraction.ShikokuElectricPower.documentName),
-    AmazonKindle(MailAutoExtraction.AmazonKindle.documentName),
-    AmazonItem(MailAutoExtraction.AmazonItem.documentName)
-    //増えたらここに追加する
+/**
+ * MailAutoExtractionの内部クラスであれば変換
+ * そうでなければnullを返す
+ */
+fun getMailAutoExtractionInternalClass(
+    instance: MailAutoExtractionCommon
+): KClass<out MailAutoExtractionCommon>? {
+    return MailAutoExtraction::class.nestedClasses
+        .filterIsInstance<KClass<out MailAutoExtractionCommon>>()
+        .firstOrNull { it.isInstance(instance) }
 }
+
