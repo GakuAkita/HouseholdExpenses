@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data
+package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.Interface.CommonProperty
 

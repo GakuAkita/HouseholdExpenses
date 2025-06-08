@@ -8,9 +8,9 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.mergeDataToFirestore
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
-import gaku.original.myapplication.data.UserPreferences
-import gaku.original.myapplication.data.getDefaultUserPreferences
-import gaku.original.myapplication.data.toMap
+import gaku.original.myapplication.data.dataClass.UserPreferences
+import gaku.original.myapplication.data.dataClass.getDefaultUserPreferences
+import gaku.original.myapplication.data.dataClass.toMap
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException

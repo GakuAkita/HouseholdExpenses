@@ -47,7 +47,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.Expense
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.CalendarDisplay
 import gaku.original.myapplication.ui.common.TopBarView

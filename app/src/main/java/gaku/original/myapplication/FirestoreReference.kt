@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.firestore
+import gaku.original.myapplication.data.dataClass.MailAutoExtrInternalType
 import javax.inject.Inject
 
 /* @TODO throwを出してしまうとアプリがクラッシュするらしい。したがって、nullのときの回避策を作る必要ある。*/
@@ -17,6 +18,11 @@ class FirestoreReference @Inject constructor(
 
     private val currentUserId: String?
         get() = firebaseAuth.currentUser?.uid
+
+    /**
+     * コレクションやドキュメント名はスネークケースの方が良い
+     * その方がURLフレンドリーだから
+     */
 
     fun getUsersColRef(): CollectionReference {
         return firestore.collection("users")
@@ -42,7 +48,11 @@ class FirestoreReference @Inject constructor(
     }
 
     fun getRepeatAddColRef(): CollectionReference? {
-        return getUserDocRef()?.collection("repeatAdd")
+        return getUserDocRef()?.collection("repeat_add")
+    }
+
+    fun getMailAutoExtractionColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("mail_auto_extraction")
     }
 
     fun getSettingsColRef(): CollectionReference? {
@@ -53,6 +63,14 @@ class FirestoreReference @Inject constructor(
      * users/{userId}/settings/userPreferences
      * */
     fun getUserPreferencesDocRef(): DocumentReference? {
-        return getSettingsColRef()?.document("userPreferences")
+        return getSettingsColRef()?.document("user_preferences")
     }
+
+    /**
+     * users/{userId}/mailAutoExtraction 配下のDocReference
+     */
+    fun getMailAutoExtractionDocRef(type: MailAutoExtrInternalType): DocumentReference? {
+        return getMailAutoExtractionColRef()?.document(type.documentName)
+    }
+
 }

@@ -2,9 +2,9 @@ package gaku.original.myapplication
 
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ListenerRegistration
-import gaku.original.myapplication.data.Category
-import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.UserPreferences
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.UserPreferences
 import java.time.LocalTime
 import java.time.YearMonth
 import javax.inject.Inject

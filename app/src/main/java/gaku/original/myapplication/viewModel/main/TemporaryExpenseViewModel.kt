@@ -3,8 +3,8 @@ package gaku.original.myapplication.viewModel.main
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.data.getDefaultExpense
+import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import javax.inject.Inject
 
 class TemporaryExpenseViewModel @Inject constructor(

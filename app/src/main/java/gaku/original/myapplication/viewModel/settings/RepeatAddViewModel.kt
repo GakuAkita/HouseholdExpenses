@@ -3,10 +3,10 @@ package gaku.original.myapplication.viewModel.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Category
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
-import gaku.original.myapplication.data.RepeatAdd
+import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

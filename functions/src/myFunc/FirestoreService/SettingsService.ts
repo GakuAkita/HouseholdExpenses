@@ -15,7 +15,9 @@ export class SettingsService {
   }
 
   private getUserPreferencesDocRef(userId: string) {
-    return this.getSettingsColRef(userId).doc("userPreferences");
+    return this.getSettingsColRef(userId).doc(
+      "user_preferences"
+    ); /* ノード名はURLフレンドリーの方が良い */
   }
 
   async addUserPreferences(
