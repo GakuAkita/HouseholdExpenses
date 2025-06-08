@@ -98,7 +98,7 @@ fun Navigation(
             AppSettingsView(navController = navController)
         }
         composable(Screen.SettingScreen.MailAutoExtraction.route) {
-            MailAutoExtractionView()
+            MailAutoExtractionView(navController = navController)
         }
     }
 }

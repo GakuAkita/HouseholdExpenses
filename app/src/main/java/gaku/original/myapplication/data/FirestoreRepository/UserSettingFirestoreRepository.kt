@@ -129,8 +129,12 @@ class UserSettingsFirestoreRepository @Inject constructor(
         val newMap = mapOf(UserPreferences.FIELD_TIME_ZONE to zoneId)
         val statusInfo = mergeDataToFirestore(newMap, reference = ref, callback = {
             if (it.status == SuspendFuncStatus.SUCCESS) {
-                /* ローカル側のタイムゾーンにセットする */
+                /**
+                 * ここでやっているのは、Repositoryを他のViewModelに注入したときに
+                 * 毎回ApptimeZone.update..って書く必要があるからa
+                 */
                 AppTimeZone.updateStrZoneId(zoneId)
+                callback(it)
             } else {
                 callback(it)
             }
@@ -166,6 +170,12 @@ class UserSettingsFirestoreRepository @Inject constructor(
             return FetchResult(statusInfo.status, statusInfo.errorMessage)
         }
 
+        /**
+         * ここでセットするのは、
+         * SharedViewModelにも注入されるから。
+         * 毎回ApptimeZone.update..って書くのはだるい。
+         * 責務の分離的には本当はよくないけど
+         */
         AppTimeZone.updateStrZoneId(userPreferences.timeZone)
         val statusInfo = SuspendFuncStatusInfo(
             SuspendFuncStatus.SUCCESS,

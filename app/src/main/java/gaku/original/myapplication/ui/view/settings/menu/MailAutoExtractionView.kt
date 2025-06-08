@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.settings.menu
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -8,12 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import gaku.original.myapplication.data.dataClass.MailAutoExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.MailAutoExtractionViewModel
 
 @Composable
 fun MailAutoExtractionView(
+    navController: NavController,
     viewModel: MailAutoExtractionViewModel = hiltViewModel()
 ) {
 
@@ -27,16 +30,25 @@ fun MailAutoExtractionView(
     Scaffold(
         topBar = {
             TopBarView(
-                title = "aa"
+                title = "aa",
+                showBackButton = true,
+                onBackNavClicked = {
+                    navController.popBackStack()
+                }
             )
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.Top
         ) {
+            Text("楽天Pay")
+            Text("Amazon Kindle")
+            Text("Amazon　品物")
+            Text("四国電力")
             Button(
                 onClick = {
-                    viewModel.setMailAutoExtractionInternalType(test)
+                    viewModel.setMailAutoExtractionInternalSetting(test, callback = {})
                 }
             ) {
                 Text("aaa")

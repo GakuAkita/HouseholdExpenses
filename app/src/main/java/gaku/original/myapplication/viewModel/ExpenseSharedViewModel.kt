@@ -4,18 +4,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.FirestoreListenerManager
-import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.InitialCategories
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.generatedType
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -29,6 +30,7 @@ class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
     private val categoryRepository: CategoryFirestoreRepository,
     private val repeatAddRepository: RepeatAddFirestoreRepository,
+    private val userSettingsRepository: UserSettingsFirestoreRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 
@@ -69,7 +71,6 @@ class ExpenseSharedViewModel @Inject constructor(
         addExpenseListenerAdded(yearMonth)
         addCategoryListenerModifiedRemoved()
         addCategoryListenerAdded()
-        addUserPreferencesListener()
     }
 
     fun addExpenseListenerModifiedRemoved(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
@@ -189,8 +190,10 @@ class ExpenseSharedViewModel @Inject constructor(
             }
             addAllListeners()
 
+            userSettingsRepository.getUserTimeZone {
+                Log.d(className, "userTimeZone:${AppTimeZone.currentZoneId.id}")
+            }
             /* 他にやることがあるのであればここへ、、 */
-
         }
     }
 
@@ -481,20 +484,6 @@ class ExpenseSharedViewModel @Inject constructor(
     fun addCategoryListeners() {
         addCategoryListenerAdded()
         addCategoryListenerModifiedRemoved()
-    }
-
-    /******************* ユーザー設定関係 **************************/
-    fun addUserPreferencesListener() {
-        listenerManager.listenToUserPreferences(
-            onChanged = { userPreferences ->
-                if (userPreferences == null) {
-                    AppTimeZone.updateStrZoneId(TimeZoneOption.JAPAN.id) // デフォルトのタイムゾーンを設定
-                } else {
-                    AppTimeZone.updateStrZoneId(userPreferences.timeZone) // ユーザー設定のタイムゾーンを設定
-                    Log.d(className, "UserPreferences updated: ${userPreferences.timeZone}")
-                }
-            }
-        )
     }
 
 }

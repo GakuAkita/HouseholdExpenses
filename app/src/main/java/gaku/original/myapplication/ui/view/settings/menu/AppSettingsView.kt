@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -102,7 +103,7 @@ fun TimeZoneDropdown(
                 .border(
                     1.dp,
                     color = MaterialTheme.colorScheme.primary,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp)
                 )
                 .padding(12.dp)
         ) {

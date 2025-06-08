@@ -32,7 +32,7 @@ class MailAutoExtractionFirestoreRepository(
     /**
      * MailAutoExtractionCommon を Firestore に set する
      */
-    suspend fun setMailAutoExtractionInternalType(
+    suspend fun setMailAutoExtractionInternalSetting(
         instance: MailAutoExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
@@ -64,7 +64,7 @@ class MailAutoExtractionFirestoreRepository(
         )
     }
 
-    suspend fun fetchMailAutoExtractionData(
+    suspend fun fetchMailAutoExtractionSetting(
         instance: MailAutoExtractionCommon,//インスタンス自体に何も入ってなくても良いから。documentNameがほしい
         timeout: Long = 3000,
         callback: (SuspendFuncStatusInfo) -> Unit

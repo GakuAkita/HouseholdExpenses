@@ -5,6 +5,7 @@ import kotlin.reflect.KClass
 interface MailAutoExtractionCommon {
     val enabled: Boolean
     val documentName: String
+    val menuName: String
 }
 
 data class MailAutoExtraction(
@@ -19,6 +20,7 @@ data class MailAutoExtraction(
         val shopCategoryAssignments: Map<String, String>? = null/* {"shop名" : "categoryID"}として保存 */
     ) : MailAutoExtractionCommon {
         override val documentName = "rakuten_pay"
+        override val menuName = "楽天Pay"
     }
 
     data class ShikokuElectricPower(
@@ -26,6 +28,7 @@ data class MailAutoExtraction(
         val categoryId: String? = null,
     ) : MailAutoExtractionCommon {
         override val documentName = "shikoku_electric_power"
+        override val menuName = "四国電力"
     }
 
     data class AmazonKindle(
@@ -33,6 +36,7 @@ data class MailAutoExtraction(
         val categoryId: String? = null,
     ) : MailAutoExtractionCommon {
         override val documentName = "amazon_kindle"
+        override val menuName = "Amazon Kindle"
     }
 
     data class AmazonItem(
@@ -40,6 +44,7 @@ data class MailAutoExtraction(
         val itemCategoryAssignments: Map<String, String>? = null,
     ) : MailAutoExtractionCommon {
         override val documentName = "amazon_item"
+        override val menuName = "Amazon　物"
     }
 }
 

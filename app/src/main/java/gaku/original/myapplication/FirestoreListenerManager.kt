@@ -4,7 +4,6 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.UserPreferences
 import java.time.LocalTime
 import java.time.YearMonth
 import javax.inject.Inject
@@ -152,31 +151,6 @@ class FirestoreListenerManager @Inject constructor(
                         }
                     }
                 }
-        }
-
-        if (registration != null) {
-            _listenerMap[key] = registration
-        }
-    }
-
-    fun listenToUserPreferences(
-        key: String = "userPreferences",
-        onChanged: (UserPreferences?) -> Unit
-    ) {
-        _listenerMap[key]?.remove()
-
-        val registration = firestoreReference.getUserPreferencesDocRef()?.let {
-            it.addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) return@addSnapshotListener
-
-                if (snapshot.exists()) {
-                    val userPreferences = snapshot.toObject(UserPreferences::class.java)
-                    onChanged(userPreferences)
-                } else {
-                    /* 消されたときも！！ */
-                    onChanged(null) // ドキュメントが存在しない場合はnullを返す
-                }
-            }
         }
 
         if (registration != null) {
