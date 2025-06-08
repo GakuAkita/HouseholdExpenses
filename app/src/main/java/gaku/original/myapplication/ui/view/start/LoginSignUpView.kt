@@ -246,7 +246,9 @@ fun LoginSignUpView(
                         .padding(top = 300.dp)
                         .clickable {
                             // パスワードリセット処理
-
+                            navController.navigate(
+                                Screen.StartScreen.ForgotPassword.route
+                            )
                         }
                 )
             }

@@ -16,6 +16,7 @@ import gaku.original.myapplication.ui.view.settings.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.UserInfoView
+import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
@@ -54,6 +55,9 @@ fun Navigation(
         composable(Screen.StartScreen.Login.route) {
             val isLogin = true
             LoginSignUpView(navController = navController, isLogin = isLogin)
+        }
+        composable(Screen.StartScreen.ForgotPassword.route) {
+            ForgotPasswordView(navController = navController)
         }
 
         //Mainスクリーン

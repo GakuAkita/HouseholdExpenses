@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
         object Start : StartScreen("$BASE_ROUTE/start")
         object SignUp : StartScreen("$BASE_ROUTE/sign_up")
         object Login : StartScreen("$BASE_ROUTE/login")
+        object ForgotPassword : StartScreen("$BASE_ROUTE/forgot_password")
     }
 
     // Main関連

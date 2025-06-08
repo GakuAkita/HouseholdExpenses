@@ -378,6 +378,9 @@ class ExpenseSharedViewModel @Inject constructor(
             return categoryUpdateStatus
         }
 
+        /**
+         * @FIXME こんなことやらなくてCategoryのidだけ持っておけばよいのか、、
+         */
         for (repeatAdd in repeatAddList) {
             if (repeatAdd.expense.category?.id == category.id) {
                 repeatAdd.expense.category = category
