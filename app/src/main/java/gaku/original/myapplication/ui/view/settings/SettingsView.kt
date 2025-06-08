@@ -80,7 +80,11 @@ fun SettingsView(
                 Text("繰り返し自動追加", modifier = Modifier.padding(start = 10.dp))
             }
 
-            SettingRow {
+            SettingRow(
+                onClick = {
+                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.route)
+                }
+            ) {
                 //タイムゾーンはアラートでいいか。
                 Text(text = "メールアドレス自動連携", modifier = Modifier.padding(start = 10.dp))
             }

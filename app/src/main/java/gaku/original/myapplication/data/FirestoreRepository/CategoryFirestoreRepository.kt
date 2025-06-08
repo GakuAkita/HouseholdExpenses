@@ -4,11 +4,11 @@ import addDataWithIdToFirestore
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Category
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout

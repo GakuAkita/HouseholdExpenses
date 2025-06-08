@@ -1,4 +1,4 @@
-package gaku.original.myapplication.Utility
+package gaku.original.myapplication.utility
 
 // ISO形式（Z付き＝UTC基準）例: 2025-05-28T01:23:45Z
 //private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT

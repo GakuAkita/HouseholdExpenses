@@ -23,11 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.viewModel.AppSettingsViewModel
 import kotlinx.coroutines.launch
 

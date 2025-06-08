@@ -4,9 +4,9 @@ import addDataToRTDb
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
-import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.RepeatAdd
+import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout

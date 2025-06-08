@@ -1,4 +1,4 @@
-package gaku.original.myapplication.Utility
+package gaku.original.myapplication.utility
 
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters

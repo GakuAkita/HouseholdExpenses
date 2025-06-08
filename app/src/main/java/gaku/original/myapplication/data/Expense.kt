@@ -1,8 +1,8 @@
 package gaku.original.myapplication.data
 
 import androidx.compose.runtime.mutableStateListOf
-import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.utility.AppTimeZone
 
 data class Expense(
     override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1

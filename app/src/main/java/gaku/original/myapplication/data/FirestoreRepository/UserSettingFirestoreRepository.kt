@@ -3,8 +3,6 @@ package gaku.original.myapplication.data.FirestoreRepository
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.Utility.AppTimeZone
-import gaku.original.myapplication.Utility.LogClassFuncCalled
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.mergeDataToFirestore
@@ -13,6 +11,8 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.UserPreferences
 import gaku.original.myapplication.data.getDefaultUserPreferences
 import gaku.original.myapplication.data.toMap
+import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout

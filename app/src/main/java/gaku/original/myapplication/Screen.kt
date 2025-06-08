@@ -38,6 +38,8 @@ sealed class Screen(val route: String) {
         object UserInfo : MainScreen("$BASE_ROUTE/user_info")
         object RepeatAdd : MainScreen("$BASE_ROUTE/repeat_add")
         object AppSettings : MainScreen("$BASE_ROUTE/app_settings")
+        object MailAutoExtraction : MainScreen("$BASE_ROUTE/mail_auto_extraction")
+
     }
 
     //使わない

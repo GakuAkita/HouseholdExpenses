@@ -1,4 +1,4 @@
-package gaku.original.myapplication.Utility
+package gaku.original.myapplication.utility
 
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import kotlinx.coroutines.flow.MutableStateFlow

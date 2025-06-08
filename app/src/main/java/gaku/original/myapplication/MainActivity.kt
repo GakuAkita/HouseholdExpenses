@@ -9,8 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
-import gaku.original.myapplication.Utility.LogAkitaDebug
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
+import gaku.original.myapplication.utility.LogAkitaDebug
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

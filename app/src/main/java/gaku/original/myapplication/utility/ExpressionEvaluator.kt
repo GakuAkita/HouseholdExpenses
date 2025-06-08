@@ -1,4 +1,4 @@
-package gaku.original.myapplication.Utility
+package gaku.original.myapplication.utility
 
 fun evalExpression(expression: String): Double {
     val tokens = expression.replace("×", "*").replace("÷", "/")

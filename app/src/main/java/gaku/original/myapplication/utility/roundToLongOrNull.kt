@@ -1,4 +1,4 @@
-package gaku.original.myapplication.Utility
+package gaku.original.myapplication.utility
 
 import android.util.Log
 import kotlin.math.roundToLong

@@ -5,9 +5,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
-import gaku.original.myapplication.Utility.LogException
-import gaku.original.myapplication.Utility.LogTimeout
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.utility.LogException
+import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
