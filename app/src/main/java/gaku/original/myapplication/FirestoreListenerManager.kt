@@ -185,7 +185,7 @@ class FirestoreListenerManager @Inject constructor(
     }
 
     fun clearAllListeners() {
-        _listenerMap.values.forEach { it.remove() }
+        _listenerMap.values.forEach { it.remove() }//リスナー解除
         _listenerMap.clear()
     }
 }

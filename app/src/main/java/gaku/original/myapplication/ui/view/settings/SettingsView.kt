@@ -29,8 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
-import gaku.original.myapplication.ui.view.BottomBarView
-import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 import kotlinx.coroutines.launch
 
@@ -82,7 +82,7 @@ fun SettingsView(
 
             SettingRow {
                 //タイムゾーンはアラートでいいか。
-                Text(text = "外部自動連携", modifier = Modifier.padding(start = 10.dp))
+                Text(text = "メールアドレス自動連携", modifier = Modifier.padding(start = 10.dp))
             }
 
             Button(

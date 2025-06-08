@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings
+package gaku.original.myapplication.ui.view.settings.menu
 
 import android.util.Log
 import androidx.compose.foundation.border
@@ -66,10 +66,10 @@ import gaku.original.myapplication.data.Frequency
 import gaku.original.myapplication.data.RepeatAdd
 import gaku.original.myapplication.data.defaultFrequency
 import gaku.original.myapplication.data.defaultRepeatAdd
+import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
-import gaku.original.myapplication.ui.view.BottomBarView
-import gaku.original.myapplication.ui.view.TopBarView
 import gaku.original.myapplication.ui.view.main.DialWithDialog
 import gaku.original.myapplication.viewModel.RepeatAddViewModel
 import kotlinx.coroutines.CoroutineScope

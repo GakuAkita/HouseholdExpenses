@@ -50,9 +50,9 @@ import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Expense
-import gaku.original.myapplication.ui.view.BottomBarView
-import gaku.original.myapplication.ui.view.CalendarDisplay
-import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.CalendarDisplay
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
@@ -233,6 +233,10 @@ fun MainView(
                             )
 
                             Log.d("Akita Debug", "$inputDateTime")
+                            /**
+                             * このnewDatetimeは設定のタイムゾーンの日付で、
+                             * ViewModel内でUTCに変換する
+                             */
                             /**
                              * このnewDatetimeは設定のタイムゾーンの日付で、
                              * ViewModel内でUTCに変換する

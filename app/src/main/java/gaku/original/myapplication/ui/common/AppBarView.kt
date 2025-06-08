@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.common
 
 
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -75,11 +75,11 @@ fun BottomBarView(
             icon = painterResource(id = R.drawable.baseline_pie_chart_24),
             route = Screen.GraphScreen.route
         ),
-//        BottomNavigationItem(
-//            title="Not-Categorized",
-//            icon= painterResource(id = R.drawable.baseline_category_24),
-//            route=Screen.NotCategorizedScreen.route
-//        ),
+        BottomNavigationItem(
+            title = "Not-Categorized",
+            icon = painterResource(id = R.drawable.baseline_category_24),
+            route = Screen.NotCategorizedScreen.route
+        ),
         BottomNavigationItem(
             title = "Settings",
             icon = painterResource(id = R.drawable.baseline_settings_24),

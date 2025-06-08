@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings
+package gaku.original.myapplication.ui.view.settings.menu
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.ui.view.BottomBarView
-import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.AuthManagerViewModel
 
 @Composable

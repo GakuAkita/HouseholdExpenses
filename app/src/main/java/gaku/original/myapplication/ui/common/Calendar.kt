@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.common
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings
+package gaku.original.myapplication.ui.view.settings.menu
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,8 +26,8 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.Utility.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
-import gaku.original.myapplication.ui.view.BottomBarView
-import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.AppSettingsViewModel
 import kotlinx.coroutines.launch
 

@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.view.start
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,12 +21,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.ui.view.TopBarView
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
 
@@ -65,8 +63,8 @@ fun ForgotPasswordView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .border(2.dp, Color.Red),//デバッグのため,
+                .padding(innerPadding),
+//                .border(2.dp, Color.Red),//デバッグのため,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
