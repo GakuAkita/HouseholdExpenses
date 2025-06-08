@@ -160,7 +160,7 @@ export class RepeatAddProcessor {
     }
 
     /* 必要なものを加えていかないと、、 */
-    expense.generatedType = `${GeneratedType.REPEAT_ADD}_${repeatAdd.id}`;
+    expense.generatedType = `${GeneratedType.REPEAT_ADD}___${repeatAdd.id}`; /* ___(アンダーバー3つ)を区切りサインとする */
     expense.timestamp = Date.now();
 
     /* targetDate自体は扱い的には、自分のタイムゾーン。だから、それを変える */

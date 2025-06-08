@@ -1,6 +1,5 @@
 import { Firestore } from "firebase-admin/firestore";
 import {
-  FirestoreAddResult,
   FuncResult,
   FuncResultWithData,
   FuncStatus,
@@ -16,26 +15,6 @@ export class RepeatAddService {
 
   private getUserRepeatAddColRef(userId: string) {
     return this.db.collection("users").doc(userId).collection("repeatAdd");
-  }
-
-  async addRepeatAdd(
-    userId: string,
-    repeatAddData: RepeatAdd
-  ): Promise<FirestoreAddResult> {
-    try {
-      const repeatAddRef = this.getUserRepeatAddColRef(userId);
-      const docRef = await repeatAddRef.add(repeatAddData); //ここで事故ってる
-      return {
-        status: FuncStatus.SUCCESS,
-        id: docRef.id,
-        message: `RepeatAdd added with ID: ${docRef.id}`,
-      };
-    } catch (error: any) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to add RepeatAdd: ${error.message}`,
-      };
-    }
   }
 
   async updateRepeatAdd(
@@ -74,15 +53,22 @@ export class RepeatAddService {
     userId: string,
     repeatAddData: RepeatAdd
   ): Promise<FuncResult> {
-    const addStatus = await this.addRepeatAdd(userId, repeatAddData);
-    if (addStatus.status !== FuncStatus.SUCCESS) return addStatus;
-    if (!addStatus.id)
+    const repeatAddRef = this.getUserRepeatAddColRef(userId);
+    const newDocRef = repeatAddRef.doc();
+    repeatAddData.id = newDocRef.id;
+
+    try {
+      await newDocRef.set(repeatAddData);
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `RepeatAdd with ID ${repeatAddData.id} was added successfully.`,
+      };
+    } catch (error: any) {
       return {
         status: FuncStatus.ERROR,
-        message: "Failed to retrieve the added RepeatAdd ID.",
+        message: `Failed to update RepeatAdd: ${error.message}`,
       };
-    repeatAddData.id = addStatus.id;
-    return this.updateRepeatAdd(userId, repeatAddData);
+    }
   }
 
   async getAllRepeatAdds(
