@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +44,10 @@ fun LoginSignUpView(
     navController: NavHostController,
     isLogin: Boolean
 ) {
-    var email by remember { mutableStateOf("") }
+    /**
+     * rememberSavableはスタックから消えない限り生き残る
+     */
+    var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     var isLoginState by remember { mutableStateOf(isLogin) }
@@ -218,6 +222,8 @@ fun LoginSignUpView(
                                 MaterialTheme.colorScheme.tertiary
                         ),
                         onClick = {
+                            /* 既存のSnackbarを消す */
+                            snackBarHostState.currentSnackbarData?.dismiss()
                             // ログイン処理
                             if (isLoginState) {
                                 handleLogin()
