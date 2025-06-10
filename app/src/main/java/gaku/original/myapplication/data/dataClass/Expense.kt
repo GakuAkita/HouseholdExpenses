@@ -11,7 +11,9 @@ data class Expense(
     override var timestamp: Long? = System.currentTimeMillis(),
     var amount: Long? = null,
     var category: Category? = null,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
-    var note: String? = null
+    var note: String? = null,
+    var storeName: String? = null,//必要だったらいれる。
+    var itemName: String? = null,//必要だったらいれる
 ) : CommonProperty
 
 data class Category(
