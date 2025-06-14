@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.firestore
-import gaku.original.myapplication.data.dataClass.MailAutoExtractionCommon
+import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import javax.inject.Inject
 
 /* @TODO throwを出してしまうとアプリがクラッシュするらしい。したがって、nullのときの回避策を作る必要ある。*/
@@ -51,8 +51,8 @@ class FirestoreReference @Inject constructor(
         return getUserDocRef()?.collection("repeat_add")
     }
 
-    fun getMailAutoExtractionColRef(): CollectionReference? {
-        return getUserDocRef()?.collection("mail_auto_extraction")
+    fun getMailboxExtractionColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("mailbox_extraction")
     }
 
     fun getSettingsColRef(): CollectionReference? {
@@ -69,7 +69,7 @@ class FirestoreReference @Inject constructor(
     /**
      * users/{userId}/mailAutoExtraction 配下のDocReference
      */
-    fun getMailAutoExtractionInternalDocRef(instance: MailAutoExtractionCommon): DocumentReference? {
-        return getMailAutoExtractionColRef()?.document(instance.documentName)
+    fun getMailboxExtractionInternalDocRef(instance: MailboxExtractionCommon): DocumentReference? {
+        return getMailboxExtractionColRef()?.document(instance.documentName)
     }
 }

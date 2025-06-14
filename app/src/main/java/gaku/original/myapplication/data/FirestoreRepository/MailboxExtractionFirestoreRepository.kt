@@ -7,12 +7,12 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
-import gaku.original.myapplication.data.dataClass.MailAutoExtractionCommon
-import gaku.original.myapplication.data.dataClass.getMailAutoExtractionInternalClass
+import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
+import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
-class MailAutoExtractionFirestoreRepository(
+class MailboxExtractionFirestoreRepository(
     private val firestoreReference: FirestoreReference
 ) {
     val className = this::class.simpleName ?: "UnableToGetClassName"
@@ -21,37 +21,37 @@ class MailAutoExtractionFirestoreRepository(
      * @FIXME ん～本当はMailExtractionDocの内部のクラスかどうか判定したいんだけど、無理そうだな～
      *
      */
-    fun getMailAutoExtractionInternalDocRef(type: MailAutoExtractionCommon): DocumentReference? {
-        return firestoreReference.getMailAutoExtractionInternalDocRef(type)
+    fun getMailboxExtractionInternalDocRef(type: MailboxExtractionCommon): DocumentReference? {
+        return firestoreReference.getMailboxExtractionInternalDocRef(type)
     }
 
     /**
-     * 引数はMailAutoExtractionの内部data classのデータで、
+     * 引数はMailboxExtractionの内部data classのデータで、
      * それをそのdata classのドキュメントにsetする
      */
     /**
-     * MailAutoExtractionCommon を Firestore に set する
+     * MailboxExtractionCommon を Firestore に set する
      */
-    suspend fun setMailAutoExtractionInternalSetting(
-        instance: MailAutoExtractionCommon,
+    suspend fun setMailboxExtractionInternalSetting(
+        instance: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
-        val internal = getMailAutoExtractionInternalClass(instance)
+        val internal = getMailboxExtractionInternalClass(instance)
         if (internal == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailAutoExtractionのdata classに含まれていません\n開発者のミスです"
+                errorMessage = "MailboxExtractionのdata classに含まれていません\n開発者のミスです"
             )
             Log.d(className, statusInfo.errorMessage)
             callback(statusInfo)
             return statusInfo
         }
 
-        val docRef = getMailAutoExtractionInternalDocRef(instance)
+        val docRef = getMailboxExtractionInternalDocRef(instance)
         if (docRef == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailAutoExtraction/${instance.documentName}を参照できませんでした"
+                errorMessage = "MailboxExtraction/${instance.documentName}を参照できませんでした"
             )
             callback(statusInfo)
             return statusInfo
@@ -64,32 +64,32 @@ class MailAutoExtractionFirestoreRepository(
         )
     }
 
-    suspend fun fetchMailAutoExtractionSetting(
-        instance: MailAutoExtractionCommon,//インスタンス自体に何も入ってなくても良いから。documentNameがほしい
+    suspend fun fetchMailboxExtractionSetting(
+        instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。documentNameがほしい
         timeout: Long = 3000,
         callback: (SuspendFuncStatusInfo) -> Unit
-    ): FetchResult<MailAutoExtractionCommon> {
-        val internal = getMailAutoExtractionInternalClass(instance)
+    ): FetchResult<MailboxExtractionCommon> {
+        val internal = getMailboxExtractionInternalClass(instance)
         if (internal == null) {
-            val fetchResult = FetchResult<MailAutoExtractionCommon>(
+            val fetchResult = FetchResult<MailboxExtractionCommon>(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailAutoExtractionのdata classに含まれていません \n開発者のミスです"
+                errorMessage = "MailboxExtractionのdata classに含まれていません \n開発者のミスです"
             )
             callback(fetchResult.toSuspendFuncStatusInfo())
             return fetchResult
         }
 
-        val docRef = getMailAutoExtractionInternalDocRef(instance)
+        val docRef = getMailboxExtractionInternalDocRef(instance)
         if (docRef == null) {
-            val fetchResult = FetchResult<MailAutoExtractionCommon>(
+            val fetchResult = FetchResult<MailboxExtractionCommon>(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailAutoExtraction/${instance.documentName}を参照できませんでした"
+                errorMessage = "MailboxExtraction/${instance.documentName}を参照できませんでした"
             )
             callback(fetchResult.toSuspendFuncStatusInfo())
             return fetchResult
         }
 
-        var fetchResult: FetchResult<MailAutoExtractionCommon>
+        var fetchResult: FetchResult<MailboxExtractionCommon>
         try {
             withTimeout(timeout) {
                 val snapshot = docRef.get().await()
@@ -111,12 +111,12 @@ class MailAutoExtractionFirestoreRepository(
                 } else {
                     Log.d(
                         className,
-                        "MailAutoExtraction/${instance.documentName}が存在しません\nエラーではありません"
+                        "MailboxExtraction/${instance.documentName}が存在しません\nエラーではありません"
                     )
                     fetchResult = FetchResult(
                         status = SuspendFuncStatus.SUCCESS,
                         data = null,
-                        errorMessage = "MailAutoExtraction/${instance.documentName}が存在しません\nエラーではありません"
+                        errorMessage = "MailboxExtraction/${instance.documentName}が存在しません\nエラーではありません"
                     )
                 }
             }

@@ -39,16 +39,16 @@ sealed class Screen(val route: String) {
         object RepeatAdd : MainScreen("$BASE_ROUTE/repeat_add")
         object AppSettings : MainScreen("$BASE_ROUTE/app_settings")
 
-        sealed class MailAutoExtraction(route: String) : SettingScreen(route) {
+        sealed class MailboxExtraction(route: String) : SettingScreen(route) {
             companion object {
                 const val BASE_ROUTE = "${SettingScreen.BASE_ROUTE}/mail_auto_extraction"
             }
 
-            object Main : MailAutoExtraction("$BASE_ROUTE/main")
-            object RakutenPay : MailAutoExtraction("$BASE_ROUTE/rakuten_pay")
-            object AmazonKindle : MailAutoExtraction("$BASE_ROUTE/amazon_kindle")
-            object AmazonItem : MailAutoExtraction("$BASE_ROUTE/amazon_item")
-            object ShikokuElectricPower : MailAutoExtraction("$BASE_ROUTE/shikoku_electric_power")
+            object Main : MailboxExtraction("$BASE_ROUTE/main")
+            object RakutenPay : MailboxExtraction("$BASE_ROUTE/rakuten_pay")
+            object AmazonKindle : MailboxExtraction("$BASE_ROUTE/amazon_kindle")
+            object AmazonItem : MailboxExtraction("$BASE_ROUTE/amazon_item")
+            object ShikokuElectricPower : MailboxExtraction("$BASE_ROUTE/shikoku_electric_power")
         }
     }
 

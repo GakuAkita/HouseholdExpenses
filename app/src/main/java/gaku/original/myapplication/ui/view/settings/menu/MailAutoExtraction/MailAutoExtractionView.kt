@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction
+package gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,21 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.dataClass.MailAutoExtraction
+import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 
 
 @Composable
-fun MailAutoExtractionView(
+fun MailboxExtractionView(
     navController: NavController,
 ) {
-    val rakutenPaySetting = MailAutoExtraction.RakutenPay()
-    val amazonKindleSetting = MailAutoExtraction.AmazonKindle()
-    val amazonItemSetting = MailAutoExtraction.AmazonItem()
-    val shikokuElectricSetting = MailAutoExtraction.ShikokuElectricPower()
+    val rakutenPaySetting = MailboxExtraction.RakutenPay()
+    val amazonKindleSetting = MailboxExtraction.AmazonKindle()
+    val amazonItemSetting = MailboxExtraction.AmazonItem()
+    val shikokuElectricSetting = MailboxExtraction.ShikokuElectricPower()
 
     @Composable
-    fun MailAutoExtractionMenu(
+    fun MailboxExtractionMenu(
         menuName: String,
         onClick: () -> Unit = {}
     ) {
@@ -61,31 +61,31 @@ fun MailAutoExtractionView(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.Top
         ) {
-            MailAutoExtractionMenu(
+            MailboxExtractionMenu(
                 rakutenPaySetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.RakutenPay.route)
+                    navController.navigate(Screen.SettingScreen.MailboxExtraction.RakutenPay.route)
                 }
             )
 
-            MailAutoExtractionMenu(
+            MailboxExtractionMenu(
                 amazonKindleSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.AmazonKindle.route)
+                    navController.navigate(Screen.SettingScreen.MailboxExtraction.AmazonKindle.route)
                 }
             )
 
-            MailAutoExtractionMenu(
+            MailboxExtractionMenu(
                 amazonItemSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.AmazonItem.route)
+                    navController.navigate(Screen.SettingScreen.MailboxExtraction.AmazonItem.route)
                 }
             )
 
-            MailAutoExtractionMenu(
+            MailboxExtractionMenu(
                 shikokuElectricSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.ShikokuElectricPower.route)
+                    navController.navigate(Screen.SettingScreen.MailboxExtraction.ShikokuElectricPower.route)
                 }
             )
         }

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction
+package gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -47,18 +47,18 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.MailAutoExtraction
+import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.settings.MailAutoExtractionViewModel
+import gaku.original.myapplication.viewModel.settings.MailboxExtractionViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RakutenPaySettingView(
     navController: NavController,
-    viewModel: MailAutoExtractionViewModel = hiltViewModel()
+    viewModel: MailboxExtractionViewModel = hiltViewModel()
 ) {
     val funcName = "RakutenPaySettingView"
 
@@ -66,7 +66,7 @@ fun RakutenPaySettingView(
     val snackBarHostState = remember { SnackbarHostState() }
 
     var rakutenPaySetting by remember {
-        mutableStateOf<MailAutoExtraction.RakutenPay?>(
+        mutableStateOf<MailboxExtraction.RakutenPay?>(
             null
         )
     }
@@ -98,13 +98,13 @@ fun RakutenPaySettingView(
         }
 
         if (initialFetchSettingStatus == null) {
-            viewModel.fetchMailAutoExtractionInternalSetting(
-                MailAutoExtraction.RakutenPay(),
+            viewModel.fetchMailboxExtractionInternalSetting(
+                MailboxExtraction.RakutenPay(),
                 callback = {
                     initialFetchSettingStatus = it.toSuspendFuncStatusInfo()
                     if (it.status == SuspendFuncStatus.SUCCESS) {
                         if (it.data != null) {
-                            rakutenPaySetting = it.data as MailAutoExtraction.RakutenPay
+                            rakutenPaySetting = it.data as MailboxExtraction.RakutenPay
                         }/* dataがnullのときは未設定のとき */
                     }
                 }
@@ -179,13 +179,13 @@ fun RakutenPaySettingView(
 
                 Button(
                     onClick = {
-                        viewModel.setMailAutoExtractionInternalSetting(
+                        viewModel.setMailboxExtractionInternalSetting(
                             internalRakutenPaySetting,
                             callback = {
                                 if (it.status == SuspendFuncStatus.SUCCESS) {
                                     /* 保存に成功しました */
                                     editedFlag = false
-                                    viewModel.setMailAutoExtractionInternalSetting(
+                                    viewModel.setMailboxExtractionInternalSetting(
                                         internalRakutenPaySetting,
                                         callback = {})
                                 } else {
@@ -349,9 +349,9 @@ fun CategoryDropDown(
 /***************楽天設定UI*******************/
 @Composable
 fun RakutenPaySettingColumn(
-    rakutenPaySetting: MailAutoExtraction.RakutenPay,
+    rakutenPaySetting: MailboxExtraction.RakutenPay,
     categories: List<Category>,
-    onSave: (MailAutoExtraction.RakutenPay) -> Unit = {},
+    onSave: (MailboxExtraction.RakutenPay) -> Unit = {},
     onDismiss: () -> Unit = {}
 ) {
     var tmpRakutenPay by remember { mutableStateOf(rakutenPaySetting) }

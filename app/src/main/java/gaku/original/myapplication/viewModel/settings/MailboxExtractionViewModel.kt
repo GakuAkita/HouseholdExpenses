@@ -7,26 +7,26 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.MailAutoExtractionFirestoreRepository
+import gaku.original.myapplication.data.FirestoreRepository.MailboxExtractionFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.MailAutoExtractionCommon
+import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MailAutoExtractionViewModel @Inject constructor(
+class MailboxExtractionViewModel @Inject constructor(
     private val categoryFirestoreRepository: CategoryFirestoreRepository,
-    private val mailAutoExtractionFirestoreRepository: MailAutoExtractionFirestoreRepository
+    private val mailAutoExtractionFirestoreRepository: MailboxExtractionFirestoreRepository
 ) : ViewModel() {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> get() = _categories
 
-    /* MailAutoExtractionViewにしか紐づけられないのでbackStackで戻れば毎回Clearされる */
+    /* MailboxExtractionViewにしか紐づけられないのでbackStackで戻れば毎回Clearされる */
     override fun onCleared() {
         super.onCleared()
         Log.d(className, "$className was Cleared!!")
@@ -36,12 +36,12 @@ class MailAutoExtractionViewModel @Inject constructor(
         Log.d(className, "$className was Initialized!!")
     }
 
-    fun fetchMailAutoExtractionInternalSetting(
-        instance: MailAutoExtractionCommon,
-        callback: (FetchResult<MailAutoExtractionCommon>) -> Unit
+    fun fetchMailboxExtractionInternalSetting(
+        instance: MailboxExtractionCommon,
+        callback: (FetchResult<MailboxExtractionCommon>) -> Unit
     ) {
         viewModelScope.launch {
-            val result = mailAutoExtractionFirestoreRepository.fetchMailAutoExtractionSetting(
+            val result = mailAutoExtractionFirestoreRepository.fetchMailboxExtractionSetting(
                 instance,
                 callback = {}
             )
@@ -49,12 +49,12 @@ class MailAutoExtractionViewModel @Inject constructor(
         }
     }
 
-    fun setMailAutoExtractionInternalSetting(
-        instance: MailAutoExtractionCommon,
+    fun setMailboxExtractionInternalSetting(
+        instance: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
-            mailAutoExtractionFirestoreRepository.setMailAutoExtractionInternalSetting(
+            mailAutoExtractionFirestoreRepository.setMailboxExtractionInternalSetting(
                 instance,
                 callback = callback
             )
