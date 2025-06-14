@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,9 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.MailAutoExtraction
 import gaku.original.myapplication.ui.common.TopBarView
@@ -46,23 +52,48 @@ fun RakutenPaySettingView(
     navController: NavController,
     viewModel: MailAutoExtractionViewModel = hiltViewModel()
 ) {
+    val funcName = "RakutenPaySettingView"
     var rakutenPaySetting by remember {
-        mutableStateOf(
-            MailAutoExtraction.RakutenPay(
-                shopCategoryAssignments =
-                mapOf(
-                    "shop1" to "category1",
-                    "shop2" to "category2"
-                )
-            )
+        mutableStateOf<MailAutoExtraction.RakutenPay?>(
+            null
         )
     }
 
     var editedFlag by remember { mutableStateOf(false) }
 
-    val
+    val allCategories by viewModel.categories.collectAsState(initial = emptyList())
+
+    var categoryFetchExec by rememberSaveable { mutableStateOf(false) }
+
+    /* Parcelableじゃないとクラッシュする */
+    var initialFetchSettingStatus by rememberSaveable { mutableStateOf<SuspendFuncStatusInfo?>(null) }
+
     LaunchedEffect(Unit) {
-        viewModel.fetchCategories { }
+        if (!categoryFetchExec) {
+            viewModel.fetchCategories {
+                if (it.status == SuspendFuncStatus.SUCCESS) {
+                    /* カテゴリーは失敗したら何度も実行してよいが、初期設定はだめ */
+                    categoryFetchExec = true
+                } else {
+                    /* カテゴリー取得に失敗したらスナックバーに出す */
+                    Log.d(funcName, "Unable to fetch Categories!!")
+                }
+            }
+        }
+
+        if (initialFetchSettingStatus == null) {
+            viewModel.fetchMailAutoExtractionInternalSetting(
+                MailAutoExtraction.RakutenPay(),
+                callback = {
+                    initialFetchSettingStatus = it.toSuspendFuncStatusInfo()
+                    if (it.status == SuspendFuncStatus.SUCCESS) {
+                        if (it.data != null) {
+                            rakutenPaySetting = it.data as MailAutoExtraction.RakutenPay
+                        }/* dataがnullのときは未設定のとき */
+                    }
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -84,71 +115,98 @@ fun RakutenPaySettingView(
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-
-            Text("とりあえずはメール抽出できた店だけにする")
-            Text("将来的に自由に追加できるように")
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("楽天Pay設定ON/OFF")
-                Switch(
-                    modifier = Modifier
-                        .scale(scaleX = 1.5f, scaleY = 1.2f)
-                        .padding(horizontal = 30.dp),
-                    checked = rakutenPaySetting.enabled,
-                    onCheckedChange = {
-                        rakutenPaySetting = rakutenPaySetting.copy(enabled = it)
-                    }
+            /* 一回変数にあてないとだめっぽい。savableをつかっていると。 */
+            val status = initialFetchSettingStatus
+            if (status == null) {
+                /* ローディング中なはず、、 */
+                CircularProgressIndicator()
+            } else if (status.status != SuspendFuncStatus.SUCCESS) {
+                /* 取り込み失敗 */
+                /* 場合によってはnavigateでもとに戻った方が良い？？ */
+                Text(
+                    "現在設定の取得に失敗しました。\n" +
+                            "message:${status.errorMessage}"
                 )
-            }
+            } else {
+                /* savableだとこのように変数に当てないとだめっぽい？ */
+                val internalRakutenPaySetting = rakutenPaySetting!!/* nullなはずがない */
+                Text("とりあえずはメール抽出できた店だけにする")
+                Text("将来的に自由に追加できるように")
 
-
-            Button(
-                onClick = {
-
-                }
-            ) {
-                Text("この設定を保存")
-            }
-
-            if (rakutenPaySetting.shopCategoryAssignments != null)
-                rakutenPaySetting.shopCategoryAssignments?.forEach { (shopName, categoryId) ->
-                    Row(
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("楽天Pay設定ON/OFF")
+                    Switch(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = shopName,
-                            modifier = Modifier.weight(1f),
-                            fontSize = 18.sp
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        CategoryDropDown(
-                            initialCategoryId = categoryId,
-                            categories = listOf(
-                                Category("category1", 111, "aaa"),
-                                Category("category2", 112, "bb")
-                            ),
-                            onCategorySelected = { category ->
-                                val updatedMap = rakutenPaySetting.shopCategoryAssignments.orEmpty()
-                                    .toMutableMap()
-                                updatedMap[shopName] = category.id ?: "error"
-                                rakutenPaySetting = rakutenPaySetting.copy(
-                                    shopCategoryAssignments = updatedMap
-                                )
-                                editedFlag = true
-                                LogAkitaDebug("${rakutenPaySetting.shopCategoryAssignments}")
-                            },
-                            modifier = Modifier.weight(1f)
+                            .scale(scaleX = 1.5f, scaleY = 1.2f)
+                            .padding(horizontal = 30.dp),
+                        checked = internalRakutenPaySetting.enabled,
+                        onCheckedChange = {
+                            rakutenPaySetting = internalRakutenPaySetting.copy(enabled = it)
+                        }
+                    )
+                }
+
+
+                Button(
+                    onClick = {
+                        viewModel.setMailAutoExtractionInternalSetting(
+                            internalRakutenPaySetting,
+                            callback = {
+                                if (it.status == SuspendFuncStatus.SUCCESS) {
+                                    /* 保存に成功しました */
+                                    editedFlag = false
+                                    viewModel.setMailAutoExtractionInternalSetting(
+                                        internalRakutenPaySetting,
+                                        callback = {})
+                                } else {
+                                    /* 失敗しました */
+                                }
+                            }
                         )
                     }
+                ) {
+                    Text("この設定を保存")
                 }
-            else Text("履歴なし")
+
+                if (internalRakutenPaySetting.shopCategoryAssignments != null)
+                    internalRakutenPaySetting.shopCategoryAssignments.forEach { (shopName, categoryId) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = shopName,
+                                modifier = Modifier.weight(1f),
+                                fontSize = 18.sp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            CategoryDropDown(
+                                initialCategoryId = categoryId,
+                                categories = allCategories,
+                                onCategorySelected = { category ->
+                                    val updatedMap =
+                                        internalRakutenPaySetting.shopCategoryAssignments.orEmpty()
+                                            .toMutableMap()
+                                    updatedMap[shopName] = category.id ?: "error"
+                                    rakutenPaySetting = internalRakutenPaySetting.copy(
+                                        shopCategoryAssignments = updatedMap
+                                    )
+                                    editedFlag = true
+                                    LogAkitaDebug("${internalRakutenPaySetting.shopCategoryAssignments}")
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                else Text("履歴なし")
+            }
+
         }
     }
 }

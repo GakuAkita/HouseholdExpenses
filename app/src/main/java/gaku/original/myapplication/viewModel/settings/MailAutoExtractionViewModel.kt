@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.FirestoreRepository.MailAutoExtractionFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -37,13 +38,14 @@ class MailAutoExtractionViewModel @Inject constructor(
 
     fun fetchMailAutoExtractionInternalSetting(
         instance: MailAutoExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FetchResult<MailAutoExtractionCommon>) -> Unit
     ) {
         viewModelScope.launch {
-            mailAutoExtractionFirestoreRepository.fetchMailAutoExtractionSetting(
+            val result = mailAutoExtractionFirestoreRepository.fetchMailAutoExtractionSetting(
                 instance,
-                callback = callback
+                callback = {}
             )
+            callback(result)
         }
     }
 
