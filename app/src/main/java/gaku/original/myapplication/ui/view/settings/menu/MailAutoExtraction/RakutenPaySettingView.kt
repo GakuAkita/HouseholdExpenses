@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,14 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -29,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,13 +52,19 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.MailAutoExtractionViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RakutenPaySettingView(
     navController: NavController,
     viewModel: MailAutoExtractionViewModel = hiltViewModel()
 ) {
     val funcName = "RakutenPaySettingView"
+
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     var rakutenPaySetting by remember {
         mutableStateOf<MailAutoExtraction.RakutenPay?>(
             null
@@ -67,6 +79,10 @@ fun RakutenPaySettingView(
 
     /* Parcelableじゃないとクラッシュする */
     var initialFetchSettingStatus by rememberSaveable { mutableStateOf<SuspendFuncStatusInfo?>(null) }
+
+    var showPopBackConfirmDialog by remember {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(Unit) {
         if (!categoryFetchExec) {
@@ -96,21 +112,31 @@ fun RakutenPaySettingView(
         }
     }
 
+    // 戻るをハンドル（Backボタン & スワイプ戻り含む）
+    BackHandler(enabled = true) {
+        if (editedFlag) {
+            showPopBackConfirmDialog = true
+        } else {
+            navController.popBackStack()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBarView(
                 title = "楽天Pay",
                 showBackButton = true,
                 onBackNavClicked = {
+                    /* そのまま */
                     if (editedFlag) {
-                        /* 保存しなくて良いかポップアップをだす */
+                        showPopBackConfirmDialog = true
                     } else {
-                        /* そのまま */
                         navController.popBackStack()
                     }
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
@@ -208,6 +234,63 @@ fun RakutenPaySettingView(
             }
 
         }
+    }
+
+    if (showPopBackConfirmDialog) {
+        BasicAlertDialog(
+            onDismissRequest = {
+                showPopBackConfirmDialog = false
+            },
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("編集中の設定は破棄されます。 よろしいですか？")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+                            showPopBackConfirmDialog = false
+                            navController.popBackStack()
+                        },
+                        colors = ButtonDefaults.buttonColors().copy(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text(
+                            "変更を破棄",
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp),
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                snackBarHostState.showSnackbar(
+                                    "保存ボタンを押してください",
+                                    actionLabel = "OK"
+                                )
+                            }
+                            showPopBackConfirmDialog = false
+                        }
+                    ) {
+                        Text("キャンセル")
+                    }
+                }
+            }
+
+        }
+
     }
 }
 
