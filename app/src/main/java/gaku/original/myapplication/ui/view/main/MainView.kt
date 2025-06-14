@@ -305,7 +305,6 @@ fun MainView(
                         thumbSelectedColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    LogAkitaDebug("monthExpenses? ${monthExpenses}")
                     LazyColumn(
                         state = listState,
                         modifier = Modifier

@@ -386,6 +386,7 @@ fun ExpenseAddEditView(
                         readOnly = true,
                         modifier = Modifier
                             .width(260.dp)
+                            //@Todo menuAnchorをいれかえる　
                             .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
                         label = { Text(text = "Category") },
                         singleLine = true,

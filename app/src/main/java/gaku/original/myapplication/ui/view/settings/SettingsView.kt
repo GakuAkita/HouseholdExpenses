@@ -82,11 +82,11 @@ fun SettingsView(
 
             SettingRow(
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.route)
+                    navController.navigate(Screen.SettingScreen.MailAutoExtraction.Main.route)
                 }
             ) {
                 //タイムゾーンはアラートでいいか。
-                Text(text = "メールアドレス自動連携", modifier = Modifier.padding(start = 10.dp))
+                Text(text = "メールボックス自動連携", modifier = Modifier.padding(start = 10.dp))
             }
 
             Button(

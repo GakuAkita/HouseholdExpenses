@@ -14,7 +14,8 @@ import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.main.NotCategorizedView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
-import gaku.original.myapplication.ui.view.settings.menu.MailAutoExtractionView
+import gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction.MailAutoExtractionView
+import gaku.original.myapplication.ui.view.settings.menu.MailAutoExtraction.RakutenPaySettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
@@ -97,8 +98,20 @@ fun Navigation(
         composable(Screen.SettingScreen.AppSettings.route) {
             AppSettingsView(navController = navController)
         }
-        composable(Screen.SettingScreen.MailAutoExtraction.route) {
+        composable(Screen.SettingScreen.MailAutoExtraction.Main.route) {
             MailAutoExtractionView(navController = navController)
+        }
+        composable(Screen.SettingScreen.MailAutoExtraction.RakutenPay.route) {
+            RakutenPaySettingView(navController = navController)
+        }
+        composable(Screen.SettingScreen.MailAutoExtraction.AmazonKindle.route) {
+
+        }
+        composable(Screen.SettingScreen.MailAutoExtraction.AmazonItem.route) {
+
+        }
+        composable(Screen.SettingScreen.MailAutoExtraction.ShikokuElectricPower.route) {
+
         }
     }
 }
