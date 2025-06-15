@@ -120,4 +120,4 @@ const schedule_func = async () => {
 };
 // schedule_func();
 
-// userSettingsProcessor.setInitialUserSettings("akita", "gaku@gmail.com");
+const gmailTest = async () => {};

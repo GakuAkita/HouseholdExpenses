@@ -20,7 +20,7 @@ import gaku.original.myapplication.ui.common.TopBarView
 
 
 @Composable
-fun MailboxExtractionView(
+fun GoogleLinkingView(
     navController: NavController,
 ) {
     val rakutenPaySetting = MailboxExtraction.RakutenPay()
@@ -61,31 +61,35 @@ fun MailboxExtractionView(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.Top
         ) {
+            Column() {
+                Text("Auth!!")
+            }
+
             MailboxExtractionMenu(
                 rakutenPaySetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.RakutenPay.route)
+                    navController.navigate(Screen.SettingScreen.GoogleLinking.RakutenPay.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonKindleSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.AmazonKindle.route)
+                    navController.navigate(Screen.SettingScreen.GoogleLinking.AmazonKindle.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonItemSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.AmazonItem.route)
+                    navController.navigate(Screen.SettingScreen.GoogleLinking.AmazonItem.route)
                 }
             )
 
             MailboxExtractionMenu(
                 shikokuElectricSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.ShikokuElectricPower.route)
+                    navController.navigate(Screen.SettingScreen.GoogleLinking.ShikokuElectricPower.route)
                 }
             )
         }

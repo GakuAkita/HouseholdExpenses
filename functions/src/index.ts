@@ -3,6 +3,9 @@ import * as functions from "firebase-functions/v1";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
+import { MailBoxToken } from "./type/Mailbox";
+
+let cachedCredentials: Record<string, MailBoxToken> | null = null;
 
 const { userService, repeatAddProcessor, userSettingsProcessor } =
   initializeServices();
@@ -56,3 +59,53 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     userSettingsProcessor.setInitialUserSettings(uid, email);
   }
 });
+
+/**
+ * gmailから抽出する
+ */
+exports.gmailBoxExtraction = functions
+  .runWith({ secrets: ["GMAILBOX"] })
+  .https.onRequest(async (request, response) => {
+    console.log("https was called");
+    // process.env.MY_SECRET は文字列(JSON)として取得される
+    const secretJsonString = process.env.GMAILBOX || "{}";
+
+    //JSON文字列をオブジェクトに変換
+    let secrets;
+    try {
+      secrets = JSON.parse(secretJsonString);
+    } catch (e) {
+      response.status(500).send({ error: "Invalid secret Json format" });
+    }
+
+    const email = "gaku.medaka@gmail.com";
+    if (secrets[email]) {
+      response.send({ client_id: secrets[email].client_id });
+    } else {
+      response
+        .status(404)
+        .send({ error: "No credentials found for that email" });
+    }
+  });
+
+/**
+ * グローバル変数のcachedCredentialsがnullだったら(Cold Start)読み込み
+ * nullでなかったらそのまま保持している値を使う
+ *  */
+async function getCredentialsFor() {
+  if (!cachedCredentials) {
+    const [version] = await secretClient.accessSecretVersion({
+      name: "projects/YOUR_PROJECT_ID/secrets/gmail-credentials/versions/latest",
+    });
+
+    const secretPayload = version.payload.data.toString("utf8");
+    cachedCredentials = JSON.parse(secretPayload);
+  }
+
+  const creds = cachedCredentials["akita"];
+  if (!creds) {
+    throw new Error(`No credentials found for ${email}`);
+  }
+
+  return creds;
+}

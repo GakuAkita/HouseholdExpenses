@@ -14,7 +14,7 @@ import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.main.NotCategorizedView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
-import gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction.MailboxExtractionView
+import gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction.GoogleLinkingView
 import gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction.RakutenPaySettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
@@ -98,20 +98,19 @@ fun Navigation(
         composable(Screen.SettingScreen.AppSettings.route) {
             AppSettingsView(navController = navController)
         }
-        composable(Screen.SettingScreen.MailboxExtraction.Main.route) {
-            MailboxExtractionView(navController = navController)
+        composable(Screen.SettingScreen.GoogleLinking.Main.route) {
+            GoogleLinkingView(navController = navController)
         }
-        composable(Screen.SettingScreen.MailboxExtraction.RakutenPay.route) {
+        composable(Screen.SettingScreen.GoogleLinking.RakutenPay.route) {
             RakutenPaySettingView(navController = navController)
         }
-        composable(Screen.SettingScreen.MailboxExtraction.AmazonKindle.route) {
+        composable(Screen.SettingScreen.GoogleLinking.AmazonKindle.route) {
 
         }
-        composable(Screen.SettingScreen.MailboxExtraction.AmazonItem.route) {
+        composable(Screen.SettingScreen.GoogleLinking.AmazonItem.route) {
 
         }
-        composable(Screen.SettingScreen.MailboxExtraction.ShikokuElectricPower.route) {
-
+        composable(Screen.SettingScreen.GoogleLinking.ShikokuElectricPower.route) {
         }
     }
 }

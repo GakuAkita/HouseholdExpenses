@@ -43,7 +43,7 @@ fun SettingsView(
     val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = {
-            TopBarView("SettingsView作成中")
+            TopBarView("SettingsView")
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { BottomBarView(navController) }
@@ -82,11 +82,11 @@ fun SettingsView(
 
             SettingRow(
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.Main.route)
+                    navController.navigate(Screen.SettingScreen.GoogleLinking.Main.route)
                 }
             ) {
                 //タイムゾーンはアラートでいいか。
-                Text(text = "メールボックス自動連携", modifier = Modifier.padding(start = 10.dp))
+                Text(text = "Google連携", modifier = Modifier.padding(start = 10.dp))
             }
 
             Button(
