@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.start
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +39,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.CredentialManagerHelper
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
@@ -209,6 +214,14 @@ fun LoginSignUpView(
 //
 //    }
 
+    val user by authViewModel.currentUser.collectAsState()
+    LaunchedEffect(user) {
+        if (user != null) {
+            LogAkitaDebug("ログインできました！！！！")
+            navController.navigate(Screen.MainScreen.Content.route)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBarView(
@@ -231,6 +244,14 @@ fun LoginSignUpView(
                 Button(
                     onClick = {
                         /* Googleでログイン */
+                        authViewModel.viewModelScope.launch {
+                            val idToken = CredentialManagerHelper.getGoogleIdToken(context)
+                            if (idToken != null) {
+                                authViewModel.signInWithGoogleIdToken(idToken)
+                            } else {
+                                Toast.makeText(context, "Sign-in failed", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = MaterialTheme.colorScheme.primary

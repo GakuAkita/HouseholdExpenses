@@ -5,15 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfoWithCode
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
@@ -237,5 +242,23 @@ class AuthManagerViewModel @Inject constructor(
             .addOnFailureListener {
                 callback(false)
             }
+    }
+
+    private val _currentUser = MutableStateFlow<FirebaseUser?>(firebaseAuth.currentUser)
+    val currentUser: StateFlow<FirebaseUser?> = _currentUser
+
+    fun signInWithGoogleIdToken(idToken: String) {
+        viewModelScope.launch {
+            try {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                val result = withContext(Dispatchers.IO) {
+                    firebaseAuth.signInWithCredential(credential).await()
+                }
+                _currentUser.value = result.user
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Sign-in failed", e)
+                _currentUser.value = null
+            }
+        }
     }
 }
