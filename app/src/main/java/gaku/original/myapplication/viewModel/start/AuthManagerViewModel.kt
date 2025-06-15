@@ -244,7 +244,10 @@ class AuthManagerViewModel @Inject constructor(
             }
     }
 
-    private val _currentUser = MutableStateFlow<FirebaseUser?>(firebaseAuth.currentUser)
+    /**
+     * @FIXME isSignedInと統一したほうがいいかもな？
+     */
+    private val _currentUser = MutableStateFlow(firebaseAuth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser
 
     fun signInWithGoogleIdToken(idToken: String) {

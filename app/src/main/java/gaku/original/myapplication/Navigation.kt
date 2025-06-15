@@ -52,11 +52,20 @@ fun Navigation(
         }
         composable(Screen.StartScreen.SignUp.route) {
             val isLogin = false
-            LoginSignUpView(navController = navController, isLogin = isLogin)
+            LoginSignUpView(
+                authViewModel = authManagerViewModel,
+                navController = navController,
+                isLogin = isLogin
+            )
         }
         composable(Screen.StartScreen.Login.route) {
             val isLogin = true
-            LoginSignUpView(navController = navController, isLogin = isLogin, googleOnly = true)
+            LoginSignUpView(
+                authViewModel = authManagerViewModel,
+                navController = navController,
+                isLogin = isLogin,
+                googleOnly = true
+            )
         }
         composable(Screen.StartScreen.ForgotPassword.route) {
             ForgotPasswordView(navController = navController)

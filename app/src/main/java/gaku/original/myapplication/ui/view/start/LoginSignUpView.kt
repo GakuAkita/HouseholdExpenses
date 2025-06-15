@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.view.start
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.CredentialManagerHelper
@@ -52,7 +50,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginSignUpView(
-    authViewModel: AuthManagerViewModel = hiltViewModel(),
+    authViewModel: AuthManagerViewModel,
     navController: NavHostController,
     isLogin: Boolean,
     googleOnly: Boolean = true
@@ -195,29 +193,13 @@ fun LoginSignUpView(
         )
     }
 
-    /* Google SignIn関連 */
-//    val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-//        .setFilterByAuthorizedAccounts(true)
-//        .setAutoSelectEnabled(true)
-//        .setNonce("")
-//        .setServerClientId(BuildConfig.WEB_CLIENT_ID)
-//        .build()
-//
-//    val signInWithGoogleOption = GetSignInWithGoogleOption
-//        .Builder(serverClientId = BuildConfig.WEB_CLIENT_ID)
-//        .build()
-//
-//    val request = GetCredentialRequest.Builder()
-//        .addCredentialOption(googleIdOption)
-//
-//    fun handleGoogleSignIn(context: Context) {
-//
-//    }
-
     val user by authViewModel.currentUser.collectAsState()
     LaunchedEffect(user) {
+        /**
+         * userが変化したら走る。
+         */
         if (user != null) {
-            LogAkitaDebug("ログインできました！！！！")
+            /* Mainスクリーンに遷移 */
             navController.navigate(Screen.MainScreen.Content.route)
         }
     }
@@ -232,6 +214,9 @@ fun LoginSignUpView(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         if (googleOnly) {
+            /**
+             * Googleログインだけに絞る場合
+             */
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -249,7 +234,7 @@ fun LoginSignUpView(
                             if (idToken != null) {
                                 authViewModel.signInWithGoogleIdToken(idToken)
                             } else {
-                                Toast.makeText(context, "Sign-in failed", Toast.LENGTH_SHORT).show()
+                                snackBarHostState.showSnackbar("Googleログインに失敗しました")
                             }
                         }
                     },
