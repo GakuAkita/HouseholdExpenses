@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
@@ -36,7 +35,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsView(
-    viewModel: AuthManagerViewModel = hiltViewModel(),
+    viewModel: AuthManagerViewModel,
     navController: NavController
 ) {
     val scope = rememberCoroutineScope()

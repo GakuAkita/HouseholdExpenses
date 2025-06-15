@@ -178,6 +178,7 @@ class AuthManagerViewModel @Inject constructor(
             firebaseAuth.signOut()
             if (userId == null) {
                 Log.d("AuthManagerViewModel", "signOut successful")
+                _currentUser.value = null
                 return SignOutResult.SUCCESS
             } else {
                 //サイン・アウトしてからすぐだとここに来てしまうが、時間経って結局nullになる。
@@ -186,6 +187,7 @@ class AuthManagerViewModel @Inject constructor(
                     "AuthManagerViewModel",
                     "!!Warning!!signOut failed. currentUser is not null\n"
                 )
+                _currentUser.value = null
                 return SignOutResult.SUCCESS
             }
         } catch (e: Exception) {
@@ -231,17 +233,6 @@ class AuthManagerViewModel @Inject constructor(
             expenseSharedViewModel.addInitialCategories(callback = {})
             callback(signUpStatus)
         }
-    }
-
-    fun signInWithGoogle(idToken: String, callback: (Boolean) -> Unit) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { result ->
-                callback(true)
-            }
-            .addOnFailureListener {
-                callback(false)
-            }
     }
 
     /**

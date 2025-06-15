@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-12-15T11:46:24.145659400Z">
+        <DropdownSelection timestamp="2025-06-15T13:10:48.465095100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\GakuAkita\.android\avd\Pixel_7a_API_34_same_as_Xperia_.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=354963112425740" />
             </handle>
           </Target>
         </DropdownSelection>

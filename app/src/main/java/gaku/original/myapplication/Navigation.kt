@@ -32,6 +32,10 @@ fun Navigation(
     //サインインすでにしているかをみたい
     val authManagerViewModel: AuthManagerViewModel = hiltViewModel()
 
+    /**
+     * ん～なんかちょっと変。構造が。
+     */
+
     /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
     val startDestination: String
     if (authManagerViewModel.isSignedIn && authManagerViewModel.isEmailVerified == true) {
@@ -96,7 +100,7 @@ fun Navigation(
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.Main.route) {
-            SettingsView(navController = navController)
+            SettingsView(viewModel = authManagerViewModel, navController = navController)
         }
         composable(Screen.SettingScreen.UserInfo.route) {
             UserInfoView(navController = navController)
