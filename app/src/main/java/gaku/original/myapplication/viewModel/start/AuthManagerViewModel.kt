@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -225,5 +226,16 @@ class AuthManagerViewModel @Inject constructor(
             expenseSharedViewModel.addInitialCategories(callback = {})
             callback(signUpStatus)
         }
+    }
+
+    fun signInWithGoogle(idToken: String, callback: (Boolean) -> Unit) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        firebaseAuth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                callback(true)
+            }
+            .addOnFailureListener {
+                callback(false)
+            }
     }
 }

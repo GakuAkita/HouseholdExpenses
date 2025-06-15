@@ -48,7 +48,7 @@ fun Navigation(
 
         //Startスクリーン
         composable(Screen.StartScreen.Start.route) {
-            StartView(navController = navController, onlyGoogleSignIn = true)
+            StartView(navController = navController)
         }
         composable(Screen.StartScreen.SignUp.route) {
             val isLogin = false
@@ -56,7 +56,7 @@ fun Navigation(
         }
         composable(Screen.StartScreen.Login.route) {
             val isLogin = true
-            LoginSignUpView(navController = navController, isLogin = isLogin)
+            LoginSignUpView(navController = navController, isLogin = isLogin, googleOnly = true)
         }
         composable(Screen.StartScreen.ForgotPassword.route) {
             ForgotPasswordView(navController = navController)

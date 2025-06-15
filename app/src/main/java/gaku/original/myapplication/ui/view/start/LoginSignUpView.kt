@@ -1,12 +1,16 @@
 package gaku.original.myapplication.ui.view.start
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,8 +30,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
@@ -42,8 +49,11 @@ import kotlinx.coroutines.launch
 fun LoginSignUpView(
     authViewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavHostController,
-    isLogin: Boolean
+    isLogin: Boolean,
+    googleOnly: Boolean = true
 ) {
+    val context = LocalContext.current
+
     /**
      * rememberSavableはスタックから消えない限り生き残る
      */
@@ -180,6 +190,25 @@ fun LoginSignUpView(
         )
     }
 
+    /* Google SignIn関連 */
+//    val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+//        .setFilterByAuthorizedAccounts(true)
+//        .setAutoSelectEnabled(true)
+//        .setNonce("")
+//        .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+//        .build()
+//
+//    val signInWithGoogleOption = GetSignInWithGoogleOption
+//        .Builder(serverClientId = BuildConfig.WEB_CLIENT_ID)
+//        .build()
+//
+//    val request = GetCredentialRequest.Builder()
+//        .addCredentialOption(googleIdOption)
+//
+//    fun handleGoogleSignIn(context: Context) {
+//
+//    }
+
     Scaffold(
         topBar = {
             TopBarView(
@@ -189,76 +218,108 @@ fun LoginSignUpView(
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // 🎯 email・password・Login → 画面の縦中央に固定
+        if (googleOnly) {
             Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                TextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("mail") },
-                    singleLine = true,
-                    enabled = true
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                TextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("password") },
-                    singleLine = true,
-                    enabled = true
-                )
+                Text(text = "Googleログインのみにする", fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(30.dp))
-                if (!loading) {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isLoginState)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.tertiary
-                        ),
-                        onClick = {
-                            /* 既存のSnackbarを消す */
-                            snackBarHostState.currentSnackbarData?.dismiss()
-                            // ログイン処理
-                            if (isLoginState) {
-                                handleLogin()
-                            } else {
-                                handleSignUp()
-                            }
-                        }
+                Button(
+                    onClick = {
+                        /* Googleでログイン */
+                    },
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(if (isLoginState) "Login" else "SignUp")
+                        Image(
+                            painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_standard_color_18),
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Googleでログイン")
                     }
-                } else {
-                    CircularProgressIndicator()
                 }
             }
-
-            // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
-            if (isLoginState && !loading) {
-                Text(
-                    text = "Forgot password?",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.primary,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.Center) // 👈 Login直下に揃えたい場合は Center
-                        .padding(top = 300.dp)
-                        .clickable {
-                            // パスワードリセット処理
-                            navController.navigate(
-                                Screen.StartScreen.ForgotPassword.route
-                            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                // 🎯 email・password・Login → 画面の縦中央に固定
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("mail") },
+                        singleLine = true,
+                        enabled = true
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("password") },
+                        singleLine = true,
+                        enabled = true
+                    )
+                    Spacer(modifier = Modifier.height(30.dp))
+                    if (!loading) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isLoginState)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.tertiary
+                            ),
+                            onClick = {
+                                /* 既存のSnackbarを消す */
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                // ログイン処理
+                                if (isLoginState) {
+                                    handleLogin()
+                                } else {
+                                    handleSignUp()
+                                }
+                            }
+                        ) {
+                            Text(if (isLoginState) "Login" else "SignUp")
                         }
-                )
+                    } else {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
+                if (isLoginState && !loading) {
+                    Text(
+                        text = "Forgot password?",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.Center) // 👈 Login直下に揃えたい場合は Center
+                            .padding(top = 300.dp)
+                            .clickable {
+                                // パスワードリセット処理
+                                navController.navigate(
+                                    Screen.StartScreen.ForgotPassword.route
+                                )
+                            }
+                    )
+                }
             }
         }
 
