@@ -48,7 +48,7 @@ fun Navigation(
 
         //Startスクリーン
         composable(Screen.StartScreen.Start.route) {
-            StartView(navController = navController)
+            StartView(navController = navController, onlyGoogleSignIn = true)
         }
         composable(Screen.StartScreen.SignUp.route) {
             val isLogin = false

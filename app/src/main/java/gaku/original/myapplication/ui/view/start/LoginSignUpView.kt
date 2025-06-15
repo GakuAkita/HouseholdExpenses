@@ -203,14 +203,16 @@ fun LoginSignUpView(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("mail") },
-                    singleLine = true
+                    singleLine = true,
+                    enabled = true
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 TextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("password") },
-                    singleLine = true
+                    singleLine = true,
+                    enabled = true
                 )
                 Spacer(modifier = Modifier.height(30.dp))
                 if (!loading) {

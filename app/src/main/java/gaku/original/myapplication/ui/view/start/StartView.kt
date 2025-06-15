@@ -21,7 +21,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 
 @Composable
-fun StartView(navController: NavHostController) {
+fun StartView(navController: NavHostController, onlyGoogleSignIn: Boolean = true) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -42,32 +42,48 @@ fun StartView(navController: NavHostController) {
 
         Spacer(modifier = Modifier.size(10.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            val buttonWidth = 150
-            Button(
-                modifier = Modifier.width(buttonWidth.dp),
-                onClick = {
-                    navController.navigate(Screen.StartScreen.SignUp.route)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary
-                )
+        if (onlyGoogleSignIn) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text("Sign Up")
-            }
-
-            Button(
-                modifier = Modifier.width(buttonWidth.dp),
-                onClick = {
-                    navController.navigate(Screen.StartScreen.Login.route)
+                Button(
+                    onClick = {
+//                        navController.navigate()
+                    }
+                ) {
+                    Text("Googleログイン")
                 }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Login")
+                val buttonWidth = 150
+                Button(
+                    modifier = Modifier.width(buttonWidth.dp),
+                    onClick = {
+                        navController.navigate(Screen.StartScreen.SignUp.route)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    )
+                ) {
+                    Text("Sign Up")
+                }
+
+                Button(
+                    modifier = Modifier.width(buttonWidth.dp),
+                    onClick = {
+                        navController.navigate(Screen.StartScreen.Login.route)
+                    }
+                ) {
+                    Text("Login")
+                }
             }
         }
+
     }
 }
