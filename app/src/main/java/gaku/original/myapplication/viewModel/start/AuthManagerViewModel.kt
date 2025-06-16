@@ -33,12 +33,6 @@ class AuthManagerViewModel @Inject constructor(
         Log.d(className, "${className}Cleared!!!!")
     }
 
-    val isSignedIn: Boolean
-        get() = firebaseAuth.currentUser != null
-
-    val isEmailVerified: Boolean?
-        get() = firebaseAuth.currentUser?.isEmailVerified
-
     val userId: String?
         get() = firebaseAuth.currentUser?.uid
 
@@ -249,6 +243,11 @@ class AuthManagerViewModel @Inject constructor(
                     firebaseAuth.signInWithCredential(credential).await()
                 }
                 _currentUser.value = result.user
+
+                // 新規ユーザーなら初期カテゴリを追加
+                if (result.additionalUserInfo?.isNewUser == true) {
+                    expenseSharedViewModel.addInitialCategories(callback = {})
+                }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Sign-in failed", e)
                 _currentUser.value = null

@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.CredentialManagerHelper
@@ -50,7 +51,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginSignUpView(
-    authViewModel: AuthManagerViewModel,
+    authViewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavHostController,
     isLogin: Boolean,
     googleOnly: Boolean = true
@@ -234,6 +235,7 @@ fun LoginSignUpView(
                             if (idToken != null) {
                                 authViewModel.signInWithGoogleIdToken(idToken)
                             } else {
+                                snackBarHostState.currentSnackbarData?.dismiss()
                                 snackBarHostState.showSnackbar("Googleログインに失敗しました")
                             }
                         }

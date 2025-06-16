@@ -3,10 +3,10 @@ package gaku.original.myapplication
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.GraphView
@@ -21,7 +21,6 @@ import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
-import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
 
 
 @Composable
@@ -30,18 +29,17 @@ fun Navigation(
     val navController = rememberNavController()
 
     //サインインすでにしているかをみたい
-    val authManagerViewModel: AuthManagerViewModel = hiltViewModel()
+    val firebaseUser = FirebaseAuth.getInstance().currentUser
 
     /**
      * ん～なんかちょっと変。構造が。
      */
-
     /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
-    val startDestination: String
-    if (authManagerViewModel.isSignedIn && authManagerViewModel.isEmailVerified == true) {
-        startDestination = Screen.MainScreen.Content.route
+    val startDestination: String = if (firebaseUser != null && firebaseUser.isEmailVerified) {
+        Screen.MainScreen.Content.route
     } else {
-        startDestination = Screen.StartScreen.Start.route
+        Screen.StartScreen.Start.route
+
     }
 
     NavHost(
@@ -57,7 +55,6 @@ fun Navigation(
         composable(Screen.StartScreen.SignUp.route) {
             val isLogin = false
             LoginSignUpView(
-                authViewModel = authManagerViewModel,
                 navController = navController,
                 isLogin = isLogin
             )
@@ -65,7 +62,6 @@ fun Navigation(
         composable(Screen.StartScreen.Login.route) {
             val isLogin = true
             LoginSignUpView(
-                authViewModel = authManagerViewModel,
                 navController = navController,
                 isLogin = isLogin,
                 googleOnly = true
@@ -100,7 +96,7 @@ fun Navigation(
 
         //Settingsスクリーン
         composable(Screen.SettingScreen.Main.route) {
-            SettingsView(viewModel = authManagerViewModel, navController = navController)
+            SettingsView(navController = navController)
         }
         composable(Screen.SettingScreen.UserInfo.route) {
             UserInfoView(navController = navController)
