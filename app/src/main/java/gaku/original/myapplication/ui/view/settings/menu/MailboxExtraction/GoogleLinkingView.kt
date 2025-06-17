@@ -1,5 +1,8 @@
 package gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,11 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
@@ -23,6 +28,8 @@ import gaku.original.myapplication.ui.common.TopBarView
 fun GoogleLinkingView(
     navController: NavController,
 ) {
+    val context = LocalContext.current
+
     val rakutenPaySetting = MailboxExtraction.RakutenPay()
     val amazonKindleSetting = MailboxExtraction.AmazonKindle()
     val amazonItemSetting = MailboxExtraction.AmazonItem()
@@ -45,6 +52,11 @@ fun GoogleLinkingView(
         }
     }
 
+    fun openOAuthPage(context: Context, url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        context.startActivity(intent)
+    }
+
     /******* UI ******/
     Scaffold(
         topBar = {
@@ -62,7 +74,16 @@ fun GoogleLinkingView(
             verticalArrangement = Arrangement.Top
         ) {
             Column() {
-                Text("Auth!!")
+                Button(onClick = {
+                    val oauthUrl =
+                        "https://accounts.google.com/o/oauth2/v2/auth?client_id=70966018964-vgpos1q8ufbqbpbvq3aqmjqd67n93q4b.apps.googleusercontent.com&redirect_uri=https://householdexpenses.firebaseapp.com/__/auth/handler&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent"
+                    openOAuthPage(
+                        context,
+                        oauthUrl
+                    )
+                }) {
+                    Text("Gmail API許可")
+                }
             }
 
             MailboxExtractionMenu(
