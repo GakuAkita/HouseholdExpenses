@@ -15,7 +15,7 @@ object CredentialManagerHelper {
         val credentialManager = CredentialManager.create(context)
 
         val googleIdOption = GetGoogleIdOption.Builder()
-            .setServerClientId(context.getString(R.string.default_web_client_id))
+            .setServerClientId(BuildConfig.WEB_CLIENT_ID)
             .setFilterByAuthorizedAccounts(false) // falseで全アカウント表示
             .build()
 

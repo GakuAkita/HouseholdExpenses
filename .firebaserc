@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "householdexepenses"
-  }
+    "default": "householdexpenses2"
+  },
+  "targets": {},
+  "etags": {}
 }
