@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="gaku.original.myapplication" />
-                  <option name="mobileSdkAppId" value="1:70966018964:android:1e01c43a6097370893c581" />
-                  <option name="projectId" value="householdexepenses" />
-                  <option name="projectNumber" value="70966018964" />
+                  <option name="mobileSdkAppId" value="1:464593573908:android:ce7bb9e006bfd00606af01" />
+                  <option name="projectId" value="householdexpenses2" />
+                  <option name="projectNumber" value="464593573908" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -234,24 +234,28 @@ class AuthManagerViewModel @Inject constructor(
      */
     private val _currentUser = MutableStateFlow(firebaseAuth.currentUser)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser
+    private val _signInLoading = MutableStateFlow(false)
+    val signInLoading: StateFlow<Boolean> = _signInLoading
 
-    fun signInWithGoogleIdToken(idToken: String) {
-        viewModelScope.launch {
-            try {
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                val result = withContext(Dispatchers.IO) {
-                    firebaseAuth.signInWithCredential(credential).await()
-                }
-                _currentUser.value = result.user
+    suspend fun signInWithGoogleIdToken(idToken: String) {
+        _signInLoading.value = true
 
-                // 新規ユーザーなら初期カテゴリを追加
-                if (result.additionalUserInfo?.isNewUser == true) {
-                    expenseSharedViewModel.addInitialCategories(callback = {})
-                }
-            } catch (e: Exception) {
-                Log.e("AuthViewModel", "Sign-in failed", e)
-                _currentUser.value = null
+        try {
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val result = withContext(Dispatchers.IO) {
+                firebaseAuth.signInWithCredential(credential).await()
             }
+            _currentUser.value = result.user
+            // 新規ユーザーなら初期カテゴリを追加
+            if (result.additionalUserInfo?.isNewUser == true) {
+                expenseSharedViewModel.addInitialCategories(callback = {})
+            }
+            _signInLoading.value = false
+        } catch (e: Exception) {
+            Log.e("AuthViewModel", "Sign-in failed", e)
+            _currentUser.value = null
+            _signInLoading.value = false
         }
+
     }
 }

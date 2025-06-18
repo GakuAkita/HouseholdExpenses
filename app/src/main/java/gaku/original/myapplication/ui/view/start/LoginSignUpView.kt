@@ -195,6 +195,7 @@ fun LoginSignUpView(
     }
 
     val user by authViewModel.currentUser.collectAsState()
+    val signInLoading by authViewModel.signInLoading.collectAsState()
     LaunchedEffect(user) {
         /**
          * userが変化したら走る。
@@ -227,32 +228,36 @@ fun LoginSignUpView(
             ) {
                 Text(text = "Googleログインのみにする", fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(30.dp))
-                Button(
-                    onClick = {
-                        /* Googleでログイン */
-                        authViewModel.viewModelScope.launch {
-                            val idToken = CredentialManagerHelper.getGoogleIdToken(context)
-                            if (idToken != null) {
-                                authViewModel.signInWithGoogleIdToken(idToken)
-                            } else {
-                                snackBarHostState.currentSnackbarData?.dismiss()
-                                snackBarHostState.showSnackbar("Googleログインに失敗しました")
+                if (signInLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Button(
+                        onClick = {
+                            /* Googleでログイン */
+                            authViewModel.viewModelScope.launch {
+                                val idToken = CredentialManagerHelper.getGoogleIdToken(context)
+                                if (idToken != null) {
+                                    authViewModel.signInWithGoogleIdToken(idToken)
+                                } else {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    snackBarHostState.showSnackbar("Googleログインに失敗しました")
+                                }
                             }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors().copy(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_standard_color_18),
-                            contentDescription = null
+                        },
+                        colors = ButtonDefaults.buttonColors().copy(
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Googleでログイン")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_standard_color_18),
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Googleでログイン")
+                        }
                     }
                 }
             }

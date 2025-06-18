@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.MailboxExtraction
+package gaku.original.myapplication.ui.view.settings.menu.GoogleLinking
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
