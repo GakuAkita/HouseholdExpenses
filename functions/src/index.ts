@@ -1,5 +1,7 @@
+import axios from "axios";
 import { onSchedule } from "firebase-functions/scheduler";
 import * as functions from "firebase-functions/v1";
+import * as qs from "querystring";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
@@ -86,12 +88,55 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
 //   return creds;
 // }
 
-import express, { Request, Response } from "express";
+exports.handleOAuthCallback = functions
+  .runWith({ secrets: ["GOOGLE_OAUTH2"] })
+  .https.onRequest(async (req, res) => {
+    const code = req.query.code;
 
-const app = express();
+    try {
+      if (!process.env.GOOGLE_OAUTH2) {
+        throw new Error("Unable to get environment variables\n");
+      }
 
-app.get("/callback", (req: Request, res: Response) => {
-  res.send("Callback reached! I'm God Akita");
-});
+      const codeParam = req.query.code;
+      if (typeof codeParam !== "string") {
+        throw new Error("code must be a string");
+      }
 
-exports.handleOAuthCallback = functions.https.onRequest(app);
+      const secret = JSON.parse(process.env.GOOGLE_OAUTH2);
+      const postData = qs.stringify({
+        code: codeParam,
+        client_id: secret.client_id,
+        client_secret: secret.client_secret,
+        redirect_uri: secret.redirect_url, //uriが正しいらしい。でもsecretのほうにはurlで保存してしまった。
+        grant_type: "authorization_code",
+      });
+      if (!secret.client_id || !secret.client_secret || !secret.redirect_url) {
+        throw new Error("Unable to get secrets.");
+      }
+      const tokenRes = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        postData,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      const { access_token, refresh_token } = tokenRes.data;
+      if (!access_token || !refresh_token) {
+        throw new Error("Unable to get access token or refresh token.");
+      }
+
+      /* refresh tokenをFirestoreに保存 */
+      res.send(`I'm God Akita.\nProcess finished.`);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        console.error("Axios error:", err.response?.data);
+      } else {
+        console.error("Unexpected error:", err);
+      }
+      res.status(500).send(`OAuth token exchange failed.`);
+    }
+  });

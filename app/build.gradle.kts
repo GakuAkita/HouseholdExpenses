@@ -34,6 +34,7 @@ android {
 
         //環境変数をBuildConfigに設定する
         buildConfigField("String", "WEB_CLIENT_ID", "\"${localProperties["WEB_CLIENT_ID"]}\"")
+        buildConfigField("String", "REDIRECT_URL", "\"${localProperties["REDIRECT_URL"]}\"")
     }
 
     buildTypes {

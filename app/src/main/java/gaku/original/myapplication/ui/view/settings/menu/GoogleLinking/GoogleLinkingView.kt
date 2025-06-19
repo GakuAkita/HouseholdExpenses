@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
@@ -76,7 +77,7 @@ fun GoogleLinkingView(
             Column() {
                 Button(onClick = {
                     val oauthUrl =
-                        "https://accounts.google.com/o/oauth2/v2/auth?client_id=70966018964-vgpos1q8ufbqbpbvq3aqmjqd67n93q4b.apps.googleusercontent.com&redirect_uri=https://householdexpenses.firebaseapp.com/__/auth/handler&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent"
+                        "https://accounts.google.com/o/oauth2/v2/auth?client_id=${BuildConfig.WEB_CLIENT_ID}&redirect_uri=https://householdexpenses2.firebaseapp.com/callback&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent"
                     openOAuthPage(
                         context,
                         oauthUrl
