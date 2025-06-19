@@ -130,7 +130,7 @@ exports.handleOAuthCallback = functions
       }
 
       /* refresh tokenをFirestoreに保存 */
-      res.send(`I'm God Akita.\nProcess finished.`);
+      res.send(`I'm God Akita.\nProcess finished.\nPlease close this window.`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response?.data);

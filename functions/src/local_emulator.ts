@@ -9,6 +9,7 @@ import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { decryptWithKey, encryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
@@ -97,7 +98,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-init_add();
+// init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -120,4 +121,24 @@ const schedule_func = async () => {
 };
 // schedule_func();
 
-const gmailTest = async () => {};
+const storeRefreshToken = (refresh_token: string) => {
+  if (!refresh_token) {
+    console.error("No refresh token provided.");
+    return;
+  }
+
+  const encryptionKey = process.env.ENCRYPTION_KEY;
+  if (!encryptionKey) {
+    console.error("Encryption key is not set in environment variables.");
+    return;
+  }
+
+  const refreshTokenSamp = "akita_gaku";
+  const encrypted = encryptWithKey(refreshTokenSamp, encryptionKey);
+  console.log("Encrypted refresh token:", encrypted);
+
+  const decrypted = decryptWithKey(encrypted, encryptionKey);
+  console.log("Decrypted refresh token:", decrypted);
+};
+
+storeRefreshToken("aa");

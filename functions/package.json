@@ -16,6 +16,7 @@
   "dependencies": {
     "axios": "^1.10.0",
     "dotenv": "^16.5.0",
+    "encrypt": "^0.0.1",
     "express": "^5.1.0",
     "firebase-admin": "^12.6.0",
     "firebase-functions": "^6.0.1",
