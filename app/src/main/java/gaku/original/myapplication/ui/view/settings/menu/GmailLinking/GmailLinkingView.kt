@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.GoogleLinking
+package gaku.original.myapplication.ui.view.settings.menu.GmailLinking
 
 import android.content.Context
 import android.content.Intent
@@ -19,14 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 
 
 @Composable
-fun GoogleLinkingView(
+fun GmailLinkingView(
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -75,13 +74,16 @@ fun GoogleLinkingView(
             verticalArrangement = Arrangement.Top
         ) {
             Column() {
+                /**
+                 * ここでtokenがすでに存在していれば、
+                 * このGmailAPI許可ボタンは消す
+                 */
                 Button(onClick = {
                     val oauthUrl =
-                        "https://accounts.google.com/o/oauth2/v2/auth?client_id=${BuildConfig.WEB_CLIENT_ID}&redirect_uri=https://householdexpenses2.firebaseapp.com/callback&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent"
-                    openOAuthPage(
-                        context,
-                        oauthUrl
-                    )
+                        openOAuthPage(
+                            context,
+                            ""/* BuildConfigが認識されたら、、 */
+                        )
                 }) {
                     Text("Gmail API許可")
                 }
@@ -90,28 +92,28 @@ fun GoogleLinkingView(
             MailboxExtractionMenu(
                 rakutenPaySetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GoogleLinking.RakutenPay.route)
+                    navController.navigate(Screen.SettingScreen.GmailLinking.RakutenPay.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonKindleSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GoogleLinking.AmazonKindle.route)
+                    navController.navigate(Screen.SettingScreen.GmailLinking.AmazonKindle.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonItemSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GoogleLinking.AmazonItem.route)
+                    navController.navigate(Screen.SettingScreen.GmailLinking.AmazonItem.route)
                 }
             )
 
             MailboxExtractionMenu(
                 shikokuElectricSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GoogleLinking.ShikokuElectricPower.route)
+                    navController.navigate(Screen.SettingScreen.GmailLinking.ShikokuElectricPower.route)
                 }
             )
         }

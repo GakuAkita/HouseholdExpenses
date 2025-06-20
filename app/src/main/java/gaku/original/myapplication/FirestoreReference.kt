@@ -52,7 +52,11 @@ class FirestoreReference @Inject constructor(
     }
 
     fun getMailboxExtractionColRef(): CollectionReference? {
-        return getUserDocRef()?.collection("mailbox_extraction")
+        return getUserDocRef()?.collection("mailbox_extraction_mail_type_settings")
+    }
+
+    fun getMailboxExtractionParamsColRef(): CollectionReference? {
+        return getUserDocRef()?.collection("mailbox_extraction_params")
     }
 
     fun getSettingsColRef(): CollectionReference? {
@@ -67,9 +71,25 @@ class FirestoreReference @Inject constructor(
     }
 
     /**
-     * users/{userId}/mailAutoExtraction 配下のDocReference
+     * users/{userId}/mailbox_extraction 配下のDocReference
      */
-    fun getMailboxExtractionInternalDocRef(instance: MailboxExtractionCommon): DocumentReference? {
+    fun getMailboxExtractionMailTypeDocRef(instance: MailboxExtractionCommon): DocumentReference? {
         return getMailboxExtractionColRef()?.document(instance.documentName)
     }
+
+    /**
+     * users/{userId}/mailbox_extraction_params 配下のCollectionReference
+     */
+    fun getMailboxExtractionParamsTokenDocRef(): DocumentReference? {
+        return getMailboxExtractionParamsColRef()?.document("token")
+    }
+
+    fun getMailboxExtractionParamsMailIdsDocRef(): DocumentReference? {
+        /**
+         * 取得した直近のmail_idを保管していくもの。
+         * ラベルでもいいけど、、、
+         */
+        return getMailboxExtractionParamsColRef()?.document("recent_mail_ids")
+    }
+
 }

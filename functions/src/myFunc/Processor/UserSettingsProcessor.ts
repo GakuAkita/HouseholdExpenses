@@ -23,7 +23,7 @@ export class UserSettingsProcessor {
     }
 
     /* デフォルトのUserPrefrencesをセット */
-    ret = await this.settingsService.addUserPreferences(
+    ret = await this.settingsService.setUserPreferences(
       userId,
       defaultUserPreferences
     );

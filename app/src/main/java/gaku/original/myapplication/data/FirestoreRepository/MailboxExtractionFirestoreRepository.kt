@@ -21,8 +21,8 @@ class MailboxExtractionFirestoreRepository(
      * @FIXME ん～本当はMailExtractionDocの内部のクラスかどうか判定したいんだけど、無理そうだな～
      *
      */
-    fun getMailboxExtractionInternalDocRef(type: MailboxExtractionCommon): DocumentReference? {
-        return firestoreReference.getMailboxExtractionInternalDocRef(type)
+    fun getMailboxExtractionMailTypeDocRef(type: MailboxExtractionCommon): DocumentReference? {
+        return firestoreReference.getMailboxExtractionMailTypeDocRef(type)
     }
 
     /**
@@ -32,7 +32,7 @@ class MailboxExtractionFirestoreRepository(
     /**
      * MailboxExtractionCommon を Firestore に set する
      */
-    suspend fun setMailboxExtractionInternalSetting(
+    suspend fun setMailboxExtractionMailTypeSetting(
         instance: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
@@ -47,7 +47,7 @@ class MailboxExtractionFirestoreRepository(
             return statusInfo
         }
 
-        val docRef = getMailboxExtractionInternalDocRef(instance)
+        val docRef = getMailboxExtractionMailTypeDocRef(instance)
         if (docRef == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 status = SuspendFuncStatus.FAILED,
@@ -64,7 +64,7 @@ class MailboxExtractionFirestoreRepository(
         )
     }
 
-    suspend fun fetchMailboxExtractionSetting(
+    suspend fun fetchMailboxExtractionMailTypeSetting(
         instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。documentNameがほしい
         timeout: Long = 3000,
         callback: (SuspendFuncStatusInfo) -> Unit
@@ -79,7 +79,7 @@ class MailboxExtractionFirestoreRepository(
             return fetchResult
         }
 
-        val docRef = getMailboxExtractionInternalDocRef(instance)
+        val docRef = getMailboxExtractionMailTypeDocRef(instance)
         if (docRef == null) {
             val fetchResult = FetchResult<MailboxExtractionCommon>(
                 status = SuspendFuncStatus.FAILED,

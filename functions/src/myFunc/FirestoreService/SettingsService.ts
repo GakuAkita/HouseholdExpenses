@@ -20,7 +20,7 @@ export class SettingsService {
     ); /* ノード名はURLフレンドリーの方が良い */
   }
 
-  async addUserPreferences(
+  async setUserPreferences(
     userId: string,
     preferences: UserPreferences
   ): Promise<FuncResultWithData<UserPreferences>> {

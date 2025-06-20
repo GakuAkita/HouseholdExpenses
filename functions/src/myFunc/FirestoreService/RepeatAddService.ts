@@ -80,6 +80,14 @@ export class RepeatAddService {
 
       const repeatAddMap: Record<string, RepeatAdd> = {};
 
+      if (snapshot.empty) {
+        return {
+          status: FuncStatus.SUCCESS,
+          message: "No RepeatAdds found.",
+          data: {},
+        };
+      }
+
       snapshot.forEach((doc) => {
         const data = doc.data() as RepeatAdd;
         repeatAddMap[doc.id] = data;

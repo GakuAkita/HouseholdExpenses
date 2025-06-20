@@ -1,18 +1,20 @@
 import * as dotenv from "dotenv";
+import { logger } from "firebase-functions";
 import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
+import { MailboxExtractionService } from "./myFunc/FirestoreService/MailboxService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
-import { decryptWithKey, encryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
+import { MailboxTokenType } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
 // 環境変数を読み込む
@@ -28,6 +30,7 @@ const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
+const mailboxExtractionService = new MailboxExtractionService(db);
 
 const repeatAddProcessor = new RepeatAddProcessor(
   repeatAddService,
@@ -84,7 +87,7 @@ const init_add = async () => {
     console.error("Failed to update RepeatAdd:", ret.message);
   }
 
-  const set_ret = await settingsService.addUserPreferences(
+  const set_ret = await settingsService.setUserPreferences(
     userId,
     sampleUserPreferences
   );
@@ -121,12 +124,15 @@ const schedule_func = async () => {
 };
 // schedule_func();
 
-const storeRefreshToken = (refresh_token: string) => {
-  if (!refresh_token) {
-    console.error("No refresh token provided.");
+/**
+ * 引数にrefresh_tokenを受取、
+ * 暗号化して保存する
+ */
+const storeRefreshToken = async (rawToken: string) => {
+  if (!rawToken) {
+    logger.debug("No raw token provided.");
     return;
   }
-
   const encryptionKey = process.env.ENCRYPTION_KEY;
   if (!encryptionKey) {
     console.error("Encryption key is not set in environment variables.");
@@ -134,11 +140,23 @@ const storeRefreshToken = (refresh_token: string) => {
   }
 
   const refreshTokenSamp = "akita_gaku";
-  const encrypted = encryptWithKey(refreshTokenSamp, encryptionKey);
-  console.log("Encrypted refresh token:", encrypted);
 
-  const decrypted = decryptWithKey(encrypted, encryptionKey);
-  console.log("Decrypted refresh token:", decrypted);
+  const tokenSet: MailboxTokenType = {
+    refreshToken: refreshTokenSamp,
+  };
+
+  const tokenSetRet =
+    await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+      "testUser",
+      tokenSet,
+      encryptionKey
+    );
+
+  const getTokenRet =
+    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
+      "testUser",
+      encryptionKey
+    );
 };
 
-storeRefreshToken("aa");
+storeRefreshToken("akita_gaku");

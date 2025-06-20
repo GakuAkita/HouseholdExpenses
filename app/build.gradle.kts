@@ -35,6 +35,11 @@ android {
         //環境変数をBuildConfigに設定する
         buildConfigField("String", "WEB_CLIENT_ID", "\"${localProperties["WEB_CLIENT_ID"]}\"")
         buildConfigField("String", "REDIRECT_URL", "\"${localProperties["REDIRECT_URL"]}\"")
+        buildConfigField(
+            "String",
+            "GMAIL_OAUTH_URL",
+            "\"https://accounts.google.com/o/oauth2/v2/auth?client_id=${localProperties["WEB_CLIENT_ID"]}&redirect_uri=${localProperties["REDIRECT_URL"]}&response_type=code&scope=https://www.googleapis.com/auth/gmail.readonly&access_type=offline&prompt=consent\""
+        )
     }
 
     buildTypes {

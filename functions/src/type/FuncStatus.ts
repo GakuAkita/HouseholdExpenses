@@ -2,6 +2,7 @@ export enum FuncStatus {
   SUCCESS = "success",
   TIMEOUT = "timeout",
   ERROR = "error",
+  EMPTY = "empty",
 }
 
 export interface FuncResult {

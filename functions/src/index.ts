@@ -5,9 +5,6 @@ import * as qs from "querystring";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
-import { MailBoxToken } from "./type/Mailbox";
-
-let cachedCredentials: Record<string, MailBoxToken> | null = null;
 
 const { userService, repeatAddProcessor, userSettingsProcessor } =
   initializeServices();
