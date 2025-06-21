@@ -77,10 +77,13 @@ export class MailboxExtractionService {
     rawToken: MailboxTokenType,
     encryptionKey: string
   ): Promise<FuncResult> {
-    const encryptedKey = encryptWithKey(rawToken.refreshToken, encryptionKey);
+    const encryptedRefreshToken = encryptWithKey(
+      rawToken.refreshToken,
+      encryptionKey
+    );
     const encryptedToken: MailboxTokenType = {
       ...rawToken,
-      refreshToken: encryptedKey,
+      refreshToken: encryptedRefreshToken,
     };
     logger.debug(
       `Setting mailbox extraction token for user ${userId} with encrypted refresh token.`
