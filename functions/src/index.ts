@@ -1,8 +1,10 @@
 import axios from "axios";
+import { logger } from "firebase-functions";
 import { onSchedule } from "firebase-functions/scheduler";
 import * as functions from "firebase-functions/v1";
 import * as qs from "querystring";
 import { TriggerTimeZone } from "./constants/TimeZone";
+import { admin } from "./myFunc/firebaseAdmin";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
 
@@ -17,16 +19,16 @@ const schedule_repeatAdd = async () => {
   /* ユーザーIDをすべて取得してくる */
   let funcResult = await userService.getAllUserIds();
   if (funcResult.status !== FuncStatus.SUCCESS) {
-    console.error("Failed to retrieve user IDs:", funcResult.message);
+    logger.error("Failed to retrieve user IDs:", funcResult.message);
     return;
   }
 
   const userIds = funcResult.data;
   if (userIds == null) {
-    console.error("No user IDs found.");
+    logger.error("No user IDs found.");
     return;
   }
-  console.log(`Found ${userIds.length} users.`);
+  logger.log(`Found ${userIds.length} users.`);
   for (const uid of userIds) {
     repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
   }
@@ -40,7 +42,7 @@ exports.monthly_repeatAddJob = onSchedule(
     concurrency: 1,
   },
   async (_) => {
-    console.log("Starting monthly repeatAdd job...");
+    logger.log("Starting monthly repeatAdd job...");
     await schedule_repeatAdd();
   }
 );
@@ -54,10 +56,10 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
   const uid = user.uid;
   const email = user.email;
 
-  console.log(`New user created! id:${uid} email:${email}`);
+  logger.log(`New user created! id:${uid} email:${email}`);
 
   if (email == undefined) {
-    console.error("Unable to get Email..");
+    logger.error("Unable to get Email..");
   } else {
     userSettingsProcessor.setInitialUserSettings(uid, email);
   }
@@ -92,16 +94,31 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
 exports.handleOAuthCallback = functions
   .runWith({ secrets: ["GOOGLE_OAUTH2"] })
   .https.onRequest(async (req, res) => {
-    const code = req.query.code;
+    const state = req.query.state as string | undefined;
 
     try {
-      if (!process.env.GOOGLE_OAUTH2) {
-        throw new Error("Unable to get environment variables\n");
+      if (!state) {
+        throw new Error("State parameter is missing in the request.");
       }
+
+      /**
+       * stateにFirebaseのIDトークンが入っている。
+       *  */
+      const decodedToken = await admin.auth().verifyIdToken(state);
+      if (!decodedToken || !decodedToken.uid) {
+        throw new Error(
+          "Invalid state parameter: Unable to decode Firebase ID token."
+        );
+      }
+      const uid = decodedToken.uid;
 
       const codeParam = req.query.code;
       if (typeof codeParam !== "string") {
         throw new Error("code must be a string");
+      }
+
+      if (!process.env.GOOGLE_OAUTH2) {
+        throw new Error("Unable to get environment variables\n");
       }
 
       const secret = JSON.parse(process.env.GOOGLE_OAUTH2);
@@ -130,15 +147,19 @@ exports.handleOAuthCallback = functions
         throw new Error("Unable to get access token or refresh token.");
       }
 
+      // mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+      //   refresh_token
+      // );
+
       /* refresh tokenをFirestoreに保存 */
       res.send(
         `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`
       );
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.error("Axios error:", err.response?.data);
+        logger.error("Axios error:", err.response?.data);
       } else {
-        console.error("Unexpected error:", err);
+        logger.error("Unexpected error:", err);
       }
       res.status(500).send(`OAuth token exchange failed.`);
     }

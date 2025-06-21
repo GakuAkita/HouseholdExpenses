@@ -31,6 +31,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.GmailLinkingViewModel
 import kotlinx.coroutines.launch
 
@@ -95,26 +96,27 @@ fun GmailLinkingView(
                  * ここでtokenがすでに存在していれば、
                  * このGmailAPI許可ボタンは消す
                  */
-                Button(onClick = {
-                    viewModel.getOAuthUrl(
-                        callback = { status, url ->
-                            if (status.status == SuspendFuncStatus.SUCCESS) {
-                                openOAuthPage(context, url)
-                            } else {
-                                snackBarHostState.currentSnackbarData?.dismiss()
-                                scope.launch {
-                                    snackBarHostState.showSnackbar(
-                                        message = status.errorMessage,
-                                        actionLabel = "OK"
-                                    )
+                if (loading) {
+                    CircularProgressIndicator()
+                } else {
+                    Button(onClick = {
+                        viewModel.getOAuthUrl(
+                            callback = { status, url ->
+                                if (status.status == SuspendFuncStatus.SUCCESS) {
+                                    LogAkitaDebug("generated URL:$url")
+                                    openOAuthPage(context, url)
+                                } else {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar(
+                                            message = status.errorMessage,
+                                            actionLabel = "OK"
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    )
-                }) {
-                    if (loading) {
-                        CircularProgressIndicator()
-                    } else {
+                        )
+                    }) {
                         Text("Gmail API許可")
                     }
                 }
