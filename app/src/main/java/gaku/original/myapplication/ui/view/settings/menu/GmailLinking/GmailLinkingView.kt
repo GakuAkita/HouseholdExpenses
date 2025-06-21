@@ -11,22 +11,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.viewModel.settings.GmailLinkingViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun GmailLinkingView(
     navController: NavController,
+    viewModel: GmailLinkingViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
@@ -34,6 +46,8 @@ fun GmailLinkingView(
     val amazonKindleSetting = MailboxExtraction.AmazonKindle()
     val amazonItemSetting = MailboxExtraction.AmazonItem()
     val shikokuElectricSetting = MailboxExtraction.ShikokuElectricPower()
+
+    val loading by viewModel.loading.collectAsState(false)
 
     @Composable
     fun MailboxExtractionMenu(
@@ -57,6 +71,8 @@ fun GmailLinkingView(
         context.startActivity(intent)
     }
 
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
     /******* UI ******/
     Scaffold(
         topBar = {
@@ -67,7 +83,8 @@ fun GmailLinkingView(
                     navController.popBackStack()
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding),
@@ -79,13 +96,27 @@ fun GmailLinkingView(
                  * このGmailAPI許可ボタンは消す
                  */
                 Button(onClick = {
-                    val oauthUrl =
-                        openOAuthPage(
-                            context,
-                            ""/* BuildConfigが認識されたら、、 */
-                        )
+                    viewModel.getOAuthUrl(
+                        callback = { status, url ->
+                            if (status.status == SuspendFuncStatus.SUCCESS) {
+                                openOAuthPage(context, url)
+                            } else {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                scope.launch {
+                                    snackBarHostState.showSnackbar(
+                                        message = status.errorMessage,
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                        }
+                    )
                 }) {
-                    Text("Gmail API許可")
+                    if (loading) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text("Gmail API許可")
+                    }
                 }
             }
 

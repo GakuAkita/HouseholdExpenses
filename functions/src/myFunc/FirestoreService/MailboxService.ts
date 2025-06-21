@@ -6,7 +6,9 @@ import {
   FuncStatus,
 } from "../../type/FuncStatus";
 import { MailboxTokenType } from "../../type/Mailbox";
+import { admin } from "../firebaseAdmin";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
+admin;
 
 export class MailboxExtractionService {
   private db: Firestore;
@@ -51,7 +53,9 @@ export class MailboxExtractionService {
   ): Promise<FuncResult> {
     try {
       const docRef = this.getUserMailboxExtractionParamsTokenDocRef(userId);
-      await docRef.set(token, { merge: true });
+      const now = new Date();
+      const isoString = now.toISOString();
+      await docRef.set({ ...token, timestamp: isoString }, { merge: true });
       return {
         status: FuncStatus.SUCCESS,
         message: `Successfully set MailboxExtraction token.`,

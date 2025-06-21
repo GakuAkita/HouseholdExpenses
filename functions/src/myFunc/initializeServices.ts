@@ -1,5 +1,6 @@
 import { ExpenseService } from "./FirestoreService/ExpenseService";
 import { FirestoreService } from "./FirestoreService/FirestoreService";
+import { MailboxExtractionService } from "./FirestoreService/MailboxService";
 import { RepeatAddService } from "./FirestoreService/RepeatAddService";
 import { SettingsService } from "./FirestoreService/SettingsService";
 import { UserService } from "./FirestoreService/UserService";
@@ -23,6 +24,7 @@ export const initializeServices = () => {
     userService,
     settingsService
   );
+  const mailboxExtractionService = new MailboxExtractionService(firestoreDb);
 
   return {
     userService,
@@ -30,5 +32,6 @@ export const initializeServices = () => {
     repeatAddService,
     repeatAddProcessor,
     userSettingsProcessor,
+    mailboxExtractionService,
   };
 };

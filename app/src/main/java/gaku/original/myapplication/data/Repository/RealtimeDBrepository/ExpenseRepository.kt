@@ -1,12 +1,12 @@
-package gaku.original.myapplication.data.RealtimeDBrepository
+package gaku.original.myapplication.data.Repository.RealtimeDBrepository
 
 import addDataToRTDb
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepositoryUtil.addSingleDataToRTDb
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.addSingleDataToRTDb
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await

@@ -6,8 +6,12 @@ import { TriggerTimeZone } from "./constants/TimeZone";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncStatus } from "./type/FuncStatus";
 
-const { userService, repeatAddProcessor, userSettingsProcessor } =
-  initializeServices();
+const {
+  userService,
+  repeatAddProcessor,
+  userSettingsProcessor,
+  mailboxExtractionService,
+} = initializeServices();
 
 const schedule_repeatAdd = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -127,7 +131,9 @@ exports.handleOAuthCallback = functions
       }
 
       /* refresh tokenをFirestoreに保存 */
-      res.send(`I'm God Akita.\nProcess finished.\nPlease close this window.`);
+      res.send(
+        `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`
+      );
     } catch (err) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response?.data);

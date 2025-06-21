@@ -1,13 +1,13 @@
-package gaku.original.myapplication.data.FirestoreRepository
+package gaku.original.myapplication.data.Repository.FirestoreRepository
 
 import addDataWithIdToFirestore
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await

@@ -6,14 +6,15 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.MailboxExtractionFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
-import gaku.original.myapplication.data.RealtimeDBrepository.CategoryRepository
-import gaku.original.myapplication.data.RealtimeDBrepository.ExpenseRepository
-import gaku.original.myapplication.data.RealtimeDBrepository.RepeatAddRepository
+import gaku.original.myapplication.data.Repository.FirebaseAuthRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.MailboxExtractionFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.CategoryRepository
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.ExpenseRepository
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
@@ -105,6 +106,14 @@ object AppModule {
         firestoreReference: FirestoreReference
     ): MailboxExtractionFirestoreRepository {
         return MailboxExtractionFirestoreRepository(firestoreReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideFirebaseAuthRepository(
+        firebaseAuth: FirebaseAuth
+    ): FirebaseAuthRepository {
+        return FirebaseAuthRepository(firebaseAuth)
     }
 
     /* ------------------------------------------------------------------ */

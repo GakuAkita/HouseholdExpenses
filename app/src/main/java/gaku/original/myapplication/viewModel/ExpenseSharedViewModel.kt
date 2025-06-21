@@ -8,10 +8,10 @@ import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
-import gaku.original.myapplication.data.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.RepeatAddFirestoreRepository
-import gaku.original.myapplication.data.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
