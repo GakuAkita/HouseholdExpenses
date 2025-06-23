@@ -8,6 +8,7 @@ import { TriggerTimeZone } from "./constants/TimeZone";
 import { admin } from "./myFunc/firebaseAdmin";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncResultWithData, FuncStatus } from "./type/FuncStatus";
+import { MailboxTokenType } from "./type/Mailbox";
 
 const {
   userService,
@@ -147,6 +148,7 @@ exports.handleOAuthCallback = functions
     secrets: ["GOOGLE_OAUTH2"],
   }) /* refresh tokenは何回も保存するわけではないから、runWithでいい。 */
   .https.onRequest(async (req, res) => {
+    logger.log("Received OAuth callback request.");
     const state = req.query.state as string | undefined;
     if (!state) {
       logger.error("State parameter is missing in the request.");
@@ -191,6 +193,9 @@ exports.handleOAuthCallback = functions
         grant_type: "authorization_code",
       });
       if (!secret.client_id || !secret.client_secret || !secret.redirect_uri) {
+        logger.error(
+          `varibles check: client_id:${secret.client_id}, client_secret:${secret.client_secret}, redirect_uri:${secret.redirect_uri}`
+        );
         throw new Error("Unable to get secrets.");
       }
 
@@ -224,10 +229,16 @@ exports.handleOAuthCallback = functions
         throw new Error(`Encryption key is empty.${ret.message}`);
       }
 
+      /* ここでMailboxTokenTypeに変換しないとだめ */
+      const mailboxToken: MailboxTokenType = {
+        refreshToken: refresh_token,
+      };
+
+      /* ここまでちゃんとできている */
       ret =
         await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
           uid,
-          refresh_token,
+          mailboxToken,
           encryptionKey /* 環境変数から取得した暗号化キー */
         );
 
@@ -245,6 +256,6 @@ exports.handleOAuthCallback = functions
       } else {
         logger.error("Unexpected error:", err);
       }
-      res.status(500).send(`OAuth token exchange failed.`);
+      res.status(200).send(`OAuth token exchange failed.`);
     }
   });
