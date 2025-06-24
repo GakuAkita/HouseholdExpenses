@@ -8,6 +8,7 @@ import { TriggerTimeZone } from "./constants/TimeZone";
 import { admin } from "./myFunc/firebaseAdmin";
 import { initializeServices } from "./myFunc/initializeServices";
 import { FuncResultWithData, FuncStatus } from "./type/FuncStatus";
+import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
 import { MailboxTokenType } from "./type/Mailbox";
 
 const {
@@ -20,50 +21,62 @@ const {
 /* SecretManagerを使うためにインスタンス化 */
 const secretClient = new SecretManagerServiceClient();
 
-let cachedEncryptionKey: string | null = null;
+let cachedGoogleOAuthSecrets: GoogleOAuthSecrets | null = null;
 /**
  * キャッシュが残っていたらそれを返す
  * 頻繁なアクセスを避けるため
  */
-const loadEncryptionKey = async (): Promise<FuncResultWithData<string>> => {
-  if (cachedEncryptionKey) {
+const loadGoogleOAuthSecrets = async (): Promise<
+  FuncResultWithData<GoogleOAuthSecrets>
+> => {
+  if (cachedGoogleOAuthSecrets) {
     return {
       status: FuncStatus.SUCCESS,
-      message: "Encryption key loaded from cache.",
-      data: cachedEncryptionKey,
+      message: "Secrets loaded from cache.",
+      data: cachedGoogleOAuthSecrets,
     };
   }
 
-  // ここでSecret Managerなどからキーを取得する処理を書く（例）
-  const secretName = "ENCRYPTION_KEY";
+  const secretName = "GOOGLE_OAUTH2";
   const [version] = await secretClient.accessSecretVersion({
     name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
   });
+
   const data = version.payload?.data as Buffer | undefined;
   if (!data) {
     return {
       status: FuncStatus.ERROR,
-      message: "Failed to load encryption key from Secret Manager",
-      data: undefined,
-    };
-  }
-  const encryptionKey = Buffer.from(data).toString("utf8");
-  if (!encryptionKey) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Encryption key is empty.",
+      message: "Failed to load secret from Secret Manager.",
       data: undefined,
     };
   }
 
-  /**
-   * cachedEncryptionKeyはグローバル!!!
-   */
-  cachedEncryptionKey = encryptionKey; // キャッシュに保存
+  let parsed: GoogleOAuthSecrets;
+  try {
+    parsed = JSON.parse(data.toString("utf8"));
+  } catch (err) {
+    return {
+      status: FuncStatus.ERROR,
+      message: "Failed to parse secret JSON.",
+      data: undefined,
+    };
+  }
+
+  const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;
+  if (!clientId || !clientSecret || !redirectUri || !encryptionKey) {
+    return {
+      status: FuncStatus.ERROR,
+      message: "Incomplete secret fields.",
+      data: undefined,
+    };
+  }
+
+  cachedGoogleOAuthSecrets = parsed; // グローバルキャッシュに保存
+
   return {
     status: FuncStatus.SUCCESS,
-    message: "Encryption key loaded successfully.",
-    data: cachedEncryptionKey /* 一応こっちでも返しておく */,
+    message: "Google OAuth secrets loaded successfully.",
+    data: parsed,
   };
 };
 
@@ -143,119 +156,100 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
 //   return creds;
 // }
 
-exports.handleOAuthCallback = functions
-  .runWith({
-    secrets: ["GOOGLE_OAUTH2"],
-  }) /* refresh tokenは何回も保存するわけではないから、runWithでいい。 */
-  .https.onRequest(async (req, res) => {
-    logger.log("Received OAuth callback request.");
-    const state = req.query.state as string | undefined;
-    if (!state) {
-      logger.error("State parameter is missing in the request.");
-      return;
-    }
+exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
+  logger.log("Received OAuth callback request.");
+  const state = req.query.state as string | undefined;
+  if (!state) {
+    logger.error("State parameter is missing in the request.");
+    return;
+  }
 
-    const codeParam = req.query.code;
-    if (typeof codeParam !== "string") {
-      logger.error("Code parameter is missing or invalid in the request.");
-      return;
+  const codeParam = req.query.code;
+  if (typeof codeParam !== "string") {
+    logger.error("Code parameter is missing or invalid in the request.");
+    return;
+  }
+
+  /**
+   * 暗号化用のキーを取得
+   */
+
+  try {
+    /**
+     * stateにFirebaseのIDトークンが入っている。
+     * * これをデコードして、uidを取得する。
+     *  */
+    const decodedToken = await admin.auth().verifyIdToken(state);
+    if (!decodedToken || !decodedToken.uid) {
+      throw new Error(
+        "Invalid state parameter: Unable to decode Firebase ID token."
+      );
+    }
+    const uid = decodedToken.uid;
+
+    let ret = await loadGoogleOAuthSecrets();
+    if (ret.status !== FuncStatus.SUCCESS) {
+      throw new Error(`Failed to load Google OAuth secrets: ${ret.message}`);
+    }
+    const secrets =
+      ret.data as GoogleOAuthSecrets; /* loadGoogleOAuthSecrets内で値が入っているかチェックはしている */
+    const postData = qs.stringify({
+      code: codeParam,
+      client_id: secrets.clientId,
+      client_secret: secrets.clientSecret,
+      redirect_uri: secrets.redirectUri, //uriが正しいらしい。でもsecretのほうにはurlで保存してしまった。
+      grant_type: "authorization_code",
+    });
+
+    /**
+     * アクセストークンとリフレッシュトークンを取得
+     */
+    const tokenRes = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      postData,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const { access_token, refresh_token } = tokenRes.data;
+    if (!access_token || !refresh_token) {
+      throw new Error("Unable to get access token or refresh token.");
     }
 
     /**
-     * 暗号化用のキーを取得
+     * refresh_tokenを暗号化して保存する
      */
 
-    try {
-      /**
-       * stateにFirebaseのIDトークンが入っている。
-       * * これをデコードして、uidを取得する。
-       *  */
-      const decodedToken = await admin.auth().verifyIdToken(state);
-      if (!decodedToken || !decodedToken.uid) {
-        throw new Error(
-          "Invalid state parameter: Unable to decode Firebase ID token."
-        );
-      }
-      const uid = decodedToken.uid;
+    /* ここでMailboxTokenTypeに変換しないとだめ */
+    const mailboxToken: MailboxTokenType = {
+      refreshToken: refresh_token,
+    };
 
-      /**
-       * 環境変数(Secret Manager)からGoogle OAuth2のクライアントID、クライアントシークレット、リダイレクトURIを取得
-       */
-      if (!process.env.GOOGLE_OAUTH2) {
-        throw new Error("Unable to get environment variables\n");
-      }
-      const secret = JSON.parse(process.env.GOOGLE_OAUTH2);
-      const postData = qs.stringify({
-        code: codeParam,
-        client_id: secret.client_id,
-        client_secret: secret.client_secret,
-        redirect_uri: secret.redirect_uri, //uriが正しいらしい。でもsecretのほうにはurlで保存してしまった。
-        grant_type: "authorization_code",
-      });
-      if (!secret.client_id || !secret.client_secret || !secret.redirect_uri) {
-        logger.error(
-          `varibles check: client_id:${secret.client_id}, client_secret:${secret.client_secret}, redirect_uri:${secret.redirect_uri}`
-        );
-        throw new Error("Unable to get secrets.");
-      }
-
-      /**
-       * アクセストークンとリフレッシュトークンを取得
-       */
-      const tokenRes = await axios.post(
-        "https://oauth2.googleapis.com/token",
-        postData,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
+    /* ここまでちゃんとできている */
+    ret =
+      await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+        uid,
+        mailboxToken,
+        secrets.encryptionKey
       );
 
-      const { access_token, refresh_token } = tokenRes.data;
-      if (!access_token || !refresh_token) {
-        throw new Error("Unable to get access token or refresh token.");
-      }
-
-      /**
-       * refresh_tokenを暗号化して保存する
-       */
-      let ret = await loadEncryptionKey();
-      if (ret.status !== FuncStatus.SUCCESS) {
-        throw new Error(`Failed to load encryption key: ${ret.message}`);
-      }
-      const encryptionKey = ret.data;
-      if (!encryptionKey) {
-        throw new Error(`Encryption key is empty.${ret.message}`);
-      }
-
-      /* ここでMailboxTokenTypeに変換しないとだめ */
-      const mailboxToken: MailboxTokenType = {
-        refreshToken: refresh_token,
-      };
-
-      /* ここまでちゃんとできている */
-      ret =
-        await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
-          uid,
-          mailboxToken,
-          encryptionKey /* 環境変数から取得した暗号化キー */
-        );
-
-      if (ret.status !== FuncStatus.SUCCESS) {
-        throw new Error(
-          `Failed to set mailbox extraction token for user ${uid}: ${ret.message}`
-        );
-      }
-      res.send(
-        `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`
+    if (ret.status !== FuncStatus.SUCCESS) {
+      throw new Error(
+        `Failed to set mailbox extraction token for user ${uid}: ${ret.message}`
       );
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        logger.error("Axios error:", err.response?.data);
-      } else {
-        logger.error("Unexpected error:", err);
-      }
-      res.status(200).send(`OAuth token exchange failed.`);
     }
-  });
+    res.send(
+      `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`
+    );
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      logger.error("Axios error:", err.response?.data);
+    } else {
+      logger.error("Unexpected error:", err);
+    }
+    res.status(200).send(`OAuth token exchange failed.`);
+  }
+});

@@ -11,6 +11,7 @@ import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { decryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
@@ -43,9 +44,9 @@ const userSettingsProcessor = new UserSettingsProcessor(
   settingsService
 );
 
-const init_add = async () => {
-  const userId: string = "testUser";
+const userId = "testUser"; // テスト用のユーザーID
 
+const init_add = async () => {
   await userService.addUserCol(userId);
 
   const sampleCategory: Category = {
@@ -159,4 +160,52 @@ const storeRefreshToken = async (rawToken: string) => {
     );
 };
 
-storeRefreshToken("akita_gaku");
+// storeRefreshToken("akita_gaku");
+
+const getRefreshTokenTest = async () => {
+  /**
+   * まずはユーザーIDを取得する
+   */
+  if (!process.env.ENCRYPTED_REFRESH_TOKEN || !process.env.ENCRYPTION_KEY) {
+    console.error("encrypted refresh token or encryption key is not set.");
+  }
+
+  const encryptedRefreshToken = process.env.ENCRYPTED_REFRESH_TOKEN as string;
+  const encryptionKey = process.env.ENCRYPTION_KEY as string;
+  const decriptedRefreshToken = decryptWithKey(
+    encryptedRefreshToken,
+    encryptionKey
+  );
+  console.log("----------------------------------\n");
+  console.log("Encrypted refresh token:", encryptedRefreshToken);
+  console.log("Encryption key:", encryptionKey);
+  console.log("Decripted refresh token:", decriptedRefreshToken);
+  console.log("----------------------------------\n");
+
+  const rawToken: MailboxTokenType = {
+    refreshToken: decriptedRefreshToken,
+  };
+  const tokenSet =
+    await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+      userId,
+      rawToken,
+      encryptionKey
+    );
+
+  const getToken =
+    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
+      userId,
+      encryptionKey
+    );
+
+  if (getToken.status !== FuncStatus.SUCCESS) {
+    logger.error("Failed to get mailbox extraction token:", getToken.message);
+    return;
+  }
+
+  if (getToken.data?.refreshToken === decriptedRefreshToken) {
+    logger.info("Successfully retrieved the mailbox extraction token.");
+  }
+};
+
+getRefreshTokenTest();
