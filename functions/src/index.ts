@@ -6,11 +6,11 @@ import * as functions from "firebase-functions/v1";
 import * as qs from "querystring";
 import { TriggerTimeZone } from "./constants/TimeZone";
 import { admin } from "./myFunc/firebaseAdmin";
+import { loadGoogleOAuthSecrets } from "./myFunc/googleOAuthSecrets";
 import { initializeServices } from "./myFunc/initializeServices";
-import { FuncResultWithData, FuncStatus } from "./type/FuncStatus";
+import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
 import { MailboxTokenType } from "./type/Mailbox";
-
 const {
   userService,
   repeatAddProcessor,
@@ -20,65 +20,6 @@ const {
 
 /* SecretManagerを使うためにインスタンス化 */
 const secretClient = new SecretManagerServiceClient();
-
-let cachedGoogleOAuthSecrets: GoogleOAuthSecrets | null = null;
-/**
- * キャッシュが残っていたらそれを返す
- * 頻繁なアクセスを避けるため
- */
-const loadGoogleOAuthSecrets = async (): Promise<
-  FuncResultWithData<GoogleOAuthSecrets>
-> => {
-  if (cachedGoogleOAuthSecrets) {
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Secrets loaded from cache.",
-      data: cachedGoogleOAuthSecrets,
-    };
-  }
-
-  const secretName = "GOOGLE_OAUTH2";
-  const [version] = await secretClient.accessSecretVersion({
-    name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
-  });
-
-  const data = version.payload?.data as Buffer | undefined;
-  if (!data) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Failed to load secret from Secret Manager.",
-      data: undefined,
-    };
-  }
-
-  let parsed: GoogleOAuthSecrets;
-  try {
-    parsed = JSON.parse(data.toString("utf8"));
-  } catch (err) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Failed to parse secret JSON.",
-      data: undefined,
-    };
-  }
-
-  const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;
-  if (!clientId || !clientSecret || !redirectUri || !encryptionKey) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Incomplete secret fields.",
-      data: undefined,
-    };
-  }
-
-  cachedGoogleOAuthSecrets = parsed; // グローバルキャッシュに保存
-
-  return {
-    status: FuncStatus.SUCCESS,
-    message: "Google OAuth secrets loaded successfully.",
-    data: parsed,
-  };
-};
 
 const schedule_repeatAdd = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -131,31 +72,8 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
 });
 
 /**
- * gmailから抽出する
+ * Gmailアクセスの許可を取得したときの処理
  */
-
-/**
- * グローバル変数のcachedCredentialsがnullだったら(Cold Start)読み込み
- * nullでなかったらそのまま保持している値を使う
- *  */
-// async function getCredentialsFor() {
-//   if (!cachedCredentials) {
-//     const [version] = await secretClient.accessSecretVersion({
-//       name: "projects/YOUR_PROJECT_ID/secrets/gmail-credentials/versions/latest",
-//     });
-
-//     const secretPayload = version.payload.data.toString("utf8");
-//     cachedCredentials = JSON.parse(secretPayload);
-//   }
-
-//   const creds = cachedCredentials["akita"];
-//   if (!creds) {
-//     throw new Error(`No credentials found for ${email}`);
-//   }
-
-//   return creds;
-// }
-
 exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
   logger.log("Received OAuth callback request.");
   const state = req.query.state as string | undefined;

@@ -3,18 +3,19 @@ import { logger } from "firebase-functions";
 import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
+import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
-import { MailboxExtractionService } from "./myFunc/FirestoreService/MailboxService";
+import { MailboxExtractionService } from "./myFunc/FirestoreService/MailboxExtractionService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
-import { decryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
+import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
 import { MailboxTokenType } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
@@ -163,49 +164,24 @@ const storeRefreshToken = async (rawToken: string) => {
 // storeRefreshToken("akita_gaku");
 
 const getRefreshTokenTest = async () => {
-  /**
-   * まずはユーザーIDを取得する
-   */
-  if (!process.env.ENCRYPTED_REFRESH_TOKEN || !process.env.ENCRYPTION_KEY) {
-    console.error("encrypted refresh token or encryption key is not set.");
-  }
-
-  const encryptedRefreshToken = process.env.ENCRYPTED_REFRESH_TOKEN as string;
-  const encryptionKey = process.env.ENCRYPTION_KEY as string;
-  const decriptedRefreshToken = decryptWithKey(
-    encryptedRefreshToken,
-    encryptionKey
-  );
-  console.log("----------------------------------\n");
-  console.log("Encrypted refresh token:", encryptedRefreshToken);
-  console.log("Encryption key:", encryptionKey);
-  console.log("Decripted refresh token:", decriptedRefreshToken);
-  console.log("----------------------------------\n");
-
-  const rawToken: MailboxTokenType = {
-    refreshToken: decriptedRefreshToken,
-  };
-  const tokenSet =
-    await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
-      userId,
-      rawToken,
-      encryptionKey
-    );
-
-  const getToken =
-    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
-      userId,
-      encryptionKey
-    );
-
-  if (getToken.status !== FuncStatus.SUCCESS) {
-    logger.error("Failed to get mailbox extraction token:", getToken.message);
+  const config = process.env.GOOGLE_OAUTH_SECRETS;
+  if (!config) {
+    logger.error("Google OAuth secrets are not set in environment variables.");
     return;
   }
 
-  if (getToken.data?.refreshToken === decriptedRefreshToken) {
-    logger.info("Successfully retrieved the mailbox extraction token.");
+  const secrets: GoogleOAuthSecrets = JSON.parse(config);
+  if (
+    !secrets.clientId ||
+    !secrets.clientSecret ||
+    !secrets.redirectUri ||
+    !secrets.encryptionKey
+  ) {
+    logger.error("Google OAuth secrets are incomplete.");
+    return;
   }
+
+  const gmailApiClient = new GmailApiClient();
 };
 
 getRefreshTokenTest();
