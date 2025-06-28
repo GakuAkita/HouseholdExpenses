@@ -3,9 +3,11 @@ import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { MailboxExtractionParamsService } from "../FirestoreService/MailboxExtractionParamsService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
+import { MailboxExtractionMailTypeSettingsService } from "../RealtimeDbService/MailboxExtractionMailTypeSetttingsService";
 export class MailboxExtractionProcessor {
   constructor(
-    private mailboxExtractionParamsService: MailboxExtractionParamsService /* firestoreに対して1個 */
+    private mailboxExtractionParamsService: MailboxExtractionParamsService /* firestoreに対して1個 */,
+    private mailboxExtractionMailTypeSettingsService: MailboxExtractionMailTypeSettingsService
   ) {}
 
   async generateGmailApiInstance(

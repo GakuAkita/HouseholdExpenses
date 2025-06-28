@@ -5,7 +5,7 @@ import com.google.firebase.database.Query
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import javax.inject.Inject
 
-class DbListenerManager @Inject constructor(
+class RealtimeDbListenerManager @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
 ) {
     // DatabaseReference とリスナーのペアを保持するリスト

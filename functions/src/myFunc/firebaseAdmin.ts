@@ -20,6 +20,7 @@ export const initMyFirebaseAdmin = (options?: admin.AppOptions) => {
 /**
  * オプションが渡されていなかったらdeploy状態、
  * 渡されていたらローカル
+ * ------------使ってない---------
  */
 export const getMyFirestore = (options?: admin.AppOptions) => {
   initMyFirebaseAdmin(options);

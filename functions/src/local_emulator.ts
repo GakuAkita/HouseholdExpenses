@@ -6,11 +6,14 @@ import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
+import { MailboxExtractionParamsService } from "./myFunc/FirestoreService/MailboxExtractionParamsService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { RealtimeDbService } from "./myFunc/RealtimeDbService/RealtimeDbService";
+import { UserRTDbService } from "./myFunc/RealtimeDbService/UserRTDbService";
 import { decryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
@@ -31,11 +34,16 @@ const firebaseOptions = {
 const fsService = new FirestoreService(firebaseOptions);
 const db = fsService.getDb();
 
+const rtdbService = new RealtimeDbService(firebaseOptions);
+const rtdb = rtdbService.getDb();
+
 const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
 const mailboxExtractionParamsService = new MailboxExtractionParamsService(db);
+
+const userRTDbService = new UserRTDbService(rtdb);
 
 const repeatAddProcessor = new RepeatAddProcessor(
   repeatAddService,
@@ -45,6 +53,7 @@ const repeatAddProcessor = new RepeatAddProcessor(
 
 const userSettingsProcessor = new UserSettingsProcessor(
   userService,
+  userRTDbService,
   settingsService
 );
 

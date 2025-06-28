@@ -42,8 +42,8 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideDbListenerManager(realtimeDbReference: RealtimeDbReference): DbListenerManager {
-        return DbListenerManager(realtimeDbReference)
+    fun provideDbListenerManager(realtimeDbReference: RealtimeDbReference): RealtimeDbListenerManager {
+        return RealtimeDbListenerManager(realtimeDbReference)
     }
 
     @Provides

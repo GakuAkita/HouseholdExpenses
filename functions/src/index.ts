@@ -1,4 +1,3 @@
-import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import axios from "axios";
 import { logger } from "firebase-functions";
 import { onSchedule } from "firebase-functions/scheduler";
@@ -16,10 +15,8 @@ const {
   repeatAddProcessor,
   userSettingsProcessor,
   mailboxExtractionParamsService,
+  userRTDbService,
 } = initializeServices();
-
-/* SecretManagerを使うためにインスタンス化 */
-const secretClient = new SecretManagerServiceClient();
 
 const schedule_repeatAdd = async () => {
   /* ユーザーIDをすべて取得してくる */

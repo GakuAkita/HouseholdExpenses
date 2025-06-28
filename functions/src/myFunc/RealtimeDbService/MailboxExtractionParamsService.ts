@@ -1,4 +1,4 @@
-import { Firestore } from "firebase-admin/firestore";
+import { Database, Reference } from "firebase-admin/database";
 import { logger } from "firebase-functions";
 import {
   FuncResult,
@@ -10,28 +10,19 @@ import { admin } from "../firebaseAdmin";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
 admin;
 
-export class MailboxExtractionParamsService {
-  private db: Firestore;
+export class MailboxExtractionService {
+  private db: Database;
 
-  constructor(db: Firestore) {
+  constructor(db: Database) {
     this.db = db;
   }
 
-  /**
-   * メールボックス取得のためのパラメータのコレクション
-   */
-  private getUserMailboxExtractionParamsColRef(userId: string) {
-    return this.db
-      .collection("users")
-      .doc(userId)
-      .collection("mailbox_extraction_params");
+  private getUserMailboxExtractionRef(userId: string): Reference {
+    return this.db.ref("users").child(userId).child("mailbox_extraction");
   }
 
-  /**
-   * パラメータを保存するdocumentの参照
-   */
-  private getUserMailboxExtractionParamsTokenDocRef(userId: string) {
-    return this.getUserMailboxExtractionParamsColRef(userId).doc("token");
+  private getUserMailboxExtractionTokenRef(userId: string): Reference {
+    return this.getUserMailboxExtractionRef(userId).child("token");
   }
 
   /**
@@ -42,10 +33,10 @@ export class MailboxExtractionParamsService {
     token: MailboxTokenType
   ): Promise<FuncResult> {
     try {
-      const docRef = this.getUserMailboxExtractionParamsTokenDocRef(userId);
+      const ref = this.getUserMailboxExtractionTokenRef(userId);
       const now = new Date();
       const isoString = now.toISOString();
-      await docRef.set({ ...token, timestamp: isoString }, { merge: true });
+      await ref.set({ ...token, timestamp: isoString });
       return {
         status: FuncStatus.SUCCESS,
         message: `Successfully set MailboxExtraction token.`,
@@ -87,17 +78,11 @@ export class MailboxExtractionParamsService {
   private async getMailboxExtractionToken(
     userId: string
   ): Promise<FuncResultWithData<MailboxTokenType>> {
-    const docRef = this.getUserMailboxExtractionParamsTokenDocRef(userId);
+    const ref = this.getUserMailboxExtractionTokenRef(userId);
     try {
-      const snapShot = await docRef.get();
-      if (!snapShot.exists) {
-        return {
-          status: FuncStatus.EMPTY,
-          message: `MailboxExtraction token does not exist for user ${userId}.`,
-        };
-      }
+      const snapshot = await ref.once("value");
+      const data: MailboxTokenType | null = snapshot.val();
 
-      const data: MailboxTokenType = snapShot.data() as MailboxTokenType;
       if (!data || !data.refreshToken) {
         return {
           status: FuncStatus.ERROR,
@@ -105,7 +90,6 @@ export class MailboxExtractionParamsService {
         };
       }
 
-      /* ここまで来てようやく成功 */
       return {
         status: FuncStatus.SUCCESS,
         message: `Successfully retrieved MailboxExtraction token.`,
