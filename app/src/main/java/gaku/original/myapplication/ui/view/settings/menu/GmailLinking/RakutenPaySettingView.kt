@@ -155,7 +155,8 @@ fun RakutenPaySettingView(
                 )
             } else {
                 /* savableだとこのように変数に当てないとだめっぽい？ */
-                val internalRakutenPaySetting = rakutenPaySetting!!/* nullなはずがない */
+                val internalRakutenPaySetting =
+                    rakutenPaySetting ?: MailboxExtraction.RakutenPay()/* nullなはずがない */
                 Text("とりあえずはメール抽出できた店だけにする")
                 Text("将来的に自由に追加できるように")
 
@@ -175,7 +176,6 @@ fun RakutenPaySettingView(
                         }
                     )
                 }
-
 
                 Button(
                     onClick = {

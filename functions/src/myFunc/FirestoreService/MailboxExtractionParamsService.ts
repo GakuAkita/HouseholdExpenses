@@ -10,7 +10,7 @@ import { admin } from "../firebaseAdmin";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
 admin;
 
-export class MailboxExtractionService {
+export class MailboxExtractionParamsService {
   private db: Firestore;
 
   constructor(db: Firestore) {
@@ -25,16 +25,6 @@ export class MailboxExtractionService {
       .collection("users")
       .doc(userId)
       .collection("mailbox_extraction_params");
-  }
-
-  /**
-   * 各メールタイプの設定コレクション
-   */
-  private getUserMailboxExtractionMailTypeSettingsColRef(userId: string) {
-    return this.db
-      .collection("users")
-      .doc(userId)
-      .collection("mailbox_extraction_mail_type_settings");
   }
 
   /**
@@ -135,6 +125,10 @@ export class MailboxExtractionService {
   ): Promise<FuncResultWithData<MailboxTokenType>> {
     const ret = await this.getMailboxExtractionToken(userId);
     if (ret.status !== FuncStatus.SUCCESS) {
+      /**
+       * EMPTYの場合もすぐ返される!
+       * なので、呼び出し側でエラーなのか、取れたけど空だったのか区別はできる
+       */
       return ret;
     }
     const token = ret.data;

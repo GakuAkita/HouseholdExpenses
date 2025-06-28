@@ -1,6 +1,8 @@
 import axios from "axios";
+import { logger } from "firebase-functions";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
+import { extractHtmlBody } from "../utility/extractHtmlBody";
 
 type GmailMessageSearchParams = {
   q?: string;
@@ -99,6 +101,7 @@ export class GmailApiClient {
         data: msgIds,
       };
     } catch (e: any) {
+      logger.error(e.response?.data);
       return {
         status: FuncStatus.ERROR,
         message: `Failed to search mails:${e.message}`,
@@ -156,5 +159,32 @@ export class GmailApiClient {
         message: `Failed to fetch message detail: ${e.message}`,
       };
     }
+  }
+
+  async getMessageBodyAsHtml(
+    messageId: string
+  ): Promise<FuncResultWithData<string>> {
+    const ret = await this.getMessageDetail(messageId);
+    console.log(ret.data.payload.parts);
+    if (ret.status != FuncStatus.SUCCESS) {
+      return {
+        status: ret.status,
+        message: ret.message,
+      };
+    }
+
+    const body = extractHtmlBody(ret.data.payload);
+    if (body == null) {
+      return {
+        status: FuncStatus.ERROR,
+        message: "Failed to htmlBody from reponse",
+      };
+    }
+
+    return {
+      status: FuncStatus.SUCCESS,
+      message: "Successfully extracted mail as HTNL",
+      data: body,
+    };
   }
 }

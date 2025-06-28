@@ -71,7 +71,7 @@ class FirestoreReference @Inject constructor(
     }
 
     /**
-     * users/{userId}/mailbox_extraction 配下のDocReference
+     * users/{userId}/mailbox_extraction_mail_type_setting 配下のDocReference
      */
     fun getMailboxExtractionMailTypeDocRef(instance: MailboxExtractionCommon): DocumentReference? {
         return getMailboxExtractionColRef()?.document(instance.documentName)

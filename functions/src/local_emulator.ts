@@ -6,16 +6,19 @@ import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
-import { MailboxExtractionService } from "./myFunc/FirestoreService/MailboxExtractionService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { decryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
 import { FuncStatus } from "./type/FuncStatus";
-import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
+import {
+  BaseGoogleOAuthConfig,
+  GoogleOAuthSecrets,
+} from "./type/GoogleOAuthSecrets";
 import { MailboxTokenType } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
@@ -32,7 +35,7 @@ const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
-const mailboxExtractionService = new MailboxExtractionService(db);
+const mailboxExtractionParamsService = new MailboxExtractionParamsService(db);
 
 const repeatAddProcessor = new RepeatAddProcessor(
   repeatAddService,
@@ -148,14 +151,14 @@ const storeRefreshToken = async (rawToken: string) => {
   };
 
   const tokenSetRet =
-    await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+    await mailboxExtractionParamsService.setMailboxExtractionTokenWithEncryption(
       "testUser",
       tokenSet,
       encryptionKey
     );
 
   const getTokenRet =
-    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
+    await mailboxExtractionParamsService.getMailboxExtractionTokenWithDecryption(
       "testUser",
       encryptionKey
     );
@@ -181,7 +184,42 @@ const getRefreshTokenTest = async () => {
     return;
   }
 
-  const gmailApiClient = new GmailApiClient();
+  const refreshTokenEncry = process.env.ENCRYPTED_REFRESH_TOKEN;
+  if (!refreshTokenEncry) {
+    logger.error("Unable to get encrypted refresh token.");
+    return;
+  }
+  const refreshToken = decryptWithKey(refreshTokenEncry, secrets.encryptionKey);
+  if (!refreshToken) {
+    logger.error("unable to decrypt");
+    return;
+  }
+
+  const gmailConfig: BaseGoogleOAuthConfig = {
+    clientId: secrets.clientId,
+    clientSecret: secrets.clientSecret,
+    refreshToken: refreshToken,
+  };
+
+  const gmailClient = new GmailApiClient(gmailConfig);
+  const query =
+    "in:inbox category:primary subject:楽天ペイアプリご利用内容確認メール";
+  const queryResult = await gmailClient.queryMessages(query);
+  if (queryResult.status != FuncStatus.SUCCESS) {
+    logger.error(`${queryResult.message}`);
+    return;
+  }
+
+  const msgIds = queryResult.data;
+  if (!msgIds) {
+    /* ここに来るはずはないが、、 */
+    logger.error("data is undefined");
+    return;
+  }
+  if (msgIds.length > 0) {
+    const singleMsg = await gmailClient.getMessageBodyAsHtml(msgIds[1]);
+    logger.info(singleMsg);
+  }
 };
 
 getRefreshTokenTest();

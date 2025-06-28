@@ -15,7 +15,7 @@ const {
   userService,
   repeatAddProcessor,
   userSettingsProcessor,
-  mailboxExtractionService,
+  mailboxExtractionParamsService,
 } = initializeServices();
 
 /* SecretManagerを使うためにインスタンス化 */
@@ -148,7 +148,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
 
     /* ここまでちゃんとできている */
     ret =
-      await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+      await mailboxExtractionParamsService.setMailboxExtractionTokenWithEncryption(
         uid,
         mailboxToken,
         secrets.encryptionKey
