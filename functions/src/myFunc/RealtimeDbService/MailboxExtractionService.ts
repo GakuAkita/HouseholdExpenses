@@ -5,11 +5,18 @@ import {
   FuncResultWithData,
   FuncStatus,
 } from "../../type/FuncStatus";
-import { MailboxTokenType } from "../../type/Mailbox";
+import {
+  AllMailType,
+  LastMailboxExtraction,
+  MailboxTokenType,
+} from "../../type/Mailbox";
 import { admin } from "../firebaseAdmin";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
 admin;
 
+/**
+ * あくまでRealtime Databaseとのやりとりのみに務める
+ */
 export class MailboxExtractionService {
   private db: Database;
 
@@ -23,6 +30,35 @@ export class MailboxExtractionService {
 
   private getUserMailboxExtractionTokenRef(userId: string): Reference {
     return this.getUserMailboxExtractionRef(userId).child("token");
+  }
+
+  private getUserMailboxExtractionLastExecRef(userId: string): Reference {
+    return this.getUserMailboxExtractionRef(userId).child("last_exec");
+  }
+
+  /* なんかいい名前がないな～ */
+  private getUserMailboxExtractionLastExecSingleRef(
+    userId: string,
+    type: AllMailType
+  ): Reference {
+    const nodeName = type.nodeName;
+    return this.getUserMailboxExtractionLastExecRef(userId).child(nodeName);
+  }
+
+  private getUserMailboxExtractionMailTypeSettingsRef(
+    userId: string
+  ): Reference {
+    return this.getUserMailboxExtractionRef(userId).child("mail_type_settings");
+  }
+
+  private getUserMailboxExtractionSingleMailTypeSetting(
+    userId: string,
+    setting: AllMailType
+  ): Reference {
+    const nodeName = setting.nodeName;
+    return this.getUserMailboxExtractionMailTypeSettingsRef(userId).child(
+      nodeName
+    );
   }
 
   /**
@@ -138,6 +174,62 @@ export class MailboxExtractionService {
       return {
         status: FuncStatus.ERROR,
         message: `Failed to decrypt MailboxExtraction token for user ${userId}: ${error.message}`,
+      };
+    }
+  }
+
+  /**
+   * 最後の実行状況を保存
+   */
+  async setMailboxExtractionLastExec(
+    userId: string,
+    type: AllMailType /* 空のインスタンスでも良い */,
+    lastExec: LastMailboxExtraction
+  ): Promise<FuncResult> {
+    try {
+      /* typeに定義してあるnodeNameを用いてrefを決定 */
+      const ref = this.getUserMailboxExtractionSingleMailTypeSetting(
+        userId,
+        type
+      );
+
+      await ref.set(lastExec);
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "Successfully set last exec",
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `setMAilboxExtractionLastExec failed:${e.message}`,
+      };
+    }
+  }
+
+  async getMailboxExtractionLastExec(
+    userId: string,
+    type: AllMailType
+  ): FuncResultWithData<LastMailboxExtraction> {
+    try {
+      const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
+      const snapshot = await ref.once("value");
+      const data: MailboxTokenType | null = snapshot.val();
+
+      if (data == null) {
+        return {
+          status: FuncStatus.SUCCESS,
+          message: `${type.nodeName} is not executed yet.`,
+        };
+      }
+
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `getMailboxExtractionLastExec Success`,
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `getMailboxExtractionLastExec failed: ${e.message}`,
       };
     }
   }

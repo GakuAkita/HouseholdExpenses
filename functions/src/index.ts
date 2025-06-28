@@ -14,7 +14,7 @@ const {
   userService,
   repeatAddProcessor,
   userSettingsProcessor,
-  mailboxExtractionParamsService,
+  mailboxExtractionService,
   userRTDbService,
 } = initializeServices();
 
@@ -145,7 +145,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
 
     /* ここまでちゃんとできている */
     ret =
-      await mailboxExtractionParamsService.setMailboxExtractionTokenWithEncryption(
+      await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
         uid,
         mailboxToken,
         secrets.encryptionKey

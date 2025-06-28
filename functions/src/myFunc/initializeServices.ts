@@ -1,11 +1,11 @@
 import { ExpenseService } from "./FirestoreService/ExpenseService";
 import { FirestoreService } from "./FirestoreService/FirestoreService";
-import { MailboxExtractionParamsService } from "./FirestoreService/MailboxExtractionParamsService";
 import { RepeatAddService } from "./FirestoreService/RepeatAddService";
 import { SettingsService } from "./FirestoreService/SettingsService";
 import { UserService } from "./FirestoreService/UserService";
 import { RepeatAddProcessor } from "./Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./Processor/UserSettingsProcessor";
+import { MailboxExtractionService } from "./RealtimeDbService/MailboxExtractionService";
 import { RealtimeDbService } from "./RealtimeDbService/RealtimeDbService";
 import { UserRTDbService } from "./RealtimeDbService/UserRTDbService";
 
@@ -23,6 +23,7 @@ export const initializeServices = () => {
   const realtimeDb = rtService.getDb();
 
   const userRTDbService = new UserRTDbService(realtimeDb);
+  const mailboxExtractionService = new MailboxExtractionService(realtimeDb);
 
   /* Processor類 */
   const repeatAddProcessor = new RepeatAddProcessor(
@@ -35,9 +36,6 @@ export const initializeServices = () => {
     userRTDbService,
     settingsService
   );
-  const mailboxExtractionParamsService = new MailboxExtractionParamsService(
-    firestoreDb
-  );
 
   return {
     userService,
@@ -45,7 +43,7 @@ export const initializeServices = () => {
     repeatAddService,
     repeatAddProcessor,
     userSettingsProcessor,
-    mailboxExtractionParamsService,
+    mailboxExtractionService,
     userRTDbService,
   };
 };

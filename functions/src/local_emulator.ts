@@ -6,12 +6,12 @@ import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
-import { MailboxExtractionParamsService } from "./myFunc/FirestoreService/MailboxExtractionParamsService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { MailboxExtractionService } from "./myFunc/RealtimeDbService/MailboxExtractionService";
 import { RealtimeDbService } from "./myFunc/RealtimeDbService/RealtimeDbService";
 import { UserRTDbService } from "./myFunc/RealtimeDbService/UserRTDbService";
 import { decryptWithKey } from "./myFunc/utility/encryption";
@@ -41,7 +41,7 @@ const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
-const mailboxExtractionParamsService = new MailboxExtractionParamsService(db);
+const mailboxExtractionService = new MailboxExtractionService(rtdb);
 
 const userRTDbService = new UserRTDbService(rtdb);
 
@@ -160,14 +160,14 @@ const storeRefreshToken = async (rawToken: string) => {
   };
 
   const tokenSetRet =
-    await mailboxExtractionParamsService.setMailboxExtractionTokenWithEncryption(
+    await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
       "testUser",
       tokenSet,
       encryptionKey
     );
 
   const getTokenRet =
-    await mailboxExtractionParamsService.getMailboxExtractionTokenWithDecryption(
+    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
       "testUser",
       encryptionKey
     );

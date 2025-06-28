@@ -1,12 +1,12 @@
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import { GmailApiClient } from "../Client/GmailApiClient";
-import { MailboxExtractionParamsService } from "../FirestoreService/MailboxExtractionParamsService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { MailboxExtractionMailTypeSettingsService } from "../RealtimeDbService/MailboxExtractionMailTypeSetttingsService";
+import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 export class MailboxExtractionProcessor {
   constructor(
-    private mailboxExtractionParamsService: MailboxExtractionParamsService /* firestoreに対して1個 */,
+    private mailboxExtractionService: MailboxExtractionService,
     private mailboxExtractionMailTypeSettingsService: MailboxExtractionMailTypeSettingsService
   ) {}
 
@@ -39,7 +39,7 @@ export class MailboxExtractionProcessor {
      * なければ、そこで終了(楽天pay設定)
      */
     const tokenRet =
-      await this.mailboxExtractionParamsService.getMailboxExtractionTokenWithDecryption(
+      await this.mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
         userId,
         encryptionKey
       );

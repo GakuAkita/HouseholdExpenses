@@ -6,19 +6,27 @@ export interface MailboxTokenType {
 /**
  * メールタイプの設定系
  */
-export interface RakutenPaySetting {
+export type RakutenPaySetting = {
   enabled: boolean;
-  readonly documentName: "rakuten_pay";
+  readonly nodeName: "rakuten_pay";
   readonly menuName: "楽天Pay";
   shopCategoryAssignments?: Record<string, string>;
-}
+};
+export type AmazonKindle = {
+  enabled: boolean;
+  readonly nodeName: "amazon_kindle";
+  readonly menuName: "Amazopn Kindle";
+};
+
+/* ここに全ての型を含めておく */
+export type AllMailType = RakutenPaySetting | AmazonKindle;
 
 export function createRakutenPaySetting(params: {
   enabled: boolean;
   shopCategoryAssignments?: Record<string, string>;
 }): RakutenPaySetting {
   return {
-    documentName: "rakuten_pay",
+    nodeName: "rakuten_pay",
     menuName: "楽天Pay",
     ...params,
   };
@@ -29,8 +37,5 @@ export function createRakutenPaySetting(params: {
  */
 export interface LastMailboxExtraction {
   timestamp: number;
-  rakutenPayMsgId?: string /* 一番直近のだけ保持しておく!!! */;
-  shikokuPowerMsgId?: string;
-  amazonKindleMsgId?: string;
-  amazonItemMsgId?: string;
+  lastMsgId?: string;
 }
