@@ -7,7 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.MailboxExtractionFirestoreRepository
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MailboxExtractionViewModel @Inject constructor(
     private val categoryFirestoreRepository: CategoryFirestoreRepository,
-    private val mailAutoExtractionFirestoreRepository: MailboxExtractionFirestoreRepository
+    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository
 ) : ViewModel() {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -42,7 +42,7 @@ class MailboxExtractionViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val result =
-                mailAutoExtractionFirestoreRepository.fetchMailboxExtractionMailTypeSetting(
+                mailboxExtractionRepository.getMailTypeSetting(
                     instance,
                     callback = {}
                 )
@@ -55,7 +55,7 @@ class MailboxExtractionViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
-            mailAutoExtractionFirestoreRepository.setMailboxExtractionMailTypeSetting(
+            mailboxExtractionRepository.updateMailTypeSetting(
                 instance,
                 callback = callback
             )

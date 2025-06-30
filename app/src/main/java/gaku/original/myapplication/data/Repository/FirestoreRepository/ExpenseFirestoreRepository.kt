@@ -15,8 +15,9 @@ import kotlinx.coroutines.withTimeout
 import removeDataFromFirestore
 import updateDataToFirestore
 import java.time.YearMonth
+import javax.inject.Inject
 
-class ExpenseFirestoreRepository(
+class ExpenseFirestoreRepository @Inject constructor(
     private val firestoreReference: FirestoreReference
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"

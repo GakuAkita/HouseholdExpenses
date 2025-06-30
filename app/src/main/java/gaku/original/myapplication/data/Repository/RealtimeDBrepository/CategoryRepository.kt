@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
@@ -19,19 +20,19 @@ class CategoryRepository @Inject constructor(
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    suspend fun getCategoryRef(callback: (SuspendFuncStatus) -> Unit): DatabaseReference? {
+    suspend fun getCategoryRef(callback: (SuspendFuncStatusInfo) -> Unit): DatabaseReference? {
         return realtimeDbReference.getUserCategoryRef(callback)
     }
 
     suspend fun fetchAllCategories(
-        callback: (SuspendFuncStatus) -> Unit
+        callback: (SuspendFuncStatusInfo) -> Unit
     ): List<Category> {
         val funcName: String = ::fetchAllCategories.name
         var ret = emptyList<Category>()
         LogClassFuncCalled(className, funcName)
 
         val categoryRef = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
@@ -48,34 +49,49 @@ class CategoryRepository @Inject constructor(
                 }
                 Log.d(className, "Fetched Categories: $categories")
                 ret = categories
-                callback(SuspendFuncStatus.SUCCESS)
+                val statusInfo = SuspendFuncStatusInfo(
+                    status = SuspendFuncStatus.SUCCESS,
+                    errorMessage = ""
+                )
+                callback(statusInfo)
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            callback(SuspendFuncStatus.TIMEOUT)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.TIMEOUT,
+                errorMessage = "タイムアウトしました"
+            )
+            callback(statusInfo)
         } catch (e: Exception) {
             Log.d(className, "${funcName} failed. ${e.message}")
-            callback(SuspendFuncStatus.FAILED)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
+            )
+            callback(statusInfo)
         }
         return ret  // エラー時には空のリストを返す
     }
 
     suspend fun addCategory(
         category: Category,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName = ::addCategory.name
-        var ret = SuspendFuncStatus.FAILED
+        var ret = SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.SUCCESS,
+            errorMessage = ""
+        )
         LogClassFuncCalled(className, funcName)
         val ref = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
+                ret = status
                 callback(status)
             }
         }
 
         if (ref == null) {
-            callback(SuspendFuncStatus.FAILED)
-            return SuspendFuncStatus.FAILED
+            return ret
         }
 
         ret = addDataToRTDb(category, ref, callback = callback)
@@ -85,13 +101,17 @@ class CategoryRepository @Inject constructor(
 
     suspend fun updateCategory(
         category: Category,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName = ::updateCategory.name
         LogClassFuncCalled(className, funcName)
-        var ret = SuspendFuncStatus.FAILED
+        var ret = SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.SUCCESS,
+            errorMessage = ""
+        )
         val reference = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
+                ret = status
                 callback(status)
             }
         }
@@ -105,13 +125,17 @@ class CategoryRepository @Inject constructor(
 
     suspend fun removeCategory(
         category: Category,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName = ::removeCategory.name
         LogClassFuncCalled(className, funcName)
-        var ret = SuspendFuncStatus.FAILED
+        var ret = SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.SUCCESS,
+            errorMessage = ""
+        )
         val reference = getCategoryRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
+                ret = status
                 callback(status)
             }
         }
@@ -120,7 +144,6 @@ class CategoryRepository @Inject constructor(
         }
 
         ret = removeDataFromRTDb(category, reference, callback = callback)
-
         return ret
     }
 }

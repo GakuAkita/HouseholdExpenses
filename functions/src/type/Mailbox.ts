@@ -35,7 +35,7 @@ export function createRakutenPaySetting(params: {
 /**
  * Functions側で使う、保持しておきたい情報
  */
-export interface LastMailboxExtraction {
+export interface LastMailboxExtractionExec {
   timestamp: number;
   lastMsgId?: string;
 }

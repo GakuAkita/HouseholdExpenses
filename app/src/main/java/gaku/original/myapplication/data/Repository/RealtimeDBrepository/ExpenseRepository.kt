@@ -6,6 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepositoryUtil.addSingleDataToRTDb
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.TimeoutCancellationException
@@ -19,30 +20,32 @@ class ExpenseRepository(
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    suspend fun getExpenseRef(callback: (SuspendFuncStatus) -> Unit): DatabaseReference? {
+    suspend fun getExpenseRef(callback: (SuspendFuncStatusInfo) -> Unit): DatabaseReference? {
         return realtimeDbReference.getUserExpenseRef(callback)
     }
 
     //SignUp後にやる操作
     suspend fun addUserInitialData(
         email: String,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName: String = ::addUserInitialData.name
         LogClassFuncCalled(className, funcName)
-        var ret = SuspendFuncStatus.FAILED
 
         val userRef = realtimeDbReference.getUserRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status) // 失敗時に早期リターン
             }
         }
 
         if (userRef == null) {
-            return ret
+            return SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "userRefがnullでした"
+            )
         }
 
-        ret = addSingleDataToRTDb(email, "email", userRef, callback = callback)
+        val ret = addSingleDataToRTDb(email, "email", userRef, callback = callback)
 
         return ret
     }
@@ -50,7 +53,7 @@ class ExpenseRepository(
 
     // ユーザーIDに基づいてデータをリストとして返す（非同期）
     suspend fun fetchAllExpenses(
-        callback: (SuspendFuncStatus) -> Unit
+        callback: (SuspendFuncStatusInfo) -> Unit
     ): List<Expense> {
         val funcName = ::fetchAllExpenses.name
         var ret = emptyList<Expense>()
@@ -58,7 +61,7 @@ class ExpenseRepository(
 
         /* まずはreferenceを取得 */
         val expenseRef = getExpenseRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
@@ -76,27 +79,38 @@ class ExpenseRepository(
                 }
                 Log.d(className, "Fetched Expenses: $expenses")
                 ret = expenses
-                callback(SuspendFuncStatus.SUCCESS)
+                val result = SuspendFuncStatusInfo(
+                    status = SuspendFuncStatus.SUCCESS,
+                    errorMessage = ""
+                )
+                callback(result)
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            callback(SuspendFuncStatus.TIMEOUT)
+            val result = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.TIMEOUT,
+                errorMessage = "タイムアウトしました"
+            )
+            callback(result)
         } catch (e: Exception) {
             Log.d(className, "${funcName} failed. ${e.message}")
-            callback(SuspendFuncStatus.FAILED)
+            val result = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
+            )
+            callback(result)
         }
         return ret
     }
 
     suspend fun addExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
-        var ret = SuspendFuncStatus.FAILED
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName = ::addExpense.name
         LogClassFuncCalled(className, funcName)
         val reference = getExpenseRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
@@ -106,10 +120,13 @@ class ExpenseRepository(
          * ここでreturnしておけばcallbackが二回実行されることはない
          */
         if (reference == null) {
-            return ret
+            return SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "referenceがnullでした"
+            )
         }
 
-        ret = addDataToRTDb(expense, reference) { status ->
+        val ret = addDataToRTDb(expense, reference) { status ->
             callback(status)
         }
 
@@ -118,42 +135,46 @@ class ExpenseRepository(
 
     suspend fun updateExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val funcName = ::updateExpense.name
         LogClassFuncCalled(className, funcName)
-        var ret = SuspendFuncStatus.FAILED
         val reference = getExpenseRef(callback = { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         })
 
         if (reference == null) {
-            return ret
+            return SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "referenceがnullでした"
+            )
         }
 
-        ret = updateDataToRTDb(expense, reference, callback = callback)
+        val ret = updateDataToRTDb(expense, reference, callback = callback)
 
         return ret
     }
 
     suspend fun removeExpense(
         expense: Expense,
-        callback: (SuspendFuncStatus) -> Unit
-    ): SuspendFuncStatus {
-        var ret = SuspendFuncStatus.FAILED
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
         val reference = getExpenseRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {
+            if (status.status != SuspendFuncStatus.SUCCESS) {
                 callback(status)
             }
         }
 
         if (reference == null) {
-            return ret
+            return SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "referenceがnullでした"
+            )
         }
 
-        ret = removeDataFromRTDb(expense, reference, callback = callback)
+        val ret = removeDataFromRTDb(expense, reference, callback = callback)
         return ret
     }
 }

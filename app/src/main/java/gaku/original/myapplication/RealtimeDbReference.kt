@@ -6,6 +6,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.TimeoutCancellationException
@@ -26,7 +28,7 @@ class RealtimeDbReference @Inject constructor(
 
     //users配下の自分のuserIdのreferenceを返す
     // userId配下のexpenses
-    suspend fun getUserRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+    suspend fun getUserRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
         val funcName = ::getUserRef.name
         var ref: DatabaseReference? = null
         try {
@@ -35,7 +37,11 @@ class RealtimeDbReference @Inject constructor(
                     val userId = currentUserId ?: ""
                     ref = database.child("users").child(userId)
                     //currentUserIdがnullかチェックしているので問題ない
-                    callback(SuspendFuncStatus.SUCCESS)
+                    val statusInfo = SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.SUCCESS,
+                        errorMessage = ""
+                    )
+                    callback(statusInfo)
                 } ?: {
                     Log.d(className, "userId is null")
                     throw Exception("userId is null")
@@ -43,10 +49,18 @@ class RealtimeDbReference @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
-            callback(SuspendFuncStatus.TIMEOUT)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.TIMEOUT,
+                errorMessage = "Timeout : ${e.message}"
+            )
+            callback(statusInfo)
         } catch (e: Exception) {
             LogException(className, funcName, e)
-            callback(SuspendFuncStatus.FAILED)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "${e.message}"
+            )
+            callback(statusInfo)
         }
 
         return ref
@@ -56,12 +70,12 @@ class RealtimeDbReference @Inject constructor(
     private suspend fun getUserChildrenRef(
         childrenPath: List<String>,/* たどり着きたい順に名前をいれていく */
         funcName: String,
-        callback: (SuspendFuncStatus) -> Unit = {}
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): DatabaseReference? {
         var ref: DatabaseReference? = null
 
         val userRef = getUserRef { status ->
-            if (status != SuspendFuncStatus.SUCCESS) {//成功のときはスルー
+            if (status.status != SuspendFuncStatus.SUCCESS) {//成功のときはスルー
                 callback(status)
             }
         }//これで待ってくれる
@@ -87,16 +101,24 @@ class RealtimeDbReference @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
-            callback(SuspendFuncStatus.TIMEOUT)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.TIMEOUT,
+                errorMessage = "Timeout : ${e.message}"
+            )
+            callback(statusInfo)
         } catch (e: Exception) {
             LogException(className, funcName, e)
-            callback(SuspendFuncStatus.FAILED)
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "${e.message}"
+            )
+            callback(statusInfo)
         }
         return ref
     }
 
     // userId配下のexpenses
-    suspend fun getUserExpenseRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+    suspend fun getUserExpenseRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
         val funcName = ::getUserExpenseRef.name
         Log.d(className, "${funcName} was called.")
         var ref: DatabaseReference? = null
@@ -108,7 +130,7 @@ class RealtimeDbReference @Inject constructor(
     }
 
     //userId配下のcategory
-    suspend fun getUserCategoryRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+    suspend fun getUserCategoryRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
         val funcName = ::getUserCategoryRef.name
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
@@ -119,7 +141,7 @@ class RealtimeDbReference @Inject constructor(
         return ref
     }
 
-    suspend fun getUserSettingsRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+    suspend fun getUserSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
         val funcName = ::getUserSettingsRef.name
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
@@ -130,7 +152,7 @@ class RealtimeDbReference @Inject constructor(
         return ref
     }
 
-    suspend fun getUserRepeatAddRef(callback: (SuspendFuncStatus) -> Unit = {}): DatabaseReference? {
+    suspend fun getUserRepeatAddRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
         val funcName = ::getUserRepeatAddRef.name
         Log.d(className, "${funcName} was called")
         var ref: DatabaseReference? = null
@@ -138,6 +160,38 @@ class RealtimeDbReference @Inject constructor(
 
         ref = getUserChildrenRef(childrenPath, funcName, callback)
 
+        return ref
+    }
+
+    /* MailboxExtraction配下 */
+    suspend fun getMailboxExtractionRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getMailboxExtractionRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        val childrenPath = listOf("mailbox_extraction")
+
+        ref = getUserChildrenRef(childrenPath, funcName, callback)
+
+        return ref
+    }
+
+    suspend fun getMailboxExtractionMailTypeSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
+        val funcName = ::getMailboxExtractionRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        ref = getMailboxExtractionRef(callback)?.child("mail_type_settings")
+
+        return ref
+    }
+
+    suspend fun getMailboxExtractionMailTypeSettingSingleRef(
+        type: MailboxExtractionCommon,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ): DatabaseReference? {
+        val funcName = ::getMailboxExtractionRef.name
+        Log.d(className, "${funcName} was called")
+        var ref: DatabaseReference? = null
+        ref = getMailboxExtractionMailTypeSettingsRef(callback)?.child(type.documentName)
         return ref
     }
 }

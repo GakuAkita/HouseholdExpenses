@@ -7,7 +7,7 @@ import {
 } from "../../type/FuncStatus";
 import {
   AllMailType,
-  LastMailboxExtraction,
+  LastMailboxExtractionExec,
   MailboxTokenType,
 } from "../../type/Mailbox";
 import { admin } from "../firebaseAdmin";
@@ -51,7 +51,7 @@ export class MailboxExtractionService {
     return this.getUserMailboxExtractionRef(userId).child("mail_type_settings");
   }
 
-  private getUserMailboxExtractionSingleMailTypeSetting(
+  private getUserMailboxExtractionSingleMailTypeSettingRef(
     userId: string,
     setting: AllMailType
   ): Reference {
@@ -179,19 +179,16 @@ export class MailboxExtractionService {
   }
 
   /**
-   * 最後の実行状況を保存
+   * 各メールタイプの最終実行情報を取得
    */
   async setMailboxExtractionLastExec(
     userId: string,
     type: AllMailType /* 空のインスタンスでも良い */,
-    lastExec: LastMailboxExtraction
+    lastExec: LastMailboxExtractionExec
   ): Promise<FuncResult> {
     try {
       /* typeに定義してあるnodeNameを用いてrefを決定 */
-      const ref = this.getUserMailboxExtractionSingleMailTypeSetting(
-        userId,
-        type
-      );
+      const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
 
       await ref.set(lastExec);
       return {
@@ -209,11 +206,12 @@ export class MailboxExtractionService {
   async getMailboxExtractionLastExec(
     userId: string,
     type: AllMailType
-  ): FuncResultWithData<LastMailboxExtraction> {
+  ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
     try {
       const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
       const snapshot = await ref.once("value");
-      const data: MailboxTokenType | null = snapshot.val();
+      const data: LastMailboxExtractionExec | null =
+        snapshot.val(); /* nullなのか型変換ミスなのか見分けづらいかも。 */
 
       if (data == null) {
         return {
@@ -225,11 +223,33 @@ export class MailboxExtractionService {
       return {
         status: FuncStatus.SUCCESS,
         message: `getMailboxExtractionLastExec Success`,
+        data: data,
       };
     } catch (e: any) {
       return {
         status: FuncStatus.ERROR,
         message: `getMailboxExtractionLastExec failed: ${e.message}`,
+      };
+    }
+  }
+
+  /**
+   * 各メールタイプの設定を取得する
+   * あ～やっぱ店名とか
+   */
+  async getMailboxExtractionMailTypeSetting(
+    userId: string,
+    type: AllMailType
+  ): FuncResultWithData<AllMailType> {
+    try {
+      const ref = this.getUserMailboxExtractionSingleMailTypeSettingRef(
+        userId,
+        type
+      );
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `getMailboxExtractionMailTypeSetting failed:${e.message}`,
       };
     }
   }

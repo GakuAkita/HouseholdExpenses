@@ -18,7 +18,7 @@ export class UserRTDbService {
 
   async setUserData(userId: string, userData: UserData): Promise<FuncResult> {
     try {
-      await this.getUserRef(userId).set(userData);
+      await this.getUserRef(userId).update(userData);
       return {
         status: FuncStatus.SUCCESS,
         message: "Successfully set userData",

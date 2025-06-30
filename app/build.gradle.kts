@@ -83,6 +83,7 @@ dependencies {
     val nav_version = "2.7.5"
     val room_version = "2.6.1"
     val hilt_version = "2.51.1"
+    val gson_version = "2.10.1"
 
     //外部のライブラリいただく
     // The compose calendar library for Android
@@ -102,6 +103,10 @@ dependencies {
 
     //nestedClassを使うため
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    //Gson
+    implementation("com.google.code.gson:gson:${gson_version}")
+
 
     /**************************Room DB用************************************/
     // Roomのコアライブラリ

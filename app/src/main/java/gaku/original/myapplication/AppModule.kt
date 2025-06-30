@@ -14,6 +14,7 @@ import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAdd
 import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.CategoryRepository
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.ExpenseRepository
+import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
@@ -106,6 +107,14 @@ object AppModule {
         firestoreReference: FirestoreReference
     ): MailboxExtractionFirestoreRepository {
         return MailboxExtractionFirestoreRepository(firestoreReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideMailboxExtractionRTDbRepository(
+        realtimeDbReference: RealtimeDbReference
+    ): MailboxExtractionRTDbRepository {
+        return MailboxExtractionRTDbRepository(realtimeDbReference)
     }
 
     @Provides

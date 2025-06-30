@@ -11,8 +11,9 @@ import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import javax.inject.Inject
 
-class MailboxExtractionFirestoreRepository(
+class MailboxExtractionFirestoreRepository @Inject constructor(
     private val firestoreReference: FirestoreReference
 ) {
     val className = this::class.simpleName ?: "UnableToGetClassName"
