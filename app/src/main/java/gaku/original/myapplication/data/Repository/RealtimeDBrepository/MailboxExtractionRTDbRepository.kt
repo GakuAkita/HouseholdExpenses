@@ -7,6 +7,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
+import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -69,10 +70,21 @@ class MailboxExtractionRTDbRepository @Inject constructor(
             return ret
         }
 
+        /* インスタンスからクラス名を取得 */
+        val kClass = getMailboxExtractionInternalClass(setting)
+        if (kClass == null) {
+            val errResult = FetchResult<MailboxExtractionCommon>(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Unknown type: ${setting::class.simpleName}"
+            )
+            callback(errResult.toSuspendFuncStatusInfo())
+            return errResult
+        }
+
         return try {
             withTimeout(10000) {
                 val snapshot = ref.get().await()
-                val data = snapshot.getValue(MailboxExtractionCommon::class.java)
+                val data = snapshot.getValue(kClass.java)
                 if (data == null) {
                     val result = FetchResult<MailboxExtractionCommon>(
                         status = SuspendFuncStatus.SUCCESS,//呼び出し側でnullなのかチェックを。

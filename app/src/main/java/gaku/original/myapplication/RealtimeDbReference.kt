@@ -1,10 +1,9 @@
 package gaku.original.myapplication
 
 import android.util.Log
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.database
+import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
@@ -21,7 +20,9 @@ class RealtimeDbReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val database = Firebase.database.reference//users配下にそれぞれのuserIdが存在
+    private val database = FirebaseDatabase
+        .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
+        .reference//users配下にそれぞれのuserIdが存在
 
     private val currentUserId: String?
         get() = firebaseAuth.currentUser?.uid
