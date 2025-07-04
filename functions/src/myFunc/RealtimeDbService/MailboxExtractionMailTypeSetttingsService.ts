@@ -30,7 +30,7 @@ export class MailboxExtractionMailTypeSettingsService {
     }); /* ここで指定されたdocumentNameがほしいだけに定義 */
 
     return this.getUserMailboxExtractionMailTypeSettingsColRef(userId).doc(
-      sampleRakuten.documentName
+      sampleRakuten.nodeName
     );
   }
 

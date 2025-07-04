@@ -7,8 +7,10 @@ import {
 } from "../../type/FuncStatus";
 import {
   AllMailType,
+  createRakutenPaySettingInstance,
   LastMailboxExtractionExec,
   MailboxTokenType,
+  RakutenPaySetting,
 } from "../../type/Mailbox";
 import { admin } from "../firebaseAdmin";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
@@ -116,7 +118,7 @@ export class MailboxExtractionService {
   ): Promise<FuncResultWithData<MailboxTokenType>> {
     const ref = this.getUserMailboxExtractionTokenRef(userId);
     try {
-      const snapshot = await ref.once("value");
+      const snapshot = await ref.get();
       const data: MailboxTokenType | null = snapshot.val();
 
       if (!data || !data.refreshToken) {
@@ -209,7 +211,7 @@ export class MailboxExtractionService {
   ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
     try {
       const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
-      const snapshot = await ref.once("value");
+      const snapshot = await ref.get();
       const data: LastMailboxExtractionExec | null =
         snapshot.val(); /* nullなのか型変換ミスなのか見分けづらいかも。 */
 
@@ -235,21 +237,70 @@ export class MailboxExtractionService {
 
   /**
    * 各メールタイプの設定を取得する
-   * あ～やっぱ店名とか
    */
   async getMailboxExtractionMailTypeSetting(
     userId: string,
     type: AllMailType
-  ): FuncResultWithData<AllMailType> {
+  ): Promise<FuncResultWithData<AllMailType>> {
     try {
       const ref = this.getUserMailboxExtractionSingleMailTypeSettingRef(
         userId,
         type
       );
+      const snapshot = await ref.get();
+      const data: AllMailType | null = snapshot.val();
+      if (data == null) {
+        return {
+          status: FuncStatus.EMPTY,
+          message: "Data was null",
+        };
+      }
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "Successfully get data",
+        data: data,
+      };
     } catch (e: any) {
       return {
         status: FuncStatus.ERROR,
         message: `getMailboxExtractionMailTypeSetting failed:${e.message}`,
+      };
+    }
+  }
+
+  /**
+   * 楽天Payの設定を取り出す（ラップしているだけ）
+   */
+  async getRakutenPaySetting(
+    userId: string
+  ): Promise<FuncResultWithData<RakutenPaySetting>> {
+    const rakuntePaySample = createRakutenPaySettingInstance({
+      enabled: true,
+    });
+    const ret = await this.getMailboxExtractionMailTypeSetting(
+      userId,
+      rakuntePaySample
+    );
+
+    if (ret.status != FuncStatus.SUCCESS) {
+      return {
+        status: ret.status,
+        message: ret.message,
+      };
+    }
+
+    const data = ret.data;
+    if (data?.nodeName == rakuntePaySample.nodeName) {
+      return {
+        status: ret.status,
+        message: ret.message,
+        data: data as RakutenPaySetting,
+      };
+    } else {
+      /* ここに来ることはないけどな、、 */
+      return {
+        status: FuncStatus.ERROR,
+        message: "Returned mail type was not RakutenPay",
       };
     }
   }

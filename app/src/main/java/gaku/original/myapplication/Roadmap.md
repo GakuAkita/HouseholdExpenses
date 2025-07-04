@@ -46,7 +46,7 @@
   repeatAdd は category の id だけ保持しておけば良い、、)
 - done:::refresh_token を暗号化して保存
 - RepeatAdd 画面でスワイプすると削除ボタンが現れると案内を出す
-- Not Categorized タブの作成。外部連携のやつは null でいれる。
+- Not Categorized タブの作成。外部連携のやつは null でいれる。not categorizedのやつを保存するときに、mailタイプを更新する
 - 日付のやつが直ってない!!
 -
 - デザインを整える

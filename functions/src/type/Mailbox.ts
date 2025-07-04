@@ -21,7 +21,7 @@ export type AmazonKindle = {
 /* ここに全ての型を含めておく */
 export type AllMailType = RakutenPaySetting | AmazonKindle;
 
-export function createRakutenPaySetting(params: {
+export function createRakutenPaySettingInstance(params: {
   enabled: boolean;
   shopCategoryAssignments?: Record<string, string>;
 }): RakutenPaySetting {

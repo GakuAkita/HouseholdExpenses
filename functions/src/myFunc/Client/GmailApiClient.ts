@@ -87,13 +87,6 @@ export class GmailApiClient {
       );
 
       const messages = res.data.messages as { id: string }[] | undefined;
-      if (messages === undefined) {
-        return {
-          status: FuncStatus.ERROR,
-          message: "Unable to convert to ids",
-        };
-      }
-
       const msgIds = messages?.map((msg) => msg.id) ?? [];
       return {
         status: FuncStatus.SUCCESS,

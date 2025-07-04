@@ -10,7 +10,9 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
     }
   ],
   "emulators": {
@@ -27,12 +29,22 @@
     },
     "auth": {
       "port": 9099
+    },
+    "hosting": {
+      "port": 5003
+    },
+    "database": {
+      "port": 9000
     }
   },
   "hosting": {
     "public": "public",
     "site": "householdexpenses2",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "/callback",

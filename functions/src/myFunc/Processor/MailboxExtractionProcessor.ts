@@ -1,14 +1,19 @@
+import { logger } from "firebase-functions";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
+import {
+  createRakutenPaySettingInstance,
+  RakutenPaySetting,
+} from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
-import { MailboxExtractionMailTypeSettingsService } from "../RealtimeDbService/MailboxExtractionMailTypeSetttingsService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
+import {
+  convertUnixMillisecToSec,
+  getCurrentUnixMillisec,
+} from "../utility/getCurrentUnixSec";
 export class MailboxExtractionProcessor {
-  constructor(
-    private mailboxExtractionService: MailboxExtractionService,
-    private mailboxExtractionMailTypeSettingsService: MailboxExtractionMailTypeSettingsService
-  ) {}
+  constructor(private mailboxExtractionService: MailboxExtractionService) {}
 
   async generateGmailApiInstance(
     userId: string
@@ -45,7 +50,7 @@ export class MailboxExtractionProcessor {
       );
 
     if (tokenRet.status == FuncStatus.EMPTY) {
-      /* まだユーザーが楽天Payの設定をしていない */
+      /* まだユーザーがGmailのトークンの設定をしていない */
       return {
         status: FuncStatus.SUCCESS,
         message: "Rakuten Pay settting is not set by the user",
@@ -85,7 +90,131 @@ export class MailboxExtractionProcessor {
     };
   }
 
-  /* ここまでは全部どのメールを取ろうが共通だから関数化したほうがいいな。 */
+  async getRakutenPayMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
+    endTime: number /* 時間で絞るための終了時刻(秒:整数) */
+  ): Promise<FuncResultWithData<string[]>> {
+    /* まずはクエリをして楽天Payを抽出する */
+    const subjectIncluded = "楽天ペイアプリご利用内容確認メール";
+
+    /**
+     * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
+     * したがって、endTimeに+1をしてendTimeも含めるようにする
+     */
+    const query = `subject:${subjectIncluded} after:${startTime} before:${
+      endTime + 1
+    }`;
+
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
+  async processRakutenPayMails(userId: string) {
+    /**
+     * まずそもそも楽天Payの設定をユーザーがしているかチェック
+     */
+    const rakutenPaySample: RakutenPaySetting = createRakutenPaySettingInstance(
+      {
+        enabled: true,
+      }
+    );
+    const rakutenPayRet =
+      await this.mailboxExtractionService.getRakutenPaySetting(userId);
+
+    if (rakutenPayRet.status == FuncStatus.EMPTY) {
+      logger.info("user didn't turn on RakutenPay setting yet.");
+      return;
+    } else if (
+      rakutenPayRet.status != FuncStatus.SUCCESS ||
+      rakutenPayRet.data === null
+    ) {
+      logger.info(`${rakutenPayRet.message}`);
+      return;
+    } else if (rakutenPayRet.data?.enabled == false) {
+      /* 設定は存在するがOFFにしているので、行わない */
+      logger.info(`The user doesn't set Rakutenpay enabled.`);
+      return;
+    }
+
+    /**
+     * RealtimeDatabaseのlastExecを取ってくる。
+     * 取ってきたら
+     */
+    const lastExecRet =
+      await this.mailboxExtractionService.getMailboxExtractionLastExec(
+        userId,
+        rakutenPaySample
+      );
+
+    if (lastExecRet.status != FuncStatus.SUCCESS) {
+      logger.info(`${lastExecRet.message}`);
+      return;
+    }
+
+    /* 開始時刻と終了時刻を設定 */
+    const endTime = getCurrentUnixMillisec();
+    const lastMsgId = lastExecRet.data?.lastMsgId; /* nullの可能性もある */
+    let startTime: number = 0;
+    if (!lastExecRet.data?.timestamp) {
+      /* timestampがない場合 */
+      startTime = endTime - 60 * 5 * 1000; /* 5分前の時間を開始時刻とする */
+    } else {
+      startTime =
+        lastExecRet.data
+          .timestamp; /* タイムスタンプがすでにあるならそれを使う */
+    }
+
+    /**
+     * GmailApiを取得してくる
+     */
+    const gmailClientRet = await this.generateGmailApiInstance(userId);
+    if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
+      logger.info(`${gmailClientRet.message}`);
+      return;
+    }
+    const gmailCliet: GmailApiClient = gmailClientRet.data;
+
+    /**
+     * クエリをして、
+     */
+    const queryAfter = convertUnixMillisecToSec(startTime);
+    const queryBefore = convertUnixMillisecToSec(endTime);
+    const queryRet = await this.getRakutenPayMailIds(
+      gmailCliet,
+      queryAfter,
+      queryBefore
+    );
+    if (queryRet.status != FuncStatus.SUCCESS) {
+      /**
+       * クエリに事故っているならタイムスタンプは更新しない方が良い
+       * ここで更新してしまうと今回の実行時と次の実行時の間のメッセージがスキップされてしまう
+       */
+      logger.error(`${queryRet.message}`);
+      return;
+    }
+
+    if (!queryRet.data || queryRet.data.length === 0) {
+      /**
+       * 何もヒットしなかった
+       */
+      logger.info("Nothing was found After query.");
+
+      await this.mailboxExtractionService.setMailboxExtractionLastExec(
+        userId,
+        rakutenPaySample,
+        {
+          timestamp: endTime /* UNIXミリ秒で保存 */,
+          ...lastExecRet.data,
+        }
+      );
+    } else {
+      /**
+       * クエリでなにかしらヒットした
+       */
+      logger.info(`Found mails ${queryRet.data.length}`);
+    }
+  }
 
   // /**
   //  * 楽天Payのデータを取得するためのクエリを定義して検索
