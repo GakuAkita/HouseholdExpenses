@@ -247,7 +247,7 @@ export class MailboxExtractionService {
         userId,
         type
       );
-      const snapshot = await ref.get();
+      const snapshot = await ref.get(); //ここで止まっているな
       const data: AllMailType | null = snapshot.val();
       if (data == null) {
         return {
@@ -268,6 +268,30 @@ export class MailboxExtractionService {
     }
   }
 
+  async setMailboxExtractionMailTypeSetting(
+    userId: string,
+    setting: AllMailType
+  ): Promise<FuncResult> {
+    try {
+      /* typeに定義してあるnodeNameを用いてrefを決定 */
+      const ref = this.getUserMailboxExtractionSingleMailTypeSettingRef(
+        userId,
+        setting
+      );
+
+      await ref.set(setting);
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "Successfully set last exec",
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `setMAilboxExtractionLastExec failed:${e.message}`,
+      };
+    }
+  }
+
   /**
    * 楽天Payの設定を取り出す（ラップしているだけ）
    */
@@ -277,6 +301,7 @@ export class MailboxExtractionService {
     const rakuntePaySample = createRakutenPaySettingInstance({
       enabled: true,
     });
+
     const ret = await this.getMailboxExtractionMailTypeSetting(
       userId,
       rakuntePaySample

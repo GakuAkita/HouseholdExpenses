@@ -9,6 +9,7 @@ import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
+import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
 import { MailboxExtractionService } from "./myFunc/RealtimeDbService/MailboxExtractionService";
@@ -22,14 +23,26 @@ import {
   BaseGoogleOAuthConfig,
   GoogleOAuthSecrets,
 } from "./type/GoogleOAuthSecrets";
-import { MailboxTokenType } from "./type/Mailbox";
+import {
+  createRakutenPaySettingInstance,
+  MailboxTokenType,
+} from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
+/* -----------Firebase Databaseに接続するため---------------- */
+const emulatorHost =
+  process.env.FIREBASE_DATABASE_EMULATOR_HOST || "http://localhost:9000";
+const databaseURL = emulatorHost.startsWith("http")
+  ? `${emulatorHost}?ns=${process.env.FIREBASE_PROJECT_ID}`
+  : `http://${emulatorHost}?ns=${process.env.FIREBASE_PROJECT_ID}`;
+/* --------------------------------------------------------- */
+
 const firebaseOptions = {
   projectId: process.env.FIREBASE_PROJECT_ID,
+  databaseURL: databaseURL,
 };
 const fsService = new FirestoreService(firebaseOptions);
 const db = fsService.getDb();
@@ -42,6 +55,9 @@ const expenseService = new ExpenseService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
 const mailboxExtractionService = new MailboxExtractionService(rtdb);
+const mailboxExProcessor = new MailboxExtractionProcessor(
+  mailboxExtractionService
+);
 
 const userRTDbService = new UserRTDbService(rtdb);
 
@@ -111,6 +127,14 @@ const init_add = async () => {
   } else {
     console.error("Failed to update RepeatAdd:", set_ret.message);
   }
+
+  const r10Setting = createRakutenPaySettingInstance({
+    enabled: true,
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    r10Setting
+  );
 
   console.log("Data written to emulator.");
 };
@@ -231,4 +255,11 @@ const getRefreshTokenTest = async () => {
   }
 };
 
-getRefreshTokenTest();
+// getRefreshTokenTest();
+
+const processRakuten = async () => {
+  await mailboxExProcessor.processRakutenPayMails(userId);
+  logger.debug("processRakuten Done");
+};
+
+processRakuten();

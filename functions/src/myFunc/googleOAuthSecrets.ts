@@ -21,43 +21,38 @@ export const loadGoogleOAuthSecrets = async (): Promise<
   }
 
   const secretName = "GOOGLE_OAUTH2";
-  const [version] = await secretClient.accessSecretVersion({
-    name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
-  });
 
-  const data = version.payload?.data as Buffer | undefined;
-  if (!data) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Failed to load secret from Secret Manager.",
-      data: undefined,
-    };
-  }
-
-  let parsed: GoogleOAuthSecrets;
   try {
-    parsed = JSON.parse(data.toString("utf8"));
-  } catch (err) {
+    const [version] = await secretClient.accessSecretVersion({
+      name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+    });
+
+    const data = version.payload?.data as Buffer | undefined;
+    if (!data) throw new Error("Failed to load secret from Secret Manager.");
+
+    let parsed: GoogleOAuthSecrets;
+    try {
+      parsed = JSON.parse(data.toString("utf8"));
+    } catch {
+      throw new Error("Failed to parse secret JSON.");
+    }
+
+    const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;
+    if (!clientId || !clientSecret || !redirectUri || !encryptionKey) {
+      throw new Error("Incomplete secret fields.");
+    }
+
+    cachedGoogleOAuthSecrets = parsed;
+    return {
+      status: FuncStatus.SUCCESS,
+      message: "Google OAuth secrets loaded successfully.",
+      data: parsed,
+    };
+  } catch (e) {
     return {
       status: FuncStatus.ERROR,
-      message: "Failed to parse secret JSON.",
+      message: e instanceof Error ? e.message : String(e),
       data: undefined,
     };
   }
-
-  const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;
-  if (!clientId || !clientSecret || !redirectUri || !encryptionKey) {
-    return {
-      status: FuncStatus.ERROR,
-      message: "Incomplete secret fields.",
-      data: undefined,
-    };
-  }
-
-  cachedGoogleOAuthSecrets = parsed;
-  return {
-    status: FuncStatus.SUCCESS,
-    message: "Google OAuth secrets loaded successfully.",
-    data: parsed,
-  };
 };
