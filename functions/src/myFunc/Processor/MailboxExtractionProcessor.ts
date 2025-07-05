@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { gmail_v1 } from "googleapis";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import {
@@ -8,10 +9,12 @@ import {
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
+import { extractTextBody } from "../utility/extractHtmlBody";
 import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
+
 export class MailboxExtractionProcessor {
   constructor(private mailboxExtractionService: MailboxExtractionService) {}
 
@@ -40,7 +43,7 @@ export class MailboxExtractionProcessor {
     const encryptionKey: string = oauthSecrets.encryptionKey;
 
     /**
-     * firestoreにrefreshTokenがあるかチェックする
+     * RealtimeDBにrefreshTokenがあるかチェックする
      * なければ、そこで終了(楽天pay設定)
      */
     const tokenRet =
@@ -67,7 +70,7 @@ export class MailboxExtractionProcessor {
     if (!tokenRet.data) {
       return {
         status: FuncStatus.ERROR,
-        message: "token was taken from Firestore, but data was empty",
+        message: "token was taken from Realtime Database, but data was empty",
       };
     }
     const refreshToken = tokenRet.data?.refreshToken;
@@ -77,6 +80,10 @@ export class MailboxExtractionProcessor {
       clientSecret: oauthSecrets.clientSecret,
       refreshToken: refreshToken,
     };
+
+    logger.debug(
+      `Gmail Config:${gmailConfig.clientId} ${gmailConfig.clientSecret} ${gmailConfig.refreshToken}`
+    );
 
     /**
      * configをもとにGmailApiClientのインスタンス作成
@@ -101,11 +108,11 @@ export class MailboxExtractionProcessor {
     /**
      * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
      * したがって、endTimeに+1をしてendTimeも含めるようにする
+     * ちょっとここらへんが怖いな、
      */
-    const query = `subject:${subjectIncluded} after:${startTime} before:${
-      endTime + 1
-    }`;
-
+    const endTimeAdded = endTime + 1;
+    const query = `subject:${subjectIncluded} after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
     const funcResult = await gmailClient.queryMessages(query);
     return funcResult;
   }
@@ -176,9 +183,16 @@ export class MailboxExtractionProcessor {
     const gmailCliet: GmailApiClient = gmailClientRet.data;
 
     /**
-     * クエリをして、
+     * クエリをして、msgIdを取得
      */
-    const queryAfter = convertUnixMillisecToSec(startTime);
+    /*　デバッグのため、Afterだけ書き換える!! */
+    const akitaDebug = true;
+    let queryAfter: number = 0;
+    if (akitaDebug) {
+      queryAfter = 1;
+    }
+
+    /*const queryAfter = convertUnixMillisecToSec(startTime);//本番はこっち */
     const queryBefore = convertUnixMillisecToSec(endTime);
     const queryRet = await this.getRakutenPayMailIds(
       gmailCliet,
@@ -212,7 +226,17 @@ export class MailboxExtractionProcessor {
       /**
        * クエリでなにかしらヒットした
        */
+      const messageMap: Record<string, gmail_v1.Schema$Message | undefined> =
+        {}; /* ここにデータをいれていく */
+      const hitMsgIds = queryRet.data;
       logger.info(`Found mails ${queryRet.data.length}`);
+
+      for (const id of hitMsgIds) {
+        console.log("\n\n---------------------------------\n");
+        const res = await gmailCliet.getMessageDetail(id);
+        messageMap[id] = res.data;
+        logger.debug(`${extractTextBody(messageMap[id]?.payload)}`);
+      }
     }
   }
 

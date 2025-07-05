@@ -1,5 +1,6 @@
 import axios from "axios";
 import { logger } from "firebase-functions";
+import { gmail_v1 } from "googleapis";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import { extractHtmlBody } from "../utility/extractHtmlBody";
@@ -120,7 +121,9 @@ export class GmailApiClient {
   /**
    * 単一のメッセージの詳細を取得する
    */
-  async getMessageDetail(messageId: string): Promise<FuncResultWithData<any>> {
+  async getMessageDetail(
+    messageId: string
+  ): Promise<FuncResultWithData<gmail_v1.Schema$Message>> {
     const auth = await this.authorize();
     if (auth.status !== FuncStatus.SUCCESS || !auth.data) {
       return {
@@ -129,7 +132,7 @@ export class GmailApiClient {
       };
     }
     try {
-      const res = await axios.get(
+      const res = await axios.get<gmail_v1.Schema$Message>(
         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}`,
         {
           headers: {
@@ -158,14 +161,18 @@ export class GmailApiClient {
     messageId: string
   ): Promise<FuncResultWithData<string>> {
     const ret = await this.getMessageDetail(messageId);
-    console.log(ret.data.payload.parts);
     if (ret.status != FuncStatus.SUCCESS) {
       return {
         status: ret.status,
         message: ret.message,
       };
     }
-
+    if (!ret.data) {
+      return {
+        status: FuncStatus.ERROR,
+        message: "getMessageBodyAsHtml: data was empty.",
+      };
+    }
     const body = extractHtmlBody(ret.data.payload);
     if (body == null) {
       return {

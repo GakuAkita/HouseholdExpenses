@@ -5,7 +5,10 @@ import {
   FuncResultWithData,
   FuncStatus,
 } from "../../type/FuncStatus";
-import { createRakutenPaySetting, RakutenPaySetting } from "../../type/Mailbox";
+import {
+  createRakutenPaySettingInstance,
+  RakutenPaySetting,
+} from "../../type/Mailbox";
 
 export class MailboxExtractionMailTypeSettingsService {
   private db: Firestore;
@@ -25,7 +28,7 @@ export class MailboxExtractionMailTypeSettingsService {
   }
 
   private getUserMailboxExtractionRakutenPayDocRef(userId: string) {
-    const sampleRakuten = createRakutenPaySetting({
+    const sampleRakuten = createRakutenPaySettingInstance({
       enabled: true,
     }); /* ここで指定されたdocumentNameがほしいだけに定義 */
 
@@ -74,7 +77,7 @@ export class MailboxExtractionMailTypeSettingsService {
    */
   async setRakutenPaySetting(userId: string) {
     const docRef = this.getUserMailboxExtractionRakutenPayDocRef(userId);
-    const sampleRakuten: RakutenPaySetting = createRakutenPaySetting({
+    const sampleRakuten: RakutenPaySetting = createRakutenPaySettingInstance({
       enabled: true,
       shopCategoryAssignments: {
         FamiltyMart: "cateogryId",

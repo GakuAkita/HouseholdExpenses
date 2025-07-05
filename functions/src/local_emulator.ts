@@ -136,6 +136,20 @@ const init_add = async () => {
     r10Setting
   );
 
+  /**
+   * refreshTokenをRTDbに保存しておく
+   */
+  const encryptedToken = process.env.ENCRYPTED_REFRESH_TOKEN;
+  if (encryptedToken !== undefined) {
+    const tokenConf: MailboxTokenType = {
+      refreshToken: encryptedToken,
+    };
+    const refreshTokenRet = mailboxExtractionService.setMailboxExtractionToken(
+      userId,
+      tokenConf
+    );
+  }
+
   console.log("Data written to emulator.");
 };
 

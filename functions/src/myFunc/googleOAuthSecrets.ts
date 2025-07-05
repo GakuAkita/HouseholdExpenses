@@ -20,21 +20,35 @@ export const loadGoogleOAuthSecrets = async (): Promise<
     };
   }
 
-  const secretName = "GOOGLE_OAUTH2";
+  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
 
   try {
-    const [version] = await secretClient.accessSecretVersion({
-      name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
-    });
-
-    const data = version.payload?.data as Buffer | undefined;
-    if (!data) throw new Error("Failed to load secret from Secret Manager.");
-
     let parsed: GoogleOAuthSecrets;
-    try {
-      parsed = JSON.parse(data.toString("utf8"));
-    } catch {
-      throw new Error("Failed to parse secret JSON.");
+    if (isEmulator) {
+      logger.log(
+        "Loading secrets from local environment variables (EMULATOR Mode)"
+      );
+      const config = process.env.GOOGLE_OAUTH_SECRETS;
+      if (!config) {
+        throw new Error(`Unable to find secrets in env`);
+      }
+
+      parsed = JSON.parse(config);
+    } else {
+      logger.log("Loading secrets from Secret Manager");
+      const secretName = "GOOGLE_OAUTH2";
+      const [version] = await secretClient.accessSecretVersion({
+        name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+      });
+
+      const data = version.payload?.data as Buffer | undefined;
+      if (!data) throw new Error("Failed to load secret from Secret Manager.");
+
+      try {
+        parsed = JSON.parse(data.toString("utf8"));
+      } catch {
+        throw new Error("Failed to parse secret JSON.");
+      }
     }
 
     const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;

@@ -66,7 +66,7 @@ export class MailboxExtractionService {
   /**
    * 単純にメールボックス取得のためのパラメータを保存
    */
-  private async setMailboxExtractionToken(
+  async setMailboxExtractionToken(
     userId: string,
     token: MailboxTokenType
   ): Promise<FuncResult> {

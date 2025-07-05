@@ -8,4 +8,6 @@ export interface Expense {
   amount?: number;
   category?: Category;
   note?: string;
+  storeName?: string;
+  itemName?: string;
 }
