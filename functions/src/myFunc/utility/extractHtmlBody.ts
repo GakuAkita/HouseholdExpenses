@@ -1,5 +1,4 @@
 import { gmail_v1 } from "googleapis";
-import { convert } from "html-to-text";
 
 export function extractHtmlBody(
   payload: gmail_v1.Schema$MessagePart | undefined
@@ -37,11 +36,11 @@ export function extractTextBody(
       return Buffer.from(part.body.data, "base64url").toString("utf8");
     }
 
-    // fallback: text/html
-    if (part.mimeType === "text/html" && part.body?.data) {
-      const html = Buffer.from(part.body.data, "base64url").toString("utf8");
-      return convert(html, { wordwrap: false }); // fallback: html→text
-    }
+    // // fallback: text/html
+    // if (part.mimeType === "text/html" && part.body?.data) {
+    //   const html = Buffer.from(part.body.data, "base64url").toString("utf8");
+    //   return convert(html, { wordwrap: false }); // fallback: html→text
+    // }
 
     // multipart系なら再帰的に探す
     if (part.mimeType?.startsWith("multipart/") && part.parts) {

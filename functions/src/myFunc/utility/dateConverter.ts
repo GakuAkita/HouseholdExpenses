@@ -12,7 +12,7 @@ export function convertToUtcIsoString(date: Date, timeZone: string): string {
 
   if (!dt.isValid) {
     console.error(`Invalid time zone: ${timeZone} — ${dt.invalidExplanation}`);
-    return TimeZone.JST; //事故っていたら日本時間に設定
+    timeZone = TimeZone.JST; //事故っていたら日本時間に設定
   }
 
   return dt.toUTC().toISO();

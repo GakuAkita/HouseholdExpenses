@@ -4,6 +4,7 @@ import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
+import { CategoryService } from "./myFunc/FirestoreService/CategoryService";
 import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
 import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
@@ -52,11 +53,14 @@ const rtdb = rtdbService.getDb();
 
 const userService = new UserService(db);
 const expenseService = new ExpenseService(db);
+const categoryService = new CategoryService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
 const mailboxExtractionService = new MailboxExtractionService(rtdb);
 const mailboxExProcessor = new MailboxExtractionProcessor(
-  mailboxExtractionService
+  mailboxExtractionService,
+  expenseService,
+  categoryService
 );
 
 const userRTDbService = new UserRTDbService(rtdb);
@@ -84,6 +88,15 @@ const init_add = async () => {
     name: "Food",
     enabled: true,
   };
+  await categoryService.addCategory(userId, sampleCategory);
+  const sampleCategory2: Category = {
+    id: "category2",
+    timestamp: Date.now(),
+    name: "消費",
+    enabled: true,
+  };
+  await categoryService.addCategory(userId, sampleCategory2);
+
   const sampleExpense: Expense = {
     timestamp: Date.now(),
     amount: 100,

@@ -1,22 +1,47 @@
 import { logger } from "firebase-functions";
 import { gmail_v1 } from "googleapis";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { GeneratedType } from "../../constants/GeneratedType";
+import { Category } from "../../type/Category";
+import { Expense } from "../../type/Expense";
+import {
+  FuncResult,
+  FuncResultWithData,
+  FuncStatus,
+} from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import {
+  AllMailType,
   createRakutenPaySettingInstance,
   RakutenPaySetting,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
+import { CategoryService } from "../FirestoreService/CategoryService";
+import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
+import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { extractTextBody } from "../utility/extractHtmlBody";
 import {
+import { Category }import { getCurrentUnixMillisec } from "../utility/getCurrentUnixSec";
+ from './../../type/Category';
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
 
+/**
+ * 各ユーザーに対してインスタンスを生成することにする！
+ */
 export class MailboxExtractionProcessor {
-  constructor(private mailboxExtractionService: MailboxExtractionService) {}
+  private userId: string;
+
+  constructor(
+    userId: string,
+    private mailboxExtractionService: MailboxExtractionService,
+    private expenseService: ExpenseService,
+    private categoryService: CategoryService
+  ) {
+    this.userId = userId;
+  }
 
   async generateGmailApiInstance(
     userId: string
@@ -117,7 +142,83 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
-  async processRakutenPayMails(userId: string) {
+  /**
+   * Expenseに対して保管して保存する
+   */
+  async addExpenseFromMailExtraction(
+    baseExpense: Expense,
+    type: AllMailType
+  ): Promise<FuncResult> {
+    const generatedType = `${GeneratedType.MAIL_EXTRACTION}___${type.nodeName}`;
+    const timestamp = Date.now();
+
+    const newExpense: Expense = {
+      ...baseExpense,
+      generatedType: generatedType,
+      timestamp: timestamp,
+    };
+
+    const ret = await this.expenseService.addExpenseWithId(
+      this.userId,
+      baseExpense
+    );
+    return ret;
+  }
+
+  async processSingleMailType(type:AllMailType,categories:Record<string,Category>){
+    const nodeName=type.nodeName;
+    let ret=await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(this.userId,type);
+    if(ret.status == FuncStatus.EMPTY){      
+      /**
+       * まだユーザーが設定していないのでやらない
+       */
+      return;
+    }else if(
+      ret.status!=FuncStatus.SUCCESS ||
+      !ret.data
+    ){      
+      /**
+       * なにかエラーが出たようだ
+       */
+      return;
+    }else if(
+      ret.data?.enabled == false
+    ){
+      /**
+       * 設定は存在するが、OFFになっている
+       */
+      return;
+    }else{
+      /* 問題なさそうなので次へ */
+    }
+
+    /**
+     * ここまで来れたら、直帰の実行状況を確認しに行く
+     * RealtimeDatabaseのlastExecを取ってくる。
+     * 取ってきたら
+     */
+    const lastExecRet =
+      await this.mailboxExtractionService.getMailboxExtractionLastExec(
+        this.userId,
+        type
+      );
+
+    if (lastExecRet.status != FuncStatus.SUCCESS) {
+      logger.info(`${lastExecRet.message}`);
+      return;
+    }
+
+    const endTime = getCurrentUnixMillisec();
+    const lastMsgId = lastExecRet.data?.lastMsgId; /* nullの可能性もある */
+    
+
+  };
+
+  /**
+   * 最終的には、どのメールに対しても似たような操作をすることになる。
+   * これ単体で実行することはほとんどないはず。
+   */
+  async processRakutenPayMails(categories: Record<string, Category> = {}) {
     /**
      * まずそもそも楽天Payの設定をユーザーがしているかチェック
      */
@@ -127,7 +228,7 @@ export class MailboxExtractionProcessor {
       }
     );
     const rakutenPayRet =
-      await this.mailboxExtractionService.getRakutenPaySetting(userId);
+      await this.mailboxExtractionService.getRakutenPaySetting(this.userId);
 
     if (rakutenPayRet.status == FuncStatus.EMPTY) {
       logger.info("user didn't turn on RakutenPay setting yet.");
@@ -150,7 +251,7 @@ export class MailboxExtractionProcessor {
      */
     const lastExecRet =
       await this.mailboxExtractionService.getMailboxExtractionLastExec(
-        userId,
+        this.userId,
         rakutenPaySample
       );
 
@@ -175,7 +276,7 @@ export class MailboxExtractionProcessor {
     /**
      * GmailApiを取得してくる
      */
-    const gmailClientRet = await this.generateGmailApiInstance(userId);
+    const gmailClientRet = await this.generateGmailApiInstance(this.userId);
     if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
       logger.info(`${gmailClientRet.message}`);
       return;
@@ -215,7 +316,7 @@ export class MailboxExtractionProcessor {
       logger.info("Nothing was found After query.");
 
       await this.mailboxExtractionService.setMailboxExtractionLastExec(
-        userId,
+        this.userId,
         rakutenPaySample,
         {
           timestamp: endTime /* UNIXミリ秒で保存 */,
@@ -235,41 +336,19 @@ export class MailboxExtractionProcessor {
         console.log("\n\n---------------------------------\n");
         const res = await gmailCliet.getMessageDetail(id);
         messageMap[id] = res.data;
-        logger.debug(`${extractTextBody(messageMap[id]?.payload)}`);
+        const rawText = extractTextBody(messageMap[id]?.payload);
+        if (!rawText) {
+          logger.error("Failed to extract Text Body.");
+        } else {
+          /* テキストをちゃんと取れた */
+          const parser = new RakutenPayMailParser(rawText);
+          const result = parser.toExpense();
+          if (result.status != FuncStatus.SUCCESS) {
+            logger.error(`msgid:${id} failed! ${result.message}`);
+            continue;
+          }
+        }
       }
     }
   }
-
-  // /**
-  //  * 楽天Payのデータを取得するためのクエリを定義して検索
-  //  * 現在時刻と前回の時刻の間でクエリをかけたい。
-  //  * そのためには前回の時刻を保存&取得してこないといけない。
-  //  */
-  // const rakutenQuery = "in:inbox subject:楽天ペイアプリご利用内容確認メール";
-  // const msgIdsRet = await gmailApi.queryMessages(rakutenQuery);
-  // if (msgIdsRet.status != FuncStatus.SUCCESS) {
-  //   return {
-  //     status: msgIdsRet.status,
-  //     message: msgIdsRet.message,
-  //   };
-  // }
-
-  // /**
-  //  * 取得できたmsgIdsが直近の保存されているメッセージIDと被っていないかチェック
-  //  * また、Firestoreに保存しておく一番最近のmsgIdを覚えておく
-  //  */
-
-  // /**
-  //  * ヒットしたmsgIdに対して詳細を取得しデータを抽出する。
-  //  * Firestoreに保存(Not categoriedとして。)
-  //  */
-
-  // /**
-  //  * あとは新しいお店だったら、
-  //  */
-
-  // return {
-  //   status: FuncStatus.SUCCESS,
-  //   message: "Successfully processed RakutenPay.",
-  // };
 }

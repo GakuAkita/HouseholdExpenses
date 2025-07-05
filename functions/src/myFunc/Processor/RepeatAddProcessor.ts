@@ -31,6 +31,7 @@ export class RepeatAddProcessor {
   /**
    * repeatAddを引数にして、そこから日付と時間を抽出する。
    * その後、getDaysの関数でいれる日付を取得する
+   * 一つのインスタンスを使い回せば良い。
    */
   getTargetDateFromRepeatAdd(
     repeatAdd: RepeatAdd,
