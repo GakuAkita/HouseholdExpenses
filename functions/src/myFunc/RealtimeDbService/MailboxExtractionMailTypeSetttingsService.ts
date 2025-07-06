@@ -79,7 +79,7 @@ export class MailboxExtractionMailTypeSettingsService {
     const docRef = this.getUserMailboxExtractionRakutenPayDocRef(userId);
     const sampleRakuten: RakutenPaySetting = createRakutenPaySettingInstance({
       enabled: true,
-      shopCategoryAssignments: {
+      storeCategoryAssignments: {
         FamiltyMart: "cateogryId",
       },
     });
@@ -100,7 +100,7 @@ export class MailboxExtractionMailTypeSettingsService {
     const docRef = this.getUserMailboxExtractionRakutenPayDocRef(userId);
     try {
       await docRef.update({
-        shopCategoryAssignments:
+        storeCategoryAssignments:
           newAssignments /* ここベタ打ちなので怖いな、、 */,
       });
       return {

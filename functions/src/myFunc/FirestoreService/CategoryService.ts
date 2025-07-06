@@ -17,7 +17,7 @@ export class CategoryService {
     return this.db.collection("users").doc(userId).collection("categories");
   }
 
-  async getAllCategory(
+  async getAllCategories(
     userId: string
   ): Promise<FuncResultWithData<Record<string, Category>>> {
     try {

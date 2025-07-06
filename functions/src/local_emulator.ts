@@ -30,6 +30,8 @@ import {
 } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
+const userId = "testUser"; // テスト用のユーザーID
+
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
@@ -58,6 +60,7 @@ const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
 const mailboxExtractionService = new MailboxExtractionService(rtdb);
 const mailboxExProcessor = new MailboxExtractionProcessor(
+  userId,
   mailboxExtractionService,
   expenseService,
   categoryService
@@ -76,8 +79,6 @@ const userSettingsProcessor = new UserSettingsProcessor(
   userRTDbService,
   settingsService
 );
-
-const userId = "testUser"; // テスト用のユーザーID
 
 const init_add = async () => {
   await userService.addUserCol(userId);
