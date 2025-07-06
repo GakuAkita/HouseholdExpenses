@@ -41,7 +41,6 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -228,17 +227,29 @@ fun RakutenPaySettingView(
 //                    }
 //                else Text("履歴なし")
                 Text("構造を変えたので検討中")
+                /**　テスト
                 Button(
-                    onClick = {
-                        val newMap: MutableMap<String, CategoryAssignment> = mutableMapOf(
-                            "9O1rIgXCRQ3XUDmUNBWB" to CategoryAssignment(
-
-                            )
-                        )
-                    }
-                ) {
-                    Text("これはテスト")
+                onClick = {
+                rakutenPaySetting = internalRakutenPaySetting.copy(
+                enabled = true,
+                storeCategoryAssignments = mapOf(
+                "id1" to CategoryAssignment(
+                id = "id1",
+                categoryId = "9O1rIgXCRQ3XUDmUNBWB",
+                name = "ローソン",
+                condition = "部分一致"
+                )
+                )
+                )
+                val buf = rakutenPaySetting ?: MailboxExtraction.RakutenPay()
+                viewModel.setMailboxExtractionInternalSetting(
+                buf,
+                callback = {})
                 }
+                ) {
+                Text("これはテスト")
+                }
+                 */
             }
 
         }

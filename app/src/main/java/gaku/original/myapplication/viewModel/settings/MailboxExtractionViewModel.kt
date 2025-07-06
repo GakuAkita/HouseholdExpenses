@@ -11,6 +11,7 @@ import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxE
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
+import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -54,6 +55,7 @@ class MailboxExtractionViewModel @Inject constructor(
         instance: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
+        LogAkitaDebug("${instance}")
         viewModelScope.launch {
             mailboxExtractionRepository.updateMailTypeSetting(
                 instance,

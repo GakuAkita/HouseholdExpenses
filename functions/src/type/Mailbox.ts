@@ -3,6 +3,13 @@ export interface MailboxTokenType {
   timestamp?: string /* ISO 8601形式のタイムスタンプ */;
 }
 
+export type CategoryAssignment = {
+  id?: string;
+  categoryId: string;
+  name: string;
+  condition: string; // 後々入力制限する
+};
+
 /**
  * メールタイプの設定系
  */
@@ -10,7 +17,7 @@ export type RakutenPaySetting = {
   enabled: boolean;
   readonly nodeName: "rakuten_pay";
   readonly menuName: "楽天Pay";
-  storeCategoryAssignments?: Record<string, string>;
+  storeCategoryAssignments?: Record<string, CategoryAssignment>;
 };
 export type AmazonKindle = {
   enabled: boolean;
@@ -28,7 +35,7 @@ export type AllMailType = RakutenPaySetting | AmazonKindle;
 export function createRakutenPaySettingInstance(
   params: {
     enabled: boolean;
-    storeCategoryAssignments?: Record<string, string>;
+    storeCategoryAssignments?: Record<string, CategoryAssignment>;
   } = { enabled: true }
 ): RakutenPaySetting {
   return {

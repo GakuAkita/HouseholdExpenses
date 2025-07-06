@@ -8,12 +8,12 @@ interface MailboxExtractionCommon {
     val menuName: String
 }
 
-interface CategoryAssignment {
-    val id: String?
-    val categoryId: String
-    val name: String /* 店なの名前や商品名 */
+data class CategoryAssignment(
+    val id: String?,
+    val categoryId: String,
+    val name: String, /* 店の名前や商品名 */
     val condition: String /* 完全一致なのか部分一致なのか */
-}
+)
 
 data class MailboxExtraction(
     val enabled: Boolean = true//ここをfalseにしたら全部止めるみたいな仕様にするか。
@@ -48,7 +48,7 @@ data class MailboxExtraction(
 
     data class AmazonItem(
         override val enabled: Boolean = false,
-        val itemCategoryAssignments: Map<String, String>? = null,
+        val itemCategoryAssignments: Map<String, CategoryAssignment>? = null,
     ) : MailboxExtractionCommon {
         override val documentName = "amazon_item"
         override val menuName = "Amazon　物"

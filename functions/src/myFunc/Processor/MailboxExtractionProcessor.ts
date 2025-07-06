@@ -21,6 +21,7 @@ import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
+import { categoryAssign } from "../utility/cateogryAssign";
 import { extractTextBody } from "../utility/extractHtmlBody";
 import {
   convertUnixMillisecToSec,
@@ -229,7 +230,7 @@ export class MailboxExtractionProcessor {
 
     const ret = await this.expenseService.addExpenseWithId(
       this.userId,
-      baseExpense
+      newExpense
     );
     return ret;
   }
@@ -239,10 +240,10 @@ export class MailboxExtractionProcessor {
    * Expenseの保存まで行う
    */
   async saveExpenseWithExtraction(
-    type: AllMailType,
+    setting: AllMailType,
     rawText: string
   ): Promise<FuncResult> {
-    const nodeName = type.nodeName;
+    const nodeName = setting.nodeName;
     const rakutenPaySamp = createRakutenPaySettingInstance();
     const amazonKindleSamp = createAmazonKindleSettingInstance();
 
@@ -256,8 +257,18 @@ export class MailboxExtractionProcessor {
       /* Do nothing */
     }
 
+    let ret: FuncResult = {
+      status: FuncStatus.SUCCESS,
+      message: "Success",
+    };
     switch (nodeName) {
       case rakutenPaySamp.nodeName:
+        const rakutenPaySetting = setting as RakutenPaySetting;
+        ret = await this.saveExpenseFromRakutenPay(
+          rawText,
+          setting,
+          categories
+        );
         break;
 
       case amazonKindleSamp.nodeName:
@@ -266,6 +277,8 @@ export class MailboxExtractionProcessor {
       default:
         break;
     }
+
+    return ret;
   }
 
   async saveExpenseFromRakutenPay(
@@ -281,14 +294,27 @@ export class MailboxExtractionProcessor {
 
     const baseExpense: Expense = ret.data;
 
-    /**
-     * とりあえずは完全一致の場合しか受け付けないが、
-     * 将来的には部分一致でもカテゴリーをつけられるようにしたい
-     * 例えば、ローソンだったらどの店舗だろうが消費につけるとか。
-     */
     if (setting.storeCategoryAssignments && baseExpense.storeName) {
-      const categoryId = setting.storeCategoryAssignments[baseExpense.storeName];
+      const category = categoryAssign(
+        baseExpense.storeName,
+        setting.storeCategoryAssignments,
+        categories
+      );
+
+      /**
+       * カテゴリーがヒットしたら更新
+       */
+      if (category) {
+        baseExpense.category = category;
+      }
     }
+
+    const addRet = await this.addExpenseFromMailExtraction(
+      baseExpense,
+      setting
+    );
+
+    return addRet;
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
@@ -317,6 +343,8 @@ export class MailboxExtractionProcessor {
     } else {
       /* 問題なさそうなので次へ */
     }
+
+    const setting = ret.data;
 
     /**
      * ここまで来れたら、直帰の実行状況を確認しに行く
@@ -411,12 +439,8 @@ export class MailboxExtractionProcessor {
           /**
            * 関数内でExpenseの保存まで済ませてしまう
            */
-          const parser = new RakutenPayMailParser(rawText);
-          const result = parser.toExpense();
-          if (result.status != FuncStatus.SUCCESS) {
-            logger.error(`msgid:${id} failed! ${result.message}`);
-            continue;
-          }
+          await this.saveExpenseWithExtraction(setting, rawText);
+          /* 失敗しようが何しようが次に行く */
         }
       }
     }

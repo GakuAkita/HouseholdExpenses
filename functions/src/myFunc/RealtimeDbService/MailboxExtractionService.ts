@@ -298,9 +298,7 @@ export class MailboxExtractionService {
   async getRakutenPaySetting(
     userId: string
   ): Promise<FuncResultWithData<RakutenPaySetting>> {
-    const rakuntePaySample = createRakutenPaySettingInstance({
-      enabled: true,
-    });
+    const rakuntePaySample = createRakutenPaySettingInstance();
 
     const ret = await this.getMailboxExtractionMailTypeSetting(
       userId,
@@ -329,4 +327,16 @@ export class MailboxExtractionService {
       };
     }
   }
+  /** 楽天Payのサンプル
+   * const sampleRakuten: RakutenPaySetting = createRakutenPaySettingInstance({
+      enabled: true,
+      storeCategoryAssignments: {
+        asdfsdfsa: {
+          id: "asdfsdfsa",
+          categoryId: "category1",
+          name: "ローソン",
+          condition: "contains",
+        },
+      },
+   */
 }
