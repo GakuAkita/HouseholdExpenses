@@ -8,8 +8,10 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import updateAnyDataToRTDb
 import javax.inject.Inject
@@ -82,24 +84,26 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         }
 
         return try {
-            withTimeout(10000) {
-                val snapshot = ref.get().await()
-                val data = snapshot.getValue(kClass.java)
-                if (data == null) {
-                    val result = FetchResult<MailboxExtractionCommon>(
-                        status = SuspendFuncStatus.SUCCESS,//呼び出し側でnullなのかチェックを。
-                        errorMessage = "まだデータが保存されていません"
+            withContext(Dispatchers.IO) {
+                withTimeout(10000) {
+                    val snapshot = ref.get().await()
+                    val data = snapshot.getValue(kClass.java)
+                    if (data == null) {
+                        val result = FetchResult<MailboxExtractionCommon>(
+                            status = SuspendFuncStatus.SUCCESS,//呼び出し側でnullなのかチェックを。
+                            errorMessage = "まだデータが保存されていません"
+                        )
+                        callback(result.toSuspendFuncStatusInfo())
+                        return@withTimeout result
+                    }
+                    val result = FetchResult(
+                        status = SuspendFuncStatus.SUCCESS,
+                        errorMessage = "Success",
+                        data = data
                     )
                     callback(result.toSuspendFuncStatusInfo())
-                    return@withTimeout result
+                    result
                 }
-                val result = FetchResult(
-                    status = SuspendFuncStatus.SUCCESS,
-                    errorMessage = "Success",
-                    data = data
-                )
-                callback(result.toSuspendFuncStatusInfo())
-                result
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")

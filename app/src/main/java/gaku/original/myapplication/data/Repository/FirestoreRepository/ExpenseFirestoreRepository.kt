@@ -9,8 +9,10 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.LogClassFuncCalled
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import removeDataFromFirestore
 import updateDataToFirestore
@@ -104,18 +106,20 @@ class ExpenseFirestoreRepository @Inject constructor(
             toMonth.plusMonths(1).atDay(1).atStartOfDay().toString() + "Z" // "2025-06-01T00:00:00Z"
 
         return try {
-            withTimeout(timeout) {
-                val snapshot = expenseRef
-                    .whereGreaterThanOrEqualTo("datetime", startDateTime)
-                    .whereLessThan("datetime", endDateTime)
-                    .get()
-                    .await()
+            withContext(Dispatchers.IO) {/* これをしないとメインスレッドを止めてしまう？ */
+                withTimeout(timeout) {
+                    val snapshot = expenseRef
+                        .whereGreaterThanOrEqualTo("datetime", startDateTime)
+                        .whereLessThan("datetime", endDateTime)
+                        .get()
+                        .await()
 
-                val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+                    val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
 
-                val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                callback(statusInfo)
-                FetchResult(statusInfo.status, statusInfo.errorMessage, list)
+                    val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                    callback(statusInfo)
+                    FetchResult(statusInfo.status, statusInfo.errorMessage, list)
+                }
             }
         } catch (e: TimeoutCancellationException) {
             val statusInfo =
@@ -153,26 +157,28 @@ class ExpenseFirestoreRepository @Inject constructor(
         }
 
         return try {
-            withTimeout(timeout) {
-                Log.d(className, "Start waiting for getUserExpenseRef.")
-                val snapshot = expenseRef.get().await()
+            withContext(Dispatchers.IO) {
+                withTimeout(timeout) {
+                    Log.d(className, "Start waiting for getUserExpenseRef.")
+                    val snapshot = expenseRef.get().await()
 
-                val list = mutableListOf<Expense>()
-                for (doc in snapshot.documents) {
-                    val expense = doc.toObject(Expense::class.java)
-                        ?: throw Exception("Expenseへの変換に失敗 docId=${doc.id}")
-                    list.add(expense)
+                    val list = mutableListOf<Expense>()
+                    for (doc in snapshot.documents) {
+                        val expense = doc.toObject(Expense::class.java)
+                            ?: throw Exception("Expenseへの変換に失敗 docId=${doc.id}")
+                        list.add(expense)
+                    }
+                    val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                    Log.d(className, "Fetched Expenses: $list")
+                    callback(statusInfo)
+
+                    /* 戻り値 */
+                    FetchResult(
+                        statusInfo.status,
+                        statusInfo.errorMessage,
+                        list
+                    )
                 }
-                val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                Log.d(className, "Fetched Expenses: $list")
-                callback(statusInfo)
-
-                /* 戻り値 */
-                FetchResult(
-                    statusInfo.status,
-                    statusInfo.errorMessage,
-                    list
-                )
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")

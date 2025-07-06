@@ -9,8 +9,10 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.utility.LogClassFuncCalled
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import removeDataFromFirestore
 import updateDataToFirestore
@@ -100,22 +102,24 @@ class RepeatAddFirestoreRepository @Inject constructor(
         }
 
         return try {
-            withTimeout(timeout) {
-                val snapshot = repeatAddRef.get().await()
+            withContext(Dispatchers.IO) {
+                withTimeout(timeout) {
+                    val snapshot = repeatAddRef.get().await()
 
-                val list = mutableListOf<RepeatAdd>()
-                for (doc in snapshot.documents) {
-                    val repeatAdd = doc.toObject(RepeatAdd::class.java)
-                        ?: throw Exception("Categoryへの変換に失敗 docId=${doc.id}")
-                    list.add(repeatAdd)
+                    val list = mutableListOf<RepeatAdd>()
+                    for (doc in snapshot.documents) {
+                        val repeatAdd = doc.toObject(RepeatAdd::class.java)
+                            ?: throw Exception("Categoryへの変換に失敗 docId=${doc.id}")
+                        list.add(repeatAdd)
+                    }
+
+                    Log.d(className, "Fetched Categories: $list")
+                    val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                    callback(statusInfo)
+
+                    /* 戻り値 */
+                    FetchResult(statusInfo.status, statusInfo.errorMessage, list)
                 }
-
-                Log.d(className, "Fetched Categories: $list")
-                val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                callback(statusInfo)
-
-                /* 戻り値 */
-                FetchResult(statusInfo.status, statusInfo.errorMessage, list)
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")

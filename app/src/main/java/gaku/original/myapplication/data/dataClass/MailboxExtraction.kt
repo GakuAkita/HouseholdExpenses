@@ -9,10 +9,10 @@ interface MailboxExtractionCommon {
 }
 
 data class CategoryAssignment(
-    val id: String?,
-    val categoryId: String,
-    val name: String, /* 店の名前や商品名 */
-    val condition: String /* 完全一致なのか部分一致なのか */
+    val id: String? = null,
+    val categoryId: String? = null,
+    val name: String? = null, /* 店の名前や商品名 */
+    val condition: String? = null /* 完全一致なのか部分一致なのか */
 )
 
 data class MailboxExtraction(

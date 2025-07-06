@@ -2,13 +2,17 @@ package gaku.original.myapplication.ui.view.settings.menu.GmailLinking
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,14 +40,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.data.Constants.AssignmentCondition
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.MailboxExtractionViewModel
 import kotlinx.coroutines.launch
 
@@ -71,9 +79,14 @@ fun RakutenPaySettingView(
     var categoryFetchExec by rememberSaveable { mutableStateOf(false) }
 
     /* Parcelableじゃないとクラッシュする */
+    /* 現在設定の取得結果を補完。.dataに設定の中身が入っている */
     var initialFetchSettingStatus by rememberSaveable { mutableStateOf<SuspendFuncStatusInfo?>(null) }
 
     var showPopBackConfirmDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showCategoryAssignmentDialog by remember {
         mutableStateOf(false)
     }
 
@@ -97,6 +110,7 @@ fun RakutenPaySettingView(
                     initialFetchSettingStatus = it.toSuspendFuncStatusInfo()
                     if (it.status == SuspendFuncStatus.SUCCESS) {
                         if (it.data != null) {
+                            /* ここでデータをいれている。 */
                             rakutenPaySetting = it.data as MailboxExtraction.RakutenPay
                         }/* dataがnullのときは未設定のとき */
                     }
@@ -148,10 +162,8 @@ fun RakutenPaySettingView(
                 )
             } else {
                 /* savableだとこのように変数に当てないとだめっぽい？ */
-                val internalRakutenPaySetting =
+                val bufRakutenPaySetting =
                     rakutenPaySetting ?: MailboxExtraction.RakutenPay()/* nullなはずがない */
-                Text("とりあえずはメール抽出できた店だけにする")
-                Text("将来的に自由に追加できるように")
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -163,9 +175,10 @@ fun RakutenPaySettingView(
                         modifier = Modifier
                             .scale(scaleX = 1.5f, scaleY = 1.2f)
                             .padding(horizontal = 30.dp),
-                        checked = internalRakutenPaySetting.enabled,
+                        checked = bufRakutenPaySetting.enabled,
                         onCheckedChange = {
-                            rakutenPaySetting = internalRakutenPaySetting.copy(enabled = it)
+                            rakutenPaySetting = bufRakutenPaySetting.copy(enabled = it)
+                            editedFlag = true
                         }
                     )
                 }
@@ -173,13 +186,13 @@ fun RakutenPaySettingView(
                 Button(
                     onClick = {
                         viewModel.setMailboxExtractionInternalSetting(
-                            internalRakutenPaySetting,
+                            bufRakutenPaySetting,
                             callback = {
                                 if (it.status == SuspendFuncStatus.SUCCESS) {
                                     /* 保存に成功しました */
                                     editedFlag = false
                                     viewModel.setMailboxExtractionInternalSetting(
-                                        internalRakutenPaySetting,
+                                        bufRakutenPaySetting,
                                         callback = {})
                                 } else {
                                     /* 失敗しました */
@@ -191,68 +204,86 @@ fun RakutenPaySettingView(
                     Text("この設定を保存")
                 }
 
-//                if (internalRakutenPaySetting.storeCategoryAssignments != null)
-//                    internalRakutenPaySetting.storeCategoryAssignments.forEach { (id, assignment) ->
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(horizontal = 10.dp, vertical = 5.dp),
-//                            verticalAlignment = Alignment.CenterVertically
-//                        ) {
-//                            Text(
-//                                text = assignment.name,
-//                                modifier = Modifier.weight(1f),
-//                                fontSize = 18.sp
-//                            )
-//                            Spacer(modifier = Modifier.width(10.dp))
-//                            CategoryDropDown(
-//                                initialCategoryId = assignment.categoryId,
-//                                categories = allCategories,
-//                                onCategorySelected = { category ->
-//                                    internalRakutenPaySetting.storeCategoryAssignments[id].categoryId =
-//                                        category.id
-//                                    val updatedMap =
-//                                        internalRakutenPaySetting.storeCategoryAssignments.orEmpty()
-//                                            .toMutableMap()
-//                                    updatedMap[shopName] = category.id ?: "error"
-//                                    rakutenPaySetting = internalRakutenPaySetting.copy(
-//                                        storeCategoryAssignments = updatedMap
-//                                    )
-//                                    editedFlag = true
-//                                    LogAkitaDebug("${internalRakutenPaySetting.storeCategoryAssignments}")
-//                                },
-//                                modifier = Modifier.weight(1f)
-//                            )
-//                        }
-//                    }
-//                else Text("履歴なし")
-                Text("構造を変えたので検討中")
-                /**　テスト
                 Button(
-                onClick = {
-                rakutenPaySetting = internalRakutenPaySetting.copy(
-                enabled = true,
-                storeCategoryAssignments = mapOf(
-                "id1" to CategoryAssignment(
-                id = "id1",
-                categoryId = "9O1rIgXCRQ3XUDmUNBWB",
-                name = "ローソン",
-                condition = "部分一致"
-                )
-                )
-                )
-                val buf = rakutenPaySetting ?: MailboxExtraction.RakutenPay()
-                viewModel.setMailboxExtractionInternalSetting(
-                buf,
-                callback = {})
-                }
+                    onClick = {
+                        showCategoryAssignmentDialog = true
+                    }
                 ) {
-                Text("これはテスト")
+                    Text("新しいカテゴリー割当を作成")
                 }
-                 */
+
+                if (bufRakutenPaySetting.storeCategoryAssignments != null) {
+                    bufRakutenPaySetting.storeCategoryAssignments.forEach { (id, assignment) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${assignment.name}",
+                                modifier = Modifier.weight(1f),
+                                fontSize = 10.sp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            CategoryDropDown(
+                                initialCategoryId = assignment.categoryId,
+                                categories = allCategories,
+                                onCategorySelected = { category ->
+                                    val newAssignments =
+                                        bufRakutenPaySetting.storeCategoryAssignments.toMutableMap()
+                                    newAssignments[id] = assignment.copy(categoryId = category.id)
+                                    rakutenPaySetting = bufRakutenPaySetting.copy(
+                                        storeCategoryAssignments = newAssignments
+                                    )
+                                    editedFlag = true
+                                    LogAkitaDebug("${bufRakutenPaySetting.storeCategoryAssignments}")
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        rakutenPaySetting = bufRakutenPaySetting.copy(
+                            enabled = true,
+                            storeCategoryAssignments = mapOf(
+                                "id1" to CategoryAssignment(
+                                    id = "id1",
+                                    categoryId = "9O1rIgXCRQ3XUDmUNBWB",
+                                    name = "ローソン",
+                                    condition = AssignmentCondition.CONTAINS
+                                )
+                            )
+                        )
+                        val buf = rakutenPaySetting ?: MailboxExtraction.RakutenPay()
+                        viewModel.setMailboxExtractionInternalSetting(
+                            buf,
+                            callback = {})
+                    }
+                ) {
+                    Text("これはテスト")
+                }
+
             }
 
         }
+    }
+
+    /**
+     * 新規追加と編集に対応したい。
+     */
+    if (showCategoryAssignmentDialog) {
+        CategoryAssignmentDialog(
+            initialAssignment = null,
+            onDismiss = { showCategoryAssignmentDialog = false },
+            categories = allCategories,
+            onSave = { assignment ->
+                /* idを生成しておきたい、、pushで。 */
+            }
+        )
     }
 
     if (showPopBackConfirmDialog) {
@@ -342,6 +373,7 @@ fun CategoryDropDown(
                 else MaterialTheme.colorScheme.onSurface
             ),
             modifier = Modifier
+                .fillMaxWidth()
                 .clickable {
                     expanded = !expanded
                 }
@@ -362,7 +394,166 @@ fun CategoryDropDown(
             }
         }
     }
+}
 
+@Composable
+fun AssignmentConditionDropdown(
+    initialCondition: String = "",
+    onConditionSelected: (String) -> Unit,
+    modifier: Modifier
+) {
+    var selectedCondition by remember { mutableStateOf(initialCondition) }
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+    ) {
+        TextField(
+            value = selectedCondition,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            colors = enabledTextFiledColorSet().copy(
+                MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    expanded = !expanded
+                }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(text = AssignmentCondition.CONTAINS) },
+                onClick = {
+                    selectedCondition = AssignmentCondition.CONTAINS
+                    expanded = false
+                    onConditionSelected(selectedCondition)
+                }
+            )
+
+            DropdownMenuItem(
+                text = { Text(text = AssignmentCondition.EXACT_MATCH) },
+                onClick = {
+                    selectedCondition = AssignmentCondition.EXACT_MATCH
+                    expanded = false
+                    onConditionSelected(selectedCondition)
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryAssignmentDialog(
+    onSave: (CategoryAssignment) -> Unit = {},
+    onDismiss: () -> Unit = {},
+    initialAssignment: CategoryAssignment?,
+    categories: List<Category>
+) {
+    // null のときはデフォルト値で初期化
+    var assignment by remember {
+        mutableStateOf(
+            initialAssignment ?: CategoryAssignment(
+                name = "",
+                categoryId = null,
+                condition = AssignmentCondition.EXACT_MATCH
+            )
+        )
+    }
+
+    BasicAlertDialog(
+        onDismissRequest = {
+            onDismiss()
+        },
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.onTertiary)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 5.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (initialAssignment == null) {
+                    Text("新しい割当を追加")
+                } else {
+                    Text("カテゴリー割当を編集")
+                }
+            }
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                value = assignment.name ?: "",
+                onValueChange = {
+                    assignment = assignment.copy(
+                        name = it
+                    )
+                },
+                placeholder = {
+                    Text("店の名前")
+                }
+            )
+            AssignmentConditionDropdown(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                initialCondition = assignment.condition ?: "",
+                onConditionSelected = {
+                    assignment = assignment.copy(
+                        condition = it
+                    )
+                },
+            )
+            Text(
+                "※完全一致:${AssignmentCondition.EXACT_MATCH} 部分一致:${AssignmentCondition.CONTAINS}",
+                fontSize = 10.sp
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            CategoryDropDown(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                initialCategoryId = null,
+                categories = categories,
+                onCategorySelected = {
+                    assignment = assignment.copy(
+                        categoryId = it.id
+                    )
+                },
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = {
+                        onDismiss()
+                    }
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = {
+                        onSave(assignment)
+                    }
+                ) {
+                    Text("Save")
+                }
+            }
+        }
+    }
 }
 
 ///***************楽天設定UI*******************/
