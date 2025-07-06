@@ -11,14 +11,18 @@ import {
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import {
   AllMailType,
+  allMailTypeList,
+  AmazonKindleSetting,
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
+  LastMailboxExtractionExec,
   RakutenPaySetting,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
+import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { categoryAssign } from "../utility/cateogryAssign";
@@ -176,11 +180,11 @@ export class MailboxExtractionProcessor {
 
       case amazonKindleSamp.nodeName:
         /* 特に何もやらない */
-        return {
-          status: FuncStatus.SUCCESS,
-          message: "Not prepared.",
-          data: [],
-        };
+        return await this.getAmazonKindleMailIds(
+          gmailClient,
+          startTime,
+          endTime
+        );
         break;
 
       default:
@@ -208,6 +212,22 @@ export class MailboxExtractionProcessor {
      */
     const endTimeAdded = endTime + 1;
     const query = `subject:${subjectIncluded} from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
+  async getAmazonKindleMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "digital-no-reply@amazon.co.jp";
+    const wordIncluded =
+      "Kindle"; /* まあこれなくてもいいけど、、一応つけておく。本文または件名に含まれる */
+
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} ${wordIncluded} after:${startTime} before:${endTimeAdded}`;
     logger.debug(`Query:${query}`);
     const funcResult = await gmailClient.queryMessages(query);
     return funcResult;
@@ -265,7 +285,6 @@ export class MailboxExtractionProcessor {
     };
     switch (nodeName) {
       case rakutenPaySamp.nodeName:
-        const rakutenPaySetting = setting as RakutenPaySetting;
         ret = await this.saveExpenseFromRakutenPay(
           rawText,
           setting,
@@ -274,6 +293,11 @@ export class MailboxExtractionProcessor {
         break;
 
       case amazonKindleSamp.nodeName:
+        ret = await this.saveExpenseFromAmazonKindle(
+          rawText,
+          setting,
+          categories
+        );
         break;
 
       default:
@@ -319,6 +343,30 @@ export class MailboxExtractionProcessor {
     return addRet;
   }
 
+  async saveExpenseFromAmazonKindle(
+    rawText: string,
+    setting: AmazonKindleSetting,
+    categories: Record<string, Category>
+  ): Promise<FuncResult> {
+    const parser = new AmazonKindleMailParser(rawText);
+    const ret = parser.toExpense();
+    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
+      return ret;
+    }
+
+    const baseExpense: Expense = ret.data;
+    if (setting.categoryId) {
+      baseExpense.category = categories[setting.categoryId];
+    }
+
+    const addRet = await this.addExpenseFromMailExtraction(
+      baseExpense,
+      setting
+    );
+
+    return addRet;
+  }
+
   /* ******************************実際に呼び出す処理(全体)************************************* */
   async processSingleMailType(type: AllMailType) {
     const nodeName = type.nodeName;
@@ -331,6 +379,7 @@ export class MailboxExtractionProcessor {
       /**
        * まだユーザーが設定していないのでやらない
        */
+      logger.debug(`Skip ${type.nodeName}. ${ret.message}`);
       return;
     } else if (ret.status != FuncStatus.SUCCESS || !ret.data) {
       /**
@@ -341,6 +390,7 @@ export class MailboxExtractionProcessor {
       /**
        * 設定は存在するが、OFFになっている
        */
+      logger.debug(`Skip ${type.nodeName} Not Enabled.`);
       return;
     } else {
       /* 問題なさそうなので次へ */
@@ -429,9 +479,6 @@ export class MailboxExtractionProcessor {
       logger.info(`Found mails ${queryRet.data.length}`);
 
       for (const id of hitMsgIds) {
-        console.log(
-          "\n\n---------------------------------\n"
-        ); /* デバッグ終わったら消す、、 */
         const res = await gmailCliet.getMessageDetail(id);
         if (res.status != FuncStatus.SUCCESS || !res.data) {
           logger.error(`getMessageDetail failed: id=${id} msg=${res.message}`);
@@ -459,11 +506,16 @@ export class MailboxExtractionProcessor {
         return dateB - dateA; // 降順（新しい順）
       });
       const filteredMessages: Record<string, gmail_v1.Schema$Message> = {};
-      let foundLastMsg = false;
+      let mostRecentMsgId: string | null =
+        null; /* 最後にLastExecを更新するときに使う */
       for (const [id, message] of sortedEntries) {
         if (id === lastMsgId) {
-          foundLastMsg = true;
+          logger.info(`Found lastMsgId again.`);
           break; // これより古いメッセージは無視
+        }
+
+        if (!mostRecentMsgId) {
+          mostRecentMsgId = id; /* 最後にいれたメッセージが一番新しい */
         }
         filteredMessages[id] = message;
       }
@@ -484,6 +536,30 @@ export class MailboxExtractionProcessor {
           /* 失敗しようが何しようが次に行く */
         }
       }
+
+      /* 最後にlastExecを更新する */
+      const lastExec: LastMailboxExtractionExec = {
+        timestamp: endTime,
+        lastMsgId: mostRecentMsgId,
+      };
+      const ret =
+        await this.mailboxExtractionService.setMailboxExtractionLastExec(
+          this.userId,
+          type,
+          lastExec
+        );
+      if (ret.status != FuncStatus.SUCCESS) {
+        logger.error(`${ret.message}`);
+      }
+    }
+  }
+
+  /**
+   * すべてのメールタイプに対して、実行する
+   */
+  async processAllMailiType() {
+    for (const type of allMailTypeList) {
+      await this.processSingleMailType(type);
     }
   }
 }

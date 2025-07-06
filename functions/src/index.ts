@@ -7,15 +7,17 @@ import { TriggerTimeZone } from "./constants/TimeZone";
 import { admin } from "./myFunc/firebaseAdmin";
 import { loadGoogleOAuthSecrets } from "./myFunc/googleOAuthSecrets";
 import { initializeServices } from "./myFunc/initializeServices";
+import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
 import { MailboxTokenType } from "./type/Mailbox";
 const {
   userService,
   repeatAddProcessor,
+  expenseService,
+  categoryService,
   userSettingsProcessor,
   mailboxExtractionService,
-  userRTDbService,
 } = initializeServices();
 
 const schedule_repeatAdd = async () => {
@@ -168,3 +170,40 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     res.status(200).send(`OAuth token exchange failed.`);
   }
 });
+
+const scheduledMailboxExtraction = async () => {
+  /* ユーザーIDをすべて取得してくる */
+  let funcResult = await userService.getAllUserIds();
+  if (funcResult.status !== FuncStatus.SUCCESS) {
+    logger.error("Failed to retrieve user IDs:", funcResult.message);
+    return;
+  }
+
+  const userIds = funcResult.data;
+  if (userIds == null) {
+    logger.error("No user IDs found.");
+    return;
+  }
+  logger.log(`Found ${userIds.length} users.`);
+  for (const uid of userIds) {
+    const mailboxExtrInstance = new MailboxExtractionProcessor(
+      uid,
+      mailboxExtractionService,
+      expenseService,
+      categoryService
+    );
+    /* ユーザーごとに実行 */
+    await mailboxExtrInstance.processAllMailiType();
+  }
+};
+
+exports.mailboxExtractionJob = onSchedule(
+  {
+    schedule: "*/5 * * * *", // 毎時5分おき
+    timeZone: TriggerTimeZone,
+    concurrency: 1,
+  },
+  async (_) => {
+    await scheduledMailboxExtraction();
+  }
+);

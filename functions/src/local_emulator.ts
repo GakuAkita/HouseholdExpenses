@@ -1,6 +1,7 @@
 import * as dotenv from "dotenv";
 import { logger } from "firebase-functions";
 import * as path from "path";
+import { AssignmentCondition } from "./constants/AssignmentCondition";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
@@ -25,6 +26,7 @@ import {
   GoogleOAuthSecrets,
 } from "./type/GoogleOAuthSecrets";
 import {
+  createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   MailboxTokenType,
 } from "./type/Mailbox";
@@ -144,10 +146,24 @@ const init_add = async () => {
 
   const r10Setting = createRakutenPaySettingInstance({
     enabled: true,
+    storeCategoryAssignments: {
+      id1: {
+        id: "id1",
+        categoryId: "category1",
+        name: "はま寿司",
+        condition: AssignmentCondition.CONTAINS, // 後々入力制限する
+      },
+    },
   });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
     r10Setting
+  );
+
+  const kindleSetting = createAmazonKindleSettingInstance();
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    kindleSetting
   );
 
   /**

@@ -19,15 +19,19 @@ export type RakutenPaySetting = {
   readonly menuName: "楽天Pay";
   storeCategoryAssignments?: Record<string, CategoryAssignment>;
 };
-export type AmazonKindle = {
+export type AmazonKindleSetting = {
   enabled: boolean;
   readonly nodeName: "amazon_kindle";
-  readonly menuName: "Amazopn Kindle";
+  readonly menuName: "Amazon Kindle";
   categoryId?: string;
 };
 
 /* ここに全ての型を含めておく */
-export type AllMailType = RakutenPaySetting | AmazonKindle;
+export type AllMailType = RakutenPaySetting | AmazonKindleSetting;
+export const allMailTypeList: AllMailType[] = [
+  createAmazonKindleSettingInstance(),
+  createAmazonKindleSettingInstance(),
+];
 
 /**
  * 楽天Pay設定を生成する
@@ -53,10 +57,10 @@ export function createAmazonKindleSettingInstance(
     enabled: boolean;
     categoryId?: string;
   } = { enabled: true }
-): AmazonKindle {
+): AmazonKindleSetting {
   return {
     nodeName: "amazon_kindle",
-    menuName: "Amazopn Kindle",
+    menuName: "Amazon Kindle",
     ...params,
   };
 }
@@ -66,5 +70,5 @@ export function createAmazonKindleSettingInstance(
  */
 export interface LastMailboxExtractionExec {
   timestamp: number;
-  lastMsgId?: string;
+  lastMsgId?: string | null;
 }

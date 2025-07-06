@@ -1,3 +1,4 @@
+import { CategoryService } from "./FirestoreService/CategoryService";
 import { ExpenseService } from "./FirestoreService/ExpenseService";
 import { FirestoreService } from "./FirestoreService/FirestoreService";
 import { RepeatAddService } from "./FirestoreService/RepeatAddService";
@@ -15,6 +16,7 @@ export const initializeServices = () => {
 
   const userService = new UserService(firestoreDb);
   const expenseService = new ExpenseService(firestoreDb);
+  const categoryService = new CategoryService(firestoreDb);
   const repeatAddService = new RepeatAddService(firestoreDb);
   const settingsService = new SettingsService(firestoreDb);
 
@@ -40,6 +42,7 @@ export const initializeServices = () => {
   return {
     userService,
     expenseService,
+    categoryService,
     repeatAddService,
     repeatAddProcessor,
     userSettingsProcessor,
