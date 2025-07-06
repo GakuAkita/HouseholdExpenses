@@ -22,11 +22,12 @@ import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { categoryAssign } from "../utility/cateogryAssign";
-import { extractTextBody } from "../utility/extractHtmlBody";
 import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
+import { extractTextBody } from "../utility/gmail/extractHtmlBody";
+import { getInternalDateMillisFromMessage } from "../utility/gmail/getInternalDate";
 /**
  * 各ユーザーに対してインスタンスを生成することにする！
  */
@@ -198,6 +199,7 @@ export class MailboxExtractionProcessor {
   ): Promise<FuncResultWithData<string[]>> {
     /* まずはクエリをして楽天Payを抽出する */
     const subjectIncluded = "楽天ペイアプリご利用内容確認メール";
+    const mailFrom = "no-reply@pay.rakuten.co.jp";
 
     /**
      * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
@@ -205,7 +207,7 @@ export class MailboxExtractionProcessor {
      * ちょっとここらへんが怖いな、
      */
     const endTimeAdded = endTime + 1;
-    const query = `subject:${subjectIncluded} after:${startTime} before:${endTimeAdded}`;
+    const query = `subject:${subjectIncluded} from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
     logger.debug(`Query:${query}`);
     const funcResult = await gmailClient.queryMessages(query);
     return funcResult;
@@ -399,8 +401,8 @@ export class MailboxExtractionProcessor {
     const queryRet = await this.getMailIdsByQuery(
       type,
       gmailCliet,
-      startTime,
-      endTime
+      queryAfter,
+      queryBefore
     );
 
     if (!queryRet.data || queryRet.data.length === 0) {
@@ -420,9 +422,9 @@ export class MailboxExtractionProcessor {
     } else {
       /**
        * クエリでなにかしらヒットした
+       * まずはヒットしたすべてのIDを格納して、mapとして持っておく
        */
-      const messageMap: Record<string, gmail_v1.Schema$Message | undefined> =
-        {}; /* ここにデータをいれていく */
+      const messageMap: Record<string, gmail_v1.Schema$Message> = {};
       const hitMsgIds = queryRet.data;
       logger.info(`Found mails ${queryRet.data.length}`);
 
@@ -431,15 +433,54 @@ export class MailboxExtractionProcessor {
           "\n\n---------------------------------\n"
         ); /* デバッグ終わったら消す、、 */
         const res = await gmailCliet.getMessageDetail(id);
+        if (res.status != FuncStatus.SUCCESS || !res.data) {
+          logger.error(`getMessageDetail failed: id=${id} msg=${res.message}`);
+          continue;
+        }
         messageMap[id] = res.data;
-        const rawText = extractTextBody(messageMap[id]?.payload);
+      }
+      /**
+       * internalDate順(新しい順)に並び替えて
+       * msgIdがlastMsgIdと一致したらそれより後ろの古いmsgIdは無視する
+       */
+      const sortedEntries = Object.entries(messageMap).sort((a, b) => {
+        /**
+         * 新しいinternalDateのメッセージを前に並べる
+         * nullがあればそれは一番うしろに回す
+         */
+        const dateA = getInternalDateMillisFromMessage(a[1]);
+        const dateB = getInternalDateMillisFromMessage(b[1]);
+
+        // null 安全性を確保：null は最も古いとみなす（＝最後に来る）
+        if (dateA === null && dateB === null) return 0;
+        if (dateA === null) return 1;
+        if (dateB === null) return -1;
+
+        return dateB - dateA; // 降順（新しい順）
+      });
+      const filteredMessages: Record<string, gmail_v1.Schema$Message> = {};
+      let foundLastMsg = false;
+      for (const [id, message] of sortedEntries) {
+        if (id === lastMsgId) {
+          foundLastMsg = true;
+          break; // これより古いメッセージは無視
+        }
+        filteredMessages[id] = message;
+      }
+
+      /* filterdMessagesに対してすべてExpense保存まで行う */
+      for (const [_, message] of Object.entries(filteredMessages)) {
+        const rawText = extractTextBody(message.payload);
         if (!rawText) {
           logger.error("Failed to extract Text Body.");
         } else {
           /**
            * 関数内でExpenseの保存まで済ませてしまう
            */
-          await this.saveExpenseWithExtraction(setting, rawText);
+          const ret = await this.saveExpenseWithExtraction(setting, rawText);
+          if (ret.status != FuncStatus.SUCCESS) {
+            logger.error(`${ret.message}`);
+          }
           /* 失敗しようが何しようが次に行く */
         }
       }

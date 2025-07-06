@@ -1,3 +1,4 @@
+import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
@@ -55,7 +56,7 @@ export class RakutenPayMailParser {
     if (amount === null || !storeName || !datetime || !usedPoint) {
       return {
         status: FuncStatus.ERROR,
-        message: "Unable to get Data from RakutenPay mail",
+        message: `Unable to get Data from RakutenPay mail : amount=${amount} storeName=${storeName} datetime=${datetime} userdPoint=${usedPoint}`,
       };
     }
 
@@ -65,6 +66,8 @@ export class RakutenPayMailParser {
         status: FuncStatus.ERROR,
         message: `Net amount is negative ${netAmount}yen`,
       };
+    } else if (netAmount == 0) {
+      logger.info(`amount(${amount}) - point(${usedPoint}) = netAmount 0`);
     }
 
     const rakutenSample = createRakutenPaySettingInstance({

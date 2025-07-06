@@ -50,13 +50,10 @@ export class CategoryService {
     }
   }
 
-  async addCategory(
-    userId: string,
-    expenseData: Category
-  ): Promise<FuncResult> {
+  async addCategory(userId: string, category: Category): Promise<FuncResult> {
     try {
       const ref = this.getUserCategoriesColRef(userId);
-      await ref.add(expenseData);
+      await ref.add(category);
       return {
         status: FuncStatus.SUCCESS,
         message: `Category added`,
@@ -65,6 +62,27 @@ export class CategoryService {
       return {
         status: FuncStatus.ERROR,
         message: `Failed to add category: ${error.message}`,
+      };
+    }
+  }
+
+  /* サンプル用 */
+  async setCategory(userId: string, category: Category): Promise<FuncResult> {
+    try {
+      if (!category.id) {
+        return {
+          status: FuncStatus.ERROR,
+        };
+      }
+      const ref = this.getUserCategoriesColRef(userId).doc(category.id);
+      await ref.set(category);
+      return {
+        status: FuncStatus.SUCCESS,
+      };
+    } catch (error: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to set category:${error.message}`,
       };
     }
   }

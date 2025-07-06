@@ -89,14 +89,14 @@ const init_add = async () => {
     name: "Food",
     enabled: true,
   };
-  await categoryService.addCategory(userId, sampleCategory);
+  await categoryService.setCategory(userId, sampleCategory);
   const sampleCategory2: Category = {
     id: "category2",
     timestamp: Date.now(),
     name: "消費",
     enabled: true,
   };
-  await categoryService.addCategory(userId, sampleCategory2);
+  await categoryService.setCategory(userId, sampleCategory2);
 
   const sampleExpense: Expense = {
     timestamp: Date.now(),
@@ -286,7 +286,16 @@ const getRefreshTokenTest = async () => {
 // getRefreshTokenTest();
 
 const processRakuten = async () => {
-  await mailboxExProcessor.processRakutenPayMails(userId);
+  const processInstance = new MailboxExtractionProcessor(
+    userId,
+    mailboxExtractionService,
+    expenseService,
+    categoryService
+  );
+
+  await processInstance.processSingleMailType(
+    createRakutenPaySettingInstance()
+  );
   logger.debug("processRakuten Done");
 };
 

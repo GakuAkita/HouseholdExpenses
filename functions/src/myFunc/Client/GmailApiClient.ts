@@ -3,7 +3,7 @@ import { logger } from "firebase-functions";
 import { gmail_v1 } from "googleapis";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
-import { extractHtmlBody } from "../utility/extractHtmlBody";
+import { extractHtmlBody } from "../utility/gmail/extractHtmlBody";
 
 type GmailMessageSearchParams = {
   q?: string;
