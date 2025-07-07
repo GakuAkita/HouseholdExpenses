@@ -66,15 +66,10 @@ fun RakutenPaySettingView(
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    var rakutenPaySetting by remember {
-        mutableStateOf<MailboxExtraction.RakutenPay?>(
-            null
-        )
-    }
-
     var editedFlag by remember { mutableStateOf(false) }
 
     val allCategories by viewModel.categories.collectAsState(initial = emptyList())
+    val rakutenPaySetting by viewModel.mailboxExtractionSetting.collectAsState(null)//ViewModelで状態保持
 
     var categoryFetchExec by rememberSaveable { mutableStateOf(false) }
 
@@ -104,16 +99,10 @@ fun RakutenPaySettingView(
         }
 
         if (initialFetchSettingStatus == null) {
-            viewModel.fetchMailboxExtractionInternalSetting(
+            viewModel.fetchMailboxExtractionInternalSetting(/* 関数内でrakutenPaySettingを更新する */
                 MailboxExtraction.RakutenPay(),
                 callback = {
                     initialFetchSettingStatus = it.toSuspendFuncStatusInfo()
-                    if (it.status == SuspendFuncStatus.SUCCESS) {
-                        if (it.data != null) {
-                            /* ここでデータをいれている。 */
-                            rakutenPaySetting = it.data as MailboxExtraction.RakutenPay
-                        }/* dataがnullのときは未設定のとき */
-                    }
                 }
             )
         }

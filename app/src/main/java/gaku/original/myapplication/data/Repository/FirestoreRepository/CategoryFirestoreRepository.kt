@@ -99,8 +99,8 @@ class CategoryFirestoreRepository @Inject constructor(
         }
 
         return try {
-            withContext(Dispatchers.IO) {
-                withTimeout(timeout) {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {
                     val snapshot = categoryRef.get().await()
 
                     val list = mutableListOf<Category>()

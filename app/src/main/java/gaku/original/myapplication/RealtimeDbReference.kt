@@ -9,7 +9,9 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
@@ -34,18 +36,20 @@ class RealtimeDbReference @Inject constructor(
         var ref: DatabaseReference? = null
         try {
             withTimeout(2000) {
-                currentUserId?.let {
-                    val userId = currentUserId ?: ""
-                    ref = database.child("users").child(userId)
-                    //currentUserIdがnullかチェックしているので問題ない
-                    val statusInfo = SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.SUCCESS,
-                        errorMessage = ""
-                    )
-                    callback(statusInfo)
-                } ?: {
-                    Log.d(className, "userId is null")
-                    throw Exception("userId is null")
+                withContext(Dispatchers.IO) {
+                    currentUserId?.let {
+                        val userId = currentUserId ?: ""
+                        ref = database.child("users").child(userId)
+                        //currentUserIdがnullかチェックしているので問題ない
+                        val statusInfo = SuspendFuncStatusInfo(
+                            status = SuspendFuncStatus.SUCCESS,
+                            errorMessage = ""
+                        )
+                        callback(statusInfo)
+                    } ?: {
+                        Log.d(className, "userId is null")
+                        throw Exception("userId is null")
+                    }
                 }
             }
         } catch (e: TimeoutCancellationException) {
@@ -88,17 +92,19 @@ class RealtimeDbReference @Inject constructor(
         //シーケンスみたい。ある処理が終えたら次をスタートして、、みたいな。
         try {
             withTimeout(2000) {
-                var tmp_ref = userRef//nullでない
+                withContext(Dispatchers.IO) {
+                    var tmp_ref = userRef//nullでない
 
-                childrenPath.forEach { childName ->
-                    tmp_ref?.let {//null出ない場合
-                        tmp_ref = tmp_ref?.child(childName)//nullでないことが保証されている
-                    } ?: run {//nullのとき
-                        throw Exception("tmp_ref became null childName:${childName}")
-                        /* ここでループ自体は抜けてしたでcatchされるので、わざわざbreakしなくてよい */
+                    childrenPath.forEach { childName ->
+                        tmp_ref?.let {//null出ない場合
+                            tmp_ref = tmp_ref?.child(childName)//nullでないことが保証されている
+                        } ?: run {//nullのとき
+                            throw Exception("tmp_ref became null childName:${childName}")
+                            /* ここでループ自体は抜けてしたでcatchされるので、わざわざbreakしなくてよい */
+                        }
                     }
+                    ref = tmp_ref
                 }
-                ref = tmp_ref
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)

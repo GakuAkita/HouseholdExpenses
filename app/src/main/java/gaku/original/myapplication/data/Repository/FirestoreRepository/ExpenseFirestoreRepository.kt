@@ -106,8 +106,8 @@ class ExpenseFirestoreRepository @Inject constructor(
             toMonth.plusMonths(1).atDay(1).atStartOfDay().toString() + "Z" // "2025-06-01T00:00:00Z"
 
         return try {
-            withContext(Dispatchers.IO) {/* これをしないとメインスレッドを止めてしまう？ */
-                withTimeout(timeout) {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {/* これをしないとメインスレッドを止めてしまう？ */
                     val snapshot = expenseRef
                         .whereGreaterThanOrEqualTo("datetime", startDateTime)
                         .whereLessThan("datetime", endDateTime)
@@ -157,8 +157,8 @@ class ExpenseFirestoreRepository @Inject constructor(
         }
 
         return try {
-            withContext(Dispatchers.IO) {
-                withTimeout(timeout) {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {
                     Log.d(className, "Start waiting for getUserExpenseRef.")
                     val snapshot = expenseRef.get().await()
 

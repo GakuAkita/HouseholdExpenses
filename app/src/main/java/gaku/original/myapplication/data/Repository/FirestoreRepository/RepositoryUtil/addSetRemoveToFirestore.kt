@@ -24,8 +24,8 @@ suspend fun addDataToFirestore(
     callback: (SuspendFuncStatusInfo) -> Unit = { _ -> }
 ): Pair<SuspendFuncStatusInfo, DocumentReference?> {
     return try {
-        withContext(Dispatchers.IO) {
-            withTimeout(timeout) {
+        withTimeout(timeout) {
+            withContext(Dispatchers.IO) {
                 suspendCancellableCoroutine { continuation ->
                     reference.add(data)
                         .addOnCompleteListener { task ->
@@ -90,8 +90,8 @@ suspend fun setDataToFirestoreWithOption(
     val funcName = "setDataToFirestoreWithOption"
 
     return try {
-        withContext(Dispatchers.IO) {
-            withTimeout(timeout) {
+        withTimeout(timeout) {
+            withContext(Dispatchers.IO) {
                 suspendCancellableCoroutine { continuation ->
                     val task = if (setOptions != null) {
                         reference.set(data, setOptions)
@@ -167,9 +167,9 @@ suspend fun removeDocument(
     callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
     return try {
-        withContext(Dispatchers.IO) {
-            // タイムアウトを設定して削除処理
-            withTimeout(timeout) {
+        // タイムアウトを設定して削除処理
+        withTimeout(timeout) {
+            withContext(Dispatchers.IO) {
                 suspendCancellableCoroutine { continuation ->
                     reference.delete()
                         .addOnCompleteListener { task ->

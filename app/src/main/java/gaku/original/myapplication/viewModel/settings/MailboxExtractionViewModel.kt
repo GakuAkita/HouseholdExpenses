@@ -27,6 +27,9 @@ class MailboxExtractionViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> get() = _categories
 
+    private val _mailboxExtractionSetting = MutableStateFlow<MailboxExtractionCommon?>(null)
+    val mailboxExtractionSetting: StateFlow<MailboxExtractionCommon?> get() = _mailboxExtractionSetting
+
     /* MailboxExtractionViewにしか紐づけられないのでbackStackで戻れば毎回Clearされる */
     override fun onCleared() {
         super.onCleared()
@@ -47,6 +50,7 @@ class MailboxExtractionViewModel @Inject constructor(
                     instance,
                     callback = {}
                 )
+
             callback(result)
         }
     }
@@ -59,7 +63,9 @@ class MailboxExtractionViewModel @Inject constructor(
         viewModelScope.launch {
             mailboxExtractionRepository.updateMailTypeSetting(
                 instance,
-                callback = callback
+                callback = { statusInfo ->
+                    callback(statusInfo)
+                }
             )
         }
     }
