@@ -91,14 +91,12 @@ class RepeatAddFirestoreRepository @Inject constructor(
         val repeatAddRef = getRepeatAddColRef()
 
         if (repeatAddRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "RepeatAddコレクションが参照できませんでした"
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "RepeatAddコレクションが参照できませんでした"
             )
-
-            callback(statusInfo)
-
-            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+            callback(result.toSuspendFuncStatusInfo())
+            return result
         }
 
         return try {
@@ -114,27 +112,27 @@ class RepeatAddFirestoreRepository @Inject constructor(
                     }
 
                     Log.d(className, "Fetched Categories: $list")
-                    val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                    callback(statusInfo)
-
+                    val result = FetchResult.Success(
+                        data = list
+                    )
+                    callback(result.toSuspendFuncStatusInfo())
                     /* 戻り値 */
-                    FetchResult(statusInfo.status, statusInfo.errorMessage, list)
+                    result
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
-            val statusInfo =
-                SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました")
-            callback(statusInfo)
-
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            val result = FetchResult.Failure.Timeout()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
-            val statusInfo =
-                SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
-            callback(statusInfo)
-
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
+            )
+            callback(result.toSuspendFuncStatusInfo())
+            result
         }
     }
 

@@ -10,7 +10,6 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
-import gaku.original.myapplication.data.toFetchResult
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.Dispatchers
@@ -37,48 +36,31 @@ class RealtimeDbReference @Inject constructor(
     // userId配下のexpenses
     suspend fun getUserRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
         val funcName = ::getUserRef.name
-        var ref: DatabaseReference? = null
-        try {
+        return try {
             withTimeout(2000) {
                 withContext(Dispatchers.IO) {
-                    currentUserId?.let {
-                        val userId = currentUserId ?: ""
-                        ref = database.child("users").child(userId)
-                        //currentUserIdがnullかチェックしているので問題ない
-                        val statusInfo = SuspendFuncStatusInfo(
-                            status = SuspendFuncStatus.SUCCESS,
-                            errorMessage = ""
-                        )
-                        callback(statusInfo)
-                    } ?: {
-                        Log.d(className, "userId is null")
-                        throw Exception("userId is null")
-                    }
+                    val userId: String = currentUserId ?: throw Exception("userId is null")
+
+                    val ref: DatabaseReference = database.child("users").child(userId)
+                    val result = FetchResult.Success(ref)
+                    callback(result.toSuspendFuncStatusInfo())
+                    result
                 }
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
-            val statusInfo = SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.TIMEOUT,
-                errorMessage = "Timeout : ${e.message}"
-            )
-            callback(statusInfo)
-            return statusInfo.toFetchResult()
+            val result = FetchResult.Failure.Timeout()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: Exception) {
             LogException(className, funcName, e)
-            val statusInfo = SuspendFuncStatusInfo(
+            val result = FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )
-            callback(statusInfo)
-            return statusInfo.toFetchResult()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         }
-
-        return FetchResult(
-            status = SuspendFuncStatus.SUCCESS,
-            errorMessage = "",
-            data = ref
-        )
     }
 
     /* getUserExpensesRefとgetUserCategoryRefで同じことをやっていたので共通化 */
@@ -87,10 +69,9 @@ class RealtimeDbReference @Inject constructor(
         funcName: String,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): FetchResult<DatabaseReference> {
-        var ref: DatabaseReference? = null
-
         val userRefRet = getUserRef()
-        if (userRefRet.status != SuspendFuncStatus.SUCCESS || userRefRet.data == null) {
+
+        if (userRefRet !is FetchResult.Success) {
             callback(userRefRet.toSuspendFuncStatusInfo())
             return userRefRet
         }
@@ -98,45 +79,34 @@ class RealtimeDbReference @Inject constructor(
         val userRef = userRefRet.data
 
         //シーケンスみたい。ある処理が終えたら次をスタートして、、みたいな。
-        try {
-            withTimeout(2000) {
+        return try {
+            val finalRef = withTimeout(2000) {
                 withContext(Dispatchers.IO) {
-                    var tmp_ref = userRef//nullでない
-
-                    childrenPath.forEach { childName ->
-                        tmp_ref?.let {//null出ない場合
-                            tmp_ref = tmp_ref?.child(childName)//nullでないことが保証されている
-                        } ?: run {//nullのとき
-                            throw Exception("tmp_ref became null childName:${childName}")
-                            /* ここでループ自体は抜けてしたでcatchされるので、わざわざbreakしなくてよい */
-                        }
+                    var tmpRef = userRef
+                    for (childName in childrenPath) {
+                        tmpRef = tmpRef.child(childName)
+                            ?: throw Exception("tmpRef became null at child: $childName")
                     }
-                    ref = tmp_ref
+                    tmpRef
                 }
             }
+            val result = FetchResult.Success(finalRef)
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
-            val statusInfo = SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.TIMEOUT,
-                errorMessage = "Timeout : ${e.message}"
-            )
-            callback(statusInfo)
-            return statusInfo.toFetchResult()
+            val result = FetchResult.Failure.Timeout("Timeout: ${e.message}")
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: Exception) {
             LogException(className, funcName, e)
-            val statusInfo = SuspendFuncStatusInfo(
+            val result = FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "${e.message}"
+                errorMessage = e.message ?: "Unknown error"
             )
-            callback(statusInfo)
-            return statusInfo.toFetchResult()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         }
-
-        return FetchResult(
-            status = SuspendFuncStatus.SUCCESS,
-            errorMessage = "",
-            data = ref
-        )
     }
 
     // userId配下のexpenses
@@ -146,7 +116,6 @@ class RealtimeDbReference @Inject constructor(
         val childrenPath = listOf("data", "expenses")
 
         val ret = getUserChildrenRef(childrenPath, funcName, callback)
-
         return ret
     }
 
@@ -157,7 +126,6 @@ class RealtimeDbReference @Inject constructor(
         val childrenPath = listOf("data", "categories")
 
         val ret = getUserChildrenRef(childrenPath, funcName, callback)
-
         return ret
     }
 
@@ -167,56 +135,62 @@ class RealtimeDbReference @Inject constructor(
         val childrenPath = listOf("settings")
 
         val ret = getUserChildrenRef(childrenPath, funcName, callback)
-
         return ret
     }
 
     suspend fun getUserRepeatAddRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
         val funcName = ::getUserRepeatAddRef.name
         Log.d(className, "${funcName} was called")
-        var ref: DatabaseReference? = null
-        val childrenPath = listOf("settings", "repeatAdd")
-
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)
-
-        return ret
-    }
-
-    /* MailboxExtraction配下 */
-    suspend fun getMailboxExtractionRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
-        val funcName = ::getMailboxExtractionRef.name
-        Log.d(className, "${funcName} was called")
-        val childrenPath = listOf("mailbox_extraction")
-
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)
-        return ret
-    }
-
-    suspend fun getMailboxExtractionMailTypeSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
-        val funcName = ::getMailboxExtractionRef.name
-        Log.d(className, "${funcName} was called")
-
-        val baseRefRet = getMailboxExtractionRef()
-        if (baseRefRet.status != SuspendFuncStatus.SUCCESS) {
+        val baseRefRet = getUserSettingsRef()
+        if (baseRefRet !is FetchResult.Success) {
             callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
 
         val baseRef = baseRefRet.data
-        if (baseRef == null) {
+        val newRef = baseRef.child("repeatAdd")
+        val result = FetchResult.Success(newRef)
+        callback(result.toSuspendFuncStatusInfo())
+        return result
+    }
 
+    /* MailboxExtraction配下 */
+    private suspend fun getMailboxExtractionRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+        val funcName = ::getMailboxExtractionRef.name
+        /* Log.d(className, "${funcName} was called") */
+        val childrenPath = listOf("mailbox_extraction")
+
+        val ret = getUserChildrenRef(childrenPath, funcName, callback)//callbackは中で実行される
+        return ret
+    }
+
+    private suspend fun getMailboxExtractionMailTypeSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+        val funcName = ::getMailboxExtractionRef.name
+        /* Log.d(className, "${funcName} was called") */
+        val childrenPath = listOf("mail_type_settings")
+
+        val baseRef = getMailboxExtractionRef()
+        if (baseRef !is FetchResult.Success) {
+            callback(baseRef.toSuspendFuncStatusInfo())
+            return baseRef
         }
+        val ref = getUserChildrenRef(childrenPath, funcName, callback)
         return ref
     }
 
     suspend fun getMailboxExtractionMailTypeSettingSingleRef(
         type: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
-    ): DatabaseReference? {
+    ): FetchResult<DatabaseReference> {
         val funcName = ::getMailboxExtractionRef.name
-        Log.d(className, "${funcName} was called")
-        var ref: DatabaseReference? = null
-        ref = getMailboxExtractionMailTypeSettingsRef(callback)?.child(type.nodeName)
+        /* Log.d(className, "${funcName} was called") */
+        val childrenPath = listOf(type.nodeName)
+        val baseRefRet = getMailboxExtractionMailTypeSettingsRef()
+        if (baseRefRet !is FetchResult.Success) {
+            callback(baseRefRet.toSuspendFuncStatusInfo())
+            return baseRefRet
+        }
+        val ref = getMailboxExtractionMailTypeSettingsRef(callback)?.child(type.nodeName)
         return ref
     }
 

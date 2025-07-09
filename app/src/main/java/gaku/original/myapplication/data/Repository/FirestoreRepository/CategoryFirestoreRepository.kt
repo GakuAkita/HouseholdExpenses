@@ -88,14 +88,12 @@ class CategoryFirestoreRepository @Inject constructor(
         val categoryRef = getCategoriesColRef()
 
         if (categoryRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Categoriesコレクションが参照できませんでした"
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Categoriesコレクションが参照できませんでした"
             )
-
-            callback(statusInfo)
-
-            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+            callback(result.toSuspendFuncStatusInfo())
+            return result
         }
 
         return try {
@@ -111,27 +109,26 @@ class CategoryFirestoreRepository @Inject constructor(
                     }
 
                     Log.d(className, "Fetched Categories: $list")
-                    val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                    callback(statusInfo)
-
-                    /* 戻り値 */
-                    FetchResult(statusInfo.status, statusInfo.errorMessage, list)
+                    val result = FetchResult.Success(
+                        data = list
+                    )
+                    callback(result.toSuspendFuncStatusInfo())
+                    result
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
-            val statusInfo =
-                SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました")
-            callback(statusInfo)
-
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            val result = FetchResult.Failure.Timeout()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
-            val statusInfo =
-                SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, e.message ?: "不明なエラー")
-            callback(statusInfo)
-
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "${e.message}"
+            )
+            callback(result.toSuspendFuncStatusInfo())
+            result
         }
     }
 }

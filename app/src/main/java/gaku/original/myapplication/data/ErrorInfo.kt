@@ -18,16 +18,32 @@ data class SuspendFuncStatusInfo(
 
 sealed class FetchResult<out T> {
     data class Success<out T>(val data: T) : FetchResult<T>()
-    data class Failure(
-        val status: SuspendFuncStatus,
-        val errorMessage: String
-    ) : FetchResult<Nothing>()
+
+    sealed class Failure : FetchResult<Nothing>() {
+        abstract val errorMessage: String
+        open val errorCode: String? = null
+
+        data class GenericFailure(
+            val status: SuspendFuncStatus,
+            override val errorMessage: String,
+            override val errorCode: String? = null
+        ) : Failure()
+
+        data class Timeout(
+            override val errorMessage: String = "Timeout occurred",
+            override val errorCode: String? = "TIMEOUT"
+        ) : Failure()
+
+        // 必要に応じて他のケースを追加
+    }
 
     fun toSuspendFuncStatusInfo(): SuspendFuncStatusInfo = when (this) {
         is Success -> SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-        is Failure -> SuspendFuncStatusInfo(status, errorMessage)
+        is Failure.GenericFailure -> SuspendFuncStatusInfo(status, errorMessage)
+        is Failure.Timeout -> SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, errorMessage)
     }
 }
+
 
 data class SuspendFuncStatusInfoWithCode(
     val status: SuspendFuncStatus,
