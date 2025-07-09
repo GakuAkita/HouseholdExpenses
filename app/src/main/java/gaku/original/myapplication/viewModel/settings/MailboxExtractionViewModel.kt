@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,18 +40,44 @@ class MailboxExtractionViewModel @Inject constructor(
         Log.d(className, "$className was Initialized!!")
     }
 
+    suspend fun fetchMailboxExtractionIternalSettingWithLocalUpdate(
+        instance: MailboxExtractionCommon,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        val result =
+            mailboxExtractionRepository.getMailTypeSetting(
+                instance,
+                callback = {}
+            )
+        if (result.status == SuspendFuncStatus.SUCCESS) {
+            _mailboxExtractionSetting.value = result.data//ここで書き換える
+        }
+        callback(result.toSuspendFuncStatusInfo())
+    }
+
     fun fetchMailboxExtractionInternalSetting(
         instance: MailboxExtractionCommon,
-        callback: (FetchResult<MailboxExtractionCommon>) -> Unit
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+        viewModelScope.launch {
+            fetchMailboxExtractionIternalSettingWithLocalUpdate(instance, callback)
+        }
+    }
+
+    fun addCategoryAssignment(
+        type: MailboxExtractionCommon,
+        assignment: CategoryAssignment,
+        callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
             val result =
-                mailboxExtractionRepository.getMailTypeSetting(
-                    instance,
-                    callback = {}
-                )
-
-            callback(result)
+                mailboxExtractionRepository.addCategoryAssignment(type, assignment, callback)
+            if (result.status != SuspendFuncStatus.SUCCESS) {
+                callback(result)
+                return@launch
+            }
+            /* もし成功だったら、ローカルもupdate */
+            fetchMailboxExtractionIternalSettingWithLocalUpdate(type, callback)
         }
     }
 
@@ -64,6 +90,9 @@ class MailboxExtractionViewModel @Inject constructor(
             mailboxExtractionRepository.updateMailTypeSetting(
                 instance,
                 callback = { statusInfo ->
+                    if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+                        _mailboxExtractionSetting.value = instance//内部で更新
+                    }
                     callback(statusInfo)
                 }
             )

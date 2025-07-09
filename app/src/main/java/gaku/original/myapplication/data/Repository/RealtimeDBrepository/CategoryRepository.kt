@@ -1,6 +1,6 @@
 package gaku.original.myapplication.data.Repository.RealtimeDBrepository
 
-import addDataToRTDb
+import addDataToRTDbWithPush
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
@@ -94,7 +94,7 @@ class CategoryRepository @Inject constructor(
             return ret
         }
 
-        ret = addDataToRTDb(category, ref, callback = callback)
+        ret = addDataToRTDbWithPush(category, ref, callback = callback)
 
         return ret
     }

@@ -52,7 +52,7 @@ class MailboxExtractionFirestoreRepository @Inject constructor(
         if (docRef == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailboxExtraction/${instance.documentName}を参照できませんでした"
+                errorMessage = "MailboxExtraction/${instance.nodeName}を参照できませんでした"
             )
             callback(statusInfo)
             return statusInfo
@@ -66,7 +66,7 @@ class MailboxExtractionFirestoreRepository @Inject constructor(
     }
 
     suspend fun fetchMailboxExtractionMailTypeSetting(
-        instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。documentNameがほしい
+        instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。nodeNameがほしい
         timeout: Long = 3000,
         callback: (SuspendFuncStatusInfo) -> Unit
     ): FetchResult<MailboxExtractionCommon> {
@@ -84,7 +84,7 @@ class MailboxExtractionFirestoreRepository @Inject constructor(
         if (docRef == null) {
             val fetchResult = FetchResult<MailboxExtractionCommon>(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "MailboxExtraction/${instance.documentName}を参照できませんでした"
+                errorMessage = "MailboxExtraction/${instance.nodeName}を参照できませんでした"
             )
             callback(fetchResult.toSuspendFuncStatusInfo())
             return fetchResult
@@ -112,12 +112,12 @@ class MailboxExtractionFirestoreRepository @Inject constructor(
                 } else {
                     Log.d(
                         className,
-                        "MailboxExtraction/${instance.documentName}が存在しません\nエラーではありません"
+                        "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
                     )
                     fetchResult = FetchResult(
                         status = SuspendFuncStatus.SUCCESS,
                         data = null,
-                        errorMessage = "MailboxExtraction/${instance.documentName}が存在しません\nエラーではありません"
+                        errorMessage = "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
                     )
                 }
             }

@@ -29,7 +29,7 @@
 //   private getUserMailboxExtractionRakutenPayDocRef(userId: string) {
 //     const sampleRakuten = createRakutenPaySettingInstance({
 //       enabled: true,
-//     }); /* ここで指定されたdocumentNameがほしいだけに定義 */
+//     }); /* ここで指定されたnodeNameがほしいだけに定義 */
 
 //     return this.getUserMailboxExtractionMailTypeSettingsColRef(userId).doc(
 //       sampleRakuten.nodeName

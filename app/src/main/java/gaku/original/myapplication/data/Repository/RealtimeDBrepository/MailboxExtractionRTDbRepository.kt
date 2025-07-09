@@ -1,13 +1,17 @@
 package gaku.original.myapplication.data.Repository.RealtimeDBrepository
 
+import addDataToRTDbSimple
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
+import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -26,6 +30,63 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ): DatabaseReference? {
         return realtimeDbReference.getMailboxExtractionMailTypeSettingSingleRef(type, callback)
+    }
+
+    suspend fun getMailTypeCategoryAssignmentRef(
+        type: MailboxExtractionCommon,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): DatabaseReference? {
+        return realtimeDbReference.getMailboxExtractionMailTypeCategoryAssignmentRef(type, callback)
+    }
+
+    /**
+     * タイプからCategoryAssignmentを保存しているRefを取得して、
+     * pushする。idを入れてRTDbへアップする
+     */
+    suspend fun addCategoryAssignment(
+        type: MailboxExtractionCommon,
+        assignment: CategoryAssignment,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ): SuspendFuncStatusInfo {
+        val funcName = ::addCategoryAssignment.name
+        LogClassFuncCalled(className, funcName)
+
+        var ret = SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.FAILED,
+            errorMessage = "Doing Nothing."
+        )
+
+        val ref = getMailTypeCategoryAssignmentRef(type, callback = {
+            if (it.status != SuspendFuncStatus.SUCCESS) {
+                ret = it
+            }
+        })
+
+        if (ref == null) {
+            ret = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "ref is null"
+            )
+            callback(ret)
+            return ret
+        }
+
+        LogAkitaDebug("待ってないか？:${ret}")
+
+        if (ret.status != SuspendFuncStatus.SUCCESS) {
+            /* refはnullならStatusもSuccessではないはず */
+            callback(ret)
+            return ret
+        }
+
+        val newRef = ref.push()
+        val assignmentWithId = assignment.copy(
+            id = newRef.key
+        )
+        LogAkitaDebug("$assignmentWithId")
+
+        ret = addDataToRTDbSimple(assignmentWithId, newRef, callback = callback)
+        return ret
     }
 
     suspend fun updateMailTypeSetting(
@@ -58,8 +119,8 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     ): FetchResult<MailboxExtractionCommon> {
         val funcName = ::getMailTypeSetting.name
         var ret = FetchResult<MailboxExtractionCommon>(
-            status = SuspendFuncStatus.SUCCESS,
-            errorMessage = ""
+            status = SuspendFuncStatus.FAILED,
+            errorMessage = "Doing Nothing"
         )
         val ref = getMailTypeSettingSingleRef(setting, callback = {
             if (it.status != SuspendFuncStatus.SUCCESS) {
@@ -84,8 +145,8 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         }
 
         return try {
-            withContext(Dispatchers.IO) {
-                withTimeout(10000) {
+            withTimeout(10000) {
+                withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     val data = snapshot.getValue(kClass.java)
                     if (data == null) {
@@ -94,7 +155,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                             errorMessage = "まだデータが保存されていません"
                         )
                         callback(result.toSuspendFuncStatusInfo())
-                        return@withTimeout result
+                        return@withContext result
                     }
                     val result = FetchResult(
                         status = SuspendFuncStatus.SUCCESS,

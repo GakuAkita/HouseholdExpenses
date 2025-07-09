@@ -1,6 +1,6 @@
 package gaku.original.myapplication.data.Repository.RealtimeDBrepository
 
-import addDataToRTDb
+import addDataToRTDbWithPush
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
@@ -92,7 +92,7 @@ class RepeatAddRepository @Inject constructor(
             return statusInfo
         }
 
-        val ret = addDataToRTDb(repeatAdd, reference, callback = callback)
+        val ret = addDataToRTDbWithPush(repeatAdd, reference, callback = callback)
         return ret
     }
 

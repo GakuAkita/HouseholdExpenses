@@ -1,8 +1,10 @@
 package gaku.original.myapplication.ui.view.settings.menu.GmailLinking
 
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,21 +41,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.AssignmentCondition
+import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtraction
+import gaku.original.myapplication.data.dataClass.checkAssignment
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.MailboxExtractionViewModel
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +75,10 @@ fun RakutenPaySettingView(
     var editedFlag by remember { mutableStateOf(false) }
 
     val allCategories by viewModel.categories.collectAsState(initial = emptyList())
-    val rakutenPaySetting by viewModel.mailboxExtractionSetting.collectAsState(null)//ViewModelで状態保持
+    val mailboxSetting by viewModel.mailboxExtractionSetting.collectAsState(null)
+    val rakutenPaySetting = mailboxSetting as? MailboxExtraction.RakutenPay
+
+    var editedAssignment = remember { mutableStateOf<CategoryAssignment?>(null) }
 
     var categoryFetchExec by rememberSaveable { mutableStateOf(false) }
 
@@ -84,6 +93,8 @@ fun RakutenPaySettingView(
     var showCategoryAssignmentDialog by remember {
         mutableStateOf(false)
     }
+
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         if (!categoryFetchExec) {
@@ -102,7 +113,7 @@ fun RakutenPaySettingView(
             viewModel.fetchMailboxExtractionInternalSetting(/* 関数内でrakutenPaySettingを更新する */
                 MailboxExtraction.RakutenPay(),
                 callback = {
-                    initialFetchSettingStatus = it.toSuspendFuncStatusInfo()
+                    initialFetchSettingStatus = it
                 }
             )
         }
@@ -142,7 +153,7 @@ fun RakutenPaySettingView(
             if (status == null) {
                 /* ローディング中なはず、、 */
                 CircularProgressIndicator()
-            } else if (status.status != SuspendFuncStatus.SUCCESS) {
+            } else if (status.status != SuspendFuncStatus.SUCCESS || rakutenPaySetting == null) {
                 /* 取り込み失敗 */
                 /* 場合によってはnavigateでもとに戻った方が良い？？ */
                 Text(
@@ -150,10 +161,6 @@ fun RakutenPaySettingView(
                             "message:${status.errorMessage}"
                 )
             } else {
-                /* savableだとこのように変数に当てないとだめっぽい？ */
-                val bufRakutenPaySetting =
-                    rakutenPaySetting ?: MailboxExtraction.RakutenPay()/* nullなはずがない */
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -164,98 +171,78 @@ fun RakutenPaySettingView(
                         modifier = Modifier
                             .scale(scaleX = 1.5f, scaleY = 1.2f)
                             .padding(horizontal = 30.dp),
-                        checked = bufRakutenPaySetting.enabled,
-                        onCheckedChange = {
-                            rakutenPaySetting = bufRakutenPaySetting.copy(enabled = it)
-                            editedFlag = true
+                        checked = rakutenPaySetting.enabled,//確実に入るはず、
+                        onCheckedChange = { checked ->
+                            rakutenPaySetting.let { current ->
+                                val updated = current.copy(enabled = checked)
+                                /*  */
+                                viewModel.setMailboxExtractionInternalSetting(//内部でUI表示用の値を更新(成功のときのみ)
+                                    updated,
+                                    callback = {
+                                        if (it.status != SuspendFuncStatus.SUCCESS) {
+                                            val enabledStr = if (checked) "有効" else "無効"
+                                            /* 失敗したとsnackBarを出す */
+                                            scope.launch {
+                                                snackBarHostState.currentSnackbarData?.dismiss()
+                                                snackBarHostState.showSnackbar(
+                                                    "${enabledStr}化に失敗しました",
+                                                    actionLabel = "OK"
+                                                )
+                                            }
+                                            LogAkitaDebug("")
+                                        }
+                                    }
+                                )
+                            }
                         }
                     )
                 }
 
                 Button(
                     onClick = {
-                        viewModel.setMailboxExtractionInternalSetting(
-                            bufRakutenPaySetting,
-                            callback = {
-                                if (it.status == SuspendFuncStatus.SUCCESS) {
-                                    /* 保存に成功しました */
-                                    editedFlag = false
-                                    viewModel.setMailboxExtractionInternalSetting(
-                                        bufRakutenPaySetting,
-                                        callback = {})
-                                } else {
-                                    /* 失敗しました */
-                                }
-                            }
-                        )
-                    }
-                ) {
-                    Text("この設定を保存")
-                }
-
-                Button(
-                    onClick = {
+                        editedAssignment.value = null//nullのときは新規追加
                         showCategoryAssignmentDialog = true
                     }
                 ) {
                     Text("新しいカテゴリー割当を作成")
                 }
 
-                if (bufRakutenPaySetting.storeCategoryAssignments != null) {
-                    bufRakutenPaySetting.storeCategoryAssignments.forEach { (id, assignment) ->
+                if (rakutenPaySetting.storeCategoryAssignments != null) {
+                    rakutenPaySetting.storeCategoryAssignments.forEach { (id, assignment) ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                                .clickable {
+                                    /**
+                                     *  editedAssignmentに値をあててダイアログを表示
+                                     *  editedAssignmentはDialogの引数になっている
+                                     *  */
+                                    editedAssignment.value = assignment
+                                    showCategoryAssignmentDialog = true
+                                }
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                .padding(horizontal = 10.dp, vertical = 20.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "${assignment.name}",
                                 modifier = Modifier.weight(1f),
-                                fontSize = 10.sp
+                                fontSize = 20.sp
                             )
                             Spacer(modifier = Modifier.width(10.dp))
-                            CategoryDropDown(
-                                initialCategoryId = assignment.categoryId,
-                                categories = allCategories,
-                                onCategorySelected = { category ->
-                                    val newAssignments =
-                                        bufRakutenPaySetting.storeCategoryAssignments.toMutableMap()
-                                    newAssignments[id] = assignment.copy(categoryId = category.id)
-                                    rakutenPaySetting = bufRakutenPaySetting.copy(
-                                        storeCategoryAssignments = newAssignments
-                                    )
-                                    editedFlag = true
-                                    LogAkitaDebug("${bufRakutenPaySetting.storeCategoryAssignments}")
-                                },
-                                modifier = Modifier.weight(1f)
+                            /* カテゴリーIDからカテゴリーを表示する */
+                            val hitCategory = allCategories.find { it.id == assignment.categoryId }
+                            Text(
+                                text = "${hitCategory?.name}",
+                                modifier = Modifier.weight(1f),
+                                fontSize = 20.sp
                             )
                         }
                     }
                 }
-
-                Button(
-                    onClick = {
-                        rakutenPaySetting = bufRakutenPaySetting.copy(
-                            enabled = true,
-                            storeCategoryAssignments = mapOf(
-                                "id1" to CategoryAssignment(
-                                    id = "id1",
-                                    categoryId = "9O1rIgXCRQ3XUDmUNBWB",
-                                    name = "ローソン",
-                                    condition = AssignmentCondition.CONTAINS
-                                )
-                            )
-                        )
-                        val buf = rakutenPaySetting ?: MailboxExtraction.RakutenPay()
-                        viewModel.setMailboxExtractionInternalSetting(
-                            buf,
-                            callback = {})
-                    }
-                ) {
-                    Text("これはテスト")
-                }
-
             }
 
         }
@@ -266,11 +253,90 @@ fun RakutenPaySettingView(
      */
     if (showCategoryAssignmentDialog) {
         CategoryAssignmentDialog(
-            initialAssignment = null,
+            initialAssignment = editedAssignment.value,
             onDismiss = { showCategoryAssignmentDialog = false },
             categories = allCategories,
             onSave = { assignment ->
-                /* idを生成しておきたい、、pushで。 */
+                /* まあほぼないが、rakutenPaySettingがnullのときにここに可能性もある */
+                if (rakutenPaySetting == null) {
+                    return@CategoryAssignmentDialog
+                }
+
+                val result = checkAssignment(
+                    assignment,
+                    rakutenPaySetting.storeCategoryAssignments
+                )
+
+                if (result.status != CheckStatus.OK) {
+                    Toast.makeText(context, result.errorMessage, Toast.LENGTH_SHORT).show()
+                    return@CategoryAssignmentDialog
+                }
+
+                if (assignment.id == null) {
+                    LogAkitaDebug("$assignment")
+                    /* 新規追加のときはidを取ってこないとだめだな */
+                    viewModel.addCategoryAssignment(
+                        type = rakutenPaySetting,
+                        assignment = assignment,
+                    ) {
+                        if (it.status == SuspendFuncStatus.SUCCESS) {
+                            showCategoryAssignmentDialog = false
+//                            scope.launch {
+//                                snackBarHostState.currentSnackbarData?.dismiss()
+//                                snackBarHostState.showSnackbar(
+//                                    "新しい割当を追加しました",
+//                                    actionLabel = "OK"
+//                                )
+//                            }
+                        }
+                    }
+                } else {
+
+                    val id = assignment.id
+
+                    val currentAssignments = rakutenPaySetting.storeCategoryAssignments.orEmpty()
+
+                    if (!currentAssignments.containsKey(id)) {
+                        // エラー：存在しないIDを編集しようとしている
+                        Toast.makeText(
+                            context,
+                            "指定された割当が見つかりませんでした",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@CategoryAssignmentDialog
+                    }
+
+                    // 更新処理
+                    val updatedAssignments = currentAssignments.toMutableMap()
+                    updatedAssignments[id] = assignment
+
+                    val updatedSetting = rakutenPaySetting.copy(
+                        storeCategoryAssignments = updatedAssignments
+                    )
+
+                    LogAkitaDebug("${updatedSetting}")
+                    viewModel.setMailboxExtractionInternalSetting(updatedSetting) {
+                        if (it.status == SuspendFuncStatus.SUCCESS) {
+                            showCategoryAssignmentDialog = false
+
+                            scope.launch {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                snackBarHostState.showSnackbar(
+                                    "割当を更新しました",
+                                    actionLabel = "OK"
+                                )
+                            }
+                        } else {
+                            // エラー：存在しないIDを編集しようとしている
+                            Toast.makeText(
+                                context,
+                                "更新失敗:${it.errorMessage}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+                /* editedAssignmentがnullじゃないなら編集(update) */
             }
         )
     }
@@ -434,6 +500,7 @@ fun AssignmentConditionDropdown(
                 }
             )
         }
+
     }
 }
 
@@ -511,7 +578,7 @@ fun CategoryAssignmentDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 5.dp),
-                initialCategoryId = null,
+                initialCategoryId = assignment.categoryId,
                 categories = categories,
                 onCategorySelected = {
                     assignment = assignment.copy(
