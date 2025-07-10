@@ -30,7 +30,7 @@ sealed class FetchResult<out T> {
         ) : Failure()
 
         data class Timeout(
-            override val errorMessage: String = "Timeout occurred",
+            override val errorMessage: String = "タイムアウトしました",
             override val errorCode: String? = "TIMEOUT"
         ) : Failure()
 

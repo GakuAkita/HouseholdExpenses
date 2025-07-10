@@ -150,25 +150,18 @@ class UserSettingsFirestoreRepository @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ): FetchResult<String> {
         val fetchResult = fetchUserPreferences()
-        if (fetchResult.status != SuspendFuncStatus.SUCCESS) {
-            val statusInfo = SuspendFuncStatusInfo(
-                fetchResult.status,
-                fetchResult.errorMessage ?: "UserPreferencesの取得に失敗しました"
+        if (fetchResult !is FetchResult.Success) {
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "UserPreferencesの取得に失敗しました"
             )
-            callback(statusInfo)
-            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+
+            callback(result.toSuspendFuncStatusInfo())
+            return result
         }
 
         /* 取得はできたけどnullだったら、、 */
         val userPreferences = fetchResult.data
-        if (userPreferences == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "UserPreferencesデータがnullです"
-            )
-            callback(statusInfo)
-            return FetchResult(statusInfo.status, statusInfo.errorMessage)
-        }
 
         /**
          * ここでセットするのは、
@@ -177,12 +170,11 @@ class UserSettingsFirestoreRepository @Inject constructor(
          * 責務の分離的には本当はよくないけど
          */
         AppTimeZone.updateStrZoneId(userPreferences.timeZone)
-        val statusInfo = SuspendFuncStatusInfo(
-            SuspendFuncStatus.SUCCESS,
-            ""
+        val result = FetchResult.Success(
+            userPreferences.timeZone
         )
-        callback(statusInfo)
-        return FetchResult(statusInfo.status, statusInfo.errorMessage, userPreferences.timeZone)
+        callback(result.toSuspendFuncStatusInfo())
+        return result
     }
 
     /**
@@ -197,12 +189,12 @@ class UserSettingsFirestoreRepository @Inject constructor(
 
         val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "UserPreferencesドキュメントが参照できませんでした"
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "UserPreferencesドキュメントが参照できませんでした"
             )
-            callback(statusInfo)
-            return FetchResult(statusInfo.status, statusInfo.errorMessage)
+            callback(result.toSuspendFuncStatusInfo())
+            return result
         }
 
         return try {
@@ -211,43 +203,40 @@ class UserSettingsFirestoreRepository @Inject constructor(
                 if (snapshot.exists()) {
                     val preferences = snapshot.toObject(UserPreferences::class.java)
                     if (preferences != null) {
-                        val statusInfo = SuspendFuncStatusInfo(
-                            SuspendFuncStatus.SUCCESS,
-                            ""
+                        val result = FetchResult.Success(
+                            preferences
                         )
-                        callback(statusInfo)
-                        FetchResult(statusInfo.status, statusInfo.errorMessage, preferences)
+                        callback(result.toSuspendFuncStatusInfo())
+                        result
                     } else {
-                        val statusInfo = SuspendFuncStatusInfo(
-                            SuspendFuncStatus.FAILED,
-                            "UserPreferencesデータの変換に失敗しました"
+                        val result = FetchResult.Failure.GenericFailure(
+                            status = SuspendFuncStatus.FAILED,
+                            errorMessage = "UserPreferencesデータの変換に失敗しました"
                         )
-                        callback(statusInfo)
-                        FetchResult(statusInfo.status, statusInfo.errorMessage)
+                        callback(result.toSuspendFuncStatusInfo())
+                        result
                     }
                 } else {
-                    val statusInfo = SuspendFuncStatusInfo(
-                        SuspendFuncStatus.FAILED,
-                        "ドキュメントが存在しません"
+                    val result = FetchResult.Failure.GenericFailure(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "UserPreferencesドキュメントが存在しません"
                     )
-                    callback(statusInfo)
-                    FetchResult(statusInfo.status, statusInfo.errorMessage)
+
+                    callback(result.toSuspendFuncStatusInfo())
+                    result
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.TIMEOUT,
-                "タイムアウトしました"
-            )
-            callback(statusInfo)
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            val result = FetchResult.Failure.Timeout()
+            callback(result.toSuspendFuncStatusInfo())
+            result
         } catch (e: Exception) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                e.message ?: "不明なエラー"
+            val result = FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
             )
-            callback(statusInfo)
-            FetchResult(statusInfo.status, statusInfo.errorMessage)
+            callback(result.toSuspendFuncStatusInfo())
+            result
         }
     }
 }
