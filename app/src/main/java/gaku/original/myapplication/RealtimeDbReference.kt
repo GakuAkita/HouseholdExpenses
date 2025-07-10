@@ -142,7 +142,7 @@ class RealtimeDbReference @Inject constructor(
         val funcName = ::getUserRepeatAddRef.name
         Log.d(className, "${funcName} was called")
         val baseRefRet = getUserSettingsRef()
-        if (baseRefRet !is FetchResult.Success) {
+        if (baseRefRet !is FetchResult.Success) {//拡張関数を使うと、スマートキャストが効かない
             callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
@@ -165,33 +165,36 @@ class RealtimeDbReference @Inject constructor(
     }
 
     private suspend fun getMailboxExtractionMailTypeSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
-        val funcName = ::getMailboxExtractionRef.name
-        /* Log.d(className, "${funcName} was called") */
-        val childrenPath = listOf("mail_type_settings")
-
-        val baseRef = getMailboxExtractionRef()
-        if (baseRef !is FetchResult.Success) {
-            callback(baseRef.toSuspendFuncStatusInfo())
-            return baseRef
+        val baseRefRet = getMailboxExtractionRef()
+        if (baseRefRet !is FetchResult.Success) {
+            callback(baseRefRet.toSuspendFuncStatusInfo())
+            return baseRefRet
         }
-        val ref = getUserChildrenRef(childrenPath, funcName, callback)
-        return ref
+
+        val baseRef = baseRefRet.data
+        val result = FetchResult.Success(
+            baseRef.child("mail_type_settings")
+        )
+        callback(result.toSuspendFuncStatusInfo())
+        return result
     }
 
     suspend fun getMailboxExtractionMailTypeSettingSingleRef(
         type: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): FetchResult<DatabaseReference> {
-        val funcName = ::getMailboxExtractionRef.name
-        /* Log.d(className, "${funcName} was called") */
-        val childrenPath = listOf(type.nodeName)
         val baseRefRet = getMailboxExtractionMailTypeSettingsRef()
         if (baseRefRet !is FetchResult.Success) {
             callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
-        val ref = getMailboxExtractionMailTypeSettingsRef(callback)?.child(type.nodeName)
-        return ref
+        val baseRef = baseRefRet.data
+
+        val result = FetchResult.Success(
+            baseRef.child(type.nodeName)
+        )
+        callback(result.toSuspendFuncStatusInfo())
+        return result
     }
 
     /**
@@ -200,31 +203,36 @@ class RealtimeDbReference @Inject constructor(
     suspend fun getMailboxExtractionMailTypeCategoryAssignmentRef(
         type: MailboxExtractionCommon,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
-    ): DatabaseReference? {
-        val baseRef = getMailboxExtractionMailTypeSettingSingleRef(type, callback);
-        if (baseRef == null) {
-            return null
+    ): FetchResult<DatabaseReference> {
+        val baseRefRet = getMailboxExtractionMailTypeSettingSingleRef(type, callback);
+        if (baseRefRet !is FetchResult.Success) {
+            callback(baseRefRet.toSuspendFuncStatusInfo())
+            return baseRefRet
         }
+
+        val baseRef = baseRefRet.data
         val kClass = getMailboxExtractionInternalClass(type)
         when (kClass) {
             MailboxExtraction::RakutenPay::class -> {
-                return baseRef.child("storeCategoryAssignments")
-            }
-
-            MailboxExtraction::ShikokuElectricPower::class -> {
-                return baseRef
-            }
-
-            MailboxExtraction::AmazonKindle::class -> {
-                return baseRef
+                val result = FetchResult.Success(
+                    baseRef.child("storeCategoryAssignments")
+                )
+                return result
             }
 
             MailboxExtraction::AmazonItem::class -> {
-                return baseRef.child("itemCategoryAssignments")
+                val result = FetchResult.Success(
+                    baseRef.child("itemCategoryAssignments")
+                )
+                return result
             }
 
             else -> {
-                return null
+                val result = FetchResult.Failure.GenericFailure(
+                    status = SuspendFuncStatus.FAILED,
+                    errorMessage = "対応していないタイプです"
+                )
+                return result
             }
         }
     }
