@@ -35,9 +35,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
-import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.main.CategoryEditViewModel
@@ -237,7 +237,7 @@ fun CategoryItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         //nullになることは基本的にない
-        Text(category.name ?: CATEGORY_NULL_REPLACEMENT)
+        Text(modifier = Modifier.weight(1f), text = category.name ?: CATEGORY_NULL_REPLACEMENT)
 
         // ゴミ箱ボタン
         IconButton(

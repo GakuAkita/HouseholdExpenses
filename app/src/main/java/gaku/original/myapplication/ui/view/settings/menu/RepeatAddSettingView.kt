@@ -45,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -54,11 +53,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.defaultFrequency
@@ -85,7 +84,6 @@ fun RepeatAddSettingView(
     navController: NavController
 ) {
     val funcName = "RepeatAddSettingView"
-    val context = LocalContext.current
 
     var showAddEditDialog by remember { mutableStateOf(false) }
 
@@ -120,6 +118,16 @@ fun RepeatAddSettingView(
                 .padding(innerPadding)
                 .padding(top = 30.dp)
         ) {
+            if (repeatAddSettings.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 3.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("右にスワイプすると削除ボタンが現れます")
+                }
+            }
             /**
              * ここで検索とかできるようにしたいなあ～
              */
@@ -143,24 +151,32 @@ fun RepeatAddSettingView(
                             viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
                                 when (status.status) {
                                     SuspendFuncStatus.SUCCESS -> {
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar(
+                                                "削除しました",
+                                                actionLabel = "OK"
+                                            )
+                                        }
                                         /* 再度読み込む、、 */
                                         viewModel.fetchAllRepeatAddSettings()
                                     }
 
                                     SuspendFuncStatus.TIMEOUT -> {
                                         scope.launch {
-                                            snackBarHostState.showSnackbar("削除できませんでした。タイムアウトしました")
+                                            snackBarHostState.showSnackbar(
+                                                "削除できませんでした。タイムアウトしました",
+                                                actionLabel = "OK"
+                                            )
                                         }
                                     }
 
                                     SuspendFuncStatus.FAILED -> {
                                         scope.launch {
-                                            snackBarHostState.showSnackbar("削除に失敗しました")
+                                            snackBarHostState.showSnackbar(
+                                                "削除に失敗しました",
+                                                actionLabel = "OK"
+                                            )
                                         }
-                                    }
-
-                                    else -> {
-                                        Log.d(funcName, "Unknown SuspendFunc status $status")
                                     }
                                 }
                             })

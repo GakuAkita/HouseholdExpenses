@@ -29,7 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.dataClass.MailboxExtraction
+import gaku.original.myapplication.data.dataClass.MailboxExtractionType
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.GmailLinkingViewModel
@@ -43,10 +43,10 @@ fun GmailLinkingView(
 ) {
     val context = LocalContext.current
 
-    val rakutenPaySetting = MailboxExtraction.RakutenPay()
-    val amazonKindleSetting = MailboxExtraction.AmazonKindle()
-    val amazonItemSetting = MailboxExtraction.AmazonItem()
-    val shikokuElectricSetting = MailboxExtraction.ShikokuElectricPower()
+    val rakutenPaySetting = MailboxExtractionType.RakutenPay()
+    val amazonKindleSetting = MailboxExtractionType.AmazonKindle()
+    val amazonItemSetting = MailboxExtractionType.AmazonItem()
+    val shikokuElectricSetting = MailboxExtractionType.ShikokuElectricPower()
 
     val loading by viewModel.loading.collectAsState(false)
 
