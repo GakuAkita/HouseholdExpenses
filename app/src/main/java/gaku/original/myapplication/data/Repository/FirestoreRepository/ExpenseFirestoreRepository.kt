@@ -128,6 +128,40 @@ class ExpenseFirestoreRepository @Inject constructor(
         }
     }
 
+    suspend fun fetchNotCategorizedExpenses(
+        timeout: Long = 10000
+    ): FetchResult<List<Expense>> {
+        val funcName = ::fetchNotCategorizedExpenses.name
+        LogClassFuncCalled(className, funcName)
+
+        val expenseRef = getExpensesColRef()
+            ?: return FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Expensesコレクションが参照できませんでした"
+            )
+
+        return try {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {
+                    val snapshot = expenseRef
+                        .whereEqualTo("category", null)
+                        .get()
+                        .await()
+                    val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+
+                    FetchResult.Success(data = list)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            FetchResult.Failure.Timeout()
+        } catch (e: Exception) {
+            FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
+            )
+        }
+    }
+
 
     suspend fun fetchAllExpenses(
         timeout: Long = 10000
@@ -179,5 +213,6 @@ class ExpenseFirestoreRepository @Inject constructor(
             result
         }
     }
+
 
 }
