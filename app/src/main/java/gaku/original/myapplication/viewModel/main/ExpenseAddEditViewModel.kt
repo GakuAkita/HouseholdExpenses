@@ -33,7 +33,6 @@ class ExpenseAddEditViewModel @Inject constructor(
         AppTimeZone.isoStringToLocalDateTime(currentTmpExpense.datetime)?.let {
             return it.toLocalDate()
         }
-
         return AppTimeZone.getCurrentTimeInZone().toLocalDate()
     }
 

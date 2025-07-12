@@ -169,6 +169,7 @@ fun ExpenseAddEditView(
 
     Scaffold(
         topBar = {
+            //↓これいつの話？
             //悩みどころだが、BackだとGraphから来たときにGraphに戻る可能性があるので
             //強制的にMainScreenに行くことにする。しっかり設計しないとヒューマンエラー起きそうだな
             TopBarView(
@@ -253,7 +254,7 @@ fun ExpenseAddEditView(
                 if (isTimePickerVisible) {
                     //nullでないときのみ時刻を表示
                     DialWithDialog(
-                        onConfirm = { it ->
+                        onConfirm = {
                             // 選択した時間を取得して ViewModel に更新
                             val _newTime = LocalTime.of(it.hour, it.minute)
                             selectedTime = _newTime

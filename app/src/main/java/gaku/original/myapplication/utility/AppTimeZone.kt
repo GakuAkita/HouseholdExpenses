@@ -61,7 +61,7 @@ object AppTimeZone {
 
     /* UTCの時間をLocalDateTimeで取得 */
     fun getCurrentTimeInUTC(): LocalDateTime {
-        return LocalDateTime.now(ZoneId.of(TimeZoneOption.JAPAN.id))
+        return LocalDateTime.now(ZoneId.of(TimeZoneOption.UTC.id))
     }
 
     fun getCurrentTimeInUTCString(): String {
