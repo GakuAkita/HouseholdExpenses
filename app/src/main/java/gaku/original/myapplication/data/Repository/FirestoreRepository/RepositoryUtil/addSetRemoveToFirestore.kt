@@ -85,7 +85,6 @@ suspend fun setDataToFirestoreWithOption(
     timeout: Long = 3000,
     reference: DocumentReference,
     setOptions: SetOptions? = null,
-    callback: (SuspendFuncStatusInfo) -> Unit = {},
 ): SuspendFuncStatusInfo {
     val funcName = "setDataToFirestoreWithOption"
 
@@ -103,7 +102,6 @@ suspend fun setDataToFirestoreWithOption(
                         if (result.isSuccessful) {
                             Log.d(funcName, "Data ($data) was set successfully")
                             val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                            callback(statusInfo)
                             continuation.resume(statusInfo)
                         } else {
                             Log.e(funcName, "Failed to set data $data", result.exception)
@@ -111,7 +109,6 @@ suspend fun setDataToFirestoreWithOption(
                                 SuspendFuncStatus.FAILED,
                                 result.exception?.message ?: "不明なエラーが発生しました"
                             )
-                            callback(statusInfo)
                             continuation.resume(statusInfo)
                         }
                     }
@@ -120,11 +117,9 @@ suspend fun setDataToFirestoreWithOption(
         }
     } catch (e: TimeoutCancellationException) {
         val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトしました。")
-        callback(statusInfo)
         return statusInfo
     } catch (e: Exception) {
         val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "${e.message}")
-        callback(statusInfo)
         return statusInfo
     }
 }
@@ -133,14 +128,12 @@ suspend fun setDataToFirestore(
     data: Any,
     timeout: Long = 3000,
     reference: DocumentReference,
-    callback: (SuspendFuncStatusInfo) -> Unit = {},
 ): SuspendFuncStatusInfo {
     return setDataToFirestoreWithOption(
         data = data,
         timeout = timeout,
         reference = reference,
         setOptions = null, // merge しない通常の set
-        callback = callback
     )
 }
 
@@ -149,14 +142,12 @@ suspend fun mergeDataToFirestore(
     data: Any,
     timeout: Long = 3000,
     reference: DocumentReference,
-    callback: (SuspendFuncStatusInfo) -> Unit = {},
 ): SuspendFuncStatusInfo {
     return setDataToFirestoreWithOption(
         data = data,
         timeout = timeout,
         reference = reference,
         setOptions = SetOptions.merge(), // merge する
-        callback = callback
     )
 }
 
@@ -164,7 +155,6 @@ suspend fun mergeDataToFirestore(
 suspend fun removeDocument(
     reference: DocumentReference,
     timeout: Long = 3000,  // デフォルトのタイムアウト時間（ミリ秒）
-    callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
     return try {
         // タイムアウトを設定して削除処理
@@ -176,14 +166,12 @@ suspend fun removeDocument(
                             if (task.isSuccessful) {
                                 val statusInfo =
                                     SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-                                callback(statusInfo)
                                 continuation.resume(statusInfo)
                             } else {
                                 val statusInfo = SuspendFuncStatusInfo(
                                     SuspendFuncStatus.FAILED,
                                     task.exception?.message ?: "Failed to delete document"
                                 )
-                                callback(statusInfo)
                                 continuation.resume(statusInfo)
                             }
                         }
@@ -193,7 +181,6 @@ suspend fun removeDocument(
     } catch (e: TimeoutCancellationException) {
         val statusInfo =
             SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, "タイムアウトが発生しました。")
-        callback(statusInfo)
         return statusInfo
     } catch (e: Exception) {
         val statusInfo =
@@ -201,7 +188,6 @@ suspend fun removeDocument(
                 SuspendFuncStatus.FAILED,
                 e.message ?: "不明なエラーが発生しました"
             )
-        callback(statusInfo)
         return statusInfo
     }
 }

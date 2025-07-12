@@ -9,13 +9,9 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import gaku.original.myapplication.data.Repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.MailboxExtractionFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
-import gaku.original.myapplication.data.Repository.RealtimeDBrepository.CategoryRepository
-import gaku.original.myapplication.data.Repository.RealtimeDBrepository.ExpenseRepository
 import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
-import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepeatAddRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
@@ -43,35 +39,11 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideDbListenerManager(realtimeDbReference: RealtimeDbReference): RealtimeDbListenerManager {
-        return RealtimeDbListenerManager(realtimeDbReference)
-    }
-
-    @Provides
-    @ActivityRetainedScoped
     fun provideFirestoreListenerManager(firestoreReference: FirestoreReference): FirestoreListenerManager {
         return FirestoreListenerManager(firestoreReference)
     }
 
     /************************** Repository類 ******************************/
-    @Provides
-    @ActivityRetainedScoped
-    fun provideExpenseRepository(realtimeDbReference: RealtimeDbReference): ExpenseRepository {
-        return ExpenseRepository(realtimeDbReference)
-    }
-
-    @Provides
-    @ActivityRetainedScoped
-    fun provideCategoryRepository(realtimeDbReference: RealtimeDbReference): CategoryRepository {
-        return CategoryRepository(realtimeDbReference)
-    }
-
-    @Provides
-    @ActivityRetainedScoped
-    fun provideRepeatAddRepository(realtimeDbReference: RealtimeDbReference): RepeatAddRepository {
-        return RepeatAddRepository(realtimeDbReference)
-    }
-
     @Provides
     @ActivityRetainedScoped
     fun provideExpenseFirestoreRepository(
@@ -99,14 +71,6 @@ object AppModule {
         firestoreReference: FirestoreReference
     ): UserSettingsFirestoreRepository {
         return UserSettingsFirestoreRepository(firebaseAuth, firestoreReference)
-    }
-
-    @Provides
-    @ActivityRetainedScoped
-    fun provideMailboxExtractionFirestoreRepository(
-        firestoreReference: FirestoreReference
-    ): MailboxExtractionFirestoreRepository {
-        return MailboxExtractionFirestoreRepository(firestoreReference)
     }
 
     @Provides

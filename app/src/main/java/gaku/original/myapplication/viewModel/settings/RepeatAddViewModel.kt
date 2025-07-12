@@ -3,7 +3,7 @@ package gaku.original.myapplication.viewModel.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
@@ -47,17 +47,13 @@ class RepeatAddViewModel @Inject constructor(
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
     fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val fetchResult = repeatAddRepository.fetchAllRepeatAdd(
-                callback = { status ->
-                    /* 成功失敗時の通知 */
-                }
-            )
-            val statusInfo = fetchResult.toSuspendFuncStatusInfo()
-            if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
-                _repeatAddSettings.value = fetchResult.data ?: emptyList()
+            val fetchResult = repeatAddRepository.fetchAllRepeatAdd()
+            if (fetchResult is FetchResult.Success) {
+                _repeatAddSettings.value = fetchResult.data
             } else {
                 _repeatAddSettings.value = emptyList()
             }
+            callback(fetchResult.toSuspendFuncStatusInfo())
         }
     }
 
@@ -65,19 +61,22 @@ class RepeatAddViewModel @Inject constructor(
 
         //チェックをいれる
         viewModelScope.launch {
-            repeatAddRepository.addRepeatAdd(repeatAdd, callback)
+            val ret = repeatAddRepository.addRepeatAdd(repeatAdd)
+            callback(ret)
         }
     }
 
     fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            repeatAddRepository.updateRepeatAdd(repeatAdd, callback)
+            val ret = repeatAddRepository.updateRepeatAdd(repeatAdd)
+            callback(ret)
         }
     }
 
     fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            repeatAddRepository.removeRepeatAdd(repeatAdd, callback)
+            val ret = repeatAddRepository.removeRepeatAdd(repeatAdd)
+            callback(ret)
         }
     }
 }

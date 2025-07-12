@@ -30,7 +30,6 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun addExpense(
         expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val ref = getExpensesColRef()
         if (ref == null) {
@@ -42,13 +41,12 @@ class ExpenseFirestoreRepository @Inject constructor(
         }
 
         /* タイムアウトは設定しない */
-        val statusInfo = addDataWithIdToFirestore(expense, ref, callback = callback)
+        val statusInfo = addDataWithIdToFirestore(expense, ref)
         return statusInfo
     }
 
     suspend fun updateExpense(
-        expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        expense: Expense
     ): SuspendFuncStatusInfo {
         val ref = getExpensesColRef()
         if (ref == null) {
@@ -59,13 +57,12 @@ class ExpenseFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = updateDataToFirestore(expense, ref, callback = callback)
+        val statusInfo = updateDataToFirestore(expense, ref)
         return statusInfo
     }
 
     suspend fun removeExpense(
         expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val ref = getExpensesColRef()
         if (ref == null) {
@@ -76,15 +73,14 @@ class ExpenseFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = removeDataFromFirestore(expense, ref, callback = callback)
+        val statusInfo = removeDataFromFirestore(expense, ref)
         return statusInfo
     }
 
     suspend fun fetchMonthsExpenses(
         fromMonth: YearMonth,
         toMonth: YearMonth,
-        timeout: Long = 10000,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        timeout: Long = 10000
     ): FetchResult<List<Expense>> {
         val funcName = ::fetchMonthsExpenses.name
         LogClassFuncCalled(className, funcName)
@@ -95,7 +91,6 @@ class ExpenseFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
-            callback(result.toSuspendFuncStatusInfo())
             return result
         }
 
@@ -118,28 +113,24 @@ class ExpenseFirestoreRepository @Inject constructor(
                     val result = FetchResult.Success(
                         data = list
                     )
-                    callback(result.toSuspendFuncStatusInfo())
                     result
                 }
             }
         } catch (e: TimeoutCancellationException) {
             val result = FetchResult.Failure.Timeout()
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: Exception) {
             val result = FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         }
     }
 
 
     suspend fun fetchAllExpenses(
-        timeout: Long = 10000,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        timeout: Long = 10000
     ): FetchResult<List<Expense>> {
         val funcName = ::fetchAllExpenses.name
         LogClassFuncCalled(className, funcName)
@@ -151,7 +142,6 @@ class ExpenseFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
-            callback(result.toSuspendFuncStatusInfo())
             return result
         }
 
@@ -170,7 +160,6 @@ class ExpenseFirestoreRepository @Inject constructor(
 
                     val result = FetchResult.Success(list)
                     Log.d(className, "Fetched Expenses: $list")
-                    callback(result.toSuspendFuncStatusInfo())
                     /* 戻り値 */
                     result
                 }
@@ -178,7 +167,6 @@ class ExpenseFirestoreRepository @Inject constructor(
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
             val result = FetchResult.Failure.Timeout()
-            callback(result.toSuspendFuncStatusInfo())
             /* 戻り値 */
             result
         } catch (e: Exception) {
@@ -187,7 +175,6 @@ class ExpenseFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
-            callback(result.toSuspendFuncStatusInfo())
             /* 戻り値 */
             result
         }

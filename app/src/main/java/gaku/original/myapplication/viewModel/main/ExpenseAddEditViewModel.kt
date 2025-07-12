@@ -3,9 +3,9 @@ package gaku.original.myapplication.viewModel.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -77,21 +77,24 @@ class ExpenseAddEditViewModel @Inject constructor(
     fun addTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
-            expenseSharedViewModel.addExpense(currentTmpExpense, callback)
+            val ret = expenseSharedViewModel.addExpense(currentTmpExpense)
+            callback(ret)
         }
     }
 
     fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
-            expenseSharedViewModel.updateExpense(currentTmpExpense, callback)
+            val ret = expenseSharedViewModel.updateExpense(currentTmpExpense)
+            callback(ret)
         }
     }
 
     fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         viewModelScope.launch {
-            expenseSharedViewModel.removeExpense(currentTmpExpense, callback)
+            val ret = expenseSharedViewModel.removeExpense(currentTmpExpense)
+            callback(ret)
         }
     }
 
@@ -101,12 +104,9 @@ class ExpenseAddEditViewModel @Inject constructor(
     ) {
         expenseSharedViewModel.clearAllCategories()
         viewModelScope.launch {
-            expenseSharedViewModel.fetchAllCategories(
-                callback = {
-                    expenseSharedViewModel.addCategoryListeners()
-                    callback(it)
-                }
-            )
+            val ret = expenseSharedViewModel.fetchAllCategories()
+            val listenerRet = expenseSharedViewModel.addCategoryListeners()
+            callback(ret)
         }
     }
 }

@@ -20,7 +20,8 @@ class AppSettingsViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
-            userPreferencesRepository.setUserTimeZone(timeZone, callback = callback)
+            val ret = userPreferencesRepository.setUserTimeZone(timeZone)
+            callback(ret)
         }
     }
 }

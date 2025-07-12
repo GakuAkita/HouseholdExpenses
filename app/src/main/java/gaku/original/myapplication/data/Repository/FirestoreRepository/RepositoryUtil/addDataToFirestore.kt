@@ -7,7 +7,6 @@ suspend fun <T : CommonProperty> addDataWithIdToFirestore(
     data: T,
     reference: CollectionReference,
     timeout: Long = 3000,
-    callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
     val funcName = "addDataWithIdToFirestore"
 
@@ -19,7 +18,7 @@ suspend fun <T : CommonProperty> addDataWithIdToFirestore(
 
     val docRef = reference.document(id)
 
-    val setStatus = setDataToFirestore(data, timeout, docRef, callback)
+    val setStatus = setDataToFirestore(data, timeout, docRef)
 
     return setStatus
 }

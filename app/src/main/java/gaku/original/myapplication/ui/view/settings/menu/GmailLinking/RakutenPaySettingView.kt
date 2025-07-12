@@ -52,7 +52,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.MailboxExtraction
+import gaku.original.myapplication.data.dataClass.MailboxExtractionType
 import gaku.original.myapplication.data.dataClass.checkAssignment
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -76,7 +76,7 @@ fun RakutenPaySettingView(
 
     val allCategories by viewModel.categories.collectAsState(initial = emptyList())
     val mailboxSetting by viewModel.mailboxExtractionSetting.collectAsState(null)
-    val rakutenPaySetting = mailboxSetting as? MailboxExtraction.RakutenPay
+    val rakutenPaySetting = mailboxSetting as? MailboxExtractionType.RakutenPay
 
     var editedAssignment = remember { mutableStateOf<CategoryAssignment?>(null) }
 
@@ -111,7 +111,7 @@ fun RakutenPaySettingView(
 
         if (initialFetchSettingStatus == null) {
             viewModel.fetchMailboxExtractionInternalSetting(/* 関数内でrakutenPaySettingを更新する */
-                MailboxExtraction.RakutenPay(),
+                MailboxExtractionType.RakutenPay(),
                 callback = {
                     initialFetchSettingStatus = it
                 }
@@ -288,6 +288,12 @@ fun RakutenPaySettingView(
 //                                    actionLabel = "OK"
 //                                )
 //                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "追加失敗:${it.errorMessage}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 } else {

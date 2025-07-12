@@ -8,8 +8,8 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
-import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
+import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
@@ -26,17 +26,15 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     suspend fun getMailTypeSettingSingleRef(
-        type: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit
-    ): DatabaseReference? {
-        return realtimeDbReference.getMailboxExtractionMailTypeSettingSingleRef(type, callback)
+        type: MailboxExtractionType
+    ): FetchResult<DatabaseReference> {
+        return realtimeDbReference.getMailboxExtractionMailTypeSettingSingleRef(type)
     }
 
     suspend fun getMailTypeCategoryAssignmentRef(
-        type: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit
-    ): DatabaseReference? {
-        return realtimeDbReference.getMailboxExtractionMailTypeCategoryAssignmentRef(type, callback)
+        type: MailboxExtractionType
+    ): FetchResult<DatabaseReference> {
+        return realtimeDbReference.getMailboxExtractionMailTypeCategoryAssignmentRef(type)
     }
 
     /**
@@ -44,40 +42,17 @@ class MailboxExtractionRTDbRepository @Inject constructor(
      * pushする。idを入れてRTDbへアップする
      */
     suspend fun addCategoryAssignment(
-        type: MailboxExtractionCommon,
+        type: MailboxExtractionType,
         assignment: CategoryAssignment,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val funcName = ::addCategoryAssignment.name
         LogClassFuncCalled(className, funcName)
 
-        var ret = SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.FAILED,
-            errorMessage = "Doing Nothing."
-        )
-
-        val ref = getMailTypeCategoryAssignmentRef(type, callback = {
-            if (it.status != SuspendFuncStatus.SUCCESS) {
-                ret = it
-            }
-        })
-
-        if (ref == null) {
-            ret = SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
-                errorMessage = "ref is null"
-            )
-            callback(ret)
-            return ret
+        val refRet = getMailTypeCategoryAssignmentRef(type)
+        if (refRet !is FetchResult.Success) {
+            return refRet.toSuspendFuncStatusInfo()
         }
-
-        LogAkitaDebug("待ってないか？:${ret}")
-
-        if (ret.status != SuspendFuncStatus.SUCCESS) {
-            /* refはnullならStatusもSuccessではないはず */
-            callback(ret)
-            return ret
-        }
+        val ref = refRet.data
 
         val newRef = ref.push()
         val assignmentWithId = assignment.copy(
@@ -85,103 +60,68 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         )
         LogAkitaDebug("$assignmentWithId")
 
-        ret = addDataToRTDbSimple(assignmentWithId, newRef, callback = callback)
+        val ret = addDataToRTDbSimple(assignmentWithId, newRef)
         return ret
     }
 
     suspend fun updateMailTypeSetting(
-        setting: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        setting: MailboxExtractionType
     ): SuspendFuncStatusInfo {
-        val funcName = ::updateMailTypeSetting.name
-        var ret = SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.SUCCESS,
-            errorMessage = ""
-        )
-        val ref = getMailTypeSettingSingleRef(setting, callback = {
-            if (it.status != SuspendFuncStatus.SUCCESS) {
-                ret = it
-            }
-        })
-        if (ret.status != SuspendFuncStatus.SUCCESS || ref == null) {
-            /* refはnullならStatusもSuccessではないはず */
-            callback(ret)
-            return ret
+        val refRet = getMailTypeSettingSingleRef(setting)
+        if (refRet !is FetchResult.Success) {
+            return refRet.toSuspendFuncStatusInfo()
         }
 
-        ret = updateAnyDataToRTDb(setting, reference = ref, callback = callback)
+        val ref = refRet.data
+        val ret = updateAnyDataToRTDb(setting, reference = ref)
         return ret
     }
 
     suspend fun getMailTypeSetting(
-        setting: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit
-    ): FetchResult<MailboxExtractionCommon> {
+        setting: MailboxExtractionType
+    ): FetchResult<MailboxExtractionType> {
         val funcName = ::getMailTypeSetting.name
-        var ret = FetchResult<MailboxExtractionCommon>(
-            status = SuspendFuncStatus.FAILED,
-            errorMessage = "Doing Nothing"
-        )
-        val ref = getMailTypeSettingSingleRef(setting, callback = {
-            if (it.status != SuspendFuncStatus.SUCCESS) {
-                ret = FetchResult(it.status, it.errorMessage)
-            }
-        })
-        if (ret.status != SuspendFuncStatus.SUCCESS || ref == null) {
-            /* refはnullならStatusもSuccessではないはず */
-            callback(ret.toSuspendFuncStatusInfo())
-            return ret
+        val refRet = getMailTypeSettingSingleRef(setting)
+        if (refRet !is FetchResult.Success) {
+            return refRet.mapFailure()
         }
 
-        /* インスタンスからクラス名を取得 */
-        val kClass = getMailboxExtractionInternalClass(setting)
-        if (kClass == null) {
-            val errResult = FetchResult<MailboxExtractionCommon>(
-                status = SuspendFuncStatus.FAILED,
-                errorMessage = "Unknown type: ${setting::class.simpleName}"
-            )
-            callback(errResult.toSuspendFuncStatusInfo())
-            return errResult
-        }
+        val ref = refRet.data
 
         return try {
             withTimeout(10000) {
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
-                    val data = snapshot.getValue(kClass.java)
-                    if (data == null) {
-                        val result = FetchResult<MailboxExtractionCommon>(
-                            status = SuspendFuncStatus.SUCCESS,//呼び出し側でnullなのかチェックを。
-                            errorMessage = "まだデータが保存されていません"
+                    if (!snapshot.exists()) {
+                        val result = FetchResult.Success(
+                            data = setting.defaultInstance(),
+                            isEmpty = true
                         )
-                        callback(result.toSuspendFuncStatusInfo())
                         return@withContext result
                     }
-                    val result = FetchResult(
-                        status = SuspendFuncStatus.SUCCESS,
-                        errorMessage = "Success",
-                        data = data
-                    )
-                    callback(result.toSuspendFuncStatusInfo())
-                    result
+                    val data = snapshot.getValue(setting::class.java)
+                    if (data == null) {
+                        val result = FetchResult.Failure.GenericFailure(
+                            status = SuspendFuncStatus.FAILED,
+                            errorMessage = "Unable to convert data to ${setting::class.simpleName}"
+                        )
+                        return@withContext result
+                    } else {
+                        val result = FetchResult.Success(
+                            data = data
+                        )
+                        return@withContext result
+                    }
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            val result = FetchResult<MailboxExtractionCommon>(
-                status = SuspendFuncStatus.TIMEOUT,
-                errorMessage = "タイムアウトしました"
-            )
-            callback(result.toSuspendFuncStatusInfo())
-            result
+            FetchResult.Failure.Timeout()
         } catch (e: Exception) {
-            Log.d(className, "${funcName} failed. ${e.message}")
-            val result = FetchResult<MailboxExtractionCommon>(
+            FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "${e.message}"
+                errorMessage = e.message ?: "Unknown error"
             )
-            callback(result.toSuspendFuncStatusInfo())
-            result
         }
     }
 }

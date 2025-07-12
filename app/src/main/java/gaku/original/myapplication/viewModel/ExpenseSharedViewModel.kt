@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
@@ -68,7 +69,7 @@ class ExpenseSharedViewModel @Inject constructor(
     /* Expense関連はここにまとめておく */
     fun addAllListeners(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
         addExpenseListenerModifiedRemoved(yearMonth)
-        addExpenseListenerAdded(yearMonth)
+        addExpenseListenerAdded()
         addCategoryListenerModifiedRemoved()
         addCategoryListenerAdded()
     }
@@ -94,7 +95,7 @@ class ExpenseSharedViewModel @Inject constructor(
             })
     }
 
-    fun addExpenseListenerAdded(yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()) {
+    fun addExpenseListenerAdded(/*yearMonth: YearMonth = AppTimeZone.getCurrentUtcYearMonth()*/) {
         listenerManager.listenToNewExpensesOnly(
             onAdded = {
                 /* _allExpensesに追加する */
@@ -114,7 +115,7 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     /*  */
-    private val _isFirstSignIn = MutableStateFlow(true);
+    private val _isFirstSignIn = MutableStateFlow(true)
     val isFirstSignIn: StateFlow<Boolean> get() = _isFirstSignIn
 
     fun setIsFirstSignIn(value: Boolean) {
@@ -132,9 +133,7 @@ class ExpenseSharedViewModel @Inject constructor(
     fun addInitialCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             for (category in InitialCategories.categories) {
-                categoryRepository.addCategory(category, callback = {
-                    /* 失敗しても次に行く。この処理は失敗しても良い */
-                })
+                categoryRepository.addCategory(category)
             }
         }
     }
@@ -164,17 +163,15 @@ class ExpenseSharedViewModel @Inject constructor(
             var ret = fetchMonthsExpensesInternal(
                 fromMonth = utcYearMonth.minusMonths(3),
                 toMonth = utcYearMonth.plusMonths(3),
-                callback = { statusInfo ->
-                    if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
-                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
-
-                        /* fetchしたあとにリスナーを追加しないとだめだわ。 */
-                    } else if (statusInfo.status == SuspendFuncStatus.TIMEOUT) {
-                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
-                    } else {
-                        _expensesLoadingStatus.value = LoadingStatus.ERROR
-                    }
-                })
+            )
+            if (ret.status == SuspendFuncStatus.SUCCESS) {
+                _expensesLoadingStatus.value = LoadingStatus.COMPLETED
+                /* fetchしたあとにリスナーを追加しないとだめだわ。 */
+            } else if (ret.status == SuspendFuncStatus.TIMEOUT) {
+                _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
+            } else {
+                _expensesLoadingStatus.value = LoadingStatus.ERROR
+            }
 
             if (ret.status != SuspendFuncStatus.SUCCESS) {
                 addAllListeners()
@@ -182,6 +179,7 @@ class ExpenseSharedViewModel @Inject constructor(
                 return@launch
             }
 
+            /* ここ失敗したらなんか状態管理しておいたほうがいいな。 */
             ret = fetchAllCategories()
             if (ret.status != SuspendFuncStatus.SUCCESS) {
                 LogAkitaDebug("Unable to get categories!!")
@@ -190,9 +188,15 @@ class ExpenseSharedViewModel @Inject constructor(
             }
             addAllListeners()
 
-            userSettingsRepository.getUserTimeZone {
+            val tzRet = userSettingsRepository.getUserTimeZone()
+            if (tzRet !is FetchResult.Success) {
+                LogAkitaDebug("Unable to get timezone!!")
+            } else {
                 Log.d(className, "userTimeZone:${AppTimeZone.currentZoneId.id}")
             }
+
+            /* 最後だから */
+            callback(tzRet.toSuspendFuncStatusInfo())
             /* 他にやることがあるのであればここへ、、 */
         }
     }
@@ -214,74 +218,66 @@ class ExpenseSharedViewModel @Inject constructor(
     ) {
         _expensesLoadingStatus.value = LoadingStatus.LOADING
         viewModelScope.launch {
-            fetchMonthsExpensesInternal(fromMonth, toMonth, callback = { statusInfo ->
-                when (statusInfo.status) {
-                    SuspendFuncStatus.SUCCESS -> {
-                        _expensesLoadingStatus.value = LoadingStatus.COMPLETED
-                    }
-
-                    SuspendFuncStatus.TIMEOUT -> {
-                        _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
-                    }
-
-                    SuspendFuncStatus.FAILED -> {
-                        _expensesLoadingStatus.value = LoadingStatus.ERROR
-                    }
-
-                    else -> {
-                        /* 何もしない */
-                    }
+            val statusInfo = fetchMonthsExpensesInternal(fromMonth, toMonth)
+            when (statusInfo.status) {
+                SuspendFuncStatus.SUCCESS -> {
+                    _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                 }
-                callback(statusInfo)
-            })
+
+                SuspendFuncStatus.TIMEOUT -> {
+                    _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
+                }
+
+                SuspendFuncStatus.FAILED -> {
+                    _expensesLoadingStatus.value = LoadingStatus.ERROR
+                }
+            }
+            callback(statusInfo)
         }
     }
 
     private suspend fun fetchMonthsExpensesInternal(
         fromMonth: YearMonth,
         toMonth: YearMonth,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
         val fetchResult = expenseRepository.fetchMonthsExpenses(
             fromMonth,
             toMonth,
-            callback = callback
         )
-        val statusInfo = fetchResult.toSuspendFuncStatusInfo()
-
-        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
-            _storedExpenses.value = fetchResult.data ?: emptyList()
+        if (fetchResult is FetchResult.Success) {
+            //成功のときだけ更新
+            _storedExpenses.value = fetchResult.data
+            Log.d(className, "Expenses:${_storedExpenses.value}")
         }
-        Log.d(className, "Expenses:${_storedExpenses.value}")
-        return statusInfo
+        return fetchResult.toSuspendFuncStatusInfo()
     }
 
     /**
      * これは使わない
      */
-    private suspend fun fetchAllExpensesInternal(
-        onStart: () -> Unit = {},
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
-    ): SuspendFuncStatusInfo {
-        onStart()
-
-        val fetchStatusInfo = expenseRepository.fetchAllExpenses(callback = callback)
-
-        val statusInfo = fetchStatusInfo.toSuspendFuncStatusInfo()
-
-        /* 成功したときだけ書き換える。 */
-        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
-            _storedExpenses.value = fetchStatusInfo.data ?: emptyList()
-        }
-        Log.d(className, "Expenses:${_storedExpenses.value}")
-
-        return statusInfo
-    }
+//    private suspend fun fetchAllExpensesInternal(
+//        onStart: () -> Unit = {},
+//        callback: (SuspendFuncStatusInfo) -> Unit = {}
+//    ): SuspendFuncStatusInfo {
+//        onStart()
+//        val fetchResult = expenseRepository.fetchAllExpenses(callback = callback)
+//        if (fetchResult !is FetchResult.Success) {
+//            return fetchResult.toSuspendFuncStatusInfo()
+//        }
+//        val statusInfo = fetchStatusInf.toSuspendFuncStatusInfo()
+//
+//        /* 成功したときだけ書き換える。 */
+//        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+//            _storedExpenses.value = fetchStatusInfo.data ?: emptyList()
+//        }
+//        Log.d(className, "Expenses:${_storedExpenses.value}")
+//
+//        return statusInfo
+//    }
 
 
     suspend fun addExpense(
-        expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        expense: Expense
     ): SuspendFuncStatusInfo {
         /* ここでMANUALにしている */
         if (expense.generatedType == null) {
@@ -291,15 +287,14 @@ class ExpenseSharedViewModel @Inject constructor(
         if (expense.note == null) {
             expense.note = ""
         }
-        return expenseRepository.addExpense(expense, callback)
+        return expenseRepository.addExpense(expense)
     }
 
     suspend fun updateExpense(
-        expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        expense: Expense
     ): SuspendFuncStatusInfo {
 
-        return expenseRepository.updateExpense(expense, callback)
+        return expenseRepository.updateExpense(expense)
 
     }
 
@@ -307,16 +302,16 @@ class ExpenseSharedViewModel @Inject constructor(
         expense: Expense,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
-        return expenseRepository.removeExpense(expense, callback)
+        return expenseRepository.removeExpense(expense)
     }
 
     /*******************Category CRUD関連**************************/
-    suspend fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}): SuspendFuncStatusInfo {
+    suspend fun fetchAllCategories(): SuspendFuncStatusInfo {
 
-        val fetchResult = categoryRepository.fetchAllCategories(callback = callback)
+        val fetchResult = categoryRepository.fetchAllCategories()
 
-        if (fetchResult.status == SuspendFuncStatus.SUCCESS) {
-            _allCategories.value = (fetchResult.data ?: emptyList()).toList()
+        if (fetchResult is FetchResult.Success) {
+            _allCategories.value = fetchResult.data
         }
         Log.d(className, "Categories:${_allCategories.value}")
         return fetchResult.toSuspendFuncStatusInfo()
@@ -328,8 +323,7 @@ class ExpenseSharedViewModel @Inject constructor(
     SharedViewModelを他のviewModelでチェックしてCategoryを追加するときに同じ機能を実装することになる。
     */
     suspend fun addCategory(
-        category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        category: Category
     ): SuspendFuncStatusInfo {
         //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
         val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
@@ -338,19 +332,16 @@ class ExpenseSharedViewModel @Inject constructor(
                 SuspendFuncStatus.FAILED,
                 "${category.name} はすでに存在しています。"
             )
-            callback(statusInfo)
             return statusInfo
         } else {
             return categoryRepository.addCategory(
                 category = category,
-                callback = callback
             )
         }
     }
 
     suspend fun updateCategory(
         category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
@@ -359,25 +350,20 @@ class ExpenseSharedViewModel @Inject constructor(
                 SuspendFuncStatus.FAILED,
                 "${category.name}はすでに存在しています。"
             )
-            callback(statusInfo)
             return statusInfo
         }
 
         /* 繰り返し追加に存在するときは、チェックして、そこをupdateする */
-        val resultStatus = repeatAddRepository.fetchAllRepeatAdd(callback = {})
-        if (resultStatus.status != SuspendFuncStatus.SUCCESS) {
-            val statusInfo = resultStatus
-            callback(statusInfo.toSuspendFuncStatusInfo())
-            return statusInfo.toSuspendFuncStatusInfo()
+        val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
+        if (resultStatus !is FetchResult.Success) {
+            return resultStatus.toSuspendFuncStatusInfo()
         }
-        val repeatAddList: List<RepeatAdd> = resultStatus.data ?: emptyList()
+        val repeatAddList: List<RepeatAdd> = resultStatus.data
 
         val categoryUpdateStatus = categoryRepository.updateCategory(
-            category = category,
-            callback = {}
+            category = category
         )
         if (categoryUpdateStatus.status != SuspendFuncStatus.SUCCESS) {
-            callback(categoryUpdateStatus)
             return categoryUpdateStatus
         }
 
@@ -388,52 +374,44 @@ class ExpenseSharedViewModel @Inject constructor(
             if (repeatAdd.expense.category?.id == category.id) {
                 repeatAdd.expense.category = category
                 /* 変数をあてておかないとすぐreturnしてしまう。 */
-                val status = repeatAddRepository.updateRepeatAdd(repeatAdd, callback = {})
+                val status = repeatAddRepository.updateRepeatAdd(repeatAdd)
             }
         }
-        callback(categoryUpdateStatus)
         return categoryUpdateStatus
     }
 
     suspend fun removeCategory(
-        category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        category: Category
     ): SuspendFuncStatusInfo {
         if (category.id == null) {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.FAILED,
                 "カテゴリーIDがnullのため、削除できません。"
             )
-            callback(statusInfo)
             return statusInfo
         }
 
-        val statusInfo = checkRepeatAddExists(category.id ?: "", callback = {})
+        val statusInfo = checkRepeatAddExists(category.id ?: "")
         if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
             LogAkitaDebug(statusInfo.errorMessage)
-            callback(statusInfo)
             return statusInfo
         }
 
         return categoryRepository.removeCategory(
-            category,
-            callback = callback
+            category
         )
     }
 
     /* カテゴリーが繰り返し追加に登録されているかチェックする */
     suspend fun checkRepeatAddExists(
-        categoryId: String,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        categoryId: String
     ): SuspendFuncStatusInfo {
-        val resultStatus = repeatAddRepository.fetchAllRepeatAdd(callback = {})
-        if (resultStatus.status != SuspendFuncStatus.SUCCESS) {
-            val statusInfo = resultStatus
-            callback(statusInfo.toSuspendFuncStatusInfo())
-            return statusInfo.toSuspendFuncStatusInfo()
+        val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
+        if (resultStatus !is FetchResult.Success) {
+            return resultStatus.toSuspendFuncStatusInfo()
         }
 
-        val repeatAddList: List<RepeatAdd> = resultStatus.data ?: emptyList()
+        val repeatAddList: List<RepeatAdd> = resultStatus.data
         /* 内部でチェックする */
         val exists = repeatAddList.any { it.expense.category?.id == categoryId }
         if (exists) {
@@ -442,14 +420,12 @@ class ExpenseSharedViewModel @Inject constructor(
                 "このカテゴリは繰り返し追加に登録されています。\n" +
                         "繰り返し追加を削除してから、カテゴリを削除してください。"
             )
-            callback(statusInfo)
             return statusInfo
         } else {
             val statusInfo = SuspendFuncStatusInfo(
                 SuspendFuncStatus.SUCCESS,
                 ""
             )
-            callback(statusInfo)
             return statusInfo
         }
     }

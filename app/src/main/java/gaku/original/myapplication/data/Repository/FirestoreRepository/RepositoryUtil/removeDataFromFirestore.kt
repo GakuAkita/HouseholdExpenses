@@ -9,7 +9,6 @@ suspend fun <T : CommonProperty> removeDataFromFirestore(
     data: T,
     reference: CollectionReference,
     timeout: Long = 3000,
-    callback: (SuspendFuncStatusInfo) -> Unit // callback を追加
 ): SuspendFuncStatusInfo {
     val funcName = "removeDataFromFirestore"
 
@@ -17,13 +16,12 @@ suspend fun <T : CommonProperty> removeDataFromFirestore(
     if (id.isNullOrEmpty()) {
         Log.e(funcName, "id is null or empty")
         val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "id is null or empty")
-        callback(statusInfo) // idがnullや空なら、失敗をcallbackで通知
         return statusInfo// 即終了
     }
 
     val docRef = reference.document(id)
 
-    val statusInfo = removeDocument(docRef, timeout, callback)
+    val statusInfo = removeDocument(docRef, timeout)
 
     return statusInfo
 }

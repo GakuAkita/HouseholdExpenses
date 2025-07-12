@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,13 +45,13 @@ class GmailLinkingViewModel @Inject constructor(
         _loading.value = true
         viewModelScope.launch {
             val idTokenResult = firebaseAuthRepository.getIdToken()
-            if (idTokenResult.status != SuspendFuncStatus.SUCCESS) {
+            if (idTokenResult !is FetchResult.Success) {
                 _loading.value = false
                 callback(idTokenResult.toSuspendFuncStatusInfo(), "")
                 return@launch
             }
 
-            val token: String = idTokenResult.data ?: ""
+            val token: String = idTokenResult.data
             val oauthUrl = generateOAuthUrl(token)
 
             val status = SuspendFuncStatusInfo(

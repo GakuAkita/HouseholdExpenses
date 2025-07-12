@@ -18,7 +18,6 @@ suspend fun <T> addDataToRTDbSimple(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit
 ): SuspendFuncStatusInfo = withContext(Dispatchers.IO) {
     val funcName = "addDataToRTDbSimple"
     LogAkitaDebug("${funcName} called")
@@ -38,7 +37,6 @@ suspend fun <T> addDataToRTDbSimple(
                                 task.exception?.message ?: "Unknown error"
                             )
                         }
-                        callback(statusInfo)
                         continuation.resume(statusInfo)
                     }
             }
@@ -48,14 +46,12 @@ suspend fun <T> addDataToRTDbSimple(
             SuspendFuncStatus.TIMEOUT,
             "Timeout occurred"
         )
-        callback(statusInfo)
         statusInfo
     } catch (e: Exception) {
         val statusInfo = SuspendFuncStatusInfo(
             SuspendFuncStatus.FAILED,
             e.message ?: "Unknown error"
         )
-        callback(statusInfo)
         statusInfo
     }
 }
@@ -68,9 +64,7 @@ suspend fun <T : CommonProperty> addDataToRTDbWithPush(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
-    val funcName = "addDataToRTDbWithPush"
 
     val newDataRef = reference.push()
 
@@ -80,7 +74,6 @@ suspend fun <T : CommonProperty> addDataToRTDbWithPush(
     return addDataToRTDbSimple(
         data = data,
         reference = newDataRef,
-        timeout = timeout,
-        callback = callback
+        timeout = timeout
     )
 }

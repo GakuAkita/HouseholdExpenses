@@ -13,7 +13,6 @@ suspend fun <T : CommonProperty> updateDataToFirestore(
     data: T,
     reference: CollectionReference, // データ参照を取得するための関数
     timeout: Long = 3000,
-    callback: (SuspendFuncStatusInfo) -> Unit // callback を追加
 ): SuspendFuncStatusInfo {
     val funcName = "updateDataToFirestore"
 
@@ -21,14 +20,13 @@ suspend fun <T : CommonProperty> updateDataToFirestore(
     if (id.isNullOrEmpty()) {
         Log.e(funcName, "id is null or empty")
         val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "id is null or empty")
-        callback(statusInfo) // callback を呼び出し
         return statusInfo
     }
 
     /* このdocumentRefをFirestoreReferenceに入れてしまってもいいな */
     val updateDocRef = reference.document(id)
 
-    val statusInfo = setDataToFirestore(data, timeout, updateDocRef, callback)
+    val statusInfo = setDataToFirestore(data, timeout, updateDocRef)
 
     return statusInfo
 }

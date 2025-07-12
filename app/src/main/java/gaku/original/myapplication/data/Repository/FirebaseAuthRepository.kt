@@ -3,7 +3,6 @@ package gaku.original.myapplication.data.Repository
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -14,16 +13,14 @@ class FirebaseAuthRepository @Inject constructor(
 ) {
 
     suspend fun getIdToken(
-        timeout: Long = 3000,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        timeout: Long = 3000
     ): FetchResult<String> {
         val user = firebaseAuth.currentUser
         if (user == null) {
-            val result = FetchResult<String>(
+            val result = FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "User is null"
             )
-            callback(result.toSuspendFuncStatusInfo())
             return result
         }
 
@@ -36,26 +33,17 @@ class FirebaseAuthRepository @Inject constructor(
                 }
                 token
             }
-            val result = FetchResult(
-                status = SuspendFuncStatus.SUCCESS,
-                errorMessage = "",
+            val result = FetchResult.Success(
                 data = token
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: TimeoutCancellationException) {
-            val result = FetchResult<String>(
-                status = SuspendFuncStatus.TIMEOUT,
-                errorMessage = "タイムアウトしました。idTokenの取得に失敗しました。"
-            )
-            callback(result.toSuspendFuncStatusInfo())
-            result
+            FetchResult.Failure.Timeout()
         } catch (e: Exception) {
-            val result = FetchResult<String>(
+            val result = FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         }
     }

@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.firestore
-import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 import javax.inject.Inject
 
 /* @TODO throwを出してしまうとアプリがクラッシュするらしい。したがって、nullのときの回避策を作る必要ある。*/
@@ -69,27 +68,4 @@ class FirestoreReference @Inject constructor(
     fun getUserPreferencesDocRef(): DocumentReference? {
         return getSettingsColRef()?.document("user_preferences")
     }
-
-    /**
-     * users/{userId}/mailbox_extraction_mail_type_setting 配下のDocReference
-     */
-    fun getMailboxExtractionMailTypeDocRef(instance: MailboxExtractionCommon): DocumentReference? {
-        return getMailboxExtractionColRef()?.document(instance.nodeName)
-    }
-
-    /**
-     * users/{userId}/mailbox_extraction_params 配下のCollectionReference
-     */
-    fun getMailboxExtractionParamsTokenDocRef(): DocumentReference? {
-        return getMailboxExtractionParamsColRef()?.document("token")
-    }
-
-    fun getMailboxExtractionParamsMailIdsDocRef(): DocumentReference? {
-        /**
-         * 取得した直近のmail_idを保管していくもの。
-         * ラベルでもいいけど、、、
-         */
-        return getMailboxExtractionParamsColRef()?.document("recent_mail_ids")
-    }
-
 }

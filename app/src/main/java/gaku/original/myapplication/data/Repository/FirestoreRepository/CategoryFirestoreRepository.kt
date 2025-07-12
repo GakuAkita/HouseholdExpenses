@@ -28,8 +28,7 @@ class CategoryFirestoreRepository @Inject constructor(
     }
 
     suspend fun addCategory(
-        category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        category: Category
     ): SuspendFuncStatusInfo {
         val ref = getCategoriesColRef()
         if (ref == null) {
@@ -40,13 +39,12 @@ class CategoryFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = addDataWithIdToFirestore(category, ref, callback = callback)
+        val statusInfo = addDataWithIdToFirestore(category, ref)
         return statusInfo
     }
 
     suspend fun updateCategory(
         category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val ref = getCategoriesColRef()
         if (ref == null) {
@@ -57,13 +55,12 @@ class CategoryFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = updateDataToFirestore(category, ref, callback = callback)
+        val statusInfo = updateDataToFirestore(category, ref)
         return statusInfo
     }
 
     suspend fun removeCategory(
-        category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        category: Category
     ): SuspendFuncStatusInfo {
         val ref = getCategoriesColRef()
         if (ref == null) {
@@ -74,13 +71,12 @@ class CategoryFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = removeDataFromFirestore(category, ref, callback = callback)
+        val statusInfo = removeDataFromFirestore(category, ref)
         return statusInfo
     }
 
     suspend fun fetchAllCategories(
         timeout: Long = 10000,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): FetchResult<List<Category>> {
         val funcName = ::fetchAllCategories.name
         LogClassFuncCalled(className, funcName)
@@ -92,7 +88,6 @@ class CategoryFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Categoriesコレクションが参照できませんでした"
             )
-            callback(result.toSuspendFuncStatusInfo())
             return result
         }
 
@@ -112,14 +107,12 @@ class CategoryFirestoreRepository @Inject constructor(
                     val result = FetchResult.Success(
                         data = list
                     )
-                    callback(result.toSuspendFuncStatusInfo())
                     result
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
             val result = FetchResult.Failure.Timeout()
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
@@ -127,7 +120,6 @@ class CategoryFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         }
     }

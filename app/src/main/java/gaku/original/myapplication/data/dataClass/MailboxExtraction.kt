@@ -2,13 +2,6 @@ package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
-import kotlin.reflect.KClass
-
-interface MailboxExtractionCommon {
-    val enabled: Boolean
-    val nodeName: String
-    val menuName: String
-}
 
 /**
  * これ正規表現とか将来的には使えないかな？
@@ -21,89 +14,81 @@ data class CategoryAssignment(
     val regex: Boolean = false
 )
 
-data class MailboxExtraction(
-    val enabled: Boolean = true//ここをfalseにしたら全部止めるみたいな仕様にするか。
-) {
-    /**
-     * 内部に各メールフォーマットに対して
-     * 定義していく
-     */
+sealed class MailboxExtractionType {
+    abstract val enabled: Boolean
+    abstract val nodeName: String
+    abstract val menuName: String
+
+    abstract fun defaultInstance(): MailboxExtractionType
+
     data class RakutenPay(
         override val enabled: Boolean = false,
         val storeCategoryAssignments: Map<String, CategoryAssignment>? = null
-    ) : MailboxExtractionCommon {
+    ) : MailboxExtractionType() {
         override val nodeName = "rakuten_pay"
         override val menuName = "楽天Pay"
+        override fun defaultInstance() = RakutenPay()
     }
 
     data class ShikokuElectricPower(
         override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) : MailboxExtractionCommon {
+    ) : MailboxExtractionType() {
         override val nodeName = "shikoku_electric_power"
         override val menuName = "四国電力"
+        override fun defaultInstance() = ShikokuElectricPower()
     }
 
     data class AmazonKindle(
         override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) : MailboxExtractionCommon {
+    ) : MailboxExtractionType() {
         override val nodeName = "amazon_kindle"
         override val menuName = "Amazon Kindle"
+        override fun defaultInstance() = AmazonKindle()
     }
 
     data class AmazonItem(
         override val enabled: Boolean = false,
         val itemCategoryAssignments: Map<String, CategoryAssignment>? = null,
-    ) : MailboxExtractionCommon {
+    ) : MailboxExtractionType() {
         override val nodeName = "amazon_item"
-        override val menuName = "Amazon　物"
+        override val menuName = "Amazon 物"
+        override fun defaultInstance() = AmazonItem()
     }
 }
 
 /**
  * MailboxExtractionの内部クラスであれば変換
  * そうでなければnullを返す
+ * sealed classにしたので不要
  */
-fun getMailboxExtractionInternalClass(
-    instance: MailboxExtractionCommon
-): KClass<out MailboxExtractionCommon>? {
-    return MailboxExtraction::class.nestedClasses
-        .filterIsInstance<KClass<out MailboxExtractionCommon>>()
-        .firstOrNull { it.isInstance(instance) }
+//fun getMailboxExtractionInternalClass(
+//    instance: MailboxExtractionCommon
+//): KClass<out MailboxExtractionCommon>? {
+//    return MailboxExtraction::class.nestedClasses
+//        .filterIsInstance<KClass<out MailboxExtractionCommon>>()
+//        .firstOrNull { it.isInstance(instance) }
+//}
+
+
+fun checkAssignmentInput(assignment: CategoryAssignment): CheckResult {
+    return when {
+        assignment.name.isNullOrBlank() -> CheckResult(CheckStatus.NG, "店名が入力されていません")
+        assignment.condition.isNullOrBlank() -> CheckResult(
+            CheckStatus.NG,
+            "一致条件が選択されていません"
+        )
+
+        assignment.categoryId.isNullOrBlank() -> CheckResult(
+            CheckStatus.NG,
+            "カテゴリーが選択されていません"
+        )
+
+        else -> CheckResult(CheckStatus.OK, "")
+    }
 }
 
-
-fun checkAssignmentInput(
-    assignment: CategoryAssignment,
-): CheckResult {
-    if (assignment.name.isNullOrEmpty()) {
-        return CheckResult(
-            status = CheckStatus.NG,
-            errorMessage = "店名が入力されていません"
-        )
-    }
-
-    if (assignment.condition == null) {
-        return CheckResult(
-            status = CheckStatus.NG,
-            errorMessage = "一致条件が選択されていません"
-        )
-    }
-
-    if (assignment.categoryId == null) {
-        /* ちゃんとidが存在するかまでできれば確認したい */
-        return CheckResult(
-            status = CheckStatus.NG,
-            errorMessage = "カテゴリーが選択されていません"
-        )
-    }
-
-    return CheckResult(
-        status = CheckStatus.OK,
-        errorMessage = ""
-    )
-}
 
 fun checkAssignmentDuplicate(
     assignment: CategoryAssignment,

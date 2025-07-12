@@ -77,7 +77,6 @@ suspend fun <T : Any> updateAnyDataToRTDb(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit
 ): SuspendFuncStatusInfo {
     val funcName = "updateAnyDataToRTDb"
     return try {
@@ -91,7 +90,6 @@ suspend fun <T : Any> updateAnyDataToRTDb(
                                 status = SuspendFuncStatus.SUCCESS,
                                 errorMessage = ""
                             )
-                            callback(statusInfo)
                             continuation.resume(statusInfo)
                         } else {
                             Log.e(funcName, "Failed to update data", task.exception)
@@ -99,7 +97,6 @@ suspend fun <T : Any> updateAnyDataToRTDb(
                                 status = SuspendFuncStatus.FAILED,
                                 errorMessage = task.exception?.message ?: "Unknown error"
                             )
-                            callback(statusInfo)
                             continuation.resume(statusInfo)
                         }
                     }
@@ -111,7 +108,6 @@ suspend fun <T : Any> updateAnyDataToRTDb(
             status = SuspendFuncStatus.TIMEOUT,
             errorMessage = "Timeout occurred"
         )
-        callback(statusInfo) // タイムアウト時の callback 呼び出し
         return statusInfo
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
@@ -119,7 +115,6 @@ suspend fun <T : Any> updateAnyDataToRTDb(
             status = SuspendFuncStatus.FAILED,
             errorMessage = e.message ?: "Unknown error"
         )
-        callback(statusInfo) // 例外時の callback 呼び出し
         return statusInfo
     }
 }

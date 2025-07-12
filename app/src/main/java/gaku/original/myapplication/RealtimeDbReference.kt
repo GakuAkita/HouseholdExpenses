@@ -6,10 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
-import gaku.original.myapplication.data.dataClass.MailboxExtraction
-import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
-import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
+import gaku.original.myapplication.data.dataClass.MailboxExtractionType
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +31,7 @@ class RealtimeDbReference @Inject constructor(
 
     //users配下の自分のuserIdのreferenceを返す
     // userId配下のexpenses
-    suspend fun getUserRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    suspend fun getUserRef(): FetchResult<DatabaseReference> {
         val funcName = ::getUserRef.name
         return try {
             withTimeout(2000) {
@@ -42,37 +39,29 @@ class RealtimeDbReference @Inject constructor(
                     val userId: String = currentUserId ?: throw Exception("userId is null")
 
                     val ref: DatabaseReference = database.child("users").child(userId)
-                    val result = FetchResult.Success(ref)
-                    callback(result.toSuspendFuncStatusInfo())
-                    result
+                    FetchResult.Success(ref)
                 }
             }
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
-            val result = FetchResult.Failure.Timeout()
-            callback(result.toSuspendFuncStatusInfo())
-            result
+            FetchResult.Failure.Timeout()
         } catch (e: Exception) {
             LogException(className, funcName, e)
-            val result = FetchResult.Failure.GenericFailure(
+            FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )
-            callback(result.toSuspendFuncStatusInfo())
-            result
         }
     }
 
     /* getUserExpensesRefとgetUserCategoryRefで同じことをやっていたので共通化 */
     private suspend fun getUserChildrenRef(
         childrenPath: List<String>,/* たどり着きたい順に名前をいれていく */
-        funcName: String,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        funcName: String
     ): FetchResult<DatabaseReference> {
         val userRefRet = getUserRef()
 
         if (userRefRet !is FetchResult.Success) {
-            callback(userRefRet.toSuspendFuncStatusInfo())
             return userRefRet
         }
 
@@ -91,12 +80,10 @@ class RealtimeDbReference @Inject constructor(
                 }
             }
             val result = FetchResult.Success(finalRef)
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: TimeoutCancellationException) {
             LogTimeout(className, funcName, e)
             val result = FetchResult.Failure.Timeout("Timeout: ${e.message}")
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: Exception) {
             LogException(className, funcName, e)
@@ -104,70 +91,66 @@ class RealtimeDbReference @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         }
     }
 
     // userId配下のexpenses
-    suspend fun getUserExpenseRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    suspend fun getUserExpenseRef(): FetchResult<DatabaseReference> {
         val funcName = ::getUserExpenseRef.name
         Log.d(className, "${funcName} was called.")
         val childrenPath = listOf("data", "expenses")
 
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)
+        val ret = getUserChildrenRef(childrenPath, funcName)
         return ret
     }
 
     //userId配下のcategory
-    suspend fun getUserCategoryRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    suspend fun getUserCategoryRef(): FetchResult<DatabaseReference> {
         val funcName = ::getUserCategoryRef.name
         Log.d(className, "${funcName} was called")
         val childrenPath = listOf("data", "categories")
 
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)
+        val ret = getUserChildrenRef(childrenPath, funcName)
         return ret
     }
 
-    suspend fun getUserSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    suspend fun getUserSettingsRef(): FetchResult<DatabaseReference> {
         val funcName = ::getUserSettingsRef.name
         Log.d(className, "${funcName} was called")
         val childrenPath = listOf("settings")
 
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)
+        val ret = getUserChildrenRef(childrenPath, funcName)
         return ret
     }
 
-    suspend fun getUserRepeatAddRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    suspend fun getUserRepeatAddRef(): FetchResult<DatabaseReference> {
         val funcName = ::getUserRepeatAddRef.name
         Log.d(className, "${funcName} was called")
         val baseRefRet = getUserSettingsRef()
         if (baseRefRet !is FetchResult.Success) {//拡張関数を使うと、スマートキャストが効かない
-            callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
 
         val baseRef = baseRefRet.data
         val newRef = baseRef.child("repeatAdd")
         val result = FetchResult.Success(newRef)
-        callback(result.toSuspendFuncStatusInfo())
         return result
     }
 
     /* MailboxExtraction配下 */
-    private suspend fun getMailboxExtractionRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    private suspend fun getMailboxExtractionRef(): FetchResult<DatabaseReference> {
         val funcName = ::getMailboxExtractionRef.name
         /* Log.d(className, "${funcName} was called") */
         val childrenPath = listOf("mailbox_extraction")
 
-        val ret = getUserChildrenRef(childrenPath, funcName, callback)//callbackは中で実行される
+        val ret = getUserChildrenRef(childrenPath, funcName)//callbackは中で実行される
         return ret
     }
 
-    private suspend fun getMailboxExtractionMailTypeSettingsRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): FetchResult<DatabaseReference> {
+    private suspend fun getMailboxExtractionMailTypeSettingsRef(): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionRef()
         if (baseRefRet !is FetchResult.Success) {
-            callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
 
@@ -175,17 +158,14 @@ class RealtimeDbReference @Inject constructor(
         val result = FetchResult.Success(
             baseRef.child("mail_type_settings")
         )
-        callback(result.toSuspendFuncStatusInfo())
         return result
     }
 
     suspend fun getMailboxExtractionMailTypeSettingSingleRef(
-        type: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        type: MailboxExtractionType
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionMailTypeSettingsRef()
         if (baseRefRet !is FetchResult.Success) {
-            callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
         val baseRef = baseRefRet.data
@@ -193,7 +173,6 @@ class RealtimeDbReference @Inject constructor(
         val result = FetchResult.Success(
             baseRef.child(type.nodeName)
         )
-        callback(result.toSuspendFuncStatusInfo())
         return result
     }
 
@@ -201,26 +180,23 @@ class RealtimeDbReference @Inject constructor(
      * もっと柔軟にしたいけど、とりあえずはベタ打ち
      */
     suspend fun getMailboxExtractionMailTypeCategoryAssignmentRef(
-        type: MailboxExtractionCommon,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        type: MailboxExtractionType,
     ): FetchResult<DatabaseReference> {
-        val baseRefRet = getMailboxExtractionMailTypeSettingSingleRef(type, callback);
+        val baseRefRet = getMailboxExtractionMailTypeSettingSingleRef(type);
         if (baseRefRet !is FetchResult.Success) {
-            callback(baseRefRet.toSuspendFuncStatusInfo())
             return baseRefRet
         }
 
         val baseRef = baseRefRet.data
-        val kClass = getMailboxExtractionInternalClass(type)
-        when (kClass) {
-            MailboxExtraction::RakutenPay::class -> {
+        when (type::class) {
+            MailboxExtractionType.RakutenPay::class -> {
                 val result = FetchResult.Success(
                     baseRef.child("storeCategoryAssignments")
                 )
                 return result
             }
 
-            MailboxExtraction::AmazonItem::class -> {
+            MailboxExtractionType.AmazonItem::class -> {
                 val result = FetchResult.Success(
                     baseRef.child("itemCategoryAssignments")
                 )
@@ -230,7 +206,7 @@ class RealtimeDbReference @Inject constructor(
             else -> {
                 val result = FetchResult.Failure.GenericFailure(
                     status = SuspendFuncStatus.FAILED,
-                    errorMessage = "対応していないタイプです"
+                    errorMessage = "対応していないタイプです(${type::class})"
                 )
                 return result
             }

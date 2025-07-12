@@ -17,7 +17,7 @@ data class SuspendFuncStatusInfo(
 ) : Parcelable
 
 sealed class FetchResult<out T> {
-    data class Success<out T>(val data: T) : FetchResult<T>()
+    data class Success<out T>(val data: T, val isEmpty: Boolean = false) : FetchResult<T>()
 
     sealed class Failure : FetchResult<Nothing>() {
         abstract val errorMessage: String
@@ -44,6 +44,22 @@ sealed class FetchResult<out T> {
     }
 }
 
+/* 戻り値で変換したい場合は、.mapFailureだけで十分。わざわざ変数にあてなくても。 */
+inline fun <T, reified T2> FetchResult<T>.mapFailure(): FetchResult<T2> = when (this) {
+    is FetchResult.Success -> throw IllegalStateException("Success cannot be converted using mapFailure")
+    is FetchResult.Failure -> when (this) {
+        is FetchResult.Failure.GenericFailure -> FetchResult.Failure.GenericFailure(
+            status = this.status,
+            errorMessage = this.errorMessage,
+            errorCode = this.errorCode
+        )
+
+        is FetchResult.Failure.Timeout -> FetchResult.Failure.Timeout(
+            errorMessage = this.errorMessage,
+            errorCode = this.errorCode
+        )
+    }
+}
 
 data class SuspendFuncStatusInfoWithCode(
     val status: SuspendFuncStatus,

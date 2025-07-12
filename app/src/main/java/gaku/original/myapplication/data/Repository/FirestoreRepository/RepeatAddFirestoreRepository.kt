@@ -29,7 +29,6 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
     suspend fun addRepeatAdd(
         repeatAdd: RepeatAdd,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ): SuspendFuncStatusInfo {
         val funcName = ::addRepeatAdd.name
         LogClassFuncCalled(className, funcName)
@@ -43,13 +42,12 @@ class RepeatAddFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = addDataWithIdToFirestore(repeatAdd, ref, callback = callback)
+        val statusInfo = addDataWithIdToFirestore(repeatAdd, ref)
         return statusInfo
     }
 
     suspend fun updateRepeatAdd(
         repeatAdd: RepeatAdd,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val ref = getRepeatAddColRef()
         if (ref == null) {
@@ -60,13 +58,12 @@ class RepeatAddFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = updateDataToFirestore(repeatAdd, ref, callback = callback)
+        val statusInfo = updateDataToFirestore(repeatAdd, ref)
         return statusInfo
     }
 
     suspend fun removeRepeatAdd(
         repeatAdd: RepeatAdd,
-        callback: (SuspendFuncStatusInfo) -> Unit
     ): SuspendFuncStatusInfo {
         val ref = getRepeatAddColRef()
         if (ref == null) {
@@ -77,13 +74,12 @@ class RepeatAddFirestoreRepository @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = removeDataFromFirestore(repeatAdd, ref, callback = callback)
+        val statusInfo = removeDataFromFirestore(repeatAdd, ref)
         return statusInfo
     }
 
     suspend fun fetchAllRepeatAdd(
-        timeout: Long = 10000,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        timeout: Long = 10000
     ): FetchResult<List<RepeatAdd>> {
         val funcName = ::fetchAllRepeatAdd.name
         LogClassFuncCalled(className, funcName)
@@ -95,7 +91,6 @@ class RepeatAddFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "RepeatAddコレクションが参照できませんでした"
             )
-            callback(result.toSuspendFuncStatusInfo())
             return result
         }
 
@@ -115,7 +110,6 @@ class RepeatAddFirestoreRepository @Inject constructor(
                     val result = FetchResult.Success(
                         data = list
                     )
-                    callback(result.toSuspendFuncStatusInfo())
                     /* 戻り値 */
                     result
                 }
@@ -123,7 +117,6 @@ class RepeatAddFirestoreRepository @Inject constructor(
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
             val result = FetchResult.Failure.Timeout()
-            callback(result.toSuspendFuncStatusInfo())
             result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
@@ -131,7 +124,6 @@ class RepeatAddFirestoreRepository @Inject constructor(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
-            callback(result.toSuspendFuncStatusInfo())
             result
         }
     }
