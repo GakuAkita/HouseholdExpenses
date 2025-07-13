@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +43,20 @@ class ExpenseAddEditViewModel @Inject constructor(
             return it.toLocalTime()
         }
         return AppTimeZone.getCurrentTimeInZone().toLocalTime()
+    }
+
+    /* generatedTypeから表示用の文字列に変える */
+    fun getGeneratedTypeDisplay(): String {
+        val buf = currentTmpExpense.generatedType
+            ?: /* ここに来ることはない */
+            return "エラー"
+
+        val (mainType, subType) = convertGeneratedTypeToDisplayName(buf)
+        if (subType == null) {
+            return mainType
+        } else {
+            return "${mainType}/${subType}"
+        }
     }
 
     fun updateTmpExpenseDatetime(datetimeStr: String) {

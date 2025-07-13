@@ -16,9 +16,9 @@ import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSetti
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.InitialCategories
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.data.dataClass.generatedType
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -281,7 +281,7 @@ class ExpenseSharedViewModel @Inject constructor(
     ): SuspendFuncStatusInfo {
         /* ここでMANUALにしている */
         if (expense.generatedType == null) {
-            expense.generatedType = generatedType.MANUAL
+            expense.generatedType = GeneratedType.MANUAL
         }
 
         if (expense.note == null) {

@@ -71,14 +71,14 @@ fun BottomBarView(
             route = Screen.MainScreen.Content.route
         ),
         BottomNavigationItem(
-            title = "Graph",
-            icon = painterResource(id = R.drawable.baseline_pie_chart_24),
-            route = Screen.GraphScreen.route
-        ),
-        BottomNavigationItem(
             title = "Not-Categorized",
             icon = painterResource(id = R.drawable.baseline_category_24),
             route = Screen.NotCategorizedScreen.route
+        ),
+        BottomNavigationItem(
+            title = "Graph",
+            icon = painterResource(id = R.drawable.baseline_pie_chart_24),
+            route = Screen.GraphScreen.route
         ),
         BottomNavigationItem(
             title = "Settings",

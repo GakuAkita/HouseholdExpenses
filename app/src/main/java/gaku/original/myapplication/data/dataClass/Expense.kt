@@ -45,12 +45,40 @@ fun getDefaultExpense(): Expense {
 
 /* 使われていない？↓ */
 /* firebase functions側と一致させないとまずい */
-class generatedType {
+class GeneratedType {
     companion object {
         const val AUTO = "auto"
         const val MANUAL = "manual"
         const val REPEAT_ADD = "repeat_add" // 繰り返し追加で追加するやつ
         const val MAIL_EXTRACTION = "mailbox_extraction"
+    }
+}
+
+fun convertGeneratedTypeToDisplay(type: String): String {
+    return when (type) {
+        GeneratedType.AUTO -> "自動生成"
+        GeneratedType.MANUAL -> "手動生成"
+        GeneratedType.REPEAT_ADD -> "繰り返し追加"
+        GeneratedType.MAIL_EXTRACTION -> "メール抽出"
+        else -> "不明"
+    }
+}
+
+/**
+ * これ増えてきたときに、どうしようか。
+ * とりあえずはこのままでいいか。data classにしたほうが拡張性は高いらしい
+ */
+fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
+    val parts = generatedType.split("___")
+    return when (parts.size) {
+        2 -> {
+            val mainType = convertGeneratedTypeToDisplay(parts[0])
+            val subType = convertNodeNameToMenuName(parts[1])
+            mainType to subType
+        }
+
+        1 -> convertGeneratedTypeToDisplay(parts[0]) to null
+        else -> "不明" to null
     }
 }
 

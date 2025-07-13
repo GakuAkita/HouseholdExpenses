@@ -3,9 +3,11 @@ package gaku.original.myapplication
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
@@ -77,10 +79,16 @@ fun Navigation(
             MainView(navController = navController)
         }
 
-        composable(Screen.MainScreen.ExpenseAddEdit.route) {
-            ExpenseAddEditView(navController = navController)
+        composable(route = Screen.GlobalScreen.ExpenseAddEdit.route, arguments = listOf(
+            navArgument("from") {
+                type = NavType.StringType
+                defaultValue = "unknown"
+            }
+        )) { backStackEntry ->
+            val from = backStackEntry.arguments?.getString("from") ?: "unknown"
+            ExpenseAddEditView(navController = navController, from = from)
         }
-        composable(Screen.MainScreen.CategoryAddEdit.route) {
+        composable(Screen.GlobalScreen.CategoryAddEdit.route) {
             CategoryAddEditView(navController = navController)
         }
 

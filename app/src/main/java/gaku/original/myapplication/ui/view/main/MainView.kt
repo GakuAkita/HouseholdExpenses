@@ -69,6 +69,9 @@ fun MainView(
     val topBarName = "What is essential is invisible to the eye"
     val listState = rememberLazyListState()
 
+    //この画面のルート。AddEditScreenに行くときに必要
+    val originalRoute = Screen.MainScreen.Content
+
     //カレンダー横スクロールのため
     val calendarHorizontalInitialPage = 12
     /* 最初のページは、現在時刻と */
@@ -159,7 +162,11 @@ fun MainView(
 
                     /*月は現在のカレンダーの時間をいれる??*/
                     /* Addに飛ぶ */
-                    navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
+                    navController.navigate(
+                        Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+                            originalRoute
+                        )
+                    )
                 },
                 containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
                 contentColor = MaterialTheme.colorScheme.onSecondary,
@@ -240,7 +247,11 @@ fun MainView(
                              */
                             viewModel.setToTmpExpenseFromCalendar(inputDateTime)
                             //ExpenseAddEditViewに移動
-                            navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
+                            navController.navigate(
+                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+                                    originalRoute
+                                )
+                            )
                         }
                     )
                 }
@@ -265,33 +276,41 @@ fun MainView(
             //スペースちょっとあける。
             Spacer(modifier = Modifier.padding(10.dp))
 
-            if (expensesLoadingStatus == LoadingStatus.LOADING) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) { CircularProgressIndicator() }
-            } else if (expensesLoadingStatus == LoadingStatus.TIMEOUT) {
-                Text("Timeout!!!")
-                Button(
-                    onClick = {
+            when (expensesLoadingStatus) {
+                LoadingStatus.LOADING -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) { CircularProgressIndicator() }
+                }
+
+                LoadingStatus.TIMEOUT -> {
+                    Text("Timeout!!!")
+                    Button(
+                        onClick = {
+                            viewModel.updateStoredExpenses(
+                                currentPageYear,
+                                currentPageMonth,
+                                callback = {}
+                            )
+                        },
+                    ) { Text("再読み込み") }
+                }
+
+                LoadingStatus.ERROR -> {
+                    Text("Unable to get Expenses properly. Please contact the developer.")
+                    Button(onClick = {
                         viewModel.updateStoredExpenses(
                             currentPageYear,
                             currentPageMonth,
                             callback = {}
                         )
-                    },
-                ) { Text("再読み込み") }
-            } else if (expensesLoadingStatus == LoadingStatus.ERROR) {
-                Text("Unable to get Expenses properly. Please contact the developer.")
-                Button(onClick = {
-                    viewModel.updateStoredExpenses(
-                        currentPageYear,
-                        currentPageMonth,
-                        callback = {}
-                    )
-                }) { Text("再読み込み") }
-            } else {
-                /* Do nothing */
+                    }) { Text("再読み込み") }
+                }
+
+                else -> {
+                    /* Do nothing */
+                }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 LazyColumnScrollbar(//外部ライブラリ
@@ -316,7 +335,11 @@ fun MainView(
                                     //viewModel内の値を転写
                                     viewModel.setToTmpExpense(expense)
                                     //ExpenseAddEditViewに移動
-                                    navController.navigate(Screen.MainScreen.ExpenseAddEdit.route)
+                                    navController.navigate(
+                                        Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+                                            originalRoute
+                                        )
+                                    )
                                 })
                         }
                     }

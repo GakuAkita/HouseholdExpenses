@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
@@ -18,8 +17,16 @@ import javax.inject.Inject
 @HiltViewModel
 class NotCategorizedViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseFirestoreRepository,
-    private val categoryFirestoreRepository: CategoryFirestoreRepository,
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
+    override fun onCleared() {
+        /**
+         * 他のボトムバーに移動したときにViewModelは破棄される
+         */
+        super.onCleared()
+        LogAkitaDebug("${this::class.simpleName} Cleared!!!!")
+    }
+
     private val _loadingStatus = MutableStateFlow(LoadingStatus.COMPLETED)
     val loadingStatus: StateFlow<LoadingStatus> get() = _loadingStatus
 
@@ -43,10 +50,15 @@ class NotCategorizedViewModel @Inject constructor(
         return result
     }
 
-    fun fetMotCategorizedExpenses(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun fetchNotCategorizedExpenses(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val result = fetchNotCategorizedExpensesInternal()
             callback(result.toSuspendFuncStatusInfo())
         }
+    }
+
+    /** AddEditに値を渡す用 **/
+    fun setToTmpExpense(expense: Expense) {
+        tmpExpenseViewModel.updateTmpExpense(expense)
     }
 }

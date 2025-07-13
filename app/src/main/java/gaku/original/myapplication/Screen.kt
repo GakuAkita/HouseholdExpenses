@@ -21,9 +21,10 @@ sealed class Screen(val route: String) {
         }
 
         object Content : MainScreen("$BASE_ROUTE/content")
-        object ExpenseAddEdit : MainScreen("$BASE_ROUTE/expense_add_edit")
-        object CategoryAddEdit : MainScreen("$BASE_ROUTE/category_add_edit")
     }
+
+    //Not Categorized画面
+    object NotCategorizedScreen : Screen("not_categorized_screen")
 
     // Graph関連
     object GraphScreen : Screen("graph_screen")
@@ -52,6 +53,18 @@ sealed class Screen(val route: String) {
         }
     }
 
-    //使わない
-    object NotCategorizedScreen : Screen("not_categorized_screen")
+    //グローバルな画面
+    // グローバル画面
+    sealed class GlobalScreen(route: String) : MainScreen(route) {
+        companion object {
+            const val EXPENSE_ADD_EDIT_BASE = "expense_add_edit"
+            const val CATEGORY_ADD_EDIT_BASE = "category_add_edit"
+        }
+
+        object ExpenseAddEdit : GlobalScreen("$EXPENSE_ADD_EDIT_BASE?from={from}") {
+            fun createRoute(from: Screen) = "$EXPENSE_ADD_EDIT_BASE?from=${from.route}"
+        }
+
+        object CategoryAddEdit : GlobalScreen(CATEGORY_ADD_EDIT_BASE)
+    }
 }

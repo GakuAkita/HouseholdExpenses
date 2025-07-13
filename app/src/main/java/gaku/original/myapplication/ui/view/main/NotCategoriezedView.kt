@@ -3,6 +3,7 @@ package gaku.original.myapplication.ui.view.main
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,10 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.AppTimeZone
@@ -35,7 +40,7 @@ fun NotCategorizedView(
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        viewModel.fetMotCategorizedExpenses {
+        viewModel.fetchNotCategorizedExpenses {
             if (it.status == SuspendFuncStatus.SUCCESS) {
                 LogAkitaDebug("fetch success!!")
             } else if (it.status == SuspendFuncStatus.TIMEOUT) {
@@ -50,7 +55,6 @@ fun NotCategorizedView(
         topBar = {
             TopBarView("カテゴリー未割り当て")
         },
-
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
         /**
@@ -69,7 +73,14 @@ fun NotCategorizedView(
                     userScrollEnabled = true
                 ) {
                     items(expenses.value) { expense ->
-                        NotCategorizedExpenseItem(expense)
+                        NotCategorizedExpenseItem(expense) {
+                            viewModel.setToTmpExpense(it)
+                            navController.navigate(
+                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+                                    Screen.NotCategorizedScreen//遷移元
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -82,25 +93,35 @@ fun NotCategorizedExpenseItem(
     expense: Expense,
     onClick: (Expense) -> Unit = {}
 ) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onClick(expense) }) {
+    val fontSize = 18.sp
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 50.dp) // 最小高さを指定
+            .clickable { onClick(expense) }
+            .padding(10.dp)
+    ) {
         val localDateTime: LocalDateTime? = AppTimeZone.isoStringToLocalDateTime(expense.datetime)
         if (localDateTime == null) {
-            Text(modifier = Modifier.weight(1f), text = "datetime error")
+            Text(modifier = Modifier.weight(1f), text = "datetime error", fontSize = fontSize)
         } else {
             val year = localDateTime.year
             val month = localDateTime.monthValue
             val day = localDateTime.dayOfMonth
-            Text("$year/$month/$day", modifier = Modifier.weight(1f))
+            Text("$year/$month/$day", modifier = Modifier.weight(1f), fontSize = fontSize)
         }
-        Text("${expense.amount}", modifier = Modifier.weight(1f))
+        Text("${expense.amount}円", modifier = Modifier.weight(1f), fontSize = fontSize)
 
         val generatedType: String? = expense.generatedType
         if (generatedType == null) {
-            Text("タイプエラー", modifier = Modifier.weight(1f))
+            Text("タイプエラー", modifier = Modifier.weight(1f), fontSize = fontSize)
         } else {
-            Text(generatedType, modifier = Modifier.weight(1f))
+            val (mainType, subType) = convertGeneratedTypeToDisplayName(generatedType)
+            Text(
+                if (subType != null) "${mainType}/${subType}" else mainType,
+                modifier = Modifier.weight(1f),
+                fontSize = fontSize
+            )
         }
     }
 }

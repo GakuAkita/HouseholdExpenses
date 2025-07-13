@@ -58,6 +58,16 @@ sealed class MailboxExtractionType {
     }
 }
 
+fun convertNodeNameToMenuName(nodeName: String): String {
+    return when (nodeName) {
+        MailboxExtractionType.RakutenPay().nodeName -> MailboxExtractionType.RakutenPay().menuName
+        MailboxExtractionType.ShikokuElectricPower().nodeName -> MailboxExtractionType.ShikokuElectricPower().menuName
+        MailboxExtractionType.AmazonKindle().nodeName -> MailboxExtractionType.AmazonKindle().menuName
+        MailboxExtractionType.AmazonItem().nodeName -> MailboxExtractionType.AmazonItem().menuName
+        else -> "不明" // 一致なしの場合は null を返す（必要に応じて "不明" にしても良い）
+    }
+}
+
 /**
  * MailboxExtractionの内部クラスであれば変換
  * そうでなければnullを返す

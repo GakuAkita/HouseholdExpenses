@@ -77,14 +77,26 @@ import java.time.format.DateTimeFormatter
 FloatingActionボタンから来た場合は、ボタンを叩いた時間を入力
 カレンダーの日付を叩いてきたときはその日付と時間(今の時間)をデフォルトでいれる
  */
+enum class FromScreen {
+    NOT_CATEGORIZED,
+    MAIN_CONTENT,
+    UNKNOWN
+}
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseAddEditView(
     viewModel: ExpenseAddEditViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    from: String/* 遷移元のスクリーン */
 ) {
+    val fromScreen = when (from) {
+        Screen.NotCategorizedScreen.route -> FromScreen.NOT_CATEGORIZED
+        Screen.MainScreen.Content.route -> FromScreen.MAIN_CONTENT
+        else -> FromScreen.UNKNOWN
+    }
+
     val viewName = "ExpenseAddEditView"
 
     var selectedDate by remember { mutableStateOf<LocalDate?>(viewModel.getTimeZoneDate()) }
@@ -102,6 +114,8 @@ fun ExpenseAddEditView(
     val allCategories by viewModel.allCategories.collectAsState(initial = emptyList())
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
+
+    var showDeleteResetConfirmDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
@@ -272,7 +286,7 @@ fun ExpenseAddEditView(
             }
 
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            RowSpace()
 
             /*************************************************/
             /* 費用の項目 */
@@ -303,6 +317,7 @@ fun ExpenseAddEditView(
                     sheetState = bottomSheetState
                 ) {
                     CalculatorUI(
+                        initialValue = viewModel.currentTmpExpense.amount ?: 0L,
                         onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
                             if (true/* 日本円。設定から制御できるように、、 */) {
                                 val convertedVal = it.roundToLongOrNull()/* 自作 */
@@ -323,8 +338,7 @@ fun ExpenseAddEditView(
                 }
             }
 
-            Spacer(modifier = Modifier.padding(8.dp))
-
+            RowSpace()
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
@@ -415,7 +429,7 @@ fun ExpenseAddEditView(
                 // カテゴリー編集ボタン
                 IconButton(
                     onClick = {
-                        navController.navigate(Screen.MainScreen.CategoryAddEdit.route)
+                        navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
                     }
                 ) {
                     Icon(
@@ -438,7 +452,7 @@ fun ExpenseAddEditView(
                 }
             }
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            RowSpace()
 
             /*************************************************/
             /* Noteの項目 */
@@ -459,13 +473,46 @@ fun ExpenseAddEditView(
             }
 
             /*************************************************/
+            /* 生成タイプとサブタイプの表示 */
+            /*************************************************/
+            if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                RowSpace()
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextField(
+                        value = viewModel.getGeneratedTypeDisplay(),
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text(text = "生成方法") },
+                        modifier = Modifier.width(260.dp),
+                        colors = enabledTextFiledColorSet()
+                    )
+                }
+            }
+
+            /*************************************************/
+            /* 楽天Payなら店名、AmazonItem、AmazonKindleなら商品名 */
+            /*************************************************/
+            if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                RowSpace()
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                }
+            }
+
+            /*************************************************/
             /* 保存ボタンの実装 */
             /*************************************************/
             Button(
                 onClick = {
                     handleSaveClick()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp),
                 colors = ButtonDefaults.textButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -475,46 +522,55 @@ fun ExpenseAddEditView(
             }
 
 
-            if (viewModel.currentTmpExpense.id == null) {
-                //新規作成のとき。リセット
-                Button(
-                    onClick = {
-                        //リセット
-                        viewModel.resetTmpExpense()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    )
-                ) {
-                    Text("Reset")
-                }
-            } else {
-                //編集
-                Button(
-                    onClick = {
-                        //削除
-                        viewModel.removeTmpExpenseToDb(
-                            onStart = {},
-                            callback = {/* 失敗したときの処理 */ })
-                        //リセット
-                        viewModel.resetTmpExpense()
-                        //元に戻る
-                        navController.navigate(Screen.MainScreen.Content.route)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Delete")
+            // 新規作成時：リセットのみ表示
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                if (viewModel.currentTmpExpense.id == null) {
+                    Button(
+                        onClick = {
+                            viewModel.resetTmpExpense()
+                        },
+                        modifier = Modifier
+                            .width(140.dp)
+                            .padding(4.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Text("Reset")
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            viewModel.removeTmpExpenseToDb(
+                                onStart = {},
+                                callback = { /* 削除コールバック */ }
+                            )
+                            viewModel.resetTmpExpense()
+                            navController.navigate(Screen.MainScreen.Content.route)
+                        },
+                        modifier = Modifier
+                            .width(140.dp)
+                            .padding(4.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("Delete")
+                    }
                 }
             }
         }
-
     }
+}
+
+@Composable
+fun RowSpace() {
+    Spacer(modifier = Modifier.padding(8.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -592,9 +648,10 @@ fun TimePickerDialog(
 
 @Composable
 fun CalculatorUI(
+    initialValue: Long = 0L,
     onDecide: (String) -> Unit = {}/* 決定ボタンを作ろうと思ったが、現状無理 */
 ) {
-    var input by remember { mutableStateOf("") }
+    var input by remember { mutableStateOf(initialValue.toString()) }
 
     val hasOperator = input.contains(Regex("[+\\-×÷]"))
 
