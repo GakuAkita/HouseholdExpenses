@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.view.main
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -25,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -44,7 +50,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -58,7 +66,6 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionType
-import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.AppTimeZone
@@ -117,12 +124,17 @@ fun ExpenseAddEditView(
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
+    /* 割当をするかしないか問題 */
+    var newCategoryAssignmentState by rememberSaveable { mutableStateOf(false) }
+    var showAddToAssignmentDialog by rememberSaveable { mutableStateOf(false) }
+
     var showDeleteResetConfirmDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
         SnackbarHostState()
     }
+
 
     fun handleSaveClick() {
         if (selectedDate == null || selectedTime == null) {
@@ -153,6 +165,16 @@ fun ExpenseAddEditView(
         /* isoStrがnullであることはない。上でチェックしている。 */
         viewModel.updateTmpExpenseDatetime(isoStr!!)
 
+        /* カテゴリーをリモートから取得できなかったとき保存も更新もできなくなる。したがって、カテゴリーのチェックはやめる */
+        /* あるいは、allCategoriesがemptyList()のときだけこのチェックをバイパスするとかでもいいな */
+//        if (viewModel.currentTmpExpense.category == null) {
+//            scope.launch {
+//                snackBarHostState.showSnackbar(
+//                    "カテゴリーを選択してください"
+//                )
+//            }
+//        }
+
         if (viewModel.currentTmpExpense.id == null) {
             viewModel.addTmpExpenseToDb(onStart = {}, callback = {
                 /* 成功のときのみ */
@@ -160,8 +182,6 @@ fun ExpenseAddEditView(
                     scope.launch {
                         snackBarHostState.showSnackbar("追加しました")
                     }
-                    /*viewModel.resetTmpExpense()*//* これいらないんじゃないか？ */
-                    /* navController.navigate(Screen.MainScreen.Content.route) */
                     navController.popBackStack()
                 }
             })
@@ -171,13 +191,15 @@ fun ExpenseAddEditView(
                     scope.launch {
                         snackBarHostState.showSnackbar("更新する")
                     }
-                    /* viewModel.resetTmpExpense() *//* いらないんじゃないか？ */
-                    /* navController.navigate(Screen.MainScreen.Content.route)*/
                     navController.popBackStack()
                 }
             })
         }
     }
+
+    val typeList = viewModel.getSeparatedGeneratedType()
+    val mainType = typeList.getOrNull(0)
+    val subType = typeList.getOrNull(1)
 
     /* デバッグ用 */
     LaunchedEffect(allCategories) {
@@ -200,12 +222,15 @@ fun ExpenseAddEditView(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { BottomBarView(navController) }
+        //bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
+        val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.Center
         ) {
             val dateFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd")
@@ -287,7 +312,6 @@ fun ExpenseAddEditView(
                             ?: AppTimeZone.getCurrentTimeInZone()
                     )
                 }
-
             }
 
 
@@ -352,7 +376,7 @@ fun ExpenseAddEditView(
                 ExposedDropdownMenuBox(
                     expanded = categoryOptionsExpanded,
                     onExpandedChange = {
-                        if (categoryOptionsExpanded == false) {
+                        if (!categoryOptionsExpanded) {
                             //@TODO ここうまく機能していない。
                             if (allCategories.isEmpty()) {/* allCategories.isEmpty() */
                                 viewModel.updateStoredCategories { statusInfo ->
@@ -393,7 +417,6 @@ fun ExpenseAddEditView(
                         }
                     }
                 ) {
-
                     //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
                     //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
                     //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
@@ -470,7 +493,7 @@ fun ExpenseAddEditView(
                         viewModel.updateTmpExpenseNote(it)
                     },
                     modifier = basicModifier,
-                    label = { Text(text = "Note") },
+                    label = { Text(text = "Note(空欄可)") },
                     singleLine = false
                 )
             }
@@ -478,7 +501,7 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* 生成タイプとサブタイプの表示 */
             /*************************************************/
-            if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+            if (viewModel.currentTmpExpense.id != null) {
                 RowSpace()
                 Row(
                     modifier = Modifier.fillMaxWidth()
@@ -488,7 +511,7 @@ fun ExpenseAddEditView(
                         onValueChange = {},
                         readOnly = true,
                         enabled = false,
-                        label = { Text(text = "生成方法") },
+                        label = { Text(text = "生成方法(変更不可)") },
                         modifier = basicModifier,
                         //colors = enabledTextFiledColorSet()
                     )
@@ -497,51 +520,60 @@ fun ExpenseAddEditView(
 
             /*************************************************/
             /* 店名や商品名の表示 */
-            /* 一応変更可能にしておくが、変更不可でもいいかもな、、 */
+            /* 普通のやつにもつけておくわ */
+            /* 使ってみていらなそうだったら表示のみor Not Categorizedのときのみに変更 */
             /*************************************************/
-            if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                /* whenで分けたほうがいいか？？ */
-                val typeList = viewModel.getSeparatedGeneratedType()
-                if (typeList.isEmpty()) {
-                    RowSpace()
-                    //Text("Warning!! 生成方法に不適切な値が入っています")/* これが出てしまうと保存するときに若干おかしくなる */
-                } else {
-                    RowSpace()
-                    val mainType = typeList[0]
-                    if (mainType == GeneratedType.MAIL_EXTRACTION) {
-                        /* メール抽出の場合はここ！！ */
-                        val nodeName = typeList[1]/* 2つ目にはnode名が入っているはず!(functions側で設定) */
-                        when (nodeName) {
-                            /* メール抽出 */
-                            MailboxExtractionType.RakutenPay().nodeName -> {
-                                /* 店名の表示 */
-                                TextField(
-                                    value = viewModel.currentTmpExpense.storeName ?: "",
-                                    onValueChange = {
-                                        viewModel.updateTmpExpenseStoreName(it)
-                                    },
-                                    label = { Text(text = "店名") },
-                                    modifier = basicModifier
-                                )
-                            }
+            RowSpace()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = viewModel.currentTmpExpense.storeName ?: "",
+                    onValueChange = {
+                        viewModel.updateTmpExpenseStoreName(it)
+                    },
+                    label = { Text(text = "店名(空欄可)") },
+                    modifier = basicModifier
+                )
 
-                            MailboxExtractionType.AmazonKindle().nodeName,
-                            MailboxExtractionType.AmazonKindle().nodeName -> {
-                                /* 商品名の表示 */
-                                TextField(
-                                    value = viewModel.currentTmpExpense.itemName ?: "",
-                                    onValueChange = {
-                                        viewModel.updateTmpExpenseItemName(it)
-                                    },
-                                    label = { Text(text = "商品名") },
-                                    modifier = basicModifier
-                                )
+                /* 現状は楽天Payだけだが増やす場合はwhenで書きやすくしたほうがいいか */
+                if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.RakutenPay().nodeName) {
+                        Checkbox(
+                            checked = newCategoryAssignmentState,
+                            onCheckedChange = {
+                                newCategoryAssignmentState = it
                             }
-                        }
-                    } else {
-                        /**
-                         * メール抽出以外のタイプの場合こっち
-                         */
+                        )
+                        CategoryAssignmentText()
+                    }
+                }
+            }
+
+            /* @TODO 検索候補をつけたい */
+            RowSpace()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = viewModel.currentTmpExpense.itemName ?: "",
+                    onValueChange = {
+                        viewModel.updateTmpExpenseItemName(it)
+                    },
+                    label = { Text(text = "品名(空欄可)") },
+                    modifier = basicModifier
+                )
+                if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.AmazonItem().nodeName) {
+                        Checkbox(
+                            checked = newCategoryAssignmentState,
+                            onCheckedChange = {
+                                newCategoryAssignmentState = it
+                            }
+                        )
+                        CategoryAssignmentText()
                     }
                 }
             }
@@ -549,25 +581,28 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* 保存ボタンの実装 */
             /*************************************************/
-            Button(
+            OutlinedButton(
                 onClick = {
                     handleSaveClick()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 20.dp),
-                colors = ButtonDefaults.textButtonColors(
+                    .padding(10.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
+                colors = ButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary,
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
                 )
-            ) {
-                Text("Save")
-            }
+            ) { Text("Save") }
 
 
-            // 新規作成時：リセットのみ表示
+            // 新規作成時：リセット、更新時：削除
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 if (viewModel.currentTmpExpense.id == null) {
@@ -614,6 +649,12 @@ fun ExpenseAddEditView(
 @Composable
 fun RowSpace() {
     Spacer(modifier = Modifier.padding(8.dp))
+}
+
+@Composable
+fun CategoryAssignmentText() {
+    val fontSize = 10.sp
+    Text("自動カテゴリー割当登録", fontSize = fontSize, lineHeight = fontSize)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

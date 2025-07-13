@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.separateStringByBars
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,11 @@ class ExpenseAddEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
+
+    override fun onCleared() {
+        super.onCleared()
+        LogAkitaDebug("ExpenseAddEditViewModel cleared")
+    }
 
     // プロパティでアクセスを簡略化。この書き方でcurrentTmpExpenseだけでviewModelのtmpExpenseにアクセスできる。
     val currentTmpExpense: Expense

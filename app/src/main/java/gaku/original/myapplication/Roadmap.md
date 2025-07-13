@@ -67,6 +67,7 @@ PayPay で使ったときに取得して自動転記 ← 無理そう。PayPay
 
 //optional
 
+- 商品名をつけるときに検索候補をつけたい
 - ViewModel のライフサイクルについて深く勉強 →SharedViewModel 再構成
 - DatePicker と TimePicker は Experimental なので、Material Dialogs for Compose を使う
 - アプリをもっと動きやすくする。無駄な動作が多い気がする
