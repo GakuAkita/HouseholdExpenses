@@ -56,6 +56,8 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.dataClass.GeneratedType
+import gaku.original.myapplication.data.dataClass.MailboxExtractionType
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -158,8 +160,9 @@ fun ExpenseAddEditView(
                     scope.launch {
                         snackBarHostState.showSnackbar("追加しました")
                     }
-                    viewModel.resetTmpExpense()
-                    navController.navigate(Screen.MainScreen.Content.route)
+                    /*viewModel.resetTmpExpense()*//* これいらないんじゃないか？ */
+                    /* navController.navigate(Screen.MainScreen.Content.route) */
+                    navController.popBackStack()
                 }
             })
         } else {
@@ -168,8 +171,9 @@ fun ExpenseAddEditView(
                     scope.launch {
                         snackBarHostState.showSnackbar("更新する")
                     }
-                    viewModel.resetTmpExpense()
-                    navController.navigate(Screen.MainScreen.Content.route)
+                    /* viewModel.resetTmpExpense() *//* いらないんじゃないか？ */
+                    /* navController.navigate(Screen.MainScreen.Content.route)*/
+                    navController.popBackStack()
                 }
             })
         }
@@ -206,6 +210,7 @@ fun ExpenseAddEditView(
         ) {
             val dateFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd")
             val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+            val basicModifier = Modifier.width(260.dp)
 
             /*************************************************/
             /* 日付の項目 */
@@ -301,8 +306,7 @@ fun ExpenseAddEditView(
                     readOnly = true,
                     enabled = false,
                     label = { Text(text = "Amount") },
-                    modifier = Modifier
-                        .width(260.dp)
+                    modifier = basicModifier
                         .clickable {
                             showCalculator = true
                             Log.d(viewName, "Amount was tapped!!!")
@@ -399,8 +403,7 @@ fun ExpenseAddEditView(
                         onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
                         enabled = false,
                         readOnly = true,
-                        modifier = Modifier
-                            .width(260.dp)
+                        modifier = basicModifier
                             //@Todo menuAnchorをいれかえる　
                             .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
                         label = { Text(text = "Category") },
@@ -466,7 +469,7 @@ fun ExpenseAddEditView(
                     onValueChange = {
                         viewModel.updateTmpExpenseNote(it)
                     },
-                    modifier = Modifier.width(260.dp),
+                    modifier = basicModifier,
                     label = { Text(text = "Note") },
                     singleLine = false
                 )
@@ -486,20 +489,60 @@ fun ExpenseAddEditView(
                         readOnly = true,
                         enabled = false,
                         label = { Text(text = "生成方法") },
-                        modifier = Modifier.width(260.dp),
-                        colors = enabledTextFiledColorSet()
+                        modifier = basicModifier,
+                        //colors = enabledTextFiledColorSet()
                     )
                 }
             }
 
             /*************************************************/
-            /* 楽天Payなら店名、AmazonItem、AmazonKindleなら商品名 */
+            /* 店名や商品名の表示 */
+            /* 一応変更可能にしておくが、変更不可でもいいかもな、、 */
             /*************************************************/
             if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                RowSpace()
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                /* whenで分けたほうがいいか？？ */
+                val typeList = viewModel.getSeparatedGeneratedType()
+                if (typeList.isEmpty()) {
+                    RowSpace()
+                    //Text("Warning!! 生成方法に不適切な値が入っています")/* これが出てしまうと保存するときに若干おかしくなる */
+                } else {
+                    RowSpace()
+                    val mainType = typeList[0]
+                    if (mainType == GeneratedType.MAIL_EXTRACTION) {
+                        /* メール抽出の場合はここ！！ */
+                        val nodeName = typeList[1]/* 2つ目にはnode名が入っているはず!(functions側で設定) */
+                        when (nodeName) {
+                            /* メール抽出 */
+                            MailboxExtractionType.RakutenPay().nodeName -> {
+                                /* 店名の表示 */
+                                TextField(
+                                    value = viewModel.currentTmpExpense.storeName ?: "",
+                                    onValueChange = {
+                                        viewModel.updateTmpExpenseStoreName(it)
+                                    },
+                                    label = { Text(text = "店名") },
+                                    modifier = basicModifier
+                                )
+                            }
+
+                            MailboxExtractionType.AmazonKindle().nodeName,
+                            MailboxExtractionType.AmazonKindle().nodeName -> {
+                                /* 商品名の表示 */
+                                TextField(
+                                    value = viewModel.currentTmpExpense.itemName ?: "",
+                                    onValueChange = {
+                                        viewModel.updateTmpExpenseItemName(it)
+                                    },
+                                    label = { Text(text = "商品名") },
+                                    modifier = basicModifier
+                                )
+                            }
+                        }
+                    } else {
+                        /**
+                         * メール抽出以外のタイプの場合こっち
+                         */
+                    }
                 }
             }
 
@@ -651,7 +694,7 @@ fun CalculatorUI(
     initialValue: Long = 0L,
     onDecide: (String) -> Unit = {}/* 決定ボタンを作ろうと思ったが、現状無理 */
 ) {
-    var input by remember { mutableStateOf(initialValue.toString()) }
+    var input by remember { mutableStateOf(if (initialValue == 0L) "" else initialValue.toString()) }
 
     val hasOperator = input.contains(Regex("[+\\-×÷]"))
 

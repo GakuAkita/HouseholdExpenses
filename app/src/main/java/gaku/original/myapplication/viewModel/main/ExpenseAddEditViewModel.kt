@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.separateStringByBars
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -45,7 +46,13 @@ class ExpenseAddEditViewModel @Inject constructor(
         return AppTimeZone.getCurrentTimeInZone().toLocalTime()
     }
 
-    /* generatedTypeから表示用の文字列に変える */
+    fun getSeparatedGeneratedType(): List<String> {
+        val buf = currentTmpExpense.generatedType
+            ?: /* ここに来ることはない */
+            return emptyList()
+        return separateStringByBars(buf)
+    }
+
     fun getGeneratedTypeDisplay(): String {
         val buf = currentTmpExpense.generatedType
             ?: /* ここに来ることはない */
@@ -81,6 +88,18 @@ class ExpenseAddEditViewModel @Inject constructor(
     fun updateTmpExpenseNote(newNote: String) {
         tmpExpenseViewModel.updateTmpExpense(
             currentTmpExpense.copy(note = newNote)
+        )
+    }
+
+    fun updateTmpExpenseStoreName(storeName: String) {
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(storeName = storeName)
+        )
+    }
+
+    fun updateTmpExpenseItemName(itemName: String) {
+        tmpExpenseViewModel.updateTmpExpense(
+            currentTmpExpense.copy(itemName = itemName)
         )
     }
 

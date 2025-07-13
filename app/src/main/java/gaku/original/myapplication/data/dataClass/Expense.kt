@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.dataClass
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.separateStringByBars
 
 data class Expense(
     override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1
@@ -69,7 +70,7 @@ fun convertGeneratedTypeToDisplay(type: String): String {
  * とりあえずはこのままでいいか。data classにしたほうが拡張性は高いらしい
  */
 fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
-    val parts = generatedType.split("___")
+    val parts = separateStringByBars(generatedType)
     return when (parts.size) {
         2 -> {
             val mainType = convertGeneratedTypeToDisplay(parts[0])
