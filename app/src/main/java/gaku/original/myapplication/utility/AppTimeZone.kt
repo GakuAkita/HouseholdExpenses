@@ -36,6 +36,9 @@ object AppTimeZone {
         }
     }
 
+    /**
+     * ISO文字列で表して扱っているデータはUTC
+     */
     fun isoStringToLocalDateTime(isoString: String?): LocalDateTime? {
         return try {
             val instant = Instant.parse(isoString)

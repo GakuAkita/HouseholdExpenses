@@ -1,14 +1,18 @@
 package gaku.original.myapplication.viewModel.main
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,18 +26,27 @@ class NotCategorizedViewModel @Inject constructor(
     private val _notCategorizedExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val notCategorizedExpenses: StateFlow<List<Expense>> get() = _notCategorizedExpenses
 
-    private suspend fun fetchNotCategorizedExpenses() {
+    private suspend fun fetchNotCategorizedExpensesInternal(): FetchResult<List<Expense>> {
         _loadingStatus.value = LoadingStatus.LOADING
         val result = expenseFirestoreRepository.fetchNotCategorizedExpenses()
         if (result is FetchResult.Success) {
             _loadingStatus.value = LoadingStatus.COMPLETED
             _notCategorizedExpenses.value = result.data//成功のときだけ更新
+            LogAkitaDebug("expenses:${_notCategorizedExpenses.value}")
         } else {
             if (result is FetchResult.Failure.Timeout) {
                 _loadingStatus.value = LoadingStatus.TIMEOUT
             } else {
                 _loadingStatus.value = LoadingStatus.ERROR
             }
+        }
+        return result
+    }
+
+    fun fetMotCategorizedExpenses(callback: (SuspendFuncStatusInfo) -> Unit) {
+        viewModelScope.launch {
+            val result = fetchNotCategorizedExpensesInternal()
+            callback(result.toSuspendFuncStatusInfo())
         }
     }
 }

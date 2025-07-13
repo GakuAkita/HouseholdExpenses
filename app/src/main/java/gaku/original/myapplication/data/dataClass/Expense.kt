@@ -50,7 +50,7 @@ class generatedType {
         const val AUTO = "auto"
         const val MANUAL = "manual"
         const val REPEAT_ADD = "repeat_add" // 繰り返し追加で追加するやつ
-        const val MAIL_EXTRACTION = "mail_extraction"
+        const val MAIL_EXTRACTION = "mailbox_extraction"
     }
 }
 

@@ -6,7 +6,7 @@ export interface Expense {
   datetime?: string;
   timestamp?: number;
   amount?: number;
-  category?: Category;
+  category?: Category | null;
   note?: string;
   storeName?: string;
   itemName?: string;

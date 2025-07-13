@@ -6,6 +6,13 @@ import {
   FuncStatus,
 } from "../../type/FuncStatus";
 
+function normalizeExpenseCategory(expense: Expense): Expense {
+  if (expense.category === undefined) {
+    return { ...expense, category: null };
+  }
+  return expense;
+}
+
 export class ExpenseService {
   private db: Firestore;
 
@@ -21,9 +28,10 @@ export class ExpenseService {
     userId: string,
     expenseData: Expense
   ): Promise<FirestoreAddResult> {
+    const fixedExpenseData = normalizeExpenseCategory(expenseData);
     try {
       const expensesRef = this.getUserExpensesColRef(userId);
-      const docRef = await expensesRef.add(expenseData);
+      const docRef = await expensesRef.add(fixedExpenseData);
       return {
         status: FuncStatus.SUCCESS,
         id: docRef.id,
@@ -47,6 +55,7 @@ export class ExpenseService {
         message: "Expense ID is required for update.",
       };
     const expenseRef = this.getUserExpensesColRef(userId).doc(expenseData.id);
+    const fixedExpenseData = normalizeExpenseCategory(expenseData);
     try {
       // const docSnapshot = await expenseRef.get();
       // if (!docSnapshot.exists)
@@ -57,7 +66,7 @@ export class ExpenseService {
       // await expenseRef.set(expenseData);
 
       /* ここはデバッグしていない!!! */
-      const { id, ...updatedExpense } = expenseData;
+      const { id, ...updatedExpense } = fixedExpenseData;
       await expenseRef.update(updatedExpense);
       return {
         status: FuncStatus.SUCCESS,
@@ -80,7 +89,8 @@ export class ExpenseService {
       const newDocRef = expensesRef.doc(); // IDを事前に生成
       expenseData.id = newDocRef.id; // expense にセット
 
-      await newDocRef.set(expenseData); // 一発で書き込み
+      const fixedExpenseData = normalizeExpenseCategory(expenseData);
+      await newDocRef.set(fixedExpenseData); // 一発で書き込み
 
       return {
         status: FuncStatus.SUCCESS,

@@ -143,6 +143,10 @@ class ExpenseFirestoreRepository @Inject constructor(
         return try {
             withTimeout(timeout) {
                 withContext(Dispatchers.IO) {
+                    /**
+                     * 注意:whereEqualTo(...,null)は、フィールドが存在しないものは取得できない
+                     * ちゃんとnullという値が入っていないと
+                     */
                     val snapshot = expenseRef
                         .whereEqualTo("category", null)
                         .get()
