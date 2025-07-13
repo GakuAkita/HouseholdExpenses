@@ -2,7 +2,7 @@ package gaku.original.myapplication.ui.view.main
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,9 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -30,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -55,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,6 +64,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.AppTimeZone
@@ -106,6 +105,8 @@ fun ExpenseAddEditView(
         else -> FromScreen.UNKNOWN
     }
 
+    val context = LocalContext.current
+
     val viewName = "ExpenseAddEditView"
 
     var selectedDate by remember { mutableStateOf<LocalDate?>(viewModel.getTimeZoneDate()) }
@@ -125,9 +126,7 @@ fun ExpenseAddEditView(
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
     /* 割当をするかしないか問題 */
-    var newCategoryAssignmentState by rememberSaveable { mutableStateOf(false) }
-    var showAddToAssignmentDialog by rememberSaveable { mutableStateOf(false) }
-
+    var showCategoryAssignmentDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteResetConfirmDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -540,13 +539,20 @@ fun ExpenseAddEditView(
                 /* 現状は楽天Payだけだが増やす場合はwhenで書きやすくしたほうがいいか */
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.RakutenPay().nodeName) {
-                        Checkbox(
-                            checked = newCategoryAssignmentState,
-                            onCheckedChange = {
-                                newCategoryAssignmentState = it
+                        Row(
+                            modifier = Modifier.clickable {
+                                LogAkitaDebug("クリックされました")
+                            },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = { }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.docs_add_on),
+                                    contentDescription = "add_on"
+                                )
                             }
-                        )
-                        CategoryAssignmentText()
+                            CategoryAssignmentText()
+                        }
                     }
                 }
             }
@@ -567,12 +573,7 @@ fun ExpenseAddEditView(
                 )
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.AmazonItem().nodeName) {
-                        Checkbox(
-                            checked = newCategoryAssignmentState,
-                            onCheckedChange = {
-                                newCategoryAssignmentState = it
-                            }
-                        )
+
                         CategoryAssignmentText()
                     }
                 }
@@ -581,22 +582,20 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* 保存ボタンの実装 */
             /*************************************************/
-            OutlinedButton(
+            Button(
                 onClick = {
                     handleSaveClick()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
-                colors = ButtonColors(
+                colors = ButtonDefaults.textButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
-            ) { Text("Save") }
-
+            ) {
+                Text("Save")
+            }
 
             // 新規作成時：リセット、更新時：削除
             Row(
@@ -623,12 +622,7 @@ fun ExpenseAddEditView(
                 } else {
                     Button(
                         onClick = {
-                            viewModel.removeTmpExpenseToDb(
-                                onStart = {},
-                                callback = { /* 削除コールバック */ }
-                            )
-                            viewModel.resetTmpExpense()
-                            navController.navigate(Screen.MainScreen.Content.route)
+                            showDeleteResetConfirmDialog = true
                         },
                         modifier = Modifier
                             .width(140.dp)
@@ -642,6 +636,39 @@ fun ExpenseAddEditView(
                     }
                 }
             }
+        }
+
+        if (showDeleteResetConfirmDialog) {
+            /* これ関数化できるな、、 */
+            ConfirmAlertDialog(
+                confirmContent = {
+                    Text(
+                        text = "削除しますか？",
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        fontSize = 20.sp
+                    )
+                },
+                onClick = {
+                    viewModel.removeTmpExpenseToDb(
+                        onStart = {},
+                        callback = {
+                            if (it.status == SuspendFuncStatus.SUCCESS) {
+                                viewModel.resetTmpExpense()
+                                navController.popBackStack()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "削除に失敗しました:${it.errorMessage}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    )
+                },
+                onDismissRequest = {
+                    showDeleteResetConfirmDialog = false
+                }
+            )
         }
     }
 }
