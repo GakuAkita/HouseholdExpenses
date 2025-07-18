@@ -39,6 +39,12 @@ updateCategory()
 removeCategory()
 }
 
+class CategoryAssingmentRepository{
+addCategoryAssignment()
+updateCategoryAssignment()
+removeCategoryAssignment()
+}
+
 class UserSettingRepository{
 updateTimezone()
 }
@@ -70,7 +76,7 @@ ExpenseSharedViewModel ..> ExpenseListViewModel :CI
 ExpenseSharedViewModel ..> ExpenseAddEditViewModel :CI
 
 
-class FirestoreRepository {
+class FirestoreReference {
 Firebase.database.reference
 
 getUserRef()
@@ -78,11 +84,16 @@ getExpenseRef()
 getCategoryRef()
 }
 
+class RealtimeDbReference{
+getUserRef()
 
-%% FirestoreRepository ..> DbListenerManager : CI
-FirestoreRepository ..> ExpenseRepository : CI
-FirestoreRepository ..> CategoryRepository :CI
-FirestoreRepository ..> UserSettingRepository: CI
+}
+
+
+%% FirestoreReference ..> DbListenerManager : CI
+FirestoreReference ..> ExpenseRepository : CI
+FirestoreReference ..> CategoryRepository :CI
+FirestoreReference ..> UserSettingRepository: CI
 DbListenerManager <..> RealtimeDatabase :リスナー管理
 
 class AuthManagerViewModel {
@@ -92,7 +103,7 @@ class AuthManagerViewModel {
 }
 %%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
 %% DbListenerManager ..> UserManageViewModel :CI
-%% UserManageViewModel ..> FirestoreRepository : CI
+%% UserManageViewModel ..> FirestoreReference : CI
 
 class RealtimeDatabase{
 Database
@@ -107,6 +118,6 @@ Firebase Authentication
 
 FirebaseAuth ..> AuthManagerViewModel :CI
 
-FirebaseAuth ..> FirestoreRepository :CI<br>userId取得
+FirebaseAuth ..> FirestoreReference :CI<br>userId取得
 
 ```

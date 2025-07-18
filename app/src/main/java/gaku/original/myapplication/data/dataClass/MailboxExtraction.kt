@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
+import gaku.original.myapplication.data.Interface.CategoryAssignable
 
 /**
  * Bitフラグで店名で指定なのか、製品名で指定なのか
@@ -14,12 +15,12 @@ object CategoryAssignFlag {
     const val STORE_NAME = 0x0002   // 0010
 }
 
-sealed class MailboxExtractionType {
+sealed class MailboxExtractionType : CategoryAssignable {
     abstract val enabled: Boolean
     abstract val nodeName: String
     abstract val menuName: String
 
-    abstract val categoryAssignFlag: Int
+    abstract override val categoryAssignFlag: Int
     abstract fun defaultInstance(): MailboxExtractionType
 
     data class RakutenPay(

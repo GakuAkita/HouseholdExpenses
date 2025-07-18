@@ -13,6 +13,7 @@ import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFires
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
@@ -99,7 +100,11 @@ object AppModule {
     }
 
     /* --------------------------UseCase関連---------------------------------- */
-
+    fun provideCategoryAssignmentUseCase(
+        categoryAssignmentRepository: CategoryAssignmentRepository
+    ): CategoryAssignmentUseCase {
+        return CategoryAssignmentUseCase(categoryAssignmentRepository)
+    }
 
     /* ------------------------------------------------------------------ */
 
