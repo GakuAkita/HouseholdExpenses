@@ -61,9 +61,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.Constants.AssignmentCondition
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.ui.common.CategoryAssignmentDialog
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -539,20 +542,11 @@ fun ExpenseAddEditView(
                 /* 現状は楽天Payだけだが増やす場合はwhenで書きやすくしたほうがいいか */
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.RakutenPay().nodeName) {
-                        Row(
-                            modifier = Modifier.clickable {
-                                LogAkitaDebug("クリックされました")
-                            },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(onClick = { }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.docs_add_on),
-                                    contentDescription = "add_on"
-                                )
+                        CategoryAssignmentArea(
+                            onClick = {
+                                showCategoryAssignmentDialog = true
                             }
-                            CategoryAssignmentText()
-                        }
+                        )
                     }
                 }
             }
@@ -573,8 +567,11 @@ fun ExpenseAddEditView(
                 )
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.AmazonItem().nodeName) {
-
-                        CategoryAssignmentText()
+                        CategoryAssignmentArea(
+                            onClick = {
+                                showCategoryAssignmentDialog = true
+                            }
+                        )
                     }
                 }
             }
@@ -637,9 +634,34 @@ fun ExpenseAddEditView(
                 }
             }
         }
+        /**
+         * 新しいカテゴリー割当のダイアログ
+         */
+        if (showCategoryAssignmentDialog) {
+            /* メール抽出/楽天Payに保存するって書いておいた法が良いな */
+            CategoryAssignmentDialog(
+                titleContent = {
+                    Text(viewModel.getGeneratedTypeDisplay())
+                },
+                onSave = {
 
+                },
+                onDismiss = {
+                    showCategoryAssignmentDialog = false
+                },
+                initialAssignment = CategoryAssignment(
+                    name = "",
+                    categoryId = null,
+                    condition = AssignmentCondition.EXACT_MATCH
+                ),
+                categories = allCategories
+            )
+        }
+
+        /**
+         * 削除関数のダイアログ
+         */
         if (showDeleteResetConfirmDialog) {
-            /* これ関数化できるな、、 */
             ConfirmAlertDialog(
                 confirmContent = {
                     Text(
@@ -682,6 +704,26 @@ fun RowSpace() {
 fun CategoryAssignmentText() {
     val fontSize = 10.sp
     Text("自動カテゴリー割当登録", fontSize = fontSize, lineHeight = fontSize)
+}
+
+@Composable
+fun CategoryAssignmentArea(
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.clickable {
+            onClick()
+        },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { }) {
+            Icon(
+                painter = painterResource(id = R.drawable.docs_add_on),
+                contentDescription = "add_on"
+            )
+        }
+        CategoryAssignmentText()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

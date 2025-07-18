@@ -6,12 +6,13 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import gaku.original.myapplication.data.Repository.FirebaseAuthRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
-import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
-import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.repository.FirebaseAuthRepository
+import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
+import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
+import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
+import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
@@ -83,11 +84,22 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
+    fun provideCategoryAssignmentRTDbRepository(
+        realtimeDbReference: RealtimeDbReference
+    ): CategoryAssignmentRepository {
+        return CategoryAssignmentRepository(realtimeDbReference)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
     fun provideFirebaseAuthRepository(
         firebaseAuth: FirebaseAuth
     ): FirebaseAuthRepository {
         return FirebaseAuthRepository(firebaseAuth)
     }
+
+    /* --------------------------UseCase関連---------------------------------- */
+
 
     /* ------------------------------------------------------------------ */
 

@@ -138,6 +138,7 @@ fun AssignmentConditionDropdown(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryAssignmentDialog(
+    titleContent: @Composable () -> Unit = {},
     onSave: (CategoryAssignment) -> Unit = {},
     onDismiss: () -> Unit = {},
     initialAssignment: CategoryAssignment?,
@@ -174,6 +175,12 @@ fun CategoryAssignmentDialog(
                 } else {
                     Text("カテゴリー割当を編集")
                 }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                titleContent()
             }
             TextField(
                 modifier = Modifier

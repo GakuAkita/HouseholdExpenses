@@ -1,78 +1,68 @@
-package gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepositoryUtil
-
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 
-suspend fun addSingleDataToRTDb(
-    data: Any, /* 文字列、数値、booleanのどれか */
-    keyName: String,/* キーの名前(childの名前) */
+suspend fun <T : HasId> removeDataFromRTDb(
+    data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
-    val funcName = "addSingleDataToRTDb"
+    val funcName = "removeDataFromRTDb"
 
-    //data型の確認
-    when (data) {
-        is String, is Boolean, is Number -> {
-            /* 特に問題ないので、次に行く */
-        }
-
-        else -> {
-            Log.d(funcName, "passed data's type is wrong.${data.javaClass.simpleName}")
-            val statusInfo = SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
-                errorMessage = "passed data's type is wrong.${data.javaClass.simpleName}"
-            )
-            callback(statusInfo)
-            return statusInfo
-        }
+    val id = data.id
+    if (id.isNullOrEmpty()) {
+        Log.e(funcName, "id is null or empty")
+        val statusInfo = SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.FAILED,
+            errorMessage = "id is null or empty"
+        )
+        return statusInfo // 即終了
     }
 
     return try {
         withTimeout(timeout) {
             suspendCancellableCoroutine { continuation ->
-                reference.child(keyName).setValue(data)
+                val removeRef = reference.child(id)
+
+                removeRef.removeValue()
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Log.d(funcName, "Data added successfully")
+                            Log.d(funcName, "Data removed successfully")
                             val statusInfo = SuspendFuncStatusInfo(
                                 status = SuspendFuncStatus.SUCCESS,
-                                errorMessage = ""
+                                errorMessage = "Data removed successfully"
                             )
-                            callback(statusInfo)
-                            continuation.resume(statusInfo) //  成功したので再開。これでSUCCESSが返るらしい
+                            continuation.resume(statusInfo)
                         } else {
-                            Log.e(funcName, "Failed to add data", task.exception)
+                            Log.e(funcName, "Failed to remove data", task.exception)
                             val statusInfo = SuspendFuncStatusInfo(
                                 status = SuspendFuncStatus.FAILED,
                                 errorMessage = task.exception?.message ?: "Unknown error"
                             )
-                            callback(statusInfo)
-                            continuation.resume(statusInfo) //  失敗したので再開
+                            continuation.resume(statusInfo)
                         }
                     }
             }
         }
     } catch (e: TimeoutCancellationException) {
+        Log.e(funcName, "Timeout occurred")
         val statusInfo = SuspendFuncStatusInfo(
             status = SuspendFuncStatus.TIMEOUT,
             errorMessage = "Timeout occurred"
         )
-        callback(statusInfo)
         return statusInfo
     } catch (e: Exception) {
+        Log.e(funcName, "Exception occurred", e)
         val statusInfo = SuspendFuncStatusInfo(
             status = SuspendFuncStatus.FAILED,
             errorMessage = e.message ?: "Unknown error"
         )
-        callback(statusInfo)
         return statusInfo
     }
 }

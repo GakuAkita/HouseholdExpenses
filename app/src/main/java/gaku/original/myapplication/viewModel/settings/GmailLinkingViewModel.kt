@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.repository.FirebaseAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

@@ -1,6 +1,5 @@
 package gaku.original.myapplication
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -95,46 +94,85 @@ class RealtimeDbReference @Inject constructor(
         }
     }
 
-    // userId配下のexpenses
-    suspend fun getUserExpenseRef(): FetchResult<DatabaseReference> {
-        val funcName = ::getUserExpenseRef.name
-        Log.d(className, "${funcName} was called.")
-        val childrenPath = listOf("data", "expenses")
+//    // userId配下のexpenses
+//    suspend fun getUserExpenseRef(): FetchResult<DatabaseReference> {
+//        val funcName = ::getUserExpenseRef.name
+//        Log.d(className, "${funcName} was called.")
+//        val childrenPath = listOf("data", "expenses")
+//
+//        val ret = getUserChildrenRef(childrenPath, funcName)
+//        return ret
+//    }
+//
+//    //userId配下のcategory
+//    suspend fun getUserCategoryRef(): FetchResult<DatabaseReference> {
+//        val funcName = ::getUserCategoryRef.name
+//        Log.d(className, "${funcName} was called")
+//        val childrenPath = listOf("data", "categories")
+//
+//        val ret = getUserChildrenRef(childrenPath, funcName)
+//        return ret
+//    }
+//
+//    suspend fun getUserSettingsRef(): FetchResult<DatabaseReference> {
+//        val funcName = ::getUserSettingsRef.name
+//        Log.d(className, "${funcName} was called")
+//        val childrenPath = listOf("settings")
+//
+//        val ret = getUserChildrenRef(childrenPath, funcName)
+//        return ret
+//    }
+//
+//    suspend fun getUserRepeatAddRef(): FetchResult<DatabaseReference> {
+//        val funcName = ::getUserRepeatAddRef.name
+//        Log.d(className, "${funcName} was called")
+//        val baseRefRet = getUserSettingsRef()
+//        if (baseRefRet !is FetchResult.Success) {//拡張関数を使うと、スマートキャストが効かない
+//            return baseRefRet
+//        }
+//
+//        val baseRef = baseRefRet.data
+//        val newRef = baseRef.child("repeatAdd")
+//        val result = FetchResult.Success(newRef)
+//        return result
+//    }
+
+    /* カテゴリー割当て */
+    suspend fun getCategoryAssignmentDataRef(): FetchResult<DatabaseReference> {
+        val funcName = ::getCategoryAssignmentDataRef.name
+        val childrenPath = listOf("category_assignment_data")
 
         val ret = getUserChildrenRef(childrenPath, funcName)
         return ret
     }
 
-    //userId配下のcategory
-    suspend fun getUserCategoryRef(): FetchResult<DatabaseReference> {
-        val funcName = ::getUserCategoryRef.name
-        Log.d(className, "${funcName} was called")
-        val childrenPath = listOf("data", "categories")
-
-        val ret = getUserChildrenRef(childrenPath, funcName)
-        return ret
-    }
-
-    suspend fun getUserSettingsRef(): FetchResult<DatabaseReference> {
-        val funcName = ::getUserSettingsRef.name
-        Log.d(className, "${funcName} was called")
-        val childrenPath = listOf("settings")
-
-        val ret = getUserChildrenRef(childrenPath, funcName)
-        return ret
-    }
-
-    suspend fun getUserRepeatAddRef(): FetchResult<DatabaseReference> {
-        val funcName = ::getUserRepeatAddRef.name
-        Log.d(className, "${funcName} was called")
-        val baseRefRet = getUserSettingsRef()
-        if (baseRefRet !is FetchResult.Success) {//拡張関数を使うと、スマートキャストが効かない
+    /**
+     * CategoryAssignmentDataのプロパティ名とノード名を一致させておく
+     * そうすると、RepositoryでGetするときに一括変換できる
+     */
+    suspend fun getProductNameCategoryAssignmentRef(): FetchResult<DatabaseReference> {
+        val baseRefRet = getCategoryAssignmentDataRef()
+        if (baseRefRet !is FetchResult.Success) {
             return baseRefRet
         }
 
         val baseRef = baseRefRet.data
-        val newRef = baseRef.child("repeatAdd")
-        val result = FetchResult.Success(newRef)
+        val result = FetchResult.Success(
+            baseRef.child("productName")
+        )
+        return result
+    }
+
+    suspend fun getStoreNameCategoryAssignmentRef(): FetchResult<DatabaseReference> {
+        val baseRefRet = getCategoryAssignmentDataRef()
+        if (baseRefRet !is FetchResult.Success) {
+            return baseRefRet
+        }
+
+        val baseRef = baseRefRet.data
+        val result = FetchResult.Success(
+            baseRef.child("storeName")
+        )
         return result
     }
 

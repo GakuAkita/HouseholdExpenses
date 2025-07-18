@@ -2,6 +2,7 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +61,21 @@ suspend fun <T> addDataToRTDbSimple(
 /**
  * 親referenceを渡して、その下にpushして追加する
  */
-suspend fun <T : CommonProperty> addDataToRTDbWithPush(
+suspend fun <T : HasId> addDataToRTDbWithId(
+    data: T,
+    reference: DatabaseReference,
+    timeout: Long = 2000,
+): SuspendFuncStatusInfo {
+    val newDataRef = reference.push()
+    data.id = newDataRef.key
+    return addDataToRTDbSimple(
+        data = data,
+        reference = newDataRef,
+        timeout = timeout
+    )
+}
+
+suspend fun <T : CommonProperty> addDataToRTDbWithCommonProperty(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,

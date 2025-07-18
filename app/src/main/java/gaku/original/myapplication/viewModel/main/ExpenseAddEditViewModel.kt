@@ -7,6 +7,7 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
+import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.separateStringByBars
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseAddEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val tmpExpenseViewModel: TemporaryExpenseViewModel
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository
 ) : ViewModel() {
 
     override fun onCleared() {
@@ -147,5 +149,13 @@ class ExpenseAddEditViewModel @Inject constructor(
             val listenerRet = expenseSharedViewModel.addCategoryListeners()
             callback(ret)
         }
+    }
+
+    /* ------------------カテゴリー割当を扱う----------------------- */
+    fun addCategoryAssignmentToDb(
+        onStart: () -> Unit,
+        callback: (SuspendFuncStatusInfo) -> Unit
+    ) {
+
     }
 }

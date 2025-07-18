@@ -1,7 +1,7 @@
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.utility.toMap
 import kotlinx.coroutines.TimeoutCancellationException
@@ -9,11 +9,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 
-suspend fun <T : CommonProperty> updateDataToRTDb(
+suspend fun <T : HasId> updateDataToRTDb(
     data: T,
     reference: DatabaseReference, // データ参照を取得するための関数
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit // callback を追加
 ): SuspendFuncStatusInfo {
     val funcName = "updateDataToRTDb"
 
@@ -24,7 +23,6 @@ suspend fun <T : CommonProperty> updateDataToRTDb(
             status = SuspendFuncStatus.FAILED,
             errorMessage = "id is null or empty"
         )
-        callback(statusInfo) // callback を呼び出し
         return statusInfo
     }
 
@@ -40,7 +38,6 @@ suspend fun <T : CommonProperty> updateDataToRTDb(
                                 status = SuspendFuncStatus.SUCCESS,
                                 errorMessage = ""
                             )
-                            callback(statusInfo) // 成功時の callback 呼び出し
                             continuation.resume(statusInfo)
                         } else {
                             Log.e(funcName, "Failed to update data", task.exception)
@@ -48,7 +45,6 @@ suspend fun <T : CommonProperty> updateDataToRTDb(
                                 status = SuspendFuncStatus.FAILED,
                                 errorMessage = task.exception?.message ?: "Unknown error"
                             )
-                            callback(statusInfo) // 失敗時の callback 呼び出し
                             continuation.resume(statusInfo)
                         }
                     }
@@ -60,7 +56,6 @@ suspend fun <T : CommonProperty> updateDataToRTDb(
             status = SuspendFuncStatus.TIMEOUT,
             errorMessage = "Timeout occurred"
         )
-        callback(statusInfo) // タイムアウト時の callback 呼び出し
         return statusInfo
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
@@ -68,7 +63,6 @@ suspend fun <T : CommonProperty> updateDataToRTDb(
             status = SuspendFuncStatus.FAILED,
             errorMessage = e.message ?: "Unknown error"
         )
-        callback(statusInfo) // 例外時の callback 呼び出し
         return statusInfo
     }
 }

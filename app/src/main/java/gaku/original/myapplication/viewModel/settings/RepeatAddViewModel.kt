@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

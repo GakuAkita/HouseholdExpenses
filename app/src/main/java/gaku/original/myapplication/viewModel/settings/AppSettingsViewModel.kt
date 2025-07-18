@@ -3,8 +3,8 @@ package gaku.original.myapplication.viewModel.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

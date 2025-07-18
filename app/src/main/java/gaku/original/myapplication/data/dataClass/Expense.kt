@@ -6,7 +6,7 @@ import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.separateStringByBars
 
 data class Expense(
-    override var id: String? = null,//yyyy-mm-ddTHH:MM:SS-1
+    override var id: String? = null,
     var generatedType: String? = null,//自動生成なのか手動生成なのか
     var datetime: String? = null,//ISO_LOCAL_DATE_TIME
     override var timestamp: Long? = System.currentTimeMillis(),
@@ -81,6 +81,37 @@ fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, Strin
         1 -> convertGeneratedTypeToDisplay(parts[0]) to null
         else -> "不明" to null
     }
+}
+
+/**
+ * @TODO 今はMailboxExtractionTypeだけど、
+ * 将来的にPayPayとか他の方法で取るようになったときには
+ * 共通のinterfaceを定義してそれを返り値にする。
+ */
+fun convertGeneratedTypeToDefaultInstance(generatedType: String): MailboxExtractionType? {
+    val parts = separateStringByBars(generatedType)
+    val mainType = parts.getOrNull(0)/* GeneratedType */
+    val subType = parts.getOrNull(1) /* nodeName */
+
+    if (mainType == null) {
+        return null
+    }
+
+    var instance: MailboxExtractionType? = null
+    when (mainType) {
+        GeneratedType.MAIL_EXTRACTION -> {
+            if (subType != null) {
+                instance = getMailboxExtractionTypeByNodeName(subType)
+            }
+            /* nodeNameに対応するinstanceを返す */
+        }
+
+        else -> {
+            /* 何もしないnullのまま */
+        }
+    }
+
+    return instance
 }
 
 object InitialCategories {

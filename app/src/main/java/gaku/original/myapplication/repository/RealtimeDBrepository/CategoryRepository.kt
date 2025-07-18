@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.Repository.RealtimeDBrepository
+package gaku.original.myapplication.repository.RealtimeDBrepository
 //import addDataToRTDbWithPush
 //import android.util.Log
 //import com.google.firebase.database.DatabaseReference

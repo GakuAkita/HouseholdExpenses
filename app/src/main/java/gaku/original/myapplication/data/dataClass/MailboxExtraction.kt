@@ -4,30 +4,31 @@ import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 
 /**
- * これ正規表現とか将来的には使えないかな？
+ * Bitフラグで店名で指定なのか、製品名で指定なのか
+ * これ増えてくることはるか？
+ * 今のところBitを使うことはなさそうだが、、
  */
-data class CategoryAssignment(
-    val id: String? = null,
-    val categoryId: String? = null,
-    val name: String? = null, /* 店の名前や商品名 */
-    val condition: String? = null, /* 完全一致なのか部分一致なのか */
-    val regex: Boolean = false
-)
+object CategoryAssignFlag {
+    const val NONE = 0                // 0000
+    const val PRODUCT_NAME = 0x0001  // 0001
+    const val STORE_NAME = 0x0002   // 0010
+}
 
 sealed class MailboxExtractionType {
     abstract val enabled: Boolean
     abstract val nodeName: String
     abstract val menuName: String
 
+    abstract val categoryAssignFlag: Int
     abstract fun defaultInstance(): MailboxExtractionType
 
     data class RakutenPay(
         override val enabled: Boolean = false,
-        val storeCategoryAssignments: Map<String, CategoryAssignment>? = null
     ) : MailboxExtractionType() {
         override val nodeName = "rakuten_pay"
         override val menuName = "楽天Pay"
         override fun defaultInstance() = RakutenPay()
+        override val categoryAssignFlag = CategoryAssignFlag.STORE_NAME
     }
 
     data class ShikokuElectricPower(
@@ -37,8 +38,12 @@ sealed class MailboxExtractionType {
         override val nodeName = "shikoku_electric_power"
         override val menuName = "四国電力"
         override fun defaultInstance() = ShikokuElectricPower()
+        override val categoryAssignFlag = CategoryAssignFlag.NONE
     }
 
+    /**
+     * 例えば漫画とかは商品ごとにカテゴリー割り当てたいとかあるかなあ？？
+     */
     data class AmazonKindle(
         override val enabled: Boolean = false,
         val categoryId: String? = null,
@@ -46,41 +51,38 @@ sealed class MailboxExtractionType {
         override val nodeName = "amazon_kindle"
         override val menuName = "Amazon Kindle"
         override fun defaultInstance() = AmazonKindle()
+        override val categoryAssignFlag = CategoryAssignFlag.NONE
     }
 
     data class AmazonItem(
         override val enabled: Boolean = false,
-        val itemCategoryAssignments: Map<String, CategoryAssignment>? = null,
     ) : MailboxExtractionType() {
         override val nodeName = "amazon_item"
         override val menuName = "Amazon 物"
         override fun defaultInstance() = AmazonItem()
+        override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME
+    }
+    //ユニクロ？
+}
+
+fun getMailboxExtractionTypeByNodeName(
+    nodeName: String,
+): MailboxExtractionType? {
+    return when (nodeName) {
+        MailboxExtractionType.RakutenPay().nodeName -> MailboxExtractionType.RakutenPay()
+        MailboxExtractionType.ShikokuElectricPower().nodeName -> MailboxExtractionType.ShikokuElectricPower()
+        MailboxExtractionType.AmazonKindle().nodeName -> MailboxExtractionType.AmazonKindle()
+        MailboxExtractionType.AmazonItem().nodeName -> MailboxExtractionType.AmazonItem()
+        //data classを新たに追加したときはここにも増やさないといけない。
+        else -> null
     }
 }
+
 
 fun convertNodeNameToMenuName(nodeName: String): String {
-    return when (nodeName) {
-        MailboxExtractionType.RakutenPay().nodeName -> MailboxExtractionType.RakutenPay().menuName
-        MailboxExtractionType.ShikokuElectricPower().nodeName -> MailboxExtractionType.ShikokuElectricPower().menuName
-        MailboxExtractionType.AmazonKindle().nodeName -> MailboxExtractionType.AmazonKindle().menuName
-        MailboxExtractionType.AmazonItem().nodeName -> MailboxExtractionType.AmazonItem().menuName
-        else -> "不明" // 一致なしの場合は null を返す（必要に応じて "不明" にしても良い）
-    }
+    val instance = getMailboxExtractionTypeByNodeName(nodeName)
+    return instance?.menuName ?: "不明"
 }
-
-/**
- * MailboxExtractionの内部クラスであれば変換
- * そうでなければnullを返す
- * sealed classにしたので不要
- */
-//fun getMailboxExtractionInternalClass(
-//    instance: MailboxExtractionCommon
-//): KClass<out MailboxExtractionCommon>? {
-//    return MailboxExtraction::class.nestedClasses
-//        .filterIsInstance<KClass<out MailboxExtractionCommon>>()
-//        .firstOrNull { it.isInstance(instance) }
-//}
-
 
 fun checkAssignmentInput(assignment: CategoryAssignment): CheckResult {
     return when {

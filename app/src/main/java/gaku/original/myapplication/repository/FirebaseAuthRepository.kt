@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.Repository
+package gaku.original.myapplication.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus

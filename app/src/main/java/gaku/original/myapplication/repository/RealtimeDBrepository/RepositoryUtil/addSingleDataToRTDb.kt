@@ -1,74 +1,78 @@
+package gaku.original.myapplication.repository.RealtimeDBrepository.RepositoryUtil
+
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 
-suspend fun <T : CommonProperty> removeDataFromRTDb(
-    data: T,
+suspend fun addSingleDataToRTDb(
+    data: Any, /* 文字列、数値、booleanのどれか */
+    keyName: String,/* キーの名前(childの名前) */
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit // callback を追加
+    callback: (SuspendFuncStatusInfo) -> Unit = {}
 ): SuspendFuncStatusInfo {
-    val funcName = "removeDataFromRTDb"
+    val funcName = "addSingleDataToRTDb"
 
-    val id = data.id
-    if (id.isNullOrEmpty()) {
-        Log.e(funcName, "id is null or empty")
-        val statusInfo = SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.FAILED,
-            errorMessage = "id is null or empty"
-        )
-        callback(statusInfo) // idがnullや空なら、失敗をcallbackで通知
-        return statusInfo // 即終了
+    //data型の確認
+    when (data) {
+        is String, is Boolean, is Number -> {
+            /* 特に問題ないので、次に行く */
+        }
+
+        else -> {
+            Log.d(funcName, "passed data's type is wrong.${data.javaClass.simpleName}")
+            val statusInfo = SuspendFuncStatusInfo(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "passed data's type is wrong.${data.javaClass.simpleName}"
+            )
+            callback(statusInfo)
+            return statusInfo
+        }
     }
 
     return try {
         withTimeout(timeout) {
             suspendCancellableCoroutine { continuation ->
-                val removeRef = reference.child(id)
-
-                removeRef.removeValue()
+                reference.child(keyName).setValue(data)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Log.d(funcName, "Data removed successfully")
+                            Log.d(funcName, "Data added successfully")
                             val statusInfo = SuspendFuncStatusInfo(
                                 status = SuspendFuncStatus.SUCCESS,
-                                errorMessage = "Data removed successfully"
+                                errorMessage = ""
                             )
-                            callback(statusInfo) // 成功した場合にcallbackを呼び出す
-                            continuation.resume(statusInfo)
+                            callback(statusInfo)
+                            continuation.resume(statusInfo) //  成功したので再開。これでSUCCESSが返るらしい
                         } else {
-                            Log.e(funcName, "Failed to remove data", task.exception)
+                            Log.e(funcName, "Failed to add data", task.exception)
                             val statusInfo = SuspendFuncStatusInfo(
                                 status = SuspendFuncStatus.FAILED,
                                 errorMessage = task.exception?.message ?: "Unknown error"
                             )
-                            callback(statusInfo) // 失敗した場合にcallbackを呼び出す
-                            continuation.resume(statusInfo)
+                            callback(statusInfo)
+                            continuation.resume(statusInfo) //  失敗したので再開
                         }
                     }
             }
         }
     } catch (e: TimeoutCancellationException) {
-        Log.e(funcName, "Timeout occurred")
         val statusInfo = SuspendFuncStatusInfo(
             status = SuspendFuncStatus.TIMEOUT,
             errorMessage = "Timeout occurred"
         )
-        callback(statusInfo) // タイムアウトの場合にcallbackを呼び出す
+        callback(statusInfo)
         return statusInfo
     } catch (e: Exception) {
-        Log.e(funcName, "Exception occurred", e)
         val statusInfo = SuspendFuncStatusInfo(
             status = SuspendFuncStatus.FAILED,
             errorMessage = e.message ?: "Unknown error"
         )
-        callback(statusInfo) // 例外が発生した場合にcallbackを呼び出す
+        callback(statusInfo)
         return statusInfo
     }
 }

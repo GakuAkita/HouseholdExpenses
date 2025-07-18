@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.Repository.FirestoreRepository
+package gaku.original.myapplication.repository.FirestoreRepository
 //
 //import android.util.Log
 //import com.google.firebase.firestore.DocumentReference

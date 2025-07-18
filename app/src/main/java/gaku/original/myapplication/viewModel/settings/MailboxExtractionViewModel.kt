@@ -6,12 +6,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Repository.FirestoreRepository.CategoryFirestoreRepository
-import gaku.original.myapplication.data.Repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
+import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
