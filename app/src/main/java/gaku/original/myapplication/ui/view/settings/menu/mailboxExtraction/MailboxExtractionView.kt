@@ -59,10 +59,10 @@ fun MailboxExtractionView(
 
     @Composable
     fun MailboxExtractionMenu(
-        setting: EmailTemplateSettingState,
+        settingState: EmailTemplateSettingState,
         onClick: () -> Unit = {}
     ) {
-        val settingStatus = setting.status
+        val settingStatus = settingState.status
         val isSettingStatusSuccess = settingStatus.status == SuspendFuncStatus.SUCCESS
         Column(
             modifier = Modifier
@@ -75,7 +75,7 @@ fun MailboxExtractionView(
                 modifier = Modifier
             ) {
                 Text(
-                    text = setting.type.menuName,
+                    text = settingState.type.menuName,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -87,10 +87,19 @@ fun MailboxExtractionView(
                         .weight(1f)
                 ) {
                     if (isSettingStatusSuccess) {
-                        if (setting.setting?.enabled != null) {
+                        if (settingState.setting?.enabled != null) {
                             Switch(
-                                checked = setting.setting.enabled,
-                                onCheckedChange = {}
+                                checked = settingState.setting.enabled,
+                                onCheckedChange = { checked ->
+                                    val updatedState =
+                                        settingState.setting.copyWithEnabled(checked)
+                                    viewModel.updateEmailTemplateSettingWithLocalUpdate(
+                                        settingState.copy(
+                                            setting = updatedState,
+                                        ),
+                                        callback = {}
+                                    )
+                                }
                             )
                         } else {
                             Text("Something went wrong. Contact the developer")
@@ -103,7 +112,7 @@ fun MailboxExtractionView(
                     //.padding(horizontal = 5.dp, vertical = 2.dp)
                     .fillMaxWidth()
             ) {
-                if (setting.type is HasCategoryId) {
+                if (settingState.type is HasCategoryId) {
                     Text(
                         text = "カテゴリを表示するようにする",
                     )

@@ -22,6 +22,9 @@ enum class EmailProvider(val value: String) {
 
 sealed class EmailTemplateType : CategoryAssignable {
     abstract val enabled: Boolean
+
+    /* これを作ることで、UI上のcollectAsStateでも.copy()みたいにできる */
+    abstract fun copyWithEnabled(enabled: Boolean): EmailTemplateType
     abstract val nodeName: String
     abstract val menuName: String
     abstract val emailProvider: EmailProvider
@@ -37,6 +40,8 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val menuName = "楽天Pay"
         override fun defaultInstance() = RakutenPay()
         override val categoryAssignFlag = CategoryAssignFlag.STORE_NAME
+        override fun copyWithEnabled(enabled: Boolean): EmailTemplateType =
+            this.copy(enabled = enabled)
     }
 
     data class ShikokuElectricPower(
@@ -48,6 +53,8 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val menuName = "四国電力"
         override fun defaultInstance() = ShikokuElectricPower()
         override val categoryAssignFlag = CategoryAssignFlag.NONE
+        override fun copyWithEnabled(enabled: Boolean): EmailTemplateType =
+            this.copy(enabled = enabled)
     }
 
     /**
@@ -62,6 +69,8 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val menuName = "Amazon Kindle"
         override fun defaultInstance() = AmazonKindle()
         override val categoryAssignFlag = CategoryAssignFlag.NONE
+        override fun copyWithEnabled(enabled: Boolean): EmailTemplateType =
+            this.copy(enabled = enabled)
     }
 
     data class AmazonItem(
@@ -72,6 +81,8 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val menuName = "Amazon 物"
         override fun defaultInstance() = AmazonItem()
         override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME
+        override fun copyWithEnabled(enabled: Boolean): EmailTemplateType =
+            this.copy(enabled = enabled)
     }
     //ユニクロ？
 }

@@ -219,4 +219,46 @@ class MailboxExtractionViewModel @Inject constructor(
         }
     }
 
+    fun updateEmailTemplateSetting(
+        settingState: EmailTemplateSettingState,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            if (settingState.setting == null) {
+                /* そもそもnullだったらこの関数が実行されないようにUIになっているはずだが、、 */
+                callback(
+                    SuspendFuncStatusInfo(
+                        SuspendFuncStatus.FAILED,
+                        "Email template setting is null, cannot update."
+                    )
+                )
+                return@launch
+            }
+
+            val statusInfo = mailboxExtractionRepository.updateMailTypeSetting(settingState.setting)
+            callback(statusInfo)
+        }
+    }
+
+    fun updateEmailTemplateSettingWithLocalUpdate(
+        settingState: EmailTemplateSettingState,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            updateEmailTemplateSetting(settingState) {
+                if (it.status == SuspendFuncStatus.SUCCESS) {
+                    for (state in allEmailTemplateStateFlowsList) {
+                        if (state.value.type == settingState.type) {
+                            state.value = state.value.copy(
+                                setting = settingState.setting,
+                                status = it
+                            )
+                            callback(it)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
