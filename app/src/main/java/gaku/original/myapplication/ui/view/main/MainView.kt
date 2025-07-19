@@ -132,7 +132,7 @@ fun MainView(
         viewModel.onSignedIn(callback = { status ->
             when (status.status) {
                 SuspendFuncStatus.SUCCESS -> {
-                    Log.d(viewName, "サインイン直後にやる処理に失敗しました")
+                    Log.d(viewName, "サインイン直後にやる処理に成功")
                 }
 
                 SuspendFuncStatus.TIMEOUT -> {

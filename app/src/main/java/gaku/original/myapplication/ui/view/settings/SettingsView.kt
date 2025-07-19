@@ -86,7 +86,7 @@ fun SettingsView(
                 }
             ) {
                 //タイムゾーンはアラートでいいか。
-                Text(text = "Google連携", modifier = Modifier.padding(start = 10.dp))
+                Text(text = "メールボックス自動抽出", modifier = Modifier.padding(start = 10.dp))
             }
 
             Button(

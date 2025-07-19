@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.gmailboxIntegration
+package gaku.original.myapplication.ui.view.settings.menu.mailboxExtraction
 
 //
 //@OptIn(ExperimentalMaterial3Api::class)
