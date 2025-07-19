@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.Interface.CategoryAssignable
+import gaku.original.myapplication.data.Interface.HasCategoryId
 
 /**
  * Bitフラグで店名で指定なのか、製品名で指定なのか
@@ -41,8 +42,8 @@ sealed class EmailTemplateType : CategoryAssignable {
     data class ShikokuElectricPower(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
-        val categoryId: String? = null,
-    ) : EmailTemplateType() {
+        override val categoryId: String? = null,
+    ) : EmailTemplateType(), HasCategoryId {
         override val nodeName = "shikoku_electric_power"
         override val menuName = "四国電力"
         override fun defaultInstance() = ShikokuElectricPower()
@@ -55,8 +56,8 @@ sealed class EmailTemplateType : CategoryAssignable {
     data class AmazonKindle(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
-        val categoryId: String? = null,
-    ) : EmailTemplateType() {
+        override val categoryId: String? = null,
+    ) : EmailTemplateType(), HasCategoryId {
         override val nodeName = "amazon_kindle"
         override val menuName = "Amazon Kindle"
         override fun defaultInstance() = AmazonKindle()

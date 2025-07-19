@@ -69,17 +69,17 @@ class _MailboxExtractionViewModel @Inject constructor(
         assignment: CategoryAssignment,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
-        viewModelScope.launch {
-            val result =
-                mailboxExtractionRepository.addCategoryAssignment(type, assignment)
-            if (result.status != SuspendFuncStatus.SUCCESS) {
-                callback(result)
-                return@launch
-            }
-            /* もし成功だったら、ローカルもupdate */
-            val ret = fetchMailboxExtractionIternalSettingWithLocalUpdate(type)
-            callback(ret)
-        }
+//        viewModelScope.launch {
+//            val result =
+//                mailboxExtractionRepository.addCategoryAssignment(type, assignment)
+//            if (result.status != SuspendFuncStatus.SUCCESS) {
+//                callback(result)
+//                return@launch
+//            }
+//            /* もし成功だったら、ローカルもupdate */
+//            val ret = fetchMailboxExtractionIternalSettingWithLocalUpdate(type)
+//            callback(ret)
+//        }
     }
 
     fun setMailboxExtractionInternalSetting(

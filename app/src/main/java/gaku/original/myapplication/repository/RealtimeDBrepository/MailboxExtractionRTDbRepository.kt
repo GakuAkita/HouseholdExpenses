@@ -1,17 +1,13 @@
 package gaku.original.myapplication.repository.RealtimeDBrepository
 
-import addDataToRTDbSimple
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
-import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.mapFailure
-import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -25,49 +21,16 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    suspend fun getMailTypeSettingSingleRef(
+    suspend fun getEmailTemplateSettingSingleRef(
         type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
-        return realtimeDbReference.getMailboxExtractionMailTypeSettingSingleRef(type)
-    }
-
-    suspend fun getMailTypeCategoryAssignmentRef(
-        type: EmailTemplateType
-    ): FetchResult<DatabaseReference> {
-        return realtimeDbReference.getMailboxExtractionMailTypeCategoryAssignmentRef(type)
-    }
-
-    /**
-     * タイプからCategoryAssignmentを保存しているRefを取得して、
-     * pushする。idを入れてRTDbへアップする
-     */
-    suspend fun addCategoryAssignment(
-        type: EmailTemplateType,
-        assignment: CategoryAssignment,
-    ): SuspendFuncStatusInfo {
-        val funcName = ::addCategoryAssignment.name
-        LogClassFuncCalled(className, funcName)
-
-        val refRet = getMailTypeCategoryAssignmentRef(type)
-        if (refRet !is FetchResult.Success) {
-            return refRet.toSuspendFuncStatusInfo()
-        }
-        val ref = refRet.data
-
-        val newRef = ref.push()
-        val assignmentWithId = assignment.copy(
-            id = newRef.key
-        )
-        LogAkitaDebug("$assignmentWithId")
-
-        val ret = addDataToRTDbSimple(assignmentWithId, newRef)
-        return ret
+        return realtimeDbReference.getMailboxExtractionEmailTemplateSettingSingleRef(type)
     }
 
     suspend fun updateMailTypeSetting(
         setting: EmailTemplateType
     ): SuspendFuncStatusInfo {
-        val refRet = getMailTypeSettingSingleRef(setting)
+        val refRet = getEmailTemplateSettingSingleRef(setting)
         if (refRet !is FetchResult.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
@@ -81,7 +44,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         setting: EmailTemplateType
     ): FetchResult<EmailTemplateType> {
         val funcName = ::getMailTypeSetting.name
-        val refRet = getMailTypeSettingSingleRef(setting)
+        val refRet = getEmailTemplateSettingSingleRef(setting)
         if (refRet !is FetchResult.Success) {
             return refRet.mapFailure()
         }

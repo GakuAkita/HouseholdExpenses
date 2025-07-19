@@ -186,7 +186,7 @@ class RealtimeDbReference @Inject constructor(
         return ret
     }
 
-    private suspend fun getMailboxExtractionMailTypeSettingsRef(): FetchResult<DatabaseReference> {
+    private suspend fun getMailboxExtractionEmailTemplateSettingsRef(): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionRef()
         if (baseRefRet !is FetchResult.Success) {
             return baseRefRet
@@ -194,15 +194,15 @@ class RealtimeDbReference @Inject constructor(
 
         val baseRef = baseRefRet.data
         val result = FetchResult.Success(
-            baseRef.child("mail_type_settings")
+            baseRef.child("email_template_settings")
         )
         return result
     }
 
-    suspend fun getMailboxExtractionMailTypeSettingSingleRef(
+    suspend fun getMailboxExtractionEmailTemplateSettingSingleRef(
         type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
-        val baseRefRet = getMailboxExtractionMailTypeSettingsRef()
+        val baseRefRet = getMailboxExtractionEmailTemplateSettingsRef()
         if (baseRefRet !is FetchResult.Success) {
             return baseRefRet
         }

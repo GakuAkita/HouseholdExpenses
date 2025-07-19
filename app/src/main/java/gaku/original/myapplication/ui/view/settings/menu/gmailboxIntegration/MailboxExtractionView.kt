@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -51,18 +52,32 @@ fun MailboxExtractionView(
 
     @Composable
     fun MailboxExtractionMenu(
-        menuName: String,
+        setting: EmailTemplateType,
         onClick: () -> Unit = {}
     ) {
-        Row(
-            modifier = Modifier
-                .padding(5.dp)
-                .fillMaxWidth()
-                .clickable { onClick() }
-                .border(width = 1.dp, color = MaterialTheme.colorScheme.primary)
-        ) {
-            val textPad = 20.dp
-            Text(menuName, modifier = Modifier.padding(textPad))
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .clickable { onClick() }
+                    .border(width = 1.dp, color = MaterialTheme.colorScheme.primary)
+            ) {
+                val textPad = 20.dp
+                Text(setting.menuName, modifier = Modifier.padding(textPad))
+
+            }
+            Row(
+                modifier = Modifier
+                    //.padding(horizontal = 5.dp, vertical = 2.dp)
+                    .fillMaxWidth()
+            ) {
+                if (setting is HasCategoryId) {
+                    Text("カテゴリーIDあり")
+                } else {
+                    Text("カテゴリーIDなし")
+                }
+            }
         }
     }
 
@@ -122,19 +137,19 @@ fun MailboxExtractionView(
             }
 
             MailboxExtractionMenu(
-                rakutenPaySetting.menuName,
+                rakutenPaySetting,
             )
 
             MailboxExtractionMenu(
-                amazonKindleSetting.menuName,
+                amazonKindleSetting,
             )
 
             MailboxExtractionMenu(
-                amazonItemSetting.menuName,
+                amazonItemSetting,
             )
 
             MailboxExtractionMenu(
-                shikokuElectricSetting.menuName,
+                shikokuElectricSetting,
             )
         }
     }
