@@ -23,12 +23,14 @@ sealed class EmailTemplateType : CategoryAssignable {
     abstract val enabled: Boolean
     abstract val nodeName: String
     abstract val menuName: String
+    abstract val emailProvider: EmailProvider
 
     abstract override val categoryAssignFlag: Int
     abstract fun defaultInstance(): EmailTemplateType
 
     data class RakutenPay(
         override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
     ) : EmailTemplateType() {
         override val nodeName = "rakuten_pay"
         override val menuName = "楽天Pay"
@@ -38,6 +40,7 @@ sealed class EmailTemplateType : CategoryAssignable {
 
     data class ShikokuElectricPower(
         override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         val categoryId: String? = null,
     ) : EmailTemplateType() {
         override val nodeName = "shikoku_electric_power"
@@ -51,6 +54,7 @@ sealed class EmailTemplateType : CategoryAssignable {
      */
     data class AmazonKindle(
         override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         val categoryId: String? = null,
     ) : EmailTemplateType() {
         override val nodeName = "amazon_kindle"
@@ -61,6 +65,7 @@ sealed class EmailTemplateType : CategoryAssignable {
 
     data class AmazonItem(
         override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
     ) : EmailTemplateType() {
         override val nodeName = "amazon_item"
         override val menuName = "Amazon 物"

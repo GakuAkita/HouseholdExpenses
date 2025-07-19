@@ -213,41 +213,4 @@ class RealtimeDbReference @Inject constructor(
         )
         return result
     }
-
-    /**
-     * もっと柔軟にしたいけど、とりあえずはベタ打ち
-     */
-    suspend fun getMailboxExtractionMailTypeCategoryAssignmentRef(
-        type: EmailTemplateType,
-    ): FetchResult<DatabaseReference> {
-        val baseRefRet = getMailboxExtractionMailTypeSettingSingleRef(type);
-        if (baseRefRet !is FetchResult.Success) {
-            return baseRefRet
-        }
-
-        val baseRef = baseRefRet.data
-        when (type::class) {
-            EmailTemplateType.RakutenPay::class -> {
-                val result = FetchResult.Success(
-                    baseRef.child("storeCategoryAssignments")
-                )
-                return result
-            }
-
-            EmailTemplateType.AmazonItem::class -> {
-                val result = FetchResult.Success(
-                    baseRef.child("itemCategoryAssignments")
-                )
-                return result
-            }
-
-            else -> {
-                val result = FetchResult.Failure.GenericFailure(
-                    status = SuspendFuncStatus.FAILED,
-                    errorMessage = "対応していないタイプです(${type::class})"
-                )
-                return result
-            }
-        }
-    }
 }

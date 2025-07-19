@@ -50,7 +50,9 @@ export class MailboxExtractionService {
   private getUserMailboxExtractionMailTypeSettingsRef(
     userId: string
   ): Reference {
-    return this.getUserMailboxExtractionRef(userId).child("mail_type_settings");
+    return this.getUserMailboxExtractionRef(userId).child(
+      "email_template_settings"
+    );
   }
 
   private getUserMailboxExtractionSingleMailTypeSettingRef(

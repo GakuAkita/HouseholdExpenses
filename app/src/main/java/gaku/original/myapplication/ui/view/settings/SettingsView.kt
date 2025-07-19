@@ -82,7 +82,7 @@ fun SettingsView(
 
             SettingRow(
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.Main.route)
+                    navController.navigate(Screen.SettingScreen.MailboxExtraction.Main.route)
                 }
             ) {
                 //タイムゾーンはアラートでいいか。

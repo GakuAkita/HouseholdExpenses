@@ -27,19 +27,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.settings.GmailMailboxExtractionViewModel
+import gaku.original.myapplication.viewModel.settings.MailboxExtractionViewModel
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun GmailMailboxExtractionView(
+fun MailboxExtractionView(
     navController: NavController,
-    viewModel: GmailMailboxExtractionViewModel = hiltViewModel()
+    viewModel: MailboxExtractionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
@@ -124,30 +123,18 @@ fun GmailMailboxExtractionView(
 
             MailboxExtractionMenu(
                 rakutenPaySetting.menuName,
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.RakutenPay.route)
-                }
             )
 
             MailboxExtractionMenu(
                 amazonKindleSetting.menuName,
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.AmazonKindle.route)
-                }
             )
 
             MailboxExtractionMenu(
                 amazonItemSetting.menuName,
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.AmazonItem.route)
-                }
             )
 
             MailboxExtractionMenu(
                 shikokuElectricSetting.menuName,
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.ShikokuElectricPower.route)
-                }
             )
         }
     }

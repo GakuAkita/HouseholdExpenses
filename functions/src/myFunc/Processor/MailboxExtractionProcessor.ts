@@ -368,6 +368,11 @@ export class MailboxExtractionProcessor {
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
+  /**
+   * @todo
+   * 基本Gmailだが将来的にOutlookとか増えた場合、ここの処理の変更が必要。
+   * 一応、各メールテンプレートのdata classになんのメールで登録しているか持たせている。(今は全部Gmailだが)
+   */
   async processSingleMailType(type: AllMailType) {
     const nodeName = type.nodeName;
     let ret =
