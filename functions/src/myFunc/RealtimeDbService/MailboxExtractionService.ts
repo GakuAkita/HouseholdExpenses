@@ -31,7 +31,7 @@ export class MailboxExtractionService {
   }
 
   private getUserMailboxExtractionTokenRef(userId: string): Reference {
-    return this.getUserMailboxExtractionRef(userId).child("token");
+    return this.getUserMailboxExtractionRef(userId).child("gmail_token");
   }
 
   private getUserMailboxExtractionLastExecRef(userId: string): Reference {

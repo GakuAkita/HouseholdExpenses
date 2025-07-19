@@ -86,7 +86,6 @@ getCategoryRef()
 
 class RealtimeDbReference{
 getUserRef()
-
 }
 
 

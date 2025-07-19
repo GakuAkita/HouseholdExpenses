@@ -8,7 +8,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.LogClassFuncCalled
@@ -26,13 +26,13 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     suspend fun getMailTypeSettingSingleRef(
-        type: MailboxExtractionType
+        type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
         return realtimeDbReference.getMailboxExtractionMailTypeSettingSingleRef(type)
     }
 
     suspend fun getMailTypeCategoryAssignmentRef(
-        type: MailboxExtractionType
+        type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
         return realtimeDbReference.getMailboxExtractionMailTypeCategoryAssignmentRef(type)
     }
@@ -42,7 +42,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
      * pushする。idを入れてRTDbへアップする
      */
     suspend fun addCategoryAssignment(
-        type: MailboxExtractionType,
+        type: EmailTemplateType,
         assignment: CategoryAssignment,
     ): SuspendFuncStatusInfo {
         val funcName = ::addCategoryAssignment.name
@@ -65,7 +65,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     }
 
     suspend fun updateMailTypeSetting(
-        setting: MailboxExtractionType
+        setting: EmailTemplateType
     ): SuspendFuncStatusInfo {
         val refRet = getMailTypeSettingSingleRef(setting)
         if (refRet !is FetchResult.Success) {
@@ -78,8 +78,8 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     }
 
     suspend fun getMailTypeSetting(
-        setting: MailboxExtractionType
-    ): FetchResult<MailboxExtractionType> {
+        setting: EmailTemplateType
+    ): FetchResult<EmailTemplateType> {
         val funcName = ::getMailTypeSetting.name
         val refRet = getMailTypeSettingSingleRef(setting)
         if (refRet !is FetchResult.Success) {

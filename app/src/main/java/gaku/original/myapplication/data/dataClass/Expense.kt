@@ -84,11 +84,11 @@ fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, Strin
 }
 
 /**
- * @TODO 今はMailboxExtractionTypeだけど、
+ * @TODO 今はEmailTemplateTypeだけど、
  * 将来的にPayPayとか他の方法で取るようになったときには
  * 共通のinterfaceを定義してそれを返り値にする。
  */
-fun convertGeneratedTypeToDefaultInstance(generatedType: String): MailboxExtractionType? {
+fun convertGeneratedTypeToDefaultInstance(generatedType: String): EmailTemplateType? {
     val parts = separateStringByBars(generatedType)
     val mainType = parts.getOrNull(0)/* GeneratedType */
     val subType = parts.getOrNull(1) /* nodeName */
@@ -97,11 +97,11 @@ fun convertGeneratedTypeToDefaultInstance(generatedType: String): MailboxExtract
         return null
     }
 
-    var instance: MailboxExtractionType? = null
+    var instance: EmailTemplateType? = null
     when (mainType) {
         GeneratedType.MAIL_EXTRACTION -> {
             if (subType != null) {
-                instance = getMailboxExtractionTypeByNodeName(subType)
+                instance = getEmailTemplateTypeByNodeName(subType)
             }
             /* nodeNameに対応するinstanceを返す */
         }

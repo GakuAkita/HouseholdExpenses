@@ -14,8 +14,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class GmailLinkingViewModel @Inject constructor(
-    private val firebaseAuthRepository: FirebaseAuthRepository
 ) : ViewModel() {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 

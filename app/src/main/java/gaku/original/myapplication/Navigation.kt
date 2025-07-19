@@ -16,10 +16,9 @@ import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.main.NotCategorizedView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
-import gaku.original.myapplication.ui.view.settings.menu.GmailLinking.GmailLinkingView
-import gaku.original.myapplication.ui.view.settings.menu.GmailLinking.RakutenPaySettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
+import gaku.original.myapplication.ui.view.settings.menu.gmailboxIntegration.GmailMailboxExtractionView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
@@ -115,19 +114,16 @@ fun Navigation(
         composable(Screen.SettingScreen.AppSettings.route) {
             AppSettingsView(navController = navController)
         }
-        composable(Screen.SettingScreen.GmailLinking.Main.route) {
-            GmailLinkingView(navController = navController)
+        composable(Screen.SettingScreen.GmailMailboxExtraction.Main.route) {
+            GmailMailboxExtractionView(navController = navController)
         }
-        composable(Screen.SettingScreen.GmailLinking.RakutenPay.route) {
-            RakutenPaySettingView(navController = navController)
-        }
-        composable(Screen.SettingScreen.GmailLinking.AmazonKindle.route) {
+        composable(Screen.SettingScreen.GmailMailboxExtraction.AmazonKindle.route) {
 
         }
-        composable(Screen.SettingScreen.GmailLinking.AmazonItem.route) {
+        composable(Screen.SettingScreen.GmailMailboxExtraction.AmazonItem.route) {
 
         }
-        composable(Screen.SettingScreen.GmailLinking.ShikokuElectricPower.route) {
+        composable(Screen.SettingScreen.GmailMailboxExtraction.ShikokuElectricPower.route) {
         }
     }
 }

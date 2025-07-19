@@ -64,8 +64,8 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.AssignmentCondition
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.GeneratedType
-import gaku.original.myapplication.data.dataClass.MailboxExtractionType
 import gaku.original.myapplication.ui.common.CategoryAssignmentDialog
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
@@ -541,7 +541,7 @@ fun ExpenseAddEditView(
 
                 /* 現状は楽天Payだけだが増やす場合はwhenで書きやすくしたほうがいいか */
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.RakutenPay().nodeName) {
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.RakutenPay().nodeName) {
                         CategoryAssignmentArea(
                             onClick = {
                                 showCategoryAssignmentDialog = true
@@ -566,7 +566,7 @@ fun ExpenseAddEditView(
                     modifier = basicModifier
                 )
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == MailboxExtractionType.AmazonItem().nodeName) {
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.AmazonItem().nodeName) {
                         CategoryAssignmentArea(
                             onClick = {
                                 showCategoryAssignmentDialog = true

@@ -13,17 +13,23 @@ object CategoryAssignFlag {
     const val STORE_NAME = 0x0002   // 0010
 }
 
-sealed class MailboxExtractionType : CategoryAssignable {
+enum class EmailProvider(val value: String) {
+    GMAIL("gmail"),
+    YAHOO("yahoo"),//非対応
+    OUTLOOK("outlook");//非対応
+}
+
+sealed class EmailTemplateType : CategoryAssignable {
     abstract val enabled: Boolean
     abstract val nodeName: String
     abstract val menuName: String
 
     abstract override val categoryAssignFlag: Int
-    abstract fun defaultInstance(): MailboxExtractionType
+    abstract fun defaultInstance(): EmailTemplateType
 
     data class RakutenPay(
         override val enabled: Boolean = false,
-    ) : MailboxExtractionType() {
+    ) : EmailTemplateType() {
         override val nodeName = "rakuten_pay"
         override val menuName = "楽天Pay"
         override fun defaultInstance() = RakutenPay()
@@ -33,7 +39,7 @@ sealed class MailboxExtractionType : CategoryAssignable {
     data class ShikokuElectricPower(
         override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) : MailboxExtractionType() {
+    ) : EmailTemplateType() {
         override val nodeName = "shikoku_electric_power"
         override val menuName = "四国電力"
         override fun defaultInstance() = ShikokuElectricPower()
@@ -46,7 +52,7 @@ sealed class MailboxExtractionType : CategoryAssignable {
     data class AmazonKindle(
         override val enabled: Boolean = false,
         val categoryId: String? = null,
-    ) : MailboxExtractionType() {
+    ) : EmailTemplateType() {
         override val nodeName = "amazon_kindle"
         override val menuName = "Amazon Kindle"
         override fun defaultInstance() = AmazonKindle()
@@ -55,7 +61,7 @@ sealed class MailboxExtractionType : CategoryAssignable {
 
     data class AmazonItem(
         override val enabled: Boolean = false,
-    ) : MailboxExtractionType() {
+    ) : EmailTemplateType() {
         override val nodeName = "amazon_item"
         override val menuName = "Amazon 物"
         override fun defaultInstance() = AmazonItem()
@@ -64,14 +70,14 @@ sealed class MailboxExtractionType : CategoryAssignable {
     //ユニクロ？
 }
 
-fun getMailboxExtractionTypeByNodeName(
+fun getEmailTemplateTypeByNodeName(
     nodeName: String,
-): MailboxExtractionType? {
+): EmailTemplateType? {
     return when (nodeName) {
-        MailboxExtractionType.RakutenPay().nodeName -> MailboxExtractionType.RakutenPay()
-        MailboxExtractionType.ShikokuElectricPower().nodeName -> MailboxExtractionType.ShikokuElectricPower()
-        MailboxExtractionType.AmazonKindle().nodeName -> MailboxExtractionType.AmazonKindle()
-        MailboxExtractionType.AmazonItem().nodeName -> MailboxExtractionType.AmazonItem()
+        EmailTemplateType.RakutenPay().nodeName -> EmailTemplateType.RakutenPay()
+        EmailTemplateType.ShikokuElectricPower().nodeName -> EmailTemplateType.ShikokuElectricPower()
+        EmailTemplateType.AmazonKindle().nodeName -> EmailTemplateType.AmazonKindle()
+        EmailTemplateType.AmazonItem().nodeName -> EmailTemplateType.AmazonItem()
         //data classを新たに追加したときはここにも増やさないといけない。
         else -> null
     }
@@ -79,7 +85,7 @@ fun getMailboxExtractionTypeByNodeName(
 
 
 fun convertNodeNameToMenuName(nodeName: String): String {
-    val instance = getMailboxExtractionTypeByNodeName(nodeName)
+    val instance = getEmailTemplateTypeByNodeName(nodeName)
     return instance?.menuName ?: "不明"
 }
 

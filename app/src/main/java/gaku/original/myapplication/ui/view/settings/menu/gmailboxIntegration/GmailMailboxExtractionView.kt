@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.GmailLinking
+package gaku.original.myapplication.ui.view.settings.menu.gmailboxIntegration
 
 import android.content.Context
 import android.content.Intent
@@ -29,24 +29,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.settings.GmailLinkingViewModel
+import gaku.original.myapplication.viewModel.settings.GmailMailboxExtractionViewModel
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun GmailLinkingView(
+fun GmailMailboxExtractionView(
     navController: NavController,
-    viewModel: GmailLinkingViewModel = hiltViewModel()
+    viewModel: GmailMailboxExtractionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
-    val rakutenPaySetting = MailboxExtractionType.RakutenPay()
-    val amazonKindleSetting = MailboxExtractionType.AmazonKindle()
-    val amazonItemSetting = MailboxExtractionType.AmazonItem()
-    val shikokuElectricSetting = MailboxExtractionType.ShikokuElectricPower()
+    val rakutenPaySetting = EmailTemplateType.RakutenPay()
+    val amazonKindleSetting = EmailTemplateType.AmazonKindle()
+    val amazonItemSetting = EmailTemplateType.AmazonItem()
+    val shikokuElectricSetting = EmailTemplateType.ShikokuElectricPower()
 
     val loading by viewModel.loading.collectAsState(false)
 
@@ -125,28 +125,28 @@ fun GmailLinkingView(
             MailboxExtractionMenu(
                 rakutenPaySetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailLinking.RakutenPay.route)
+                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.RakutenPay.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonKindleSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailLinking.AmazonKindle.route)
+                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.AmazonKindle.route)
                 }
             )
 
             MailboxExtractionMenu(
                 amazonItemSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailLinking.AmazonItem.route)
+                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.AmazonItem.route)
                 }
             )
 
             MailboxExtractionMenu(
                 shikokuElectricSetting.menuName,
                 onClick = {
-                    navController.navigate(Screen.SettingScreen.GmailLinking.ShikokuElectricPower.route)
+                    navController.navigate(Screen.SettingScreen.GmailMailboxExtraction.ShikokuElectricPower.route)
                 }
             )
         }

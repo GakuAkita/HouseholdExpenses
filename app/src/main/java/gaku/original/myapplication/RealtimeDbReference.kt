@@ -5,7 +5,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.Dispatchers
@@ -200,7 +200,7 @@ class RealtimeDbReference @Inject constructor(
     }
 
     suspend fun getMailboxExtractionMailTypeSettingSingleRef(
-        type: MailboxExtractionType
+        type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionMailTypeSettingsRef()
         if (baseRefRet !is FetchResult.Success) {
@@ -218,7 +218,7 @@ class RealtimeDbReference @Inject constructor(
      * もっと柔軟にしたいけど、とりあえずはベタ打ち
      */
     suspend fun getMailboxExtractionMailTypeCategoryAssignmentRef(
-        type: MailboxExtractionType,
+        type: EmailTemplateType,
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionMailTypeSettingSingleRef(type);
         if (baseRefRet !is FetchResult.Success) {
@@ -227,14 +227,14 @@ class RealtimeDbReference @Inject constructor(
 
         val baseRef = baseRefRet.data
         when (type::class) {
-            MailboxExtractionType.RakutenPay::class -> {
+            EmailTemplateType.RakutenPay::class -> {
                 val result = FetchResult.Success(
                     baseRef.child("storeCategoryAssignments")
                 )
                 return result
             }
 
-            MailboxExtractionType.AmazonItem::class -> {
+            EmailTemplateType.AmazonItem::class -> {
                 val result = FetchResult.Success(
                     baseRef.child("itemCategoryAssignments")
                 )

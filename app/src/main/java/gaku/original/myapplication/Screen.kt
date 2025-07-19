@@ -35,21 +35,24 @@ sealed class Screen(val route: String) {
             const val BASE_ROUTE = "setting"
         }
 
-        object Main : MainScreen("$BASE_ROUTE/main")
-        object UserInfo : MainScreen("$BASE_ROUTE/user_info")
-        object RepeatAdd : MainScreen("$BASE_ROUTE/repeat_add")
-        object AppSettings : MainScreen("$BASE_ROUTE/app_settings")
+        object Main : SettingScreen("$BASE_ROUTE/main")
+        object UserInfo : SettingScreen("$BASE_ROUTE/user_info")
+        object RepeatAdd : SettingScreen("$BASE_ROUTE/repeat_add")
+        object AppSettings : SettingScreen("$BASE_ROUTE/app_settings")
 
-        sealed class GmailLinking(route: String) : SettingScreen(route) {
+        sealed class GmailMailboxExtraction(route: String) : SettingScreen(route) {
             companion object {
-                const val BASE_ROUTE = "${SettingScreen.BASE_ROUTE}/google_linking"
+                const val BASE_ROUTE = "${SettingScreen.BASE_ROUTE}/gmail_mailbox_extraction"
             }
 
-            object Main : GmailLinking("$BASE_ROUTE/main")
-            object RakutenPay : GmailLinking("$BASE_ROUTE/rakuten_pay")
-            object AmazonKindle : GmailLinking("$BASE_ROUTE/amazon_kindle")
-            object AmazonItem : GmailLinking("$BASE_ROUTE/amazon_item")
-            object ShikokuElectricPower : GmailLinking("$BASE_ROUTE/shikoku_electric_power")
+            object Main : GmailMailboxExtraction("$BASE_ROUTE/main")
+
+            //こいつら使わないかも
+            object RakutenPay : GmailMailboxExtraction("$BASE_ROUTE/rakuten_pay")
+            object AmazonKindle : GmailMailboxExtraction("$BASE_ROUTE/amazon_kindle")
+            object AmazonItem : GmailMailboxExtraction("$BASE_ROUTE/amazon_item")
+            object ShikokuElectricPower :
+                GmailMailboxExtraction("$BASE_ROUTE/shikoku_electric_power")
         }
     }
 

@@ -19,7 +19,7 @@ class CategoryAssignmentUseCase @Inject constructor(
     private val categoryAssignmentRepository: CategoryAssignmentRepository,
 ) {
     /**
-     * MailboxExtractionTypeに応じてStoreNameなのか、ProductNameなのか切り替えたい
+     * EmailTemplateTypeに応じてStoreNameなのか、ProductNameなのか切り替えたい
      * STORE_NAMEとPRODUCT_NAMEの両方を持っていたらどうなるだろう？
      * mailboxExtraction以外にも増えてきたら足していくか
      */

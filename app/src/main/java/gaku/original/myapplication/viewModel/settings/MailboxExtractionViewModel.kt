@@ -9,7 +9,7 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.MailboxExtractionType
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -28,8 +28,8 @@ class MailboxExtractionViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> get() = _categories
 
-    private val _mailboxExtractionSetting = MutableStateFlow<MailboxExtractionType?>(null)
-    val mailboxExtractionSetting: StateFlow<MailboxExtractionType?> get() = _mailboxExtractionSetting
+    private val _mailboxExtractionSetting = MutableStateFlow<EmailTemplateType?>(null)
+    val mailboxExtractionSetting: StateFlow<EmailTemplateType?> get() = _mailboxExtractionSetting
 
     /* MailboxExtractionViewにしか紐づけられないのでbackStackで戻れば毎回Clearされる */
     override fun onCleared() {
@@ -42,7 +42,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     suspend fun fetchMailboxExtractionIternalSettingWithLocalUpdate(
-        instance: MailboxExtractionType
+        instance: EmailTemplateType
     ): SuspendFuncStatusInfo {
         val result =
             mailboxExtractionRepository.getMailTypeSetting(
@@ -55,7 +55,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     fun fetchMailboxExtractionInternalSetting(
-        instance: MailboxExtractionType,
+        instance: EmailTemplateType,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
@@ -65,7 +65,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     fun addCategoryAssignment(
-        type: MailboxExtractionType,
+        type: EmailTemplateType,
         assignment: CategoryAssignment,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
@@ -83,7 +83,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     fun setMailboxExtractionInternalSetting(
-        instance: MailboxExtractionType,
+        instance: EmailTemplateType,
         callback: (SuspendFuncStatusInfo) -> Unit
     ) {
         LogAkitaDebug("${instance}")
