@@ -11,25 +11,31 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.copyWith
@@ -80,22 +86,26 @@ fun MailboxExtractionView(
                 .clickable { onClick() }
         ) {
             Row(
-                modifier = Modifier
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = settingState.type.menuName,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
+                        .padding(horizontal = 5.dp),
                 )
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (!isSettingNull) {
                         if (settingState.setting?.enabled != null) {
+                            Text("有効化:")
                             Switch(
                                 checked = settingState.setting.enabled,
                                 onCheckedChange = { checked ->
@@ -134,13 +144,21 @@ fun MailboxExtractionView(
             Row(
                 modifier = Modifier
                     //.padding(horizontal = 5.dp, vertical = 2.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("カテゴリー:")
+                Text(
+                    "カテゴリー:", modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
                 if (!isSettingNull &&
                     settingState.setting is HasCategoryId
                 ) {
                     CategoryDropDown(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(2f),
                         initialCategoryId = settingState.setting.categoryId,
                         categories = allCategories,
                         onCategorySelected = { category ->
@@ -167,7 +185,21 @@ fun MailboxExtractionView(
                         },
                     )
                 } else {
-                    Text("カテゴリー割当画面へ")
+                    TextButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(2f),
+                        onClick = {
+                            /* カテゴリー割当画面へ */
+                            navController.navigate(Screen.GlobalScreen.CategoryAssignmentEdit.route)
+                        }
+                    ) {
+                        Text("カテゴリー割当画面へ")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                            contentDescription = "Go to Category Assignment"
+                        )
+                    }
                 }
             }
         }

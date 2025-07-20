@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.dataClass
 
+import gaku.original.myapplication.data.Interface.CategoryAssignFlag
 import gaku.original.myapplication.data.Interface.CategoryAssignable
 import gaku.original.myapplication.data.Interface.HasCategoryId
 
@@ -8,11 +9,6 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
  * これ増えてくることはるか？
  * 今のところBitを使うことはなさそうだが、、
  */
-object CategoryAssignFlag {
-    const val NONE = 0                // 0000
-    const val PRODUCT_NAME = 0x0001  // 0001
-    const val STORE_NAME = 0x0002   // 0010
-}
 
 enum class EmailProvider(val value: String) {
     GMAIL("gmail"),

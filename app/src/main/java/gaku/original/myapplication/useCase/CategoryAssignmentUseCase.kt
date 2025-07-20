@@ -6,8 +6,9 @@ import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.Interface.CategoryAssignable
+import gaku.original.myapplication.data.Interface.isProductName
+import gaku.original.myapplication.data.Interface.isStoreName
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
-import gaku.original.myapplication.data.dataClass.CategoryAssignFlag
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.dataClass.checkAssignment
@@ -26,9 +27,9 @@ class CategoryAssignmentUseCase @Inject constructor(
     suspend fun getCategoryAssignmentRef(
         type: CategoryAssignable
     ): FetchResult<DatabaseReference> {
-        if (type.categoryAssignFlag == CategoryAssignFlag.STORE_NAME) {
+        if (type.isStoreName()) {
             return categoryAssignmentRepository.getStoreNameCategoryAssignmentRef()
-        } else if (type.categoryAssignFlag == CategoryAssignFlag.PRODUCT_NAME) {
+        } else if (type.isProductName()) {
             return categoryAssignmentRepository.getProductNameCategoryAssignmentRef()
         } else {
             /* Noneの場合もこっちに来る */
@@ -41,18 +42,6 @@ class CategoryAssignmentUseCase @Inject constructor(
 
     suspend fun getCategoryAssignmentData(): FetchResult<CategoryAssignmentData> {
         return categoryAssignmentRepository.getCategoryAssignmentData()
-    }
-
-    fun checkDuplicateCategoryAssignment(
-        categoryAssignment: CategoryAssignment,
-        allAssignments: Map<String, CategoryAssignment>
-    ): Boolean {
-        for ((_, value) in allAssignments) {
-            if ((categoryAssignment.name == value.name) and (categoryAssignment.condition == value.condition)) {
-                return true
-            }
-        }
-        return false
     }
 
     /**

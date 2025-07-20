@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
+import gaku.original.myapplication.data.Interface.CategoryAssignFlag
 import gaku.original.myapplication.data.Interface.HasId
 
 /**
@@ -22,6 +23,11 @@ data class CategoryAssignment(
     /* 最悪これさえあれば、あとで分類もできるか、、 */
     val generatedType: String? = null/* これでAmazonKindleなのかAmazonItemなのかそれ以外なのかで区別する？ */
 ) : HasId
+
+object AssignmentCondition {
+    const val CONTAINS = "contains"
+    const val EXACT_MATCH = "exact_match"
+}
 
 
 fun checkAssignmentInput(assignment: CategoryAssignment): CheckResult {
@@ -97,4 +103,12 @@ fun checkAssignment(
         status = CheckStatus.OK,
         errorMessage = ""
     )
+}
+
+fun CategoryAssignmentData.getAssignmentsByFlag(flag: Int): Map<String, CategoryAssignment>? {
+    return when {
+        flag and CategoryAssignFlag.STORE_NAME != 0 -> storeName
+        flag and CategoryAssignFlag.PRODUCT_NAME != 0 -> productName
+        else -> null
+    }
 }

@@ -46,13 +46,6 @@ sealed class Screen(val route: String) {
             }
 
             object Main : MailboxExtraction("$BASE_ROUTE/main")
-
-            //こいつら使わないかも
-            object RakutenPay : MailboxExtraction("$BASE_ROUTE/rakuten_pay")
-            object AmazonKindle : MailboxExtraction("$BASE_ROUTE/amazon_kindle")
-            object AmazonItem : MailboxExtraction("$BASE_ROUTE/amazon_item")
-            object ShikokuElectricPower :
-                MailboxExtraction("$BASE_ROUTE/shikoku_electric_power")
         }
     }
 
@@ -62,6 +55,7 @@ sealed class Screen(val route: String) {
         companion object {
             const val EXPENSE_ADD_EDIT_BASE = "expense_add_edit"
             const val CATEGORY_ADD_EDIT_BASE = "category_add_edit"
+            const val CATEGORY_ASSIGNMENT_EDIT_BASE = "category_assignment_edit"
         }
 
         object ExpenseAddEdit : GlobalScreen("$EXPENSE_ADD_EDIT_BASE?from={from}") {
@@ -69,5 +63,7 @@ sealed class Screen(val route: String) {
         }
 
         object CategoryAddEdit : GlobalScreen(CATEGORY_ADD_EDIT_BASE)
+
+        object CategoryAssignmentEdit : GlobalScreen(CATEGORY_ASSIGNMENT_EDIT_BASE)
     }
 }

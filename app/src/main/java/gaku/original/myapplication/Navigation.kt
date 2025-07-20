@@ -16,6 +16,7 @@ import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.main.NotCategorizedView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
+import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.settings.menu.mailboxExtraction.MailboxExtractionView
@@ -117,13 +118,8 @@ fun Navigation(
         composable(Screen.SettingScreen.MailboxExtraction.Main.route) {
             MailboxExtractionView(navController = navController)
         }
-        composable(Screen.SettingScreen.MailboxExtraction.AmazonKindle.route) {
-
-        }
-        composable(Screen.SettingScreen.MailboxExtraction.AmazonItem.route) {
-
-        }
-        composable(Screen.SettingScreen.MailboxExtraction.ShikokuElectricPower.route) {
+        composable(Screen.GlobalScreen.CategoryAssignmentEdit.route) {
+            CategoryAssignmentEditView(navController = navController)
         }
     }
 }

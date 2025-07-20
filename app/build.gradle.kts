@@ -130,6 +130,9 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:$hilt_version")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")//hiltViewModelを使うために必要
 
+    //OpenInNewってアイコンがこれを追加しないと使えない？
+    implementation("androidx.compose.material:material-icons-extended")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
