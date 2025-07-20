@@ -32,6 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId
+import gaku.original.myapplication.data.dataClass.copyWith
+import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.EmailTemplateSettingState
@@ -53,17 +55,23 @@ fun MailboxExtractionView(
     val amazonItemSettingState by viewModel.amazonItemSettingState.collectAsState()
     val shikokuElectricSettingState by viewModel.shikokuElectricPowerSettingState.collectAsState()
 
+    val allCategories by viewModel.allCategories.collectAsState()
+
     LaunchedEffect(Unit) {
         viewModel.startInit()
     }
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
 
     @Composable
     fun MailboxExtractionMenu(
         settingState: EmailTemplateSettingState,
         onClick: () -> Unit = {}
     ) {
-        val settingStatus = settingState.status
-        val isSettingStatusSuccess = settingStatus.status == SuspendFuncStatus.SUCCESS
+        val isSettingNull = settingState.setting == null
+        /**
+         * nullだったら何かしらのエラーが出ている。おそらく初期化に失敗。
+         */
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -86,24 +94,40 @@ fun MailboxExtractionView(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    if (isSettingStatusSuccess) {
+                    if (!isSettingNull) {
                         if (settingState.setting?.enabled != null) {
                             Switch(
                                 checked = settingState.setting.enabled,
                                 onCheckedChange = { checked ->
-                                    val updatedState =
-                                        settingState.setting.copyWithEnabled(checked)
+                                    val updateSetting =
+                                        settingState.setting.copyWith(
+                                            enabled = checked
+                                        )
                                     viewModel.updateEmailTemplateSettingWithLocalUpdate(
                                         settingState.copy(
-                                            setting = updatedState,
+                                            setting = updateSetting,
                                         ),
-                                        callback = {}
+                                        callback = {
+                                            if (it.status != SuspendFuncStatus.SUCCESS) {
+                                                snackBarHostState.currentSnackbarData?.dismiss()
+                                                scope.launch {
+                                                    snackBarHostState.showSnackbar(
+                                                        message = it.errorMessage,
+                                                        actionLabel = "OK"
+                                                    )
+                                                }
+                                            }
+                                        }
                                     )
                                 }
                             )
                         } else {
+                            /* ここに来ることはないはず */
                             Text("Something went wrong. Contact the developer")
                         }
+                    } else {
+                        /* 再ロードボタンを用意したほうがいいか？ */
+                        Text("初期化に失敗しています。。")
                     }
                 }
             }
@@ -112,15 +136,38 @@ fun MailboxExtractionView(
                     //.padding(horizontal = 5.dp, vertical = 2.dp)
                     .fillMaxWidth()
             ) {
-                if (settingState.type is HasCategoryId) {
-                    Text(
-                        text = "カテゴリを表示するようにする",
+                Text("カテゴリー:")
+                if (!isSettingNull &&
+                    settingState.setting is HasCategoryId
+                ) {
+                    CategoryDropDown(
+                        initialCategoryId = settingState.setting.categoryId,
+                        categories = allCategories,
+                        onCategorySelected = { category ->
+                            val updatedSetting = settingState.setting.copyWith(
+                                categoryId = category.id
+                            )
+                            viewModel.updateEmailTemplateSettingWithLocalUpdate(
+                                //更新したやつ
+                                settingState.copy(
+                                    setting = updatedSetting,
+                                ),
+                                callback = {
+                                    if (it.status != SuspendFuncStatus.SUCCESS) {
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                        scope.launch {
+                                            snackBarHostState.showSnackbar(
+                                                message = it.errorMessage,
+                                                actionLabel = "OK"
+                                            )
+                                        }
+                                    }
+                                }
+                            )
+                        },
                     )
                 } else {
-                    Text(
-                        text = "ここは未設定",
-                        modifier = Modifier.padding(5.dp)
-                    )
+                    Text("カテゴリー割当画面へ")
                 }
             }
         }
@@ -131,8 +178,6 @@ fun MailboxExtractionView(
         context.startActivity(intent)
     }
 
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
     /******* UI ******/
     Scaffold(
         topBar = {

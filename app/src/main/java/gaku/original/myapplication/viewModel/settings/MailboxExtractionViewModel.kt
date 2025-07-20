@@ -7,8 +7,10 @@ import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.repository.FirebaseAuthRepository
+import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +31,8 @@ data class EmailTemplateSettingState(
 @HiltViewModel
 class MailboxExtractionViewModel @Inject constructor(
     private val firebaseAuthRepository: FirebaseAuthRepository,
-    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository
+    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
+    private val categoryRepository: CategoryFirestoreRepository
 ) : ViewModel() {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -153,14 +156,37 @@ class MailboxExtractionViewModel @Inject constructor(
      * 最初にすべての設定をリモートから取ってくる
      * 初回にしかやらない、、初回で失敗した場合はnullに入るから
      */
+
+    private var activeLoadingCount = 0
     fun startInit() {
         if (initialized) {
             LogAkitaDebug("$className: Already initialized, skipping re-initialization.")
             return
         }
+        initialized = true
         _loading.value = true
+
+        fun onFinishOne() {
+            activeLoadingCount--
+            LogAkitaDebug("$className: One loading task finished, remaining: $activeLoadingCount")
+            if (activeLoadingCount <= 0) {
+                _loading.value = false
+                activeLoadingCount = 0/* これいるか？ */
+            }
+        }
+
+        activeLoadingCount++
+        fetchAllCategories(
+            callback = {
+                onFinishOne()
+            }
+        )
+
+        activeLoadingCount++
         loadAllEmailTemplateTypeSetting(
-            callback = { initialized = false }
+            callback = {
+                onFinishOne()
+            }
         )
     }
 
@@ -215,49 +241,82 @@ class MailboxExtractionViewModel @Inject constructor(
                 )
             }
             callback(statusInfo)
-            _loading.value = false
         }
     }
 
-    fun updateEmailTemplateSetting(
-        settingState: EmailTemplateSettingState,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            if (settingState.setting == null) {
-                /* そもそもnullだったらこの関数が実行されないようにUIになっているはずだが、、 */
-                callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.FAILED,
-                        "Email template setting is null, cannot update."
-                    )
-                )
-                return@launch
-            }
-
-            val statusInfo = mailboxExtractionRepository.updateMailTypeSetting(settingState.setting)
-            callback(statusInfo)
+    suspend fun updateEmailTemplateSetting(
+        settingState: EmailTemplateSettingState
+    ): SuspendFuncStatusInfo {
+        if (settingState.setting == null) {
+            /* そもそもnullだったらこの関数が実行されないようにUIになっているはずだが、、 */
+            val statusInfo = SuspendFuncStatusInfo(
+                SuspendFuncStatus.FAILED,
+                "Email template setting is null, cannot update."
+            )
+            return statusInfo
         }
+
+        return mailboxExtractionRepository.updateMailTypeSetting(settingState.setting)
+
     }
 
     fun updateEmailTemplateSettingWithLocalUpdate(
         settingState: EmailTemplateSettingState,
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
-        viewModelScope.launch {
-            updateEmailTemplateSetting(settingState) {
-                if (it.status == SuspendFuncStatus.SUCCESS) {
-                    for (state in allEmailTemplateStateFlowsList) {
-                        if (state.value.type == settingState.type) {
-                            state.value = state.value.copy(
-                                setting = settingState.setting,
-                                status = it
-                            )
-                            callback(it)
-                        }
-                    }
-                }
+        var index: Int = -1
+        for (i in allEmailTemplateStateFlowsList.indices) {
+            if (allEmailTemplateStateFlowsList[i].value.type == settingState.type) {
+                index = i
+                break
             }
+        }
+        if (index == -1) {
+            /* まあここに来ることはほぼないが、、 */
+            callback(
+                SuspendFuncStatusInfo(
+                    SuspendFuncStatus.FAILED,
+                    "Email template type not found in state flows."
+                )
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            val statusInfo = updateEmailTemplateSetting(settingState)
+            if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+                /* 失敗したときは、ステータスだけ更新しておく */
+                allEmailTemplateStateFlowsList[index].value =
+                    allEmailTemplateStateFlowsList[index].value.copy(
+                        status = statusInfo
+                    )
+            } else {
+                allEmailTemplateStateFlowsList[index].value =
+                    allEmailTemplateStateFlowsList[index].value.copy(
+                        setting = settingState.setting,
+                        status = statusInfo
+                    )
+            }
+            callback(statusInfo)
+        }
+    }
+
+    /* ----------------------カテゴリーの扱い--------------------------- */
+    private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
+    val allCategories: StateFlow<List<Category>> get() = _allCategories
+
+    private suspend fun fetchAllCategoriesWithLocalUpdate(): FetchResult<List<Category>> {
+        val fetchResult = categoryRepository.fetchAllCategories()
+        if (fetchResult is FetchResult.Success) {
+            _allCategories.value = fetchResult.data
+        }
+        return fetchResult
+    }
+
+    fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+        viewModelScope.launch {
+            val fetchResult = fetchAllCategoriesWithLocalUpdate()
+            callback(fetchResult.toSuspendFuncStatusInfo())
         }
     }
 
