@@ -518,6 +518,7 @@ export class MailboxExtractionProcessor {
      * クエリをして、msgIdを取得
      */
     /*　デバッグのため、Afterだけ書き換える!! */
+    /* ------------------------------deployするときはfalseにすること！！ ----------------------*/
     const akitaDebug = true;
     let queryAfter: number = 0;
     if (akitaDebug) {

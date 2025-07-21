@@ -176,10 +176,12 @@ const init_add = async () => {
     );
   }
 
+  await categoryAssignmentService.dbgAddCategoryAssignment(userId);
+
   console.log("Data written to emulator.");
 };
 
-// init_add();
+init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */

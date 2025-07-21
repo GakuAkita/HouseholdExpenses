@@ -1,4 +1,5 @@
 import { Database, Reference } from "firebase-admin/database";
+import { AssignmentCondition } from "../../constants/AssignmentCondition";
 import { CategoryAssignmentData } from "../../type/CategoryAssignment";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 
@@ -52,6 +53,35 @@ export class CategoryAssignmentService {
       return {
         status: FuncStatus.ERROR,
         message: `Failed to retrieve category assignment data for user ${userId}: ${error.message}`,
+      };
+    }
+  }
+
+  /* 基本的にfunctions側からいじらない。これはあくまでデバッグのときのみ */
+  async dbgAddCategoryAssignment(userId: string) {
+    const ref = this.getUserCategoryAssignmentDataRef(userId);
+    try {
+      await ref.set({
+        productName: {},
+        storeName: {
+          store1: {
+            id: "store1",
+            name: "ローソン",
+            category: "category1",
+            condition: AssignmentCondition.CONTAINS,
+            regex: false,
+            generatedType: "rakuten_pay",
+          },
+        },
+      });
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "Debug category assignment data added successfully.",
+      };
+    } catch (error: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to add debug category assignment data for user ${userId}: ${error.message}`,
       };
     }
   }

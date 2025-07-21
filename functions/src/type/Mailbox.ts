@@ -10,9 +10,9 @@ export enum CategoryAssignFlags {
 }
 
 export enum EmailProvider /* 今のところgmailのみ */ {
-  GMAIL = "gmail",
-  OUTLOOK = "outlook",
-  YAHOO = "yahoo",
+  GMAIL = "GMAIL",
+  OUTLOOK = "OUTLOOK",
+  YAHOO = "YAHOO",
 }
 
 /**
