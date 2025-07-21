@@ -1,6 +1,6 @@
 import { AssignmentCondition } from "../../constants/AssignmentCondition";
 import { Category } from "../../type/Category";
-import { CategoryAssignment } from "../../type/Mailbox";
+import { CategoryAssignment } from "../../type/CategoryAssignment";
 
 /**
  * exact matchから優先的に検索し、

@@ -3,27 +3,35 @@ export interface MailboxTokenType {
   timestamp?: string /* ISO 8601形式のタイムスタンプ */;
 }
 
-export type CategoryAssignment = {
-  id?: string;
-  categoryId: string;
-  name: string;
-  condition: string; // 後々入力制限する
-};
+export enum CategoryAssignFlags {
+  NONE = 0x000,
+  PRODUCT_NAME = 0x001,
+  STORE_NAME = 0x002,
+}
+
+export enum EmailProvider /* 今のところgmailのみ */ {
+  GMAIL = "gmail",
+  OUTLOOK = "outlook",
+  YAHOO = "yahoo",
+}
 
 /**
  * メールタイプの設定系
  */
 export type RakutenPaySetting = {
   enabled: boolean;
+  emailProvider: string;
   readonly nodeName: "rakuten_pay";
   readonly menuName: "楽天Pay";
-  storeCategoryAssignments?: Record<string, CategoryAssignment>;
+  readonly categoryAssignFlag: CategoryAssignFlags.STORE_NAME;
 };
 export type AmazonKindleSetting = {
   enabled: boolean;
+  emailProvider: string;
   readonly nodeName: "amazon_kindle";
   readonly menuName: "Amazon Kindle";
   categoryId?: string;
+  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
 };
 
 /* ここに全ての型を含めておく */
@@ -39,12 +47,13 @@ export const allMailTypeList: AllMailType[] = [
 export function createRakutenPaySettingInstance(
   params: {
     enabled: boolean;
-    storeCategoryAssignments?: Record<string, CategoryAssignment>;
-  } = { enabled: true }
+    emailProvider: EmailProvider;
+  } = { enabled: true, emailProvider: EmailProvider.GMAIL }
 ): RakutenPaySetting {
   return {
     nodeName: "rakuten_pay",
     menuName: "楽天Pay",
+    categoryAssignFlag: CategoryAssignFlags.STORE_NAME,
     ...params,
   };
 }
@@ -56,11 +65,16 @@ export function createAmazonKindleSettingInstance(
   params: {
     enabled: boolean;
     categoryId?: string;
-  } = { enabled: true }
+    emailProvider: EmailProvider;
+  } = {
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  }
 ): AmazonKindleSetting {
   return {
     nodeName: "amazon_kindle",
     menuName: "Amazon Kindle",
+    categoryAssignFlag: CategoryAssignFlags.NONE,
     ...params,
   };
 }

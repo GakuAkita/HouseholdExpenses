@@ -6,6 +6,7 @@ import { SettingsService } from "./FirestoreService/SettingsService";
 import { UserService } from "./FirestoreService/UserService";
 import { RepeatAddProcessor } from "./Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./Processor/UserSettingsProcessor";
+import { CategoryAssignmentService } from "./RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "./RealtimeDbService/MailboxExtractionService";
 import { RealtimeDbService } from "./RealtimeDbService/RealtimeDbService";
 import { UserRTDbService } from "./RealtimeDbService/UserRTDbService";
@@ -26,6 +27,7 @@ export const initializeServices = () => {
 
   const userRTDbService = new UserRTDbService(realtimeDb);
   const mailboxExtractionService = new MailboxExtractionService(realtimeDb);
+  const categoryAssignmentService = new CategoryAssignmentService(realtimeDb);
 
   /* Processor類 */
   const repeatAddProcessor = new RepeatAddProcessor(
@@ -48,5 +50,6 @@ export const initializeServices = () => {
     userSettingsProcessor,
     mailboxExtractionService,
     userRTDbService,
+    categoryAssignmentService,
   };
 };

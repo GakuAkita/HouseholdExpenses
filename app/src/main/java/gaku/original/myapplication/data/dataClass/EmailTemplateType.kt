@@ -10,6 +10,9 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
  * 今のところBitを使うことはなさそうだが、、
  */
 
+/**
+ * Firestoreには"gamil"ではなくて、"GMAIL"で保存されるらしい、、
+ */
 enum class EmailProvider(val value: String) {
     GMAIL("gmail"),
     YAHOO("yahoo"),//非対応

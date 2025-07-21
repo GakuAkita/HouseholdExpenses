@@ -329,16 +329,4 @@ export class MailboxExtractionService {
       };
     }
   }
-  /** 楽天Payのサンプル
-   * const sampleRakuten: RakutenPaySetting = createRakutenPaySettingInstance({
-      enabled: true,
-      storeCategoryAssignments: {
-        asdfsdfsa: {
-          id: "asdfsdfsa",
-          categoryId: "category1",
-          name: "ローソン",
-          condition: "contains",
-        },
-      },
-   */
 }

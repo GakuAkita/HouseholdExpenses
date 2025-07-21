@@ -2,6 +2,7 @@ import { logger } from "firebase-functions";
 import { gmail_v1 } from "googleapis";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { Category } from "../../type/Category";
+import { CategoryAssignmentData } from "../../type/CategoryAssignment";
 import { Expense } from "../../type/Expense";
 import {
   FuncResult,
@@ -24,6 +25,7 @@ import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
+import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { categoryAssign } from "../utility/cateogryAssign";
 import {
@@ -38,12 +40,15 @@ import { getInternalDateMillisFromMessage } from "../utility/gmail/getInternalDa
 export class MailboxExtractionProcessor {
   private userId: string;
   private categories: Record<string, Category> | null = null;
+  private categoryAssignmentData: CategoryAssignmentData | null =
+    null; /* 今のところ毎回全部取るが、将来的に商品名か店名の片方で良いかも */
 
   constructor(
     userId: string,
     private mailboxExtractionService: MailboxExtractionService,
     private expenseService: ExpenseService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private categoryAssignmentService: CategoryAssignmentService
   ) {
     this.userId = userId;
   }
@@ -74,6 +79,50 @@ export class MailboxExtractionProcessor {
       status: FuncStatus.SUCCESS,
       message: "Already loaded before.",
       data: this.categories,
+    };
+  }
+
+  /* ************************カテゴリー割当の読み込み***************************** */
+  private async loadCategoryAssignmentData(): Promise<
+    FuncResultWithData<CategoryAssignmentData>
+  > {
+    if (this.categoryAssignmentData === null) {
+      const result =
+        await this.categoryAssignmentService.getCategoryAssignmentData(
+          this.userId
+        );
+      if (result.status === FuncStatus.EMPTY) {
+        this.categoryAssignmentData = { storeName: {}, productName: {} };
+        return {
+          status: FuncStatus.SUCCESS,
+          message:
+            "There was no error in getCategoryAssignmentData, but empty.",
+          data: this.categoryAssignmentData,
+        };
+      }
+      if (result.status !== FuncStatus.SUCCESS) {
+        return result;
+      }
+
+      if (!result.data) {
+        /* カテゴリー割当がない可能性もあるから、成功として扱う。 */
+        this.categoryAssignmentData = {
+          storeName: {},
+          productName: {},
+        };
+        return {
+          status: FuncStatus.SUCCESS,
+          message:
+            "There was no error in getCategoryAssignmentData, but empty.",
+        };
+      }
+      this.categoryAssignmentData = result.data;
+    }
+
+    return {
+      status: FuncStatus.SUCCESS,
+      message: "Already loaded before.",
+      data: this.categoryAssignmentData,
     };
   }
 
@@ -273,10 +322,28 @@ export class MailboxExtractionProcessor {
     const categoryRet = await this.loadCategories();
     if (categoryRet.status != FuncStatus.SUCCESS) {
       /* カテゴリーの読み込み失敗の場合はログ表示だけにしておく */
+      logger.error(`Failed to load categories: ${categoryRet.message}`);
     } else if (categoryRet.data) {
       categories = categoryRet.data;
     } else {
       /* Do nothing */
+    }
+
+    let categoryAssignmentData: CategoryAssignmentData = {
+      storeName: {},
+      productName: {},
+    };
+    const assignRet = await this.loadCategoryAssignmentData();
+    if (assignRet.status != FuncStatus.SUCCESS) {
+      /* カテゴリー割当の読み込み失敗の場合はログ表示だけにしておく */
+      logger.error(
+        `Failed to load category assignment data: ${assignRet.message}`
+      );
+    } else if (assignRet.data) {
+      categoryAssignmentData = assignRet.data;
+    } else {
+      /* Do nothing */
+      /* ここに来ることはあまりないのでは？ */
     }
 
     let ret: FuncResult = {
@@ -288,7 +355,8 @@ export class MailboxExtractionProcessor {
         ret = await this.saveExpenseFromRakutenPay(
           rawText,
           setting,
-          categories
+          categories,
+          categoryAssignmentData
         );
         break;
 
@@ -310,7 +378,8 @@ export class MailboxExtractionProcessor {
   async saveExpenseFromRakutenPay(
     rawText: string,
     setting: RakutenPaySetting,
-    categories: Record<string, Category>
+    categories: Record<string, Category>,
+    assignmentData: CategoryAssignmentData
   ): Promise<FuncResult> {
     const parser = new RakutenPayMailParser(rawText);
     const ret = parser.toExpense(); /* この時点では最低限しかいれていない */
@@ -320,10 +389,10 @@ export class MailboxExtractionProcessor {
 
     const baseExpense: Expense = ret.data;
 
-    if (setting.storeCategoryAssignments && baseExpense.storeName) {
+    if (assignmentData.storeName && baseExpense.storeName) {
       const category = categoryAssign(
         baseExpense.storeName,
-        setting.storeCategoryAssignments,
+        assignmentData.storeName,
         categories
       );
 
@@ -390,6 +459,9 @@ export class MailboxExtractionProcessor {
       /**
        * なにかエラーが出たようだ
        */
+      logger.error(
+        `${type.nodeName} went wrong when getting setting.: ${ret.message}`
+      );
       return;
     } else if (ret.data?.enabled == false) {
       /**
@@ -562,7 +634,7 @@ export class MailboxExtractionProcessor {
   /**
    * すべてのメールタイプに対して、実行する
    */
-  async processAllMailiType() {
+  async processAllMailType() {
     for (const type of allMailTypeList) {
       await this.processSingleMailType(type);
     }

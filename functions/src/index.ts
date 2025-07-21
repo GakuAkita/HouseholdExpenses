@@ -18,6 +18,7 @@ const {
   categoryService,
   userSettingsProcessor,
   mailboxExtractionService,
+  categoryAssignmentService,
 } = initializeServices();
 
 const schedule_repeatAdd = async () => {
@@ -190,10 +191,11 @@ const scheduledMailboxExtraction = async () => {
       uid,
       mailboxExtractionService,
       expenseService,
-      categoryService
+      categoryService,
+      categoryAssignmentService
     );
     /* ユーザーごとに実行 */
-    await mailboxExtrInstance.processAllMailiType();
+    await mailboxExtrInstance.processAllMailType();
   }
 };
 

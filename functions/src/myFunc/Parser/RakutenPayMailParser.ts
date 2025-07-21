@@ -2,7 +2,10 @@ import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { createRakutenPaySettingInstance } from "../../type/Mailbox";
+import {
+  createRakutenPaySettingInstance,
+  EmailProvider,
+} from "../../type/Mailbox";
 import { convertToUtcIsoString } from "../utility/dateConverter";
 
 export class RakutenPayMailParser {
@@ -72,6 +75,7 @@ export class RakutenPayMailParser {
 
     const rakutenSample = createRakutenPaySettingInstance({
       enabled: true,
+      emailProvider: EmailProvider.GMAIL /* 使っていない */,
     });
 
     const expense: Expense = {
