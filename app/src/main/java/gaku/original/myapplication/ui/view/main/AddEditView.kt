@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.AssignmentCondition
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
@@ -131,6 +132,8 @@ fun ExpenseAddEditView(
     /* 割当をするかしないか問題 */
     var showCategoryAssignmentDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteResetConfirmDialog by remember { mutableStateOf(false) }
+    var namePattern by remember { mutableStateOf(CategoryAssignNamePattern.STORE) }
+    var assignmentEdited by remember { mutableStateOf(CategoryAssignment()) }
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
@@ -544,6 +547,13 @@ fun ExpenseAddEditView(
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.RakutenPay().nodeName) {
                         CategoryAssignmentArea(
                             onClick = {
+                                LogAkitaDebug("Tapped. Is it reactive?")
+                                assignmentEdited = CategoryAssignment(
+                                    name = viewModel.currentTmpExpense.storeName ?: "",
+                                    categoryId = viewModel.currentTmpExpense.category?.id,
+                                    condition = AssignmentCondition.EXACT_MATCH
+                                )
+                                namePattern = CategoryAssignNamePattern.STORE
                                 showCategoryAssignmentDialog = true
                             }
                         )
@@ -562,13 +572,20 @@ fun ExpenseAddEditView(
                     onValueChange = {
                         viewModel.updateTmpExpenseItemName(it)
                     },
-                    label = { Text(text = "品名(空欄可)") },
+                    label = { Text(text = "商品名(空欄可)") },
                     modifier = basicModifier
                 )
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                    /* もっといい書き方あるはず↓、 */
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.AmazonItem().nodeName) {
                         CategoryAssignmentArea(
                             onClick = {
+                                assignmentEdited = CategoryAssignment(
+                                    name = viewModel.currentTmpExpense.itemName ?: "",
+                                    categoryId = viewModel.currentTmpExpense.category?.id,
+                                    condition = AssignmentCondition.EXACT_MATCH
+                                )
+                                namePattern = CategoryAssignNamePattern.PRODUCT
                                 showCategoryAssignmentDialog = true
                             }
                         )
@@ -648,12 +665,9 @@ fun ExpenseAddEditView(
                 onDismiss = {
                     showCategoryAssignmentDialog = false
                 },
-                initialAssignment = CategoryAssignment(
-                    name = "",
-                    categoryId = null,
-                    condition = AssignmentCondition.EXACT_MATCH
-                ),
+                initialAssignment = assignmentEdited,
                 categories = allCategories,
+                initialNamePattern = namePattern,
                 isNamePatternSelectable = false
             )
         }
@@ -689,8 +703,9 @@ fun ExpenseAddEditView(
                 },
                 onDismissRequest = {
                     showDeleteResetConfirmDialog = false
-                }
-            )
+                },
+
+                )
         }
     }
 }
@@ -716,7 +731,9 @@ fun CategoryAssignmentArea(
         },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { }) {
+        IconButton(onClick = {
+            onClick()
+        }) {
             Icon(
                 painter = painterResource(id = R.drawable.docs_add_on),
                 contentDescription = "add_on"

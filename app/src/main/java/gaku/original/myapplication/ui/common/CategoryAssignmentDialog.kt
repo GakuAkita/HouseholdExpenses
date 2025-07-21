@@ -237,6 +237,12 @@ fun CategoryAssignmentDialog(
                 }
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                titleContent()
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -252,13 +258,6 @@ fun CategoryAssignmentDialog(
                         .padding(vertical = 5.dp),
                     enabled = isNamePatternSelectable
                 )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                titleContent()
             }
 
             if (namePattern != null) {
