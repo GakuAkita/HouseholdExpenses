@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmAlertDialog(
-    confirmContent: @Composable () -> Unit,
     onClick: () -> Unit,
     onDismissRequest: () -> Unit,
+    confirmContent: @Composable () -> Unit,
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,

@@ -2,7 +2,7 @@ package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
-import gaku.original.myapplication.data.Interface.CategoryAssignFlag
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.Interface.HasId
 
 /**
@@ -12,6 +12,26 @@ data class CategoryAssignmentData(
     val storeName: Map<String, CategoryAssignment>? = null,
     val productName: Map<String, CategoryAssignment>? = null,
 )
+
+fun CategoryAssignmentData.copyWithUpdatedMap(
+    namePattern: CategoryAssignNamePattern,
+    updatedMap: Map<String, CategoryAssignment>
+): CategoryAssignmentData {
+    return when (namePattern) {
+        /* 紐づけないとだめ*/
+        CategoryAssignNamePattern.STORE -> this.copy(storeName = updatedMap)
+        CategoryAssignNamePattern.PRODUCT -> this.copy(productName = updatedMap)
+        else -> this
+    }
+}
+
+fun CategoryAssignmentData.getAssignmentsByNamePattern(namePattern: CategoryAssignNamePattern): Map<String, CategoryAssignment>? {
+    return when {
+        namePattern == CategoryAssignNamePattern.STORE -> storeName
+        namePattern == CategoryAssignNamePattern.PRODUCT -> productName
+        else -> null
+    }
+}
 
 data class CategoryAssignment(
     override var id: String? = null,
@@ -32,7 +52,7 @@ object AssignmentCondition {
 
 fun checkAssignmentInput(assignment: CategoryAssignment): CheckResult {
     return when {
-        assignment.name.isNullOrBlank() -> CheckResult(CheckStatus.NG, "店名が入力されていません")
+        assignment.name.isNullOrBlank() -> CheckResult(CheckStatus.NG, "名前が入力されていません")
         assignment.condition.isNullOrBlank() -> CheckResult(
             CheckStatus.NG,
             "一致条件が選択されていません"
@@ -103,12 +123,4 @@ fun checkAssignment(
         status = CheckStatus.OK,
         errorMessage = ""
     )
-}
-
-fun CategoryAssignmentData.getAssignmentsByFlag(flag: Int): Map<String, CategoryAssignment>? {
-    return when {
-        flag and CategoryAssignFlag.STORE_NAME.value != 0 -> storeName
-        flag and CategoryAssignFlag.PRODUCT_NAME.value != 0 -> productName
-        else -> null
-    }
 }

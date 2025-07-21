@@ -5,14 +5,11 @@ import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Interface.CategorizationMode
-import gaku.original.myapplication.data.Interface.isProductName
-import gaku.original.myapplication.data.Interface.isStoreName
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.dataClass.checkAssignment
-import gaku.original.myapplication.data.dataClass.checkAssignmentInput
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import javax.inject.Inject
 
@@ -25,17 +22,17 @@ class CategoryAssignmentUseCase @Inject constructor(
      * mailboxExtraction以外にも増えてきたら足していくか
      */
     suspend fun getCategoryAssignmentRef(
-        type: CategorizationMode
+        pattern: CategoryAssignNamePattern
     ): FetchResult<DatabaseReference> {
-        if (type.isStoreName()) {
+        if (pattern == CategoryAssignNamePattern.STORE) {
             return categoryAssignmentRepository.getStoreNameCategoryAssignmentRef()
-        } else if (type.isProductName()) {
+        } else if (pattern == CategoryAssignNamePattern.PRODUCT) {
             return categoryAssignmentRepository.getProductNameCategoryAssignmentRef()
         } else {
             /* Noneの場合もこっちに来る */
             return FetchResult.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
-                errorMessage = "category assign flag is not accepted ${type.categoryAssignFlag}"
+                errorMessage = "category assign name pattern is not accepted ${pattern.label}"
             )
         }
     }
@@ -49,10 +46,10 @@ class CategoryAssignmentUseCase @Inject constructor(
      */
     suspend fun addCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
-        type: CategorizationMode,
+        namePattern: CategoryAssignNamePattern,
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(
-            type = type
+            pattern = namePattern
         )
         if (refRet !is FetchResult.Success) {
             return refRet.toSuspendFuncStatusInfo()
@@ -89,15 +86,28 @@ class CategoryAssignmentUseCase @Inject constructor(
 
     suspend fun updateCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
-        type: CategorizationMode
+        pattern: CategoryAssignNamePattern
     ): SuspendFuncStatusInfo {
-        val refRet = getCategoryAssignmentRef(type)
+        val refRet = getCategoryAssignmentRef(pattern)
         if (refRet !is FetchResult.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
         val reference = refRet.data
 
-        val checkRet = checkAssignmentInput(categoryAssignment)
+        val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
+        if (dataRet !is FetchResult.Success) {
+            val statusInfo = dataRet.toSuspendFuncStatusInfo()
+            return SuspendFuncStatusInfo(
+                status = statusInfo.status,
+                errorMessage = "ダブりチェックのための既存カテゴリー割当の取得に失敗しました:${statusInfo.errorMessage}"
+            )
+        }
+        val data = dataRet.data
+
+        /**
+         * ダブりチェックも含む
+         */
+        val checkRet = checkAssignment(categoryAssignment, data)
         if (checkRet.status != CheckStatus.OK) {
             return SuspendFuncStatusInfo(
                 status = SuspendFuncStatus.FAILED,
@@ -113,9 +123,9 @@ class CategoryAssignmentUseCase @Inject constructor(
 
     suspend fun removeCategoryAssignment(
         categoryAssignment: CategoryAssignment,
-        type: CategorizationMode
+        pattern: CategoryAssignNamePattern
     ): SuspendFuncStatusInfo {
-        val refRet = getCategoryAssignmentRef(type)
+        val refRet = getCategoryAssignmentRef(pattern)
         if (refRet !is FetchResult.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }

@@ -125,7 +125,7 @@ fun RepeatAddSettingView(
                         .padding(vertical = 3.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("右にスワイプすると削除ボタンが現れます")
+                    Text("左にスワイプすると削除ボタンが現れます")
                 }
             }
             /**

@@ -1,11 +1,22 @@
 package gaku.original.myapplication.ui.view.settings.menu
 
+import android.widget.Toast
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -19,15 +30,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryAssignmentDialog
+import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun CategoryAssignmentEditView(
@@ -40,11 +58,90 @@ fun CategoryAssignmentEditView(
 
     var showAddEditDialog by remember { mutableStateOf(false) }
 
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+    var assignmentEdited by remember { mutableStateOf<CategoryAssignment?>(null) }
+    var initialNamePattern by remember { mutableStateOf<CategoryAssignNamePattern?>(null) }
+
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
 
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.startInit()
+    }
+
+
+    @Composable
+    fun CategoryAssignmentRow(
+        assignment: CategoryAssignment,
+        namePattern: CategoryAssignNamePattern,
+    ) {
+        Row(
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.9f)
+                    .clickable {
+                        assignmentEdited = assignment
+                        initialNamePattern = namePattern
+                        showAddEditDialog = true
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 5.dp),
+                    text = "${assignment.name}"
+                )
+                CategoryDropDown(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    initialCategoryId = assignment.categoryId,
+                    categories = allCategories.value,
+                    onCategorySelected = { category ->
+                        viewModel.updateCategoryAssignment(
+                            assignment = assignment.copy(categoryId = category.id),
+                            namePattern = namePattern
+                        ) { result ->
+                            if (result.status != SuspendFuncStatus.SUCCESS) {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                scope.launch {
+                                    snackBarHostState.showSnackbar(
+                                        "カテゴリー割当の更新に失敗しました: ${result.errorMessage}",
+                                        actionLabel = "OK",
+                                    )
+                                }
+                            }
+                        }
+                    },
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = {
+                        assignmentEdited = assignment
+                        initialNamePattern = namePattern
+                        showDeleteConfirmDialog = true//削除のダイアログへ。
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "削除",
+                    )
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -59,13 +156,17 @@ fun CategoryAssignmentEditView(
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         floatingActionButton = {
-            FloatingActionButtonWithIcon(
-                onClick = {
-                    /* 増やす */
-                    showAddEditDialog = true
-                },
-                containerColor = MaterialTheme.colorScheme.tertiary,
-            )
+            if (snackBarHostState.currentSnackbarData == null) {
+                FloatingActionButtonWithIcon(
+                    onClick = {
+                        /* 増やす */
+                        assignmentEdited = null
+                        initialNamePattern = null
+                        showAddEditDialog = true
+                    },
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -78,23 +179,56 @@ fun CategoryAssignmentEditView(
             } else if (assignmentData.value == null) {
                 Text("データ取得に失敗しました。ページを閉じて再度開いてください。")
             } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("いつか検索機能つけます。")
+                }
                 val storeAssignment = assignmentData.value?.storeName
                 val productAssignment = assignmentData.value?.productName
-
-                if (storeAssignment == null) {
-                    Text("ストアの割当がありません")
-                } else {
-                    for ((id, assignment) in storeAssignment) {
-                        CategoryAssignmentRow(
-                            assignment = assignment
-                        )
+                Text("店名")
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(2.dp)
+                        .border(width = 1.dp, color = MaterialTheme.colorScheme.tertiary)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    if (storeAssignment == null) {
+                        Text("店名でのカテゴリー割当がありません")
+                    } else {
+                        val namePattern = CategoryAssignNamePattern.STORE
+                        for ((id, assignment) in storeAssignment.entries.sortedBy { it.value.name }) {
+                            CategoryAssignmentRow(
+                                assignment = assignment,
+                                namePattern
+                            )
+                        }
                     }
                 }
-
-                if (productAssignment == null) {
-                    Text("商品カテゴリーの割当がありません")
-                } else {
-
+                HorizontalDivider()
+                Text("商品名")
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(2.dp)
+                        .border(width = 2.dp, color = MaterialTheme.colorScheme.tertiary)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    if (productAssignment == null) {
+                        Text("商品名でのカテゴリーの割当がありません")
+                    } else {
+                        val namePattern = CategoryAssignNamePattern.PRODUCT
+                        for ((id, assignment) in productAssignment.entries.sortedBy { it.value.name }) {
+                            CategoryAssignmentRow(
+                                assignment = assignment,
+                                namePattern
+                            )
+                        }
+                    }
                 }
             }
 
@@ -106,27 +240,93 @@ fun CategoryAssignmentEditView(
                     onDismiss = {
                         showAddEditDialog = false
                     },
-                    initialAssignment = null,
+                    initialAssignment = assignmentEdited,
                     categories = allCategories.value ?: emptyList(),
                     onSave = { assignment, namePattern ->
+                        if (assignment.id == null) {
+                            viewModel.addCategoryAssignment(
+                                assignment = assignment,
+                                namePattern = namePattern,
+                            ) {
+                                if (it.status == SuspendFuncStatus.SUCCESS) {
+                                    showAddEditDialog = false
+                                    scope.launch {
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                        snackBarHostState.showSnackbar(
+                                            "カテゴリー割当を追加しました",
+                                            actionLabel = "OK"
+                                        )
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "カテゴリー割当の追加に失敗しました: ${it.errorMessage}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        } else {
+                            viewModel.updateCategoryAssignment(
+                                assignment = assignment,
+                                namePattern = namePattern
+                            ) { result ->
+                                if (result.status == SuspendFuncStatus.SUCCESS) {
+                                    showAddEditDialog = false
+                                    scope.launch {
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                        snackBarHostState.showSnackbar(
+                                            "カテゴリー割当を更新しました",
+                                            actionLabel = "OK"
+                                        )
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "カテゴリー割当の更新に失敗しました: ${result.errorMessage}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
                     },
-                    isNamePatternSelectable = true
+                    initialNamePattern = initialNamePattern,
+                    isNamePatternSelectable = initialNamePattern == null
                 )
             }
-        }
-    }
-}
 
-@Composable
-fun CategoryAssignmentRow(
-    assignment: CategoryAssignment,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            modifier = Modifier.padding(horizontal = 5.dp),
-            text = "${assignment.name}"
-        )
+            /* 削除してよいかのダイアログ */
+            if (showDeleteConfirmDialog) {
+                ConfirmAlertDialog(
+                    onClick = {
+                        viewModel.removeCategoryAssignment(
+                            assignment = assignmentEdited ?: return@ConfirmAlertDialog,
+                            namePattern = initialNamePattern ?: return@ConfirmAlertDialog
+                        ) { result ->
+                            if (result.status == SuspendFuncStatus.SUCCESS) {
+                                showDeleteConfirmDialog = false
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    snackBarHostState.showSnackbar(
+                                        "カテゴリー割当を削除しました",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "カテゴリー割当の削除に失敗しました: ${result.errorMessage}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    },
+                    onDismissRequest = {
+                        showDeleteConfirmDialog = false
+                    }
+                ) {
+                    Text("${assignmentEdited?.name} を削除しますか？")
+                }
+            }
+        }
     }
 }

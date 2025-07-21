@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Interface.CategorizationMode
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
+import gaku.original.myapplication.data.dataClass.copyWithUpdatedMap
+import gaku.original.myapplication.data.dataClass.getAssignmentsByNamePattern
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,7 +92,7 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
     fun addCategoryAssignment(
         assignment: CategoryAssignment,
-        type: CategorizationMode,/* 店名か製品名かはこれで切り替える */
+        namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
@@ -114,7 +116,7 @@ class CategoryAssignmentEditViewModel @Inject constructor(
             val addRet: SuspendFuncStatusInfo =
                 categoryAssignmentUseCase.addCategoryAssignmentWithCheck(
                     assignment,
-                    type,
+                    namePattern,
                 )
             if (addRet.status == SuspendFuncStatus.SUCCESS) {
                 /**
@@ -141,6 +143,119 @@ class CategoryAssignmentEditViewModel @Inject constructor(
             } else {
                 callback(addRet)
             }
+        }
+    }
+
+    fun updateCategoryAssignment(
+        assignment: CategoryAssignment,
+        namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val currentData = _assignmentData.value
+            if (currentData == null) {
+                callback(
+                    SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "CategoryAssignmentData is null. Please fetch data first."
+                    )
+                )
+                return@launch
+            }
+
+            val updateRet: SuspendFuncStatusInfo =
+                categoryAssignmentUseCase.updateCategoryAssignmentWithCheck(
+                    assignment,
+                    namePattern,
+                )
+
+            var ret: SuspendFuncStatusInfo = updateRet
+            if (updateRet.status == SuspendFuncStatus.SUCCESS) {
+                /* ローカルについてはidを見つけて、そこだけ更新 */
+                val currentMap = _assignmentData.value?.copy()
+                val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
+                val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
+                if (targetMap == null) {
+                    ret = SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "名前パターンからカテゴリー割当を取得できません"
+                    )
+                } else {
+                    if (targetMap.containsKey(id)) {
+                        // id に該当する assignment を更新
+                        targetMap[id] = assignment
+
+                        // 更新した map を元のデータ構造に戻す
+                        val updatedData = currentData.copyWithUpdatedMap(namePattern, targetMap)
+
+                        // StateFlow に反映
+                        _assignmentData.value = updatedData
+                    } else {
+                        ret = SuspendFuncStatusInfo(
+                            status = SuspendFuncStatus.FAILED,
+                            errorMessage = "更新には成功しましたが、UIへの反映に失敗しました"
+                        )
+                    }
+                }
+            }
+            callback(ret)
+        }
+    }
+
+    fun removeCategoryAssignment(
+        assignment: CategoryAssignment,
+        namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val currentData = _assignmentData.value
+            if (currentData == null) {
+                callback(
+                    SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "CategoryAssignmentData is null. Please fetch data first."
+                    )
+                )
+                return@launch
+            }
+
+            val removeRet: SuspendFuncStatusInfo =
+                categoryAssignmentUseCase.removeCategoryAssignment(
+                    assignment,
+                    namePattern,
+                )
+
+            var ret: SuspendFuncStatusInfo = removeRet
+            if (removeRet.status == SuspendFuncStatus.SUCCESS) {
+                /* ローカルについてはidを見つけて、そこだけ削除 */
+                val currentMap = _assignmentData.value?.copy()
+                val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
+                val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
+                if (targetMap == null) {
+                    //ここに来ることはないはず、、
+                    ret = SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "名前パターンからカテゴリー割当を取得できません"
+                    )
+                } else {
+                    if (targetMap.containsKey(id)) {
+                        // id に該当する assignment を削除
+                        targetMap.remove(id)
+
+                        // 更新した map を元のデータ構造に戻す
+                        val updatedData = currentData.copyWithUpdatedMap(namePattern, targetMap)
+
+                        // StateFlow に反映
+                        _assignmentData.value = updatedData
+                    } else {
+                        ret = SuspendFuncStatusInfo(
+                            status = SuspendFuncStatus.FAILED,
+                            errorMessage = "削除には成功しましたが、UIへの反映に失敗しました"
+                        )
+                    }
+                }
+            }
+            callback(ret)
         }
     }
 

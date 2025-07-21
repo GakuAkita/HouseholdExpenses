@@ -48,6 +48,7 @@
 - done:::RepeatAdd 画面でスワイプすると削除ボタンが現れると案内を出す
 - Not Categorized タブの作成。外部連携のやつは null でいれる。not categorizedのやつを保存するときに、mailタイプを更新する
 - done:::日付のやつが直ってない!!
+- tokenがすでにあって、もう一度API許可をしようとしていたらポップアップ
 - CategoryAssignmentの構造再検討。どんな支払い方法だろうが、店に対して値段は決まっている。
 - CategoryAssignment何個までなら無料プランで行けるか概算
 - Daveyの対策。どこかでメインスレッドをブロックしているらしい、、
