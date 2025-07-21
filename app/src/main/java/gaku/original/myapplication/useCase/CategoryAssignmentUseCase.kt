@@ -5,7 +5,7 @@ import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Interface.CategoryAssignable
+import gaku.original.myapplication.data.Interface.CategorizationMode
 import gaku.original.myapplication.data.Interface.isProductName
 import gaku.original.myapplication.data.Interface.isStoreName
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -25,7 +25,7 @@ class CategoryAssignmentUseCase @Inject constructor(
      * mailboxExtraction以外にも増えてきたら足していくか
      */
     suspend fun getCategoryAssignmentRef(
-        type: CategoryAssignable
+        type: CategorizationMode
     ): FetchResult<DatabaseReference> {
         if (type.isStoreName()) {
             return categoryAssignmentRepository.getStoreNameCategoryAssignmentRef()
@@ -49,7 +49,7 @@ class CategoryAssignmentUseCase @Inject constructor(
      */
     suspend fun addCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
-        type: CategoryAssignable,
+        type: CategorizationMode,
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(
             type = type
@@ -89,7 +89,7 @@ class CategoryAssignmentUseCase @Inject constructor(
 
     suspend fun updateCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
-        type: CategoryAssignable
+        type: CategorizationMode
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(type)
         if (refRet !is FetchResult.Success) {
@@ -113,7 +113,7 @@ class CategoryAssignmentUseCase @Inject constructor(
 
     suspend fun removeCategoryAssignment(
         categoryAssignment: CategoryAssignment,
-        type: CategoryAssignable
+        type: CategorizationMode
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(type)
         if (refRet !is FetchResult.Success) {

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
-import gaku.original.myapplication.data.Interface.CategoryAssignPattern
+import gaku.original.myapplication.data.Interface.CategorizationMode
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
@@ -69,38 +69,78 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
     }
 
+    suspend fun fetchCategoryAssignmentDataWithLocalUpdate(): FetchResult<CategoryAssignmentData> {
+        val result = categoryAssignmentUseCase.getCategoryAssignmentData()
+        if (result is FetchResult.Success) {
+            /**
+             * リモートに何もなかった場合は、storeとproductはnullになる。
+             */
+            _assignmentData.value = result.data
+        }
+        return result
+    }
+
     /* リモートの全データを取得してくる */
     fun fetchCategoryAssignmentData(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
-            val result = categoryAssignmentUseCase.getCategoryAssignmentData()
-            if (result is FetchResult.Success) {
-                /**
-                 * リモートに何もなかった場合は、storeとproductはnullになる。
-                 */
-                _assignmentData.value = result.data
-            }
+            val result = fetchCategoryAssignmentDataWithLocalUpdate()
             callback(result.toSuspendFuncStatusInfo())
         }
     }
 
-    fun addStoreNameCategoryAssignment(
+    fun addCategoryAssignment(
         assignment: CategoryAssignment,
+        type: CategorizationMode,/* 店名か製品名かはこれで切り替える */
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
-            val ret = categoryAssignmentUseCase.addCategoryAssignmentWithCheck(
-                assignment,
-                CategoryAssignPattern.STORE
-            )
-            if (ret.status == SuspendFuncStatus.SUCCESS) {
-                // 成功したら、ローカルのデータも更新
-                val currentData = _assignmentData.value ?: CategoryAssignmentData()
-                val updatedStoreAssignments =
-                    currentData.storeName?.toMutableMap() ?: mutableMapOf()
-                updatedStoreAssignments[assignment.id ?: ""] = assignment
-                _assignmentData.value = currentData.copy(storeName = updatedStoreAssignments)
+            val currentData = _assignmentData.value
+            if (currentData == null) {
+                /**
+                 * nullのときは、initのデータ取得に失敗している。
+                 * ローカルに保存できるように将来的にするが、現在はインターネット接続がないと
+                 * 追加もできないようにしておく。
+                 * UI上でnullのときは追加できないようにしておくから、ここに来ることはたぶんないがな。
+                 */
+                callback(
+                    SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "CategoryAssignmentData is null. Please fetch data first."
+                    )
+                )
+                return@launch
             }
-            callback(ret)
+
+            val addRet: SuspendFuncStatusInfo =
+                categoryAssignmentUseCase.addCategoryAssignmentWithCheck(
+                    assignment,
+                    type,
+                )
+            if (addRet.status == SuspendFuncStatus.SUCCESS) {
+                /**
+                 *  本当はstoreNameかproductNameかを見て、片方だけ更新するだけでいいが、、
+                 *  まあそんな頻繁に更新するものでもないから全部取ってしまおう。
+                 *  */
+                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate()
+
+                var ret: SuspendFuncStatusInfo
+                if (fetchRet is FetchResult.Success) {
+                    _assignmentData.value = fetchRet.data
+                    ret = fetchRet.toSuspendFuncStatusInfo()
+                } else {
+                    Log.e(
+                        className,
+                        "Failed to fetch updated category assignment data: ${fetchRet.toSuspendFuncStatusInfo().errorMessage}"
+                    )
+                    ret = SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "データ追加には成功しましたが、その後のリモートデータ取得で失敗しました。 ${fetchRet.toSuspendFuncStatusInfo().errorMessage}"
+                    )
+                }
+                callback(ret)
+            } else {
+                callback(addRet)
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 package gaku.original.myapplication.data.dataClass
 
+import gaku.original.myapplication.data.Interface.CategorizationMode
 import gaku.original.myapplication.data.Interface.CategoryAssignFlag
-import gaku.original.myapplication.data.Interface.CategoryAssignable
 import gaku.original.myapplication.data.Interface.HasCategoryId
 
 /**
@@ -16,7 +16,7 @@ enum class EmailProvider(val value: String) {
     OUTLOOK("outlook");//非対応
 }
 
-sealed class EmailTemplateType : CategoryAssignable {
+sealed class EmailTemplateType : CategorizationMode {
     abstract val enabled: Boolean
     abstract val nodeName: String
     abstract val menuName: String
@@ -32,7 +32,7 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val nodeName = "rakuten_pay"
         override val menuName = "楽天Pay"
         override fun defaultInstance() = RakutenPay()
-        override val categoryAssignFlag = CategoryAssignFlag.STORE_NAME
+        override val categoryAssignFlag = CategoryAssignFlag.STORE_NAME.value
 
     }
 
@@ -44,7 +44,7 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val nodeName = "shikoku_electric_power"
         override val menuName = "四国電力"
         override fun defaultInstance() = ShikokuElectricPower()
-        override val categoryAssignFlag = CategoryAssignFlag.NONE
+        override val categoryAssignFlag = CategoryAssignFlag.NONE.value
     }
 
     /**
@@ -58,7 +58,7 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val nodeName = "amazon_kindle"
         override val menuName = "Amazon Kindle"
         override fun defaultInstance() = AmazonKindle()
-        override val categoryAssignFlag = CategoryAssignFlag.NONE
+        override val categoryAssignFlag = CategoryAssignFlag.NONE.value
     }
 
     data class AmazonItem(
@@ -68,7 +68,7 @@ sealed class EmailTemplateType : CategoryAssignable {
         override val nodeName = "amazon_item"
         override val menuName = "Amazon 物"
         override fun defaultInstance() = AmazonItem()
-        override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME
+        override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME.value
     }
     //ユニクロ？
 }

@@ -11,20 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,6 +43,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.CalendarDisplay
+import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -155,7 +149,7 @@ fun MainView(
             TopBarView(topBarName)
         },
         floatingActionButton = {
-            FloatingActionButton(
+            FloatingActionButtonWithIcon(
                 onClick = {
                     //必ずAddなのでリセットで
                     viewModel.resetTmpExpense()
@@ -167,19 +161,8 @@ fun MainView(
                             originalRoute
                         )
                     )
-                },
-                containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
-                contentColor = MaterialTheme.colorScheme.onSecondary,
-                shape = CircleShape,
-                modifier = Modifier.size(80.dp),
-                elevation = FloatingActionButtonDefaults.elevation(0.dp)//デフォルトだとElevationがついているっぽい。
-            ) {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = "Add Button",
-                    modifier = Modifier.size(36.dp)
-                )
-            }
+                }
+            )
         },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->

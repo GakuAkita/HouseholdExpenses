@@ -643,8 +643,7 @@ fun ExpenseAddEditView(
                 titleContent = {
                     Text(viewModel.getGeneratedTypeDisplay())
                 },
-                onSave = {
-
+                onSave = { _, _ ->
                 },
                 onDismiss = {
                     showCategoryAssignmentDialog = false
@@ -654,7 +653,8 @@ fun ExpenseAddEditView(
                     categoryId = null,
                     condition = AssignmentCondition.EXACT_MATCH
                 ),
-                categories = allCategories
+                categories = allCategories,
+                isNamePatternSelectable = false
             )
         }
 

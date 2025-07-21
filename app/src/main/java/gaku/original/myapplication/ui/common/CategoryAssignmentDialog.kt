@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.AssignmentCondition
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
@@ -131,19 +132,78 @@ fun AssignmentConditionDropdown(
                 }
             )
         }
-
     }
 }
+
+@Composable
+fun CategoryAssignNamePatternDropdown(
+    initialNamePattern: CategoryAssignNamePattern?,
+    onPatternSelected: (CategoryAssignNamePattern) -> Unit,
+    modifier: Modifier,
+    enabled: Boolean = true
+) {
+    var selectedNamePattern by remember { mutableStateOf(initialNamePattern) }
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+    ) {
+        TextField(
+            value = selectedNamePattern?.label ?: "名前パターン選択",
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            colors = enabledTextFiledColorSet().copy(
+                MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    expanded = !expanded
+                }
+        )
+
+        if (enabled) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text(text = CategoryAssignNamePattern.STORE.label) },
+                    onClick = {
+                        selectedNamePattern = CategoryAssignNamePattern.STORE
+                        expanded = false
+                        onPatternSelected(selectedNamePattern!!)/* 気を付けて */
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text(text = CategoryAssignNamePattern.PRODUCT.label) },
+                    onClick = {
+                        selectedNamePattern = CategoryAssignNamePattern.PRODUCT
+                        expanded = false
+                        onPatternSelected(selectedNamePattern!!)
+                    }
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryAssignmentDialog(
     titleContent: @Composable () -> Unit = {},
-    onSave: (CategoryAssignment) -> Unit = {},
+    onSave: (CategoryAssignment, CategoryAssignNamePattern) -> Unit = { _, _ -> },
     onDismiss: () -> Unit = {},
     initialAssignment: CategoryAssignment?,
-    categories: List<Category>
+    categories: List<Category>,
+    initialNamePattern: CategoryAssignNamePattern? = null,//店名なのか、製品名なのか,
+    isNamePatternSelectable: Boolean = false
 ) {
+    var namePattern by remember { mutableStateOf(initialNamePattern) }
+
     // null のときはデフォルト値で初期化
     var assignment by remember {
         mutableStateOf(
@@ -176,26 +236,56 @@ fun CategoryAssignmentDialog(
                     Text("カテゴリー割当を編集")
                 }
             }
+
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CategoryAssignNamePatternDropdown(
+                    initialNamePattern = namePattern,
+                    onPatternSelected = {
+                        namePattern = it
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    enabled = isNamePatternSelectable
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 titleContent()
             }
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-                value = assignment.name ?: "",
-                onValueChange = {
-                    assignment = assignment.copy(
-                        name = it
-                    )
-                },
-                placeholder = {
-                    Text("店の名前")
-                }
-            )
+
+            if (namePattern != null) {
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    value = assignment.name ?: "",
+                    onValueChange = {
+                        assignment = assignment.copy(
+                            name = it
+                        )
+                    },
+                    placeholder = {
+                        if (initialNamePattern == null && !isNamePatternSelectable) {
+                            /**
+                             *  名前パターンが選択不可なのに名前パターンの初期値が入っていないのはバグ
+                             *  */
+                            Text("これはバグです。開発者に連絡してください")
+                        } else {
+                            /* これが表示されるときにnamePatternがnullであることはない。 */
+                            Text("${namePattern?.label}を入力してください")
+                        }
+                    }
+                )
+            }
+
             AssignmentConditionDropdown(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,7 +330,12 @@ fun CategoryAssignmentDialog(
                 }
                 Button(
                     onClick = {
-                        onSave(assignment)
+                        if (namePattern == null) {
+                            // 名前パターンが選択されていない場合はエラーを表示する
+                            // ここでは簡単にトーストなどで通知することを想定
+                            return@Button
+                        }
+                        onSave(assignment, namePattern!!)
                     }
                 ) {
                     Text("Save")

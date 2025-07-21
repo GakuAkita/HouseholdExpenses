@@ -107,8 +107,8 @@ fun checkAssignment(
 
 fun CategoryAssignmentData.getAssignmentsByFlag(flag: Int): Map<String, CategoryAssignment>? {
     return when {
-        flag and CategoryAssignFlag.STORE_NAME != 0 -> storeName
-        flag and CategoryAssignFlag.PRODUCT_NAME != 0 -> productName
+        flag and CategoryAssignFlag.STORE_NAME.value != 0 -> storeName
+        flag and CategoryAssignFlag.PRODUCT_NAME.value != 0 -> productName
         else -> null
     }
 }
