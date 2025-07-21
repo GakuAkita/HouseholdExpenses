@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import { logger } from "firebase-functions";
 import * as path from "path";
-import { AssignmentCondition } from "./constants/AssignmentCondition";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
@@ -14,6 +13,7 @@ import { UserService } from "./myFunc/FirestoreService/UserService";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
+import { CategoryAssignmentService } from "./myFunc/RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "./myFunc/RealtimeDbService/MailboxExtractionService";
 import { RealtimeDbService } from "./myFunc/RealtimeDbService/RealtimeDbService";
 import { UserRTDbService } from "./myFunc/RealtimeDbService/UserRTDbService";
@@ -28,6 +28,7 @@ import {
 import {
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
+  EmailProvider,
   MailboxTokenType,
 } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
@@ -61,11 +62,13 @@ const categoryService = new CategoryService(db);
 const repeatAddService = new RepeatAddService(db);
 const settingsService = new SettingsService(db);
 const mailboxExtractionService = new MailboxExtractionService(rtdb);
+const categoryAssignmentService = new CategoryAssignmentService(rtdb);
 const mailboxExProcessor = new MailboxExtractionProcessor(
   userId,
   mailboxExtractionService,
   expenseService,
-  categoryService
+  categoryService,
+  categoryAssignmentService
 );
 
 const userRTDbService = new UserRTDbService(rtdb);
@@ -146,14 +149,7 @@ const init_add = async () => {
 
   const r10Setting = createRakutenPaySettingInstance({
     enabled: true,
-    storeCategoryAssignments: {
-      id1: {
-        id: "id1",
-        categoryId: "category1",
-        name: "はま寿司",
-        condition: AssignmentCondition.CONTAINS, // 後々入力制限する
-      },
-    },
+    emailProvider: EmailProvider.GMAIL,
   });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
@@ -306,7 +302,8 @@ const processRakuten = async () => {
     userId,
     mailboxExtractionService,
     expenseService,
-    categoryService
+    categoryService,
+    categoryAssignmentService
   );
 
   await processInstance.processSingleMailType(
