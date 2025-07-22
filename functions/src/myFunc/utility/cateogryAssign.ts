@@ -12,8 +12,12 @@ export const categoryAssign = (
   assignments: Record<string, CategoryAssignment>,
   categories: Record<string, Category>
 ): Category | null => {
-  // まずは EXACT_MATCH を探す
+  if (!assignments) {
+    logger.info("No assignments provided for category assignment.");
+    return null;
+  }
 
+  // まずは EXACT_MATCH を探す
   for (const assignment of Object.values(assignments)) {
     /**
      * ここでassignmentの諸々の値がちゃんと入っているかチェックする。
