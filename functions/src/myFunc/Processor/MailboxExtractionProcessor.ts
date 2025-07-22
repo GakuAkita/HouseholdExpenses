@@ -369,6 +369,7 @@ export class MailboxExtractionProcessor {
         break;
 
       default:
+        logger.error(`Not prepared type for MailboxExtraction: ${nodeName}`);
         break;
     }
 
@@ -388,8 +389,10 @@ export class MailboxExtractionProcessor {
     }
 
     const baseExpense: Expense = ret.data;
-
     if (assignmentData.storeName && baseExpense.storeName) {
+      /**
+       * categoriesがちゃんと取れているかわからないので、printしてみる
+       *  */
       const category = categoryAssign(
         baseExpense.storeName,
         assignmentData.storeName,
@@ -519,12 +522,13 @@ export class MailboxExtractionProcessor {
      */
     /*　デバッグのため、Afterだけ書き換える!! */
     /* ------------------------------deployするときはfalseにすること！！ ----------------------*/
-    const akitaDebug = true;
-    let queryAfter: number = 0;
-    if (akitaDebug) {
-      queryAfter = 1;
-    }
-    /*const queryAfter = convertUnixMillisecToSec(startTime);//本番はこっち */
+    // const akitaDebug = false;
+    // let queryAfter: number = 0;
+    // if (akitaDebug) {
+    //   queryAfter = 1;
+    // }
+
+    const queryAfter = convertUnixMillisecToSec(startTime); //本番はこっち */
     const queryBefore = convertUnixMillisecToSec(endTime);
     const queryRet = await this.getMailIdsByQuery(
       type,
@@ -588,7 +592,7 @@ export class MailboxExtractionProcessor {
         null; /* 最後にLastExecを更新するときに使う */
       for (const [id, message] of sortedEntries) {
         if (id === lastMsgId) {
-          logger.info(`Found lastMsgId again.`);
+          logger.info(`Found lastMsgId again.${id}`);
           break; // これより古いメッセージは無視
         }
 

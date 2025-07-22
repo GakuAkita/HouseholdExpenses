@@ -67,7 +67,7 @@ export class CategoryAssignmentService {
           store1: {
             id: "store1",
             name: "ローソン",
-            category: "category1",
+            categoryId: "category1",
             condition: AssignmentCondition.CONTAINS,
             regex: false,
             generatedType: "rakuten_pay",
