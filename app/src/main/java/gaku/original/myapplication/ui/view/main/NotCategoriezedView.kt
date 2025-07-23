@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view.main
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -10,17 +11,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
@@ -38,6 +42,7 @@ fun NotCategorizedView(
 ) {
     val expenses = viewModel.notCategorizedExpenses.collectAsState()
     val listState = rememberLazyListState()
+    val loadingStatus = viewModel.loadingStatus.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchNotCategorizedExpenses {
@@ -65,21 +70,54 @@ fun NotCategorizedView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    userScrollEnabled = true
+            if (loadingStatus.value == LoadingStatus.LOADING) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    items(expenses.value) { expense ->
-                        NotCategorizedExpenseItem(expense) {
-                            viewModel.setToTmpExpense(it)
-                            navController.navigate(
-                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
-                                    Screen.NotCategorizedScreen//遷移元
+                    CircularProgressIndicator()
+                }
+            } else if (loadingStatus.value == LoadingStatus.ERROR) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("データの取得に失敗しました。")
+                }
+            } else if (loadingStatus.value == LoadingStatus.TIMEOUT) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("タイムアウトしました。")
+                }
+            } else if (loadingStatus.value == LoadingStatus.COMPLETED && expenses.value.isEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("カテゴリー未割り当てはありません")
+                }
+            } else {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        userScrollEnabled = true
+                    ) {
+                        items(expenses.value) { expense ->
+                            NotCategorizedExpenseItem(expense) {
+                                viewModel.setToTmpExpense(it)
+                                navController.navigate(
+                                    Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+                                        Screen.NotCategorizedScreen//遷移元
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
