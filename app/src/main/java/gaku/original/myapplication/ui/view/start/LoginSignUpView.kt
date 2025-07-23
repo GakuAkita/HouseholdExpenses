@@ -5,15 +5,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -41,8 +41,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.CredentialManagerHelper
+import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
@@ -231,33 +233,32 @@ fun LoginSignUpView(
                 if (signInLoading) {
                     CircularProgressIndicator()
                 } else {
-                    Button(
+                    IconButton(
                         onClick = {
                             /* Googleでログイン */
+                            /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
                             authViewModel.viewModelScope.launch {
-                                val idToken = CredentialManagerHelper.getGoogleIdToken(context)
-                                if (idToken != null) {
-                                    authViewModel.signInWithGoogleIdToken(idToken)
-                                } else {
+                                val result = CredentialManagerHelper.getGoogleIdToken(context)
+                                if (result !is FetchResult.Success) {
+                                    val errorMessage = result.toSuspendFuncStatusInfo().errorMessage
                                     snackBarHostState.currentSnackbarData?.dismiss()
-                                    snackBarHostState.showSnackbar("Googleログインに失敗しました")
+                                    snackBarHostState.showSnackbar(
+                                        "Googleログインに失敗しました: ${errorMessage}",
+                                        duration = SnackbarDuration.Long
+                                    )
+                                    return@launch
                                 }
+                                val idToken = result.data
+                                authViewModel.signInWithGoogleIdToken(idToken)
                             }
                         },
-                        colors = ButtonDefaults.buttonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Image(
-                                painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_standard_color_18),
-                                contentDescription = null
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text("Googleでログイン")
-                        }
+                        /* 広げないとめっちゃ小さくなる */
+                        Image(
+                            painter = painterResource(id = R.drawable.android_light_rd),
+                            contentDescription = "Google Sign In",
+                        )
                     }
                 }
             }

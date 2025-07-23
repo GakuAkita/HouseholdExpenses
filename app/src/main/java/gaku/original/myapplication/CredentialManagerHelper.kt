@@ -9,9 +9,14 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FetchResult
 
+/**
+ * ほとんどGPTに作ってもらったからわからん。
+ */
 object CredentialManagerHelper {
-    suspend fun getGoogleIdToken(context: Context): String? {
+    suspend fun getGoogleIdToken(context: Context): FetchResult<String> {
         val credentialManager = CredentialManager.create(context)
 
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -29,11 +34,17 @@ object CredentialManagerHelper {
 
             if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                googleCredential.idToken
-            } else null
+                FetchResult.Success(data = googleCredential.idToken)
+            } else FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Unexpected credential type: ${credential?.type}"
+            )
         } catch (e: GetCredentialException) {
             Log.e("CredentialManager", "Credential error: ${e.message}")
-            null
+            FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "Unknown error"
+            )
         }
     }
 }
