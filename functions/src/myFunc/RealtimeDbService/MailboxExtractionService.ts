@@ -254,12 +254,12 @@ export class MailboxExtractionService {
       if (data == null) {
         return {
           status: FuncStatus.EMPTY,
-          message: "Data was null",
+          message: "User mailbox extraction mail type setting not found.",
         };
       }
       return {
         status: FuncStatus.SUCCESS,
-        message: "Successfully get data",
+        message: "Successfully get mailtype setting data",
         data: data,
       };
     } catch (e: any) {

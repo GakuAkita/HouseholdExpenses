@@ -35,10 +35,10 @@ export const loadGoogleOAuthSecrets = async (): Promise<
 
       parsed = JSON.parse(config);
     } else {
-      logger.log("Loading secrets from Secret Manager");
+      logger.log("Loading secrets from Secret Manager without using cache");
       const secretName = "GOOGLE_OAUTH2";
       const [version] = await secretClient.accessSecretVersion({
-        name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest`,
+        name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest` /* latestじゃなくて4にしてもいいか。 */,
       });
 
       const data = version.payload?.data as Buffer | undefined;

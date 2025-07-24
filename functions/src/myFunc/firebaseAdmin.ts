@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { logger } from "firebase-functions";
 
 /**
  *  環境変数についてはよくわかっていないけど、ここで毎回コメントアウトでローカルとそうでないのを切り替えればよいのでは？
@@ -9,10 +10,10 @@ export const initMyFirebaseAdmin = (options?: admin.AppOptions) => {
   }
 
   if (options) {
-    console.log("Initializing Firebase Admin SDK in LOCAL (emulator) mode");
+    logger.log("Initializing Firebase Admin SDK in LOCAL (emulator) mode");
     admin.initializeApp(options);
   } else {
-    console.log("Initializing Firebase Admin SDK in PRODUCTION mode");
+    logger.log("Initializing Firebase Admin SDK in PRODUCTION mode");
     admin.initializeApp();
   }
 };

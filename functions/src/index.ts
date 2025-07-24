@@ -158,6 +158,8 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
       throw new Error(
         `Failed to set mailbox extraction token for user ${uid}: ${ret.message}`
       );
+    } else {
+      logger.log(`Successfully set mailbox extraction token for user ${uid}.`);
     }
     res.send(
       `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`

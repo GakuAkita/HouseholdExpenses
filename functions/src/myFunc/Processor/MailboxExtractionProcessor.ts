@@ -135,9 +135,13 @@ export class MailboxExtractionProcessor {
      */
     const secretsRet = await loadGoogleOAuthSecrets();
     if (secretsRet.status != FuncStatus.SUCCESS) {
+      /**
+       *  7 PERMISSION_DENIED: Permission 'secretmanager.versions.access' denied for resource .....
+       * こちらのエラーが出た場合は、compute....にSecret ManagerのSecret Accessorの権限を付与する必要がある。
+       * */
       return {
         status: secretsRet.status,
-        message: `rakutenPayProcess: ${secretsRet.message}`,
+        message: `generateGmailApiInstance: ${secretsRet.message}`,
       };
     }
 

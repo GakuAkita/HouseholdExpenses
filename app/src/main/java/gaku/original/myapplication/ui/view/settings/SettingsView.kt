@@ -89,6 +89,11 @@ fun SettingsView(
                 Text(text = "メールボックス自動抽出", modifier = Modifier.padding(start = 10.dp))
             }
 
+            SettingRow {
+                //
+                Text(text = "カテゴリー一覧", modifier = Modifier.padding(start = 10.dp))
+            }
+
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
