@@ -42,6 +42,9 @@ class MailboxExtractionViewModel @Inject constructor(
 
     private var initialized = false
 
+    private val _isGmailTokenExist = MutableStateFlow(false)
+    val isGmailTokenExist: StateFlow<Boolean> get() = _isGmailTokenExist
+
     private val _lastExecMap = MutableStateFlow<Map<String, MailboxExtractionLastExec>>(emptyMap())
     val lastExecMap: StateFlow<Map<String, MailboxExtractionLastExec>> get() = _lastExecMap
 
@@ -194,7 +197,18 @@ class MailboxExtractionViewModel @Inject constructor(
         )
 
         activeLoadingCount++
+        loadAllMailTypeLastExec(
+            callback = {
+                onFinishOne()
+            }
+        )
 
+        activeLoadingCount++
+        loadIsGmailTokenExistWithLocalUpdate(
+            callback = {
+                onFinishOne()
+            }
+        )
     }
 
     private fun loadAllEmailTemplateTypeSetting(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
@@ -329,7 +343,26 @@ class MailboxExtractionViewModel @Inject constructor(
 
     /******************* メール抽出の実行状況 **********************/
     suspend fun getIsGmailToken(): FetchResult<Boolean> {
-        return mailboxExtractionRepository.getIsGmailToken()
+        return mailboxExtractionRepository.getIsGmailTokenExist()
+    }
+
+    fun loadIsGmailTokenExistWithLocalUpdate(
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val fetchResult = getIsGmailToken()
+            if (fetchResult is FetchResult.Success) {
+                _isGmailTokenExist.value = true
+                callback(
+                    SuspendFuncStatusInfo(
+                        SuspendFuncStatus.SUCCESS,
+                        "Gmail token status loaded successfully."
+                    )
+                )
+            } else {
+                callback(fetchResult.toSuspendFuncStatusInfo())
+            }
+        }
     }
 
     suspend fun getMailTypeLastExec(
@@ -351,7 +384,7 @@ class MailboxExtractionViewModel @Inject constructor(
         return fetchResult
     }
 
-    fun getAllMailTypeLastExec(
+    fun loadAllMailTypeLastExec(
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {

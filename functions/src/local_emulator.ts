@@ -29,7 +29,7 @@ import {
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   EmailProvider,
-  MailboxTokenType,
+  MailboxGmailTokenType,
 } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
@@ -166,9 +166,11 @@ const init_add = async () => {
    * refreshTokenをRTDbに保存しておく
    */
   const encryptedToken = process.env.ENCRYPTED_REFRESH_TOKEN;
-  if (encryptedToken !== undefined) {
-    const tokenConf: MailboxTokenType = {
+  const myGmail = process.env.MY_GMAIL;
+  if (encryptedToken !== undefined && myGmail !== undefined) {
+    const tokenConf: MailboxGmailTokenType = {
       refreshToken: encryptedToken,
+      gmail: myGmail,
     };
     const refreshTokenRet = mailboxExtractionService.setMailboxExtractionToken(
       userId,
@@ -220,9 +222,15 @@ const storeRefreshToken = async (rawToken: string) => {
   }
 
   const refreshTokenSamp = "akita_gaku";
+  const myGmail = process.env.MY_GMAIL;
+  if (!myGmail) {
+    console.error("MY_GMAIL is not set in environment variables.");
+    return;
+  }
 
-  const tokenSet: MailboxTokenType = {
+  const tokenSet: MailboxGmailTokenType = {
     refreshToken: refreshTokenSamp,
+    gmail: myGmail,
   };
 
   const tokenSetRet =

@@ -24,6 +24,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,6 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
@@ -62,6 +66,28 @@ fun MailboxExtractionView(
     val shikokuElectricSettingState by viewModel.shikokuElectricPowerSettingState.collectAsState()
 
     val allCategories by viewModel.allCategories.collectAsState()
+    val isGmailTokenExist by viewModel.isGmailTokenExist.collectAsState()
+    val lastExecMap by viewModel.lastExecMap.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // ✅ ここに復帰時の処理を書く
+                println("App resumed!")
+                viewModel.loadIsGmailTokenExistWithLocalUpdate()
+            }
+        }
+
+        val lifecycle = lifecycleOwner.lifecycle
+        lifecycle.addObserver(observer)
+
+        // Composableが破棄されたときにobserverを削除
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.startInit()
@@ -259,25 +285,31 @@ fun MailboxExtractionView(
                             }
                         )
                     }) {
-                        Text("Gmail API許可")
+                        if (isGmailTokenExist) {
+                            Text("Gmail API許可(すでに実施済み)")
+                        } else {
+                            Text("Gmail API許可")
+                        }
                     }
                 }
 
-                MailboxExtractionMenu(
-                    rakutenPaySettingState,
-                )
+                if (isGmailTokenExist) {
+                    MailboxExtractionMenu(
+                        rakutenPaySettingState,
+                    )
 
-                MailboxExtractionMenu(
-                    amazonKindleSettingState,
-                )
+                    MailboxExtractionMenu(
+                        amazonKindleSettingState,
+                    )
 
-                MailboxExtractionMenu(
-                    amazonItemSettingState,
-                )
+                    MailboxExtractionMenu(
+                        amazonItemSettingState,
+                    )
 
-                MailboxExtractionMenu(
-                    shikokuElectricSettingState,
-                )
+                    MailboxExtractionMenu(
+                        shikokuElectricSettingState,
+                    )
+                }
             }
         }
     }

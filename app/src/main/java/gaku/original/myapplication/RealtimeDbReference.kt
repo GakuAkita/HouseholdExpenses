@@ -227,7 +227,7 @@ class RealtimeDbReference @Inject constructor(
         val baseRef = baseRefRet.data
 
         val result = FetchResult.Success(
-            baseRef.child("gmail_token")
+            baseRef.child("gmail_tokens")
         )
         return result
     }

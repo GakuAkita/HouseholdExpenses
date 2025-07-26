@@ -9,7 +9,7 @@ import {
   AllMailType,
   createRakutenPaySettingInstance,
   LastMailboxExtractionExec,
-  MailboxTokenType,
+  MailboxGmailTokenType,
   RakutenPaySetting,
 } from "../../type/Mailbox";
 import { admin } from "../firebaseAdmin";
@@ -30,9 +30,25 @@ export class MailboxExtractionService {
     return this.db.ref("users").child(userId).child("mailbox_extraction");
   }
 
-  private getUserMailboxExtractionTokenRef(userId: string): Reference {
-    return this.getUserMailboxExtractionRef(userId).child("gmail_token");
+  /**
+   * gmailトークンは複数持てるようにしようとおもったけど、
+   * そうするとLastExecとかも複数持たなきゃいけなくなりそうなので、
+   * とりあえずは一つだけにしておく
+   */
+  private getUserMailboxExtractionGmailTokensRef(userId: string): Reference {
+    return this.getUserMailboxExtractionRef(userId).child("gmail_tokens");
   }
+
+  // private getUserMailboxExtractionGmailTokenSingleRef(
+  //   userId: string,
+  //   gmail: string /* sanitizeされたものでもされていないものでもどっちでもいいのか。 */
+  // ): Reference {
+  //   /* gmailには.や@が入っているので別文字の置き換える */
+  //   const encodedNodeName = sanitizeEmail(gmail);
+  //   return this.getUserMailboxExtractionGmailTokensRef(userId).child(
+  //     encodedNodeName
+  //   );
+  // }
 
   private getUserMailboxExtractionLastExecRef(userId: string): Reference {
     return this.getUserMailboxExtractionRef(userId).child("last_exec");
@@ -70,10 +86,10 @@ export class MailboxExtractionService {
    */
   async setMailboxExtractionToken(
     userId: string,
-    token: MailboxTokenType
+    token: MailboxGmailTokenType
   ): Promise<FuncResult> {
     try {
-      const ref = this.getUserMailboxExtractionTokenRef(userId);
+      const ref = this.getUserMailboxExtractionGmailTokensRef(userId);
       const now = new Date();
       const isoString = now.toISOString();
       await ref.set({ ...token, timestamp: isoString });
@@ -95,14 +111,14 @@ export class MailboxExtractionService {
    */
   async setMailboxExtractionTokenWithEncryption(
     userId: string,
-    rawToken: MailboxTokenType,
+    rawToken: MailboxGmailTokenType,
     encryptionKey: string
   ): Promise<FuncResult> {
     const encryptedRefreshToken = encryptWithKey(
       rawToken.refreshToken,
       encryptionKey
     );
-    const encryptedToken: MailboxTokenType = {
+    const encryptedToken: MailboxGmailTokenType = {
       ...rawToken,
       refreshToken: encryptedRefreshToken,
     };
@@ -113,15 +129,15 @@ export class MailboxExtractionService {
   }
 
   /**
-   * 単純にトークンを取得してくる。
+   * 単一のトークンを取得してくる。
    */
-  private async getMailboxExtractionToken(
+  private async getMailboxExtractionGmailToken(
     userId: string
-  ): Promise<FuncResultWithData<MailboxTokenType>> {
-    const ref = this.getUserMailboxExtractionTokenRef(userId);
+  ): Promise<FuncResultWithData<MailboxGmailTokenType>> {
+    const ref = this.getUserMailboxExtractionGmailTokensRef(userId);
     try {
       const snapshot = await ref.get();
-      const data: MailboxTokenType | null = snapshot.val();
+      const data: MailboxGmailTokenType | null = snapshot.val();
 
       if (!data || !data.refreshToken) {
         return {
@@ -146,8 +162,8 @@ export class MailboxExtractionService {
   async getMailboxExtractionTokenWithDecryption(
     userId: string,
     encryptionKey: string
-  ): Promise<FuncResultWithData<MailboxTokenType>> {
-    const ret = await this.getMailboxExtractionToken(userId);
+  ): Promise<FuncResultWithData<MailboxGmailTokenType>> {
+    const ret = await this.getMailboxExtractionGmailToken(userId);
     if (ret.status !== FuncStatus.SUCCESS) {
       /**
        * EMPTYの場合もすぐ返される!

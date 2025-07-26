@@ -10,7 +10,7 @@ import { initializeServices } from "./myFunc/initializeServices";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
-import { MailboxTokenType } from "./type/Mailbox";
+import { MailboxGmailTokenType } from "./type/Mailbox";
 const {
   userService,
   repeatAddProcessor,
@@ -137,13 +137,29 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
       throw new Error("Unable to get access token or refresh token.");
     }
 
+    /* Gmailアドレスを取得する */
+    const userInfoRes = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+    const gmailEmail = userInfoRes.data.email;
+
+    if (!gmailEmail) {
+      throw new Error("Unable to get Gmail email address.");
+    }
+
     /**
      * refresh_tokenを暗号化して保存する
      */
 
-    /* ここでMailboxTokenTypeに変換しないとだめ */
-    const mailboxToken: MailboxTokenType = {
+    /* ここでMailboxGmailTokenTypeに変換しないとだめ */
+    const mailboxToken: MailboxGmailTokenType = {
       refreshToken: refresh_token,
+      gmail: gmailEmail,
     };
 
     /* ここまでちゃんとできている */
