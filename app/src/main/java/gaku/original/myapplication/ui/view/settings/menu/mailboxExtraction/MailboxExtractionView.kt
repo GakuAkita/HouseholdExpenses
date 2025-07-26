@@ -45,6 +45,7 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.copyWith
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.settings.EmailTemplateSettingState
 import gaku.original.myapplication.viewModel.settings.MailboxExtractionViewModel
@@ -227,6 +228,17 @@ fun MailboxExtractionView(
                         )
                     }
                 }
+            }
+
+            Row() {
+                val timestamp = lastExecMap[settingState.type.nodeName]?.timestamp
+                var execTimeStr: String? = null
+                if (timestamp != null && timestamp > 0L) {
+                    val isoStr =
+                        AppTimeZone.convertUnixTimestampToCurrentTimeInZoneIsoStr(timestamp)
+                    execTimeStr = isoStr?.substringBefore('.') ?: "時刻取得失敗"
+                }
+                Text("最終実行時間 : ${if (execTimeStr == null) "未実行" else execTimeStr}")
             }
         }
     }

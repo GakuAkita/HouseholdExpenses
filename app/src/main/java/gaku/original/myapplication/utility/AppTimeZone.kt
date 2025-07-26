@@ -80,4 +80,18 @@ object AppTimeZone {
     fun fromInstantUTC(instant: Instant?): String? {
         return instant?.atZone(currentZoneId)?.toInstant()?.toString()
     }
+
+    /* UNIXのタイムスタンプを */
+    fun convertUnixTimestampToCurrentTimeInZone(unixTimestamp: Long): LocalDateTime {
+        val instant = Instant.ofEpochMilli(unixTimestamp)
+        val zonedDateTime = instant.atZone(currentZoneId)
+        LogAkitaDebug("$zonedDateTime currentZoneId=$currentZoneId")
+        return zonedDateTime.toLocalDateTime()
+    }
+
+    fun convertUnixTimestampToCurrentTimeInZoneIsoStr(unixTimestamp: Long): String? {
+        val timeZoneLocalDatetime = convertUnixTimestampToCurrentTimeInZone(unixTimestamp)
+        LogAkitaDebug("${timeZoneLocalDatetime}")
+        return localDateTimeToIsoString(timeZoneLocalDatetime)
+    }
 }

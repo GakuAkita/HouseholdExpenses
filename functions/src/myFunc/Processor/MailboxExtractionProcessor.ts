@@ -542,15 +542,18 @@ export class MailboxExtractionProcessor {
        * 何もヒットしなかった
        */
       logger.info("Nothing was found After query.");
-
-      await this.mailboxExtractionService.setMailboxExtractionLastExec(
-        this.userId,
-        type,
-        {
-          timestamp: endTime /* UNIXミリ秒で保存 */,
-          ...lastExecRet.data,
-        }
-      );
+      const ret =
+        await this.mailboxExtractionService.setMailboxExtractionLastExec(
+          this.userId,
+          type,
+          {
+            timestamp: endTime /* UNIXミリ秒で保存 */,
+            ...lastExecRet.data,
+          }
+        );
+      if (ret.status != FuncStatus.SUCCESS) {
+        logger.error(`${ret.message}`);
+      }
     } else {
       /**
        * クエリでなにかしらヒットした

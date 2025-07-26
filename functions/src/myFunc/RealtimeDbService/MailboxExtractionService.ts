@@ -137,12 +137,18 @@ export class MailboxExtractionService {
     const ref = this.getUserMailboxExtractionGmailTokensRef(userId);
     try {
       const snapshot = await ref.get();
+      if (!snapshot.exists()) {
+        return {
+          status: FuncStatus.EMPTY,
+          message: `user:${userId} didn't allow Gmail API.`,
+        };
+      }
       const data: MailboxGmailTokenType | null = snapshot.val();
 
       if (!data || !data.refreshToken) {
         return {
           status: FuncStatus.ERROR,
-          message: `data type doesn't match with expected type. user:${userId}`,
+          message: `data type doesn't match with expected type or data was not set. user:${userId}`,
         };
       }
 
