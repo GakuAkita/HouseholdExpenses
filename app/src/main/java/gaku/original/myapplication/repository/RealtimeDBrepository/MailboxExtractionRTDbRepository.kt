@@ -91,7 +91,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun getIsGmailTokenExist(): FetchResult<Boolean> {
         val funcName = ::getIsGmailTokenExist.name
-        val refRet = realtimeDbReference.getMailboxExtractionGmailTokenRef()
+        val refRet = realtimeDbReference.getMailboxExtractionGmailTokensRef()
         if (refRet !is FetchResult.Success) {
             return refRet.mapFailure()
         }

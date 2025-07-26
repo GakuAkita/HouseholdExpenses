@@ -262,7 +262,13 @@ fun MailboxExtractionView(
                     CircularProgressIndicator(modifier = Modifier.padding(16.dp))
                 }
             } else {
-                Column {
+                if (!isGmailTokenExist) {
+                    Text("現状、連携できるGmailはログインしているGmailと同じものだけです。")
+                    Text("たとえば 、a@gmail.comでこのアプリにログインしているのであれば、下のボタンのリンク先でa@gmail.comを選択してください。")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     /**
                      * ここでtokenがすでに存在していれば、
                      * このGmailAPI許可ボタンは消す

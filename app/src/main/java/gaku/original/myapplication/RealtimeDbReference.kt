@@ -218,7 +218,7 @@ class RealtimeDbReference @Inject constructor(
     /**
      * トークンがあるかないかを取得する
      * */
-    suspend fun getMailboxExtractionGmailTokenRef(
+    suspend fun getMailboxExtractionGmailTokensRef(
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionRef()
         if (baseRefRet !is FetchResult.Success) {

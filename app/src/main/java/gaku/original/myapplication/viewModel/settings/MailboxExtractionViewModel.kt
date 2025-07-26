@@ -57,7 +57,7 @@ class MailboxExtractionViewModel @Inject constructor(
             "client_id=${BuildConfig.WEB_CLIENT_ID}",
             "redirect_uri=${BuildConfig.REDIRECT_URI}",
             "response_type=code",
-            "scope=https://www.googleapis.com/auth/gmail.readonly",
+            "scope=openid email profile https://www.googleapis.com/auth/gmail.readonly",
             "access_type=offline",
             "prompt=consent",
             "state=$idToken"
@@ -342,7 +342,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     /******************* メール抽出の実行状況 **********************/
-    suspend fun getIsGmailToken(): FetchResult<Boolean> {
+    suspend fun getIsGmailTokenExist(): FetchResult<Boolean> {
         return mailboxExtractionRepository.getIsGmailTokenExist()
     }
 
@@ -350,9 +350,9 @@ class MailboxExtractionViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
-            val fetchResult = getIsGmailToken()
+            val fetchResult = getIsGmailTokenExist()
             if (fetchResult is FetchResult.Success) {
-                _isGmailTokenExist.value = true
+                _isGmailTokenExist.value = fetchResult.data
                 callback(
                     SuspendFuncStatusInfo(
                         SuspendFuncStatus.SUCCESS,

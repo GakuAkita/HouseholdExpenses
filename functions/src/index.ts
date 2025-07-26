@@ -191,7 +191,10 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     );
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      logger.error("Axios error:", err.response?.data);
+      logger.error(
+        "Axios error:",
+        JSON.stringify(err.response?.data ?? err.message)
+      );
     } else {
       logger.error("Unexpected error:", err);
     }
