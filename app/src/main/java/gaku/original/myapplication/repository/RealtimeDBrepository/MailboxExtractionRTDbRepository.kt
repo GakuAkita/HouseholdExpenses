@@ -7,6 +7,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
+import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
 import gaku.original.myapplication.data.mapFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -74,6 +75,78 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                             data = data
                         )
                         return@withContext result
+                    }
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            Log.d(className, "${funcName} Timeout.")
+            FetchResult.Failure.Timeout()
+        } catch (e: Exception) {
+            FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "Unknown error"
+            )
+        }
+    }
+
+    suspend fun getIsGmailToken(): FetchResult<Boolean> {
+        val funcName = ::getIsGmailToken.name
+        val refRet = realtimeDbReference.getMailboxExtractionGmailTokenRef()
+        if (refRet !is FetchResult.Success) {
+            return refRet.mapFailure()
+        }
+        val ref = refRet.data
+
+        return try {
+            withTimeout(10000) {
+                withContext(Dispatchers.IO) {
+                    val snapshot = ref.get().await()
+                    if (snapshot.exists()) {
+                        return@withContext FetchResult.Success(data = true)
+                    } else {
+                        return@withContext FetchResult.Success(data = false)
+                    }
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            Log.d(className, "${funcName} Timeout.")
+            FetchResult.Failure.Timeout()
+        } catch (e: Exception) {
+            FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = e.message ?: "Unknown error"
+            )
+        }
+    }
+
+    suspend fun getMailTypeLastExec(
+        type: EmailTemplateType
+    ): FetchResult<MailboxExtractionLastExec> {
+        val funcName = ::getMailTypeLastExec.name
+        val refRet = realtimeDbReference.getMailboxExtractionLastExecRef(type)
+        if (refRet !is FetchResult.Success) {
+            return refRet.mapFailure()
+        }
+        val ref = refRet.data
+
+        return try {
+            withTimeout(10000) {
+                withContext(Dispatchers.IO) {
+                    val snapshot = ref.get().await()
+                    if (!snapshot.exists()) {
+                        return@withContext FetchResult.Success(
+                            data = MailboxExtractionLastExec(type.nodeName, 0L),
+                            isEmpty = true
+                        )
+                    }
+                    val data = snapshot.getValue(MailboxExtractionLastExec::class.java)
+                    if (data == null) {
+                        FetchResult.Failure.GenericFailure(
+                            status = SuspendFuncStatus.FAILED,
+                            errorMessage = "Unable to convert data to MailboxExtractionLastExec"
+                        )
+                    } else {
+                        FetchResult.Success(data = data)
                     }
                 }
             }

@@ -126,3 +126,7 @@ fun convertNodeNameToMenuName(nodeName: String): String {
     return instance?.menuName ?: "不明"
 }
 
+data class MailboxExtractionLastExec(
+    val lastMsgId: String? = null,
+    val timestamp: Long = 0,
+)

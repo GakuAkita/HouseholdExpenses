@@ -6,6 +6,7 @@ import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
+import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import kotlinx.coroutines.Dispatchers
@@ -215,7 +216,35 @@ class RealtimeDbReference @Inject constructor(
     }
 
     /**
-     * まずはトークンが必要
+     * トークンがあるかないかを取得する
      * */
-    
+    suspend fun getMailboxExtractionGmailTokenRef(
+    ): FetchResult<DatabaseReference> {
+        val baseRefRet = getMailboxExtractionRef()
+        if (baseRefRet !is FetchResult.Success) {
+            return baseRefRet.mapFailure()
+        }
+        val baseRef = baseRefRet.data
+
+        val result = FetchResult.Success(
+            baseRef.child("gmail_token")
+        )
+        return result
+    }
+
+    suspend fun getMailboxExtractionLastExecRef(
+        type: EmailTemplateType
+    ): FetchResult<DatabaseReference> {
+        val baseRefRet = getMailboxExtractionRef()
+        if (baseRefRet !is FetchResult.Success) {
+            return baseRefRet.mapFailure()
+        }
+        val baseRef = baseRefRet.data
+
+        val result = FetchResult.Success(
+            baseRef.child("last_exec").child(type.nodeName)
+        )
+
+        return result
+    }
 }

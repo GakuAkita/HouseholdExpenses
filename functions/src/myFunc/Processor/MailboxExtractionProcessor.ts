@@ -194,10 +194,6 @@ export class MailboxExtractionProcessor {
       refreshToken: refreshToken,
     };
 
-    logger.debug(
-      `Gmail Config:${gmailConfig.clientId} ${gmailConfig.clientSecret} ${gmailConfig.refreshToken}`
-    );
-
     /**
      * configをもとにGmailApiClientのインスタンス作成
      */

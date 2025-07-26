@@ -9,6 +9,7 @@ import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
+import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
 import gaku.original.myapplication.repository.FirebaseAuthRepository
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
@@ -40,6 +41,9 @@ class MailboxExtractionViewModel @Inject constructor(
     val loading: StateFlow<Boolean> get() = _loading
 
     private var initialized = false
+
+    private val _lastExecMap = MutableStateFlow<Map<String, MailboxExtractionLastExec>>(emptyMap())
+    val lastExecMap: StateFlow<Map<String, MailboxExtractionLastExec>> get() = _lastExecMap
 
     /**
      * GmailのOAuth関連
@@ -171,7 +175,7 @@ class MailboxExtractionViewModel @Inject constructor(
             LogAkitaDebug("$className: One loading task finished, remaining: $activeLoadingCount")
             if (activeLoadingCount <= 0) {
                 _loading.value = false
-                activeLoadingCount = 0/* これいるか？ */
+                activeLoadingCount = 0
             }
         }
 
@@ -188,6 +192,9 @@ class MailboxExtractionViewModel @Inject constructor(
                 onFinishOne()
             }
         )
+
+        activeLoadingCount++
+
     }
 
     private fun loadAllEmailTemplateTypeSetting(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
@@ -320,4 +327,56 @@ class MailboxExtractionViewModel @Inject constructor(
         }
     }
 
+    /******************* メール抽出の実行状況 **********************/
+    suspend fun getIsGmailToken(): FetchResult<Boolean> {
+        return mailboxExtractionRepository.getIsGmailToken()
+    }
+
+    suspend fun getMailTypeLastExec(
+        type: EmailTemplateType
+    ): FetchResult<MailboxExtractionLastExec> {
+        return mailboxExtractionRepository.getMailTypeLastExec(type)
+    }
+
+    suspend fun getMailTypeLastExecWithLocalUpdate(
+        type: EmailTemplateType
+    ): FetchResult<MailboxExtractionLastExec> {
+        val fetchResult = getMailTypeLastExec(type)
+        if (fetchResult is FetchResult.Success) {
+            val lastExec = fetchResult.data
+            val updatedMap = _lastExecMap.value.toMutableMap()
+            updatedMap[type.nodeName] = lastExec
+            _lastExecMap.value = updatedMap
+        }
+        return fetchResult
+    }
+
+    fun getAllMailTypeLastExec(
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            var failedList = emptyList<String>()
+            for (typeState in allEmailTemplateStateFlowsList) {
+                val result = getMailTypeLastExecWithLocalUpdate(typeState.value.type)
+                if (result !is FetchResult.Success) {
+                    failedList = failedList + typeState.value.type.menuName
+                }
+            }
+            if (failedList.isEmpty()) {
+                callback(
+                    SuspendFuncStatusInfo(
+                        SuspendFuncStatus.SUCCESS,
+                        "All last execution times loaded successfully."
+                    )
+                )
+            } else {
+                callback(
+                    SuspendFuncStatusInfo(
+                        SuspendFuncStatus.FAILED,
+                        "Failed to load last execution for: ${failedList.joinToString(", ")}"
+                    )
+                )
+            }
+        }
+    }
 }

@@ -37,7 +37,7 @@ export type AmazonKindleSetting = {
 /* ここに全ての型を含めておく */
 export type AllMailType = RakutenPaySetting | AmazonKindleSetting;
 export const allMailTypeList: AllMailType[] = [
-  createAmazonKindleSettingInstance(),
+  createRakutenPaySettingInstance(), //ここがamazon_kindleになってた、、、
   createAmazonKindleSettingInstance(),
 ];
 
