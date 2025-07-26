@@ -122,6 +122,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     /**
      * アクセストークンとリフレッシュトークンを取得
      */
+    logger.log(`Start getting access token and refresh token...`);
     const tokenRes = await axios.post(
       "https://oauth2.googleapis.com/token",
       postData,
@@ -138,6 +139,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     }
 
     /* Gmailアドレスを取得する */
+    logger.log(`Start getting gmail....`);
     const userInfoRes = await axios.get(
       "https://www.googleapis.com/oauth2/v3/userinfo",
       {
