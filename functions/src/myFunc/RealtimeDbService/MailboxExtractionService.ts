@@ -159,7 +159,7 @@ export class MailboxExtractionService {
     }
   }
 
-  async getMailboxExtractionTokenWithDecryption(
+  async getMailboxExtractionGmailTokenWithDecryption(
     userId: string,
     encryptionKey: string
   ): Promise<FuncResultWithData<MailboxGmailTokenType>> {

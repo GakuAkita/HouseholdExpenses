@@ -152,6 +152,13 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
       throw new Error("Unable to get Gmail email address.");
     }
 
+    /* ここでFirebaseのGmailと一致しているかチェックし、一致していなかったら弾く */
+    const userRecord = await admin.auth().getUser(uid);
+    const userEmail = userRecord.email;
+    if (gmailEmail !== userEmail) {
+      throw new Error("Permitted email and user email is different");
+    }
+
     /**
      * refresh_tokenを暗号化して保存する
      */

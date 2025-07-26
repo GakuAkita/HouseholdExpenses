@@ -241,7 +241,7 @@ const storeRefreshToken = async (rawToken: string) => {
     );
 
   const getTokenRet =
-    await mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
+    await mailboxExtractionService.getMailboxExtractionGmailTokenWithDecryption(
       "testUser",
       encryptionKey
     );

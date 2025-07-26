@@ -160,7 +160,7 @@ export class MailboxExtractionProcessor {
      * なければ、そこで終了(楽天pay設定)
      */
     const tokenRet =
-      await this.mailboxExtractionService.getMailboxExtractionTokenWithDecryption(
+      await this.mailboxExtractionService.getMailboxExtractionGmailTokenWithDecryption(
         this.userId,
         encryptionKey
       );
@@ -169,7 +169,7 @@ export class MailboxExtractionProcessor {
       /* まだユーザーがGmailのトークンの設定をしていない */
       return {
         status: FuncStatus.SUCCESS,
-        message: "Rakuten Pay settting is not set by the user",
+        message: "Gmail Token is not set by the user",
       };
     } else if (tokenRet.status != FuncStatus.SUCCESS) {
       return {
