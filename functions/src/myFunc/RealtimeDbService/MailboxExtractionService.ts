@@ -154,29 +154,34 @@ export class MailboxExtractionService {
     userId: string,
     gmail?: string
   ): Promise<FuncResultWithData<MailboxGmailTokenType>> {
-    let passedEmail;
-    if (!gmail) {
-      /* gmailに何も入っていなかったらuserIdからemailを取得してそれを使う */
-      const userRecord = await admin.auth().getUser(userId);
-      passedEmail = userRecord.email;
-    } else {
-      /* 普通のgmailのときはそのまま渡す */
-      passedEmail = gmail;
-    }
-
-    if (!passedEmail) {
-      /* ここに来ることは基本ない */
-      return {
-        status: FuncStatus.ERROR,
-        message: `Email passed is empty`,
-      };
-    }
-
-    const ref = this.getUserMailboxExtractionGmailTokenSingleRef(
-      userId,
-      passedEmail
-    );
+    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
     try {
+      let passedEmail;
+      if (isEmulator) {
+        /* あまりこういうのやりたくないが、、、 */
+        passedEmail = process.env.MY_GMAIL;
+      } else if (!gmail) {
+        /* gmailに何も入っていなかったらuserIdからemailを取得してそれを使う */
+        const userRecord = await admin.auth().getUser(userId);
+        passedEmail = userRecord.email;
+      } else {
+        /* 普通のgmailのときはそのまま渡す */
+        passedEmail = gmail;
+      }
+
+      if (!passedEmail) {
+        /* ここに来ることは基本ない */
+        return {
+          status: FuncStatus.ERROR,
+          message: `Email passed is empty`,
+        };
+      }
+
+      const ref = this.getUserMailboxExtractionGmailTokenSingleRef(
+        userId,
+        passedEmail
+      );
+
       const snapshot = await ref.get();
       if (!snapshot.exists()) {
         return {

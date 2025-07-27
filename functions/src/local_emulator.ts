@@ -185,10 +185,13 @@ const init_add = async () => {
       refreshToken: encryptedToken,
       gmail: myGmail,
     };
-    const refreshTokenRet = mailboxExtractionService.setMailboxExtractionToken(
-      userId,
-      tokenConf
-    );
+    const refreshTokenRet =
+      await mailboxExtractionService.setMailboxExtractionToken(
+        userId,
+        tokenConf,
+        myGmail
+      );
+    console.log(`setMailboxExtractionToken status:${refreshTokenRet.status}`);
   }
 
   await categoryAssignmentService.dbgAddCategoryAssignment(userId);
@@ -196,7 +199,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-init_add();
+// init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -320,7 +323,7 @@ const getRefreshTokenTest = async () => {
 
 // getRefreshTokenTest();
 
-const processRakuten = async () => {
+const processShikoku = async () => {
   const processInstance = new MailboxExtractionProcessor(
     userId,
     mailboxExtractionService,
@@ -329,10 +332,20 @@ const processRakuten = async () => {
     categoryAssignmentService
   );
 
-  await processInstance.processSingleMailType(
-    createRakutenPaySettingInstance()
+  const type = createShikokuElectricPowerSettingInstance();
+
+  const ret = await processInstance.processSingleMailType(type);
+
+  logger.debug(`processSingleMailType result: ${ret}`);
+
+  const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
+    userId,
+    type,
+    {
+      timestamp: 2,
+    }
   );
-  logger.debug("processRakuten Done");
+  logger.debug("process Done");
 };
 
-processRakuten();
+processShikoku();

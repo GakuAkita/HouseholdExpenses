@@ -19,7 +19,7 @@ import {
   createShikokuElectricPowerSettingInstance,
   LastMailboxExtractionExec,
   RakutenPaySetting,
-  ShikokuElectricSetting,
+  ShikokuElectricPowerSetting,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
@@ -162,6 +162,7 @@ export class MailboxExtractionProcessor {
      * RealtimeDBにrefreshTokenがあるかチェックする
      * なければ、そこで終了(楽天pay設定)
      */
+
     const tokenRet =
       await this.mailboxExtractionService.getMailboxExtractionGmailTokenWithDecryption(
         this.userId,
@@ -220,6 +221,7 @@ export class MailboxExtractionProcessor {
 
     const rakutenPaySamp = createRakutenPaySettingInstance();
     const amazonKindleSamp = createAmazonKindleSettingInstance();
+    const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
 
     switch (nodeName) {
       /**
@@ -233,6 +235,14 @@ export class MailboxExtractionProcessor {
       case amazonKindleSamp.nodeName:
         /* 特に何もやらない */
         return await this.getAmazonKindleMailIds(
+          gmailClient,
+          startTime,
+          endTime
+        );
+        break;
+
+      case shikokuElectricSamp.nodeName:
+        return await this.getShikokuElectricMailIds(
           gmailClient,
           startTime,
           endTime
@@ -391,11 +401,16 @@ export class MailboxExtractionProcessor {
         ret = await this.saveExpenseFromShikokuElectricPower(
           rawText,
           setting,
-          categories
+          categories,
+          sentDate
         );
         break;
 
       default:
+        ret = {
+          status: FuncStatus.ERROR,
+          message: `Not prepared type for MailboxExtraction: ${nodeName}`,
+        };
         logger.error(`Not prepared type for MailboxExtraction: ${nodeName}`);
         break;
     }
@@ -468,7 +483,7 @@ export class MailboxExtractionProcessor {
 
   async saveExpenseFromShikokuElectricPower(
     rawText: string,
-    setting: ShikokuElectricSetting,
+    setting: ShikokuElectricPowerSetting,
     categories: Record<string, Category>,
     internalDate?: string | null
   ): Promise<FuncResult> {
@@ -481,8 +496,16 @@ export class MailboxExtractionProcessor {
 
     const parser = new ShikokuElectricPowerMailParser(rawText, internalDate);
     const ret = parser.toExpense();
+    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
+      return ret;
+    }
+    const baseExpense = ret.data;
+    if (setting.categoryId) {
+      baseExpense.category = categories[setting.categoryId];
+    }
+    const addRet = this.addExpenseFromMailExtraction(baseExpense, setting);
 
-    return ret;
+    return addRet;
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

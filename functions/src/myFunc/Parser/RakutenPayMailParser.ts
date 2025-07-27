@@ -2,10 +2,6 @@ import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import {
-  createRakutenPaySettingInstance,
-  EmailProvider,
-} from "../../type/Mailbox";
 import { convertToUtcIsoString } from "../utility/dateConverter";
 
 export class RakutenPayMailParser {
@@ -72,11 +68,6 @@ export class RakutenPayMailParser {
     } else if (netAmount == 0) {
       logger.info(`amount(${amount}) - point(${usedPoint}) = netAmount 0`);
     }
-
-    const rakutenSample = createRakutenPaySettingInstance({
-      enabled: true,
-      emailProvider: EmailProvider.GMAIL /* 使っていない */,
-    });
 
     const expense: Expense = {
       datetime: datetime,
