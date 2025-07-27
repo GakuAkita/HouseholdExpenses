@@ -16,8 +16,10 @@ import {
   AmazonKindleSetting,
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
+  createShikokuElectricPowerSettingInstance,
   LastMailboxExtractionExec,
   RakutenPaySetting,
+  ShikokuElectricSetting,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
@@ -25,6 +27,7 @@ import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
+import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMailParser";
 import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { categoryAssign } from "../utility/cateogryAssign";
@@ -282,6 +285,20 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
+  async getShikokuElectricMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "yonden-con@yonden.co.jp";
+    const wordIncluded = "【四国電力】電気料金等のお知らせ";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} ${wordIncluded} after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
   /**
    * Expenseに対して保管して保存する
@@ -312,11 +329,13 @@ export class MailboxExtractionProcessor {
    */
   async saveExpenseWithExtraction(
     setting: AllMailType,
-    rawText: string
+    rawText: string,
+    sentDate?: string | null
   ): Promise<FuncResult> {
     const nodeName = setting.nodeName;
     const rakutenPaySamp = createRakutenPaySettingInstance();
     const amazonKindleSamp = createAmazonKindleSettingInstance();
+    const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
 
     let categories: Record<string, Category> = {};
     const categoryRet = await this.loadCategories();
@@ -362,6 +381,14 @@ export class MailboxExtractionProcessor {
 
       case amazonKindleSamp.nodeName:
         ret = await this.saveExpenseFromAmazonKindle(
+          rawText,
+          setting,
+          categories
+        );
+        break;
+
+      case shikokuElectricSamp.nodeName:
+        ret = await this.saveExpenseFromShikokuElectricPower(
           rawText,
           setting,
           categories
@@ -437,6 +464,25 @@ export class MailboxExtractionProcessor {
     );
 
     return addRet;
+  }
+
+  async saveExpenseFromShikokuElectricPower(
+    rawText: string,
+    setting: ShikokuElectricSetting,
+    categories: Record<string, Category>,
+    internalDate?: string | null
+  ): Promise<FuncResult> {
+    if (!internalDate) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `when saving ShikokuElectricPower, internal Date should not be empty.`,
+      };
+    }
+
+    const parser = new ShikokuElectricPowerMailParser(rawText, internalDate);
+    const ret = parser.toExpense();
+
+    return ret;
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
@@ -520,15 +566,12 @@ export class MailboxExtractionProcessor {
     /**
      * クエリをして、msgIdを取得
      */
-    /*　デバッグのため、Afterだけ書き換える!! */
-    /* ------------------------------deployするときはfalseにすること！！ ----------------------*/
-    // const akitaDebug = false;
-    // let queryAfter: number = 0;
-    // if (akitaDebug) {
-    //   queryAfter = 1;
-    // }
-
-    const queryAfter = convertUnixMillisecToSec(startTime); //本番はこっち */
+    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+    const queryAfter = isEmulator
+      ? 1
+      : convertUnixMillisecToSec(
+          startTime
+        ); /* emulatorの場合は1をいれて全部取ってくる */
     const queryBefore = convertUnixMillisecToSec(endTime);
     const queryRet = await this.getMailIdsByQuery(
       type,
@@ -608,13 +651,18 @@ export class MailboxExtractionProcessor {
       /* filterdMessagesに対してすべてExpense保存まで行う */
       for (const [_, message] of Object.entries(filteredMessages)) {
         const rawText = extractTextBody(message.payload);
+        const internalDate = message.internalDate;
         if (!rawText) {
           logger.error("Failed to extract Text Body.");
         } else {
           /**
            * 関数内でExpenseの保存まで済ませてしまう
            */
-          const ret = await this.saveExpenseWithExtraction(setting, rawText);
+          const ret = await this.saveExpenseWithExtraction(
+            setting,
+            rawText,
+            internalDate /* メールによっては日時が本文内にないケースが有る */
+          );
           if (ret.status != FuncStatus.SUCCESS) {
             logger.error(`${ret.message}`);
           }

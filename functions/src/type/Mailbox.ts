@@ -34,12 +34,24 @@ export type AmazonKindleSetting = {
   categoryId?: string;
   readonly categoryAssignFlag: CategoryAssignFlags.NONE;
 };
+export type ShikokuElectricPowerSetting = {
+  enabled: boolean;
+  emailProvider: string;
+  readonly nodeName: "shikoku_electric_power";
+  readonly menuName: "四国電力";
+  categoryId?: string;
+  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
+};
 
 /* ここに全ての型を含めておく */
-export type AllMailType = RakutenPaySetting | AmazonKindleSetting;
+export type AllMailType =
+  | RakutenPaySetting
+  | AmazonKindleSetting
+  | ShikokuElectricPowerSetting;
 export const allMailTypeList: AllMailType[] = [
   createRakutenPaySettingInstance(), //ここがamazon_kindleになってた、、、
   createAmazonKindleSettingInstance(),
+  createShikokuElectricPowerSettingInstance(),
 ];
 
 /**
@@ -75,6 +87,27 @@ export function createAmazonKindleSettingInstance(
   return {
     nodeName: "amazon_kindle",
     menuName: "Amazon Kindle",
+    categoryAssignFlag: CategoryAssignFlags.NONE,
+    ...params,
+  };
+}
+
+/**
+ * ShikokuElectricPower設定を生成する
+ */
+export function createShikokuElectricPowerSettingInstance(
+  params: {
+    enabled: boolean;
+    categoryId?: string;
+    emailProvider: EmailProvider;
+  } = {
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  }
+): ShikokuElectricPowerSetting {
+  return {
+    nodeName: "shikoku_electric_power",
+    menuName: "四国電力",
     categoryAssignFlag: CategoryAssignFlags.NONE,
     ...params,
   };

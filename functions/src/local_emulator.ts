@@ -28,6 +28,7 @@ import {
 import {
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
+  createShikokuElectricPowerSettingInstance,
   EmailProvider,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
@@ -156,10 +157,22 @@ const init_add = async () => {
     r10Setting
   );
 
-  const kindleSetting = createAmazonKindleSettingInstance();
+  const kindleSetting = createAmazonKindleSettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
     kindleSetting
+  );
+
+  const shikokuESetting = createShikokuElectricPowerSettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    shikokuESetting
   );
 
   /**

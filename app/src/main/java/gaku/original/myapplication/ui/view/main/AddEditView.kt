@@ -62,11 +62,12 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Interface.CategoryAssignFlag
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.AssignmentCondition
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.GeneratedType
+import gaku.original.myapplication.data.dataClass.getEmailTemplateTypeByNodeName
 import gaku.original.myapplication.ui.common.CategoryAssignmentDialog
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
@@ -542,21 +543,33 @@ fun ExpenseAddEditView(
                     modifier = basicModifier
                 )
 
-                /* 現状は楽天Payだけだが増やす場合はwhenで書きやすくしたほうがいいか */
+                /**
+                 * まず、自動カテゴリー追加はNot_CategorizedからこのExpense編集画面に飛んできたときのみ表示
+                 * EmailTemplateTypeにはcategoryAssignFlagがあって、そこにビットで商品名なのか店名なのかを保持している
+                 * AND演算子を使って店名や商品名が入っているかをとり、入っていたらボタンを表示
+                 * */
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.RakutenPay().nodeName) {
-                        CategoryAssignmentArea(
-                            onClick = {
-                                LogAkitaDebug("Tapped. Is it reactive?")
-                                assignmentEdited = CategoryAssignment(
-                                    name = viewModel.currentTmpExpense.storeName ?: "",
-                                    categoryId = viewModel.currentTmpExpense.category?.id,
-                                    condition = AssignmentCondition.EXACT_MATCH
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
+                        val templateType = getEmailTemplateTypeByNodeName(subType)
+                        if (templateType != null) {
+                            val bitResult =
+                                templateType.categoryAssignFlag and CategoryAssignFlag.STORE_NAME.value
+                            if (bitResult != 0) {
+                                CategoryAssignmentArea(
+                                    onClick = {
+                                        LogAkitaDebug("Tapped. Is it reactive?")
+                                        assignmentEdited = CategoryAssignment(
+                                            name = viewModel.currentTmpExpense.storeName ?: "",
+                                            categoryId = viewModel.currentTmpExpense.category?.id,
+                                            condition = AssignmentCondition.EXACT_MATCH
+                                        )
+                                        namePattern = CategoryAssignNamePattern.STORE
+                                        showCategoryAssignmentDialog = true
+                                    }
                                 )
-                                namePattern = CategoryAssignNamePattern.STORE
-                                showCategoryAssignmentDialog = true
+
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -576,19 +589,25 @@ fun ExpenseAddEditView(
                     modifier = basicModifier
                 )
                 if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                    /* もっといい書き方あるはず↓、 */
-                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType == EmailTemplateType.AmazonItem().nodeName) {
-                        CategoryAssignmentArea(
-                            onClick = {
-                                assignmentEdited = CategoryAssignment(
-                                    name = viewModel.currentTmpExpense.itemName ?: "",
-                                    categoryId = viewModel.currentTmpExpense.category?.id,
-                                    condition = AssignmentCondition.EXACT_MATCH
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
+                        val templateType = getEmailTemplateTypeByNodeName(subType)
+                        if (templateType != null) {
+                            val bitResult =
+                                templateType.categoryAssignFlag and CategoryAssignFlag.PRODUCT_NAME.value
+                            if (bitResult != 0) {
+                                CategoryAssignmentArea(
+                                    onClick = {
+                                        assignmentEdited = CategoryAssignment(
+                                            name = viewModel.currentTmpExpense.itemName ?: "",
+                                            categoryId = viewModel.currentTmpExpense.category?.id,
+                                            condition = AssignmentCondition.EXACT_MATCH
+                                        )
+                                        namePattern = CategoryAssignNamePattern.PRODUCT
+                                        showCategoryAssignmentDialog = true
+                                    }
                                 )
-                                namePattern = CategoryAssignNamePattern.PRODUCT
-                                showCategoryAssignmentDialog = true
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -660,7 +679,31 @@ fun ExpenseAddEditView(
                 titleContent = {
                     Text(viewModel.getGeneratedTypeDisplay())
                 },
-                onSave = { _, _ ->
+                onSave = { assignment, namePattern ->
+                    viewModel.addCategoryAssignment(
+                        onStart = {},
+                        assignment,
+                        namePattern,
+                        callback = {
+                            if (it.status == SuspendFuncStatus.SUCCESS) {
+                                showCategoryAssignmentDialog = false
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    snackBarHostState.showSnackbar(
+                                        "カテゴリー割当に追加されました。これ以降は自動でカテゴリーが割り当てられます。",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            } else {
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    snackBarHostState.showSnackbar(
+                                        "カテゴリー割当追加に失敗しました。${it.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                        })
                 },
                 onDismiss = {
                     showCategoryAssignmentDialog = false

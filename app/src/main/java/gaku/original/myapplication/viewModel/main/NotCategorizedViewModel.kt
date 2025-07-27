@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NotCategorizedViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseFirestoreRepository,
-    private val tmpExpenseViewModel: TemporaryExpenseViewModel
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
 ) : ViewModel() {
     override fun onCleared() {
         /**

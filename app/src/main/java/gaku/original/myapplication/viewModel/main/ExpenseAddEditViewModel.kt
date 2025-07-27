@@ -3,11 +3,13 @@ package gaku.original.myapplication.viewModel.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
-import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.separateStringByBars
@@ -22,7 +24,7 @@ import javax.inject.Inject
 class ExpenseAddEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository
+    private val categoryAssignmentUseCase: CategoryAssignmentUseCase
 ) : ViewModel() {
 
     override fun onCleared() {
@@ -152,10 +154,17 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     /* ------------------カテゴリー割当を扱う----------------------- */
-    fun addCategoryAssignmentToDb(
-        onStart: () -> Unit,
-        callback: (SuspendFuncStatusInfo) -> Unit
+    fun addCategoryAssignment(
+        onStart: () -> Unit = {},
+        assignment: CategoryAssignment,
+        namePattern: CategoryAssignNamePattern,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
-
+        onStart()
+        viewModelScope.launch {
+            val ret =
+                categoryAssignmentUseCase.addCategoryAssignmentWithCheck(assignment, namePattern)
+            callback(ret)
+        }
     }
 }
