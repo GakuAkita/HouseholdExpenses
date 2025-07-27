@@ -6,9 +6,9 @@ import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.FetchResult
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
-import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
+import gaku.original.myapplication.utility.sanitizeEmail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
@@ -28,6 +28,9 @@ class RealtimeDbReference @Inject constructor(
 
     private val currentUserId: String?
         get() = firebaseAuth.currentUser?.uid
+
+    private val currentUserEmail: String?
+        get() = firebaseAuth.currentUser?.email
 
     //users配下の自分のuserIdのreferenceを返す
     // userId配下のexpenses
@@ -222,7 +225,7 @@ class RealtimeDbReference @Inject constructor(
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionRef()
         if (baseRefRet !is FetchResult.Success) {
-            return baseRefRet.mapFailure()
+            return baseRefRet
         }
         val baseRef = baseRefRet.data
 
@@ -232,12 +235,38 @@ class RealtimeDbReference @Inject constructor(
         return result
     }
 
+    /**
+     * 基本的にメールアドレスに対して一個だが、
+     * 将来的に複数のメールアドレスから取得したいとなったときに。
+     */
+    suspend fun getMailboxExtractionGmailTokenSingleRef(
+        email: String? = currentUserEmail
+    ): FetchResult<DatabaseReference> {
+        if (email == null) {
+            return FetchResult.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "email is null"
+            )
+        }
+        val baseRefRet = getMailboxExtractionGmailTokensRef()
+        if (baseRefRet !is FetchResult.Success) {
+            return baseRefRet
+        }
+
+        val baseRef = baseRefRet.data
+        val sanitizedEmail = sanitizeEmail(email)/* @や.などを変換する */
+        val result = FetchResult.Success(
+            baseRef.child(sanitizedEmail)
+        )
+        return result
+    }
+
     suspend fun getMailboxExtractionLastExecRef(
         type: EmailTemplateType
     ): FetchResult<DatabaseReference> {
         val baseRefRet = getMailboxExtractionRef()
         if (baseRefRet !is FetchResult.Success) {
-            return baseRefRet.mapFailure()
+            return baseRefRet
         }
         val baseRef = baseRefRet.data
 

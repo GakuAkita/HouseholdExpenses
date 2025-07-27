@@ -13,6 +13,7 @@ import {
   RakutenPaySetting,
 } from "../../type/Mailbox";
 import { admin } from "../firebaseAdmin";
+import { sanitizeEmail } from "../utility/emailEncode";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
 admin;
 
@@ -39,16 +40,16 @@ export class MailboxExtractionService {
     return this.getUserMailboxExtractionRef(userId).child("gmail_tokens");
   }
 
-  // private getUserMailboxExtractionGmailTokenSingleRef(
-  //   userId: string,
-  //   gmail: string /* sanitizeされたものでもされていないものでもどっちでもいいのか。 */
-  // ): Reference {
-  //   /* gmailには.や@が入っているので別文字の置き換える */
-  //   const encodedNodeName = sanitizeEmail(gmail);
-  //   return this.getUserMailboxExtractionGmailTokensRef(userId).child(
-  //     encodedNodeName
-  //   );
-  // }
+  private getUserMailboxExtractionGmailTokenSingleRef(
+    userId: string,
+    gmail: string /* sanitizeされたものでもされていないものでもどっちでも良い。 */
+  ): Reference {
+    /* gmailには.や@が入っているので別文字の置き換える */
+    const encodedNodeName = sanitizeEmail(gmail);
+    return this.getUserMailboxExtractionGmailTokensRef(userId).child(
+      encodedNodeName
+    );
+  }
 
   private getUserMailboxExtractionLastExecRef(userId: string): Reference {
     return this.getUserMailboxExtractionRef(userId).child("last_exec");
@@ -86,10 +87,28 @@ export class MailboxExtractionService {
    */
   async setMailboxExtractionToken(
     userId: string,
-    token: MailboxGmailTokenType
+    token: MailboxGmailTokenType,
+    gmail?: string
   ): Promise<FuncResult> {
     try {
-      const ref = this.getUserMailboxExtractionGmailTokensRef(userId);
+      let passedEmail: string | undefined;
+      if (!gmail) {
+        const userRecord = await admin.auth().getUser(userId);
+        passedEmail = userRecord.email;
+      } else {
+        passedEmail = gmail;
+      }
+      if (!passedEmail) {
+        return {
+          status: FuncStatus.ERROR,
+          message: "email can't be passed to Ref func. because it is empty",
+        };
+      }
+
+      const ref = this.getUserMailboxExtractionGmailTokenSingleRef(
+        userId,
+        passedEmail
+      );
       const now = new Date();
       const isoString = now.toISOString();
       await ref.set({ ...token, timestamp: isoString });
@@ -132,9 +151,31 @@ export class MailboxExtractionService {
    * 単一のトークンを取得してくる。
    */
   private async getMailboxExtractionGmailToken(
-    userId: string
+    userId: string,
+    gmail?: string
   ): Promise<FuncResultWithData<MailboxGmailTokenType>> {
-    const ref = this.getUserMailboxExtractionGmailTokensRef(userId);
+    let passedEmail;
+    if (!gmail) {
+      /* gmailに何も入っていなかったらuserIdからemailを取得してそれを使う */
+      const userRecord = await admin.auth().getUser(userId);
+      passedEmail = userRecord.email;
+    } else {
+      /* 普通のgmailのときはそのまま渡す */
+      passedEmail = gmail;
+    }
+
+    if (!passedEmail) {
+      /* ここに来ることは基本ない */
+      return {
+        status: FuncStatus.ERROR,
+        message: `Email passed is empty`,
+      };
+    }
+
+    const ref = this.getUserMailboxExtractionGmailTokenSingleRef(
+      userId,
+      passedEmail
+    );
     try {
       const snapshot = await ref.get();
       if (!snapshot.exists()) {
@@ -148,7 +189,7 @@ export class MailboxExtractionService {
       if (!data || !data.refreshToken) {
         return {
           status: FuncStatus.ERROR,
-          message: `data type doesn't match with expected type or data was not set. user:${userId}`,
+          message: `data type doesn't match with expected type. user:${userId}`,
         };
       }
 

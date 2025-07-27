@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.dataClass
 import gaku.original.myapplication.data.Interface.CategorizationMode
 import gaku.original.myapplication.data.Interface.CategoryAssignFlag
 import gaku.original.myapplication.data.Interface.HasCategoryId
+import kotlin.reflect.full.createInstance
 
 /**
  * Bitフラグで店名で指定なのか、製品名で指定なのか
@@ -106,6 +107,22 @@ fun EmailTemplateType.copyWith(
         )
     }
 
+/**
+ * Sealed class EmailTemplateTypeのサブクラスを配列にいれる。
+ * おそらく同ファイル内のみ。
+ */
+fun getAllEmailTemplateTypes(): List<EmailTemplateType> {
+    return EmailTemplateType::class.nestedClasses
+        .mapNotNull { klass ->
+            klass.objectInstance ?: try {
+                klass.createInstance()
+            } catch (e: Exception) {
+                null
+            }
+        }
+        .map { it as EmailTemplateType }
+        .map { it.defaultInstance() }
+}
 
 fun getEmailTemplateTypeByNodeName(
     nodeName: String,

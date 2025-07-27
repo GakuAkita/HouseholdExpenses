@@ -89,7 +89,11 @@ fun SettingsView(
                 Text(text = "メールボックス自動抽出", modifier = Modifier.padding(start = 10.dp))
             }
 
-            SettingRow {
+            SettingRow(
+                onClick = {
+                    navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
+                }
+            ) {
                 //
                 Text(text = "カテゴリー一覧", modifier = Modifier.padding(start = 10.dp))
             }

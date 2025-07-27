@@ -115,6 +115,8 @@ object AppModule {
         categoryRepository: CategoryFirestoreRepository,
         repeatAddRepository: RepeatAddFirestoreRepository,
         userSettingsFirestoreRepository: UserSettingsFirestoreRepository,
+        categoryAssignmentUseCase: CategoryAssignmentUseCase,
+        mailboxExtractionRTDbRepository: MailboxExtractionRTDbRepository,
         firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
@@ -122,6 +124,8 @@ object AppModule {
             categoryRepository,
             repeatAddRepository,
             userSettingsFirestoreRepository,
+            mailboxExtractionRTDbRepository,
+            categoryAssignmentUseCase,
             firestoreListenerManager
         )
     }

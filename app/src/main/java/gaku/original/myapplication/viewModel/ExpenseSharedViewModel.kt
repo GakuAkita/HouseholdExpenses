@@ -9,16 +9,21 @@ import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.InitialCategories
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.getAllAssignments
+import gaku.original.myapplication.data.dataClass.getAllEmailTemplateTypes
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +37,8 @@ class ExpenseSharedViewModel @Inject constructor(
     private val categoryRepository: CategoryFirestoreRepository,
     private val repeatAddRepository: RepeatAddFirestoreRepository,
     private val userSettingsRepository: UserSettingsFirestoreRepository,
+    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
+    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 
@@ -391,10 +398,20 @@ class ExpenseSharedViewModel @Inject constructor(
             return statusInfo
         }
 
-        val statusInfo = checkRepeatAddExists(category.id ?: "")
+        val statusInfo = checkRepeatAddExists(category.id ?: "")/* 上でnullチェックしているのでnullなことはない */
         if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
             LogAkitaDebug(statusInfo.errorMessage)
             return statusInfo
+        }
+
+        val assignmentDuplicateCheck = checkCategoryExistInCategoryAssignment(category.id ?: "")
+        if (assignmentDuplicateCheck.status != SuspendFuncStatus.SUCCESS) {
+            return assignmentDuplicateCheck
+        }
+
+        val emailTemplateDuplicateCheck = checkCategoryExistInEmailTemplateType(category.id ?: "")
+        if (emailTemplateDuplicateCheck.status != SuspendFuncStatus.SUCCESS) {
+            return emailTemplateDuplicateCheck
         }
 
         return categoryRepository.removeCategory(
@@ -428,6 +445,74 @@ class ExpenseSharedViewModel @Inject constructor(
             )
             return statusInfo
         }
+    }
+
+    /**
+     * カテゴリー割当のcategoryIdに存在していないかチェック
+     */
+    suspend fun checkCategoryExistInCategoryAssignment(
+        categoryId: String
+    ): SuspendFuncStatusInfo {
+        val resultStatus = categoryAssignmentUseCase.getCategoryAssignmentData()
+        if (resultStatus !is FetchResult.Success) {
+            return resultStatus.toSuspendFuncStatusInfo()
+        }
+        val categoryAssignmentData = resultStatus.data
+
+        val allAssignments = categoryAssignmentData.getAllAssignments()
+        if (allAssignments.isEmpty()) {
+            return SuspendFuncStatusInfo(
+                SuspendFuncStatus.SUCCESS,
+                "カテゴリー割当が何もないのでダブりチェックの必要ありません"
+            )
+        }
+
+        for (assignment in allAssignments) {
+            if (assignment.categoryId == categoryId) {
+                return SuspendFuncStatusInfo(
+                    SuspendFuncStatus.FAILED,
+                    "カテゴリー割当に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。名前：${assignment.name}"
+                )
+            }
+        }
+
+        return SuspendFuncStatusInfo(
+            SuspendFuncStatus.SUCCESS,
+            "カテゴリー割当には重複がありませんでした"
+        )
+    }
+
+    /**
+     * EmailTemplateのcategoryIdに存在していないか
+     */
+    suspend fun checkCategoryExistInEmailTemplateType(
+        categoryId: String
+    ): SuspendFuncStatusInfo {
+        val allTemplates = getAllEmailTemplateTypes()
+        for (template in allTemplates) {
+            val fetchResult = mailboxExtractionRepository.getMailTypeSetting(template)
+            if (fetchResult !is FetchResult.Success) {
+                return SuspendFuncStatusInfo(
+                    status = SuspendFuncStatus.FAILED,
+                    errorMessage = "メールボックス設定(${template.menuName})とのダブりチェックでエラーが発生しました。${fetchResult.toSuspendFuncStatusInfo().errorMessage}"
+                )
+            }
+            val setting = fetchResult.data
+            if (setting is HasCategoryId) {
+                /* categoryIdを持っているので、被っていないかチェック */
+                if (categoryId == setting.categoryId) {
+                    return SuspendFuncStatusInfo(
+                        status = SuspendFuncStatus.FAILED,
+                        errorMessage = "メールボックス設定(${template.menuName})に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。"
+                    )
+                }
+            }
+        }
+
+        return SuspendFuncStatusInfo(
+            status = SuspendFuncStatus.SUCCESS,
+            errorMessage = "メールボックス設定には重複がありませんでした"
+        )
     }
 
     fun addCategoryListenerModifiedRemoved() {

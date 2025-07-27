@@ -1,5 +1,6 @@
 package gaku.original.myapplication.viewModel.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,6 +15,7 @@ import javax.inject.Inject
 class CategoryEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
 ) : ViewModel() {
+    val className = this::class.simpleName ?: "UnableToGetClassName"
 
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
@@ -45,6 +47,7 @@ class CategoryEditViewModel @Inject constructor(
         viewModelScope.launch {
             /* 内部に繰り返し追加に入っていないかチェックしている */
             val ret = expenseSharedViewModel.removeCategory(category)
+            Log.d(className, ret.errorMessage)
             callback(ret)
         }
     }

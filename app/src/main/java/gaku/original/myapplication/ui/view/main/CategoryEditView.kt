@@ -76,7 +76,6 @@ fun CategoryAddEditView(
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxWidth()

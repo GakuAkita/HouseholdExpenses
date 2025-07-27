@@ -57,7 +57,7 @@ class MailboxExtractionViewModel @Inject constructor(
             "client_id=${BuildConfig.WEB_CLIENT_ID}",
             "redirect_uri=${BuildConfig.REDIRECT_URI}",
             "response_type=code",
-            "scope=openid email profile https://www.googleapis.com/auth/gmail.readonly",
+            "scope=email https://www.googleapis.com/auth/gmail.readonly",
             "access_type=offline",
             "prompt=consent",
             "state=$idToken"

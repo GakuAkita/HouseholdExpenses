@@ -4,6 +4,7 @@ import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.Interface.HasId
+import kotlin.reflect.full.memberProperties
 
 /**
  * これ正規表現とか将来的には使えないかな？
@@ -12,6 +13,21 @@ data class CategoryAssignmentData(
     val storeName: Map<String, CategoryAssignment>? = null,
     val productName: Map<String, CategoryAssignment>? = null,
 )
+
+/**
+ * GPTに作ってもらった。DataのすべてのAssignmentを取得
+ */
+fun CategoryAssignmentData.getAllAssignments(): List<CategoryAssignment> {
+    return CategoryAssignmentData::class.memberProperties
+        .mapNotNull { prop ->
+            val value = prop.get(this)
+            if (value is Map<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                value as? Map<String, CategoryAssignment>
+            } else null
+        }
+        .flatMap { it.values }
+}
 
 fun CategoryAssignmentData.copyWithUpdatedMap(
     namePattern: CategoryAssignNamePattern,
