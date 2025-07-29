@@ -26,6 +26,7 @@ import {
   GoogleOAuthSecrets,
 } from "./type/GoogleOAuthSecrets";
 import {
+  createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
@@ -173,6 +174,15 @@ const init_add = async () => {
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
     shikokuESetting
+  );
+
+  const amazonItemSetting = createAmazonItemSettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    amazonItemSetting
   );
 
   /**
@@ -323,7 +333,7 @@ const getRefreshTokenTest = async () => {
 
 // getRefreshTokenTest();
 
-const processShikoku = async () => {
+const processMailTest = async () => {
   const processInstance = new MailboxExtractionProcessor(
     userId,
     mailboxExtractionService,
@@ -332,7 +342,7 @@ const processShikoku = async () => {
     categoryAssignmentService
   );
 
-  const type = createShikokuElectricPowerSettingInstance();
+  const type = createAmazonItemSettingInstance();
 
   const ret = await processInstance.processSingleMailType(type);
 
@@ -348,4 +358,4 @@ const processShikoku = async () => {
   logger.debug("process Done");
 };
 
-processShikoku();
+processMailTest();

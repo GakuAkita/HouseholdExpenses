@@ -13,7 +13,9 @@ import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import {
   AllMailType,
   allMailTypeList,
+  AmazonItemSetting,
   AmazonKindleSetting,
+  createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
@@ -25,6 +27,7 @@ import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
+import { AmazonItemParser } from "../Parser/AmazonItemParser";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMailParser";
@@ -60,6 +63,10 @@ export class MailboxExtractionProcessor {
   private async loadCategories(): Promise<
     FuncResultWithData<Record<string, Category>>
   > {
+    /**
+     * 各インスタンス1個に対して1回実行。
+     * mailidが見つかったときしか実行されないので、読み取り回数について気にする必要はあまりない。
+     *  */
     if (this.categories === null) {
       const result = await this.categoryService.getAllCategories(this.userId);
       if (result.status !== FuncStatus.SUCCESS) {
@@ -222,19 +229,21 @@ export class MailboxExtractionProcessor {
     const rakutenPaySamp = createRakutenPaySettingInstance();
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
+    const amazonItemSamp = createAmazonItemSettingInstance();
 
+    let ret: FuncResultWithData<string[]>;
     switch (nodeName) {
       /**
        * クエリの文章だけ定義して、
        * この関数内でqueryしてもいいかもな。
        */
       case rakutenPaySamp.nodeName:
-        return await this.getRakutenPayMailIds(gmailClient, startTime, endTime);
+        ret = await this.getRakutenPayMailIds(gmailClient, startTime, endTime);
         break;
 
       case amazonKindleSamp.nodeName:
         /* 特に何もやらない */
-        return await this.getAmazonKindleMailIds(
+        ret = await this.getAmazonKindleMailIds(
           gmailClient,
           startTime,
           endTime
@@ -242,20 +251,25 @@ export class MailboxExtractionProcessor {
         break;
 
       case shikokuElectricSamp.nodeName:
-        return await this.getShikokuElectricMailIds(
+        ret = await this.getShikokuElectricMailIds(
           gmailClient,
           startTime,
           endTime
         );
         break;
 
+      case amazonItemSamp.nodeName:
+        ret = await this.getAmazonItemMailIds(gmailClient, startTime, endTime);
+        break;
+
       default:
-        return {
+        ret = {
           status: FuncStatus.ERROR,
           message: `Unknown type:${nodeName}`,
         };
         break;
     }
+    return ret;
   }
 
   async getRakutenPayMailIds(
@@ -309,6 +323,19 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
+  async getAmazonItemMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "auto-confirm@amazon.co.jp";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
   /**
    * Expenseに対して保管して保存する
@@ -346,6 +373,7 @@ export class MailboxExtractionProcessor {
     const rakutenPaySamp = createRakutenPaySettingInstance();
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
+    const amazonItemSamp = createAmazonItemSettingInstance();
 
     let categories: Record<string, Category> = {};
     const categoryRet = await this.loadCategories();
@@ -404,6 +432,9 @@ export class MailboxExtractionProcessor {
           categories,
           sentDate
         );
+        break;
+
+      case amazonItemSamp.nodeName:
         break;
 
       default:
@@ -506,6 +537,27 @@ export class MailboxExtractionProcessor {
     const addRet = this.addExpenseFromMailExtraction(baseExpense, setting);
 
     return addRet;
+  }
+
+  async saveExpenseFromAmazonItem(
+    rawText: string,
+    setting: AmazonItemSetting,
+    categories: Record<string, Category>,
+    internalDate?: string | null
+  ): Promise<FuncResult> {
+    if (!internalDate) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `when saving AmazonItem, internal Date should not be empty.`,
+      };
+    }
+    const parser = new AmazonItemParser(rawText, internalDate);
+    console.log(parser.extractDate());
+    console.log(rawText);
+    return {
+      status: FuncStatus.ERROR,
+      message: `Still working on Amazon item.`,
+    };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

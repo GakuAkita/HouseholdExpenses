@@ -4,6 +4,9 @@ export interface MailboxGmailTokenType {
   gmail: string /* Gmailのメールアドレス */;
 }
 
+/**
+ * Kotlin側と合わせる
+ */
 export enum CategoryAssignFlags {
   NONE = 0x000,
   PRODUCT_NAME = 0x001,
@@ -42,16 +45,26 @@ export type ShikokuElectricPowerSetting = {
   categoryId?: string;
   readonly categoryAssignFlag: CategoryAssignFlags.NONE;
 };
+export type AmazonItemSetting = {
+  enabled: boolean;
+  emailProvider: string;
+  readonly nodeName: "amazon_item";
+  readonly menuName: "Amazon 物";
+  readonly categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME;
+};
 
 /* ここに全ての型を含めておく */
 export type AllMailType =
   | RakutenPaySetting
   | AmazonKindleSetting
-  | ShikokuElectricPowerSetting;
+  | ShikokuElectricPowerSetting
+  | AmazonItemSetting;
+
 export const allMailTypeList: AllMailType[] = [
   createRakutenPaySettingInstance(), //ここがamazon_kindleになってた、、、
   createAmazonKindleSettingInstance(),
   createShikokuElectricPowerSettingInstance(),
+  createAmazonItemSettingInstance(),
 ];
 
 /**
@@ -109,6 +122,20 @@ export function createShikokuElectricPowerSettingInstance(
     nodeName: "shikoku_electric_power",
     menuName: "四国電力",
     categoryAssignFlag: CategoryAssignFlags.NONE,
+    ...params,
+  };
+}
+
+export function createAmazonItemSettingInstance(
+  params: {
+    enabled: boolean;
+    emailProvider: EmailProvider;
+  } = { enabled: true, emailProvider: EmailProvider.GMAIL }
+): AmazonItemSetting {
+  return {
+    nodeName: "amazon_item",
+    menuName: "Amazon 物",
+    categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME,
     ...params,
   };
 }

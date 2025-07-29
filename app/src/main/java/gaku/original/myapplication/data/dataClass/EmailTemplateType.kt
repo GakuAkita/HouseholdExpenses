@@ -37,7 +37,6 @@ sealed class EmailTemplateType : CategorizationMode {
         override val menuName = "楽天Pay"
         override fun defaultInstance() = RakutenPay()
         override val categoryAssignFlag = CategoryAssignFlag.STORE_NAME.value
-
     }
 
     data class ShikokuElectricPower(

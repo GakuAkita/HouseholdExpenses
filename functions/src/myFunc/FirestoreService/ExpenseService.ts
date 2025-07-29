@@ -93,7 +93,7 @@ export class ExpenseService {
       const fixedExpenseData = normalizeExpenseCategory(expenseData);
       await newDocRef.set(fixedExpenseData); // 一発で書き込み
       /* ここで記録しておくことで後で戻れるようにする */
-      logger.info(`Added Expense:${fixedExpenseData.toString()}`);
+      logger.info(`Added Expense:${JSON.stringify(fixedExpenseData)}`);
       return {
         status: FuncStatus.SUCCESS,
         message: `Expense added with ID: ${newDocRef.id}`,
