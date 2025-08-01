@@ -435,6 +435,13 @@ export class MailboxExtractionProcessor {
         break;
 
       case amazonItemSamp.nodeName:
+        ret = await this.saveExpenseFromAmazonItem(
+          rawText,
+          setting,
+          categories,
+          categoryAssignmentData,
+          sentDate
+        );
         break;
 
       default:
@@ -463,9 +470,6 @@ export class MailboxExtractionProcessor {
 
     const baseExpense: Expense = ret.data;
     if (assignmentData.storeName && baseExpense.storeName) {
-      /**
-       * categoriesがちゃんと取れているかわからないので、printしてみる
-       *  */
       const category = categoryAssign(
         baseExpense.storeName,
         assignmentData.storeName,
@@ -543,6 +547,7 @@ export class MailboxExtractionProcessor {
     rawText: string,
     setting: AmazonItemSetting,
     categories: Record<string, Category>,
+    assignmentData: CategoryAssignmentData,
     internalDate?: string | null
   ): Promise<FuncResult> {
     if (!internalDate) {
@@ -554,10 +559,51 @@ export class MailboxExtractionProcessor {
     const parser = new AmazonItemParser(rawText, internalDate);
     console.log(parser.extractDate());
     console.log(rawText);
-    return {
-      status: FuncStatus.ERROR,
-      message: `Still working on Amazon item.`,
-    };
+    const expensesAdded = parser.toExpenses();
+
+    /* 一個でもaddできたらtrueに戻す */
+    let expenseAddedFlag = false;
+    /* 配列にExpenseが入っているので全部ループする。 */
+    for (const expense of expensesAdded) {
+      /* 製品名でカテゴリー割当をする */
+      if (assignmentData.productName && expense.itemName) {
+        const category = categoryAssign(
+          expense.itemName,
+          assignmentData.productName,
+          categories
+        );
+
+        /**
+         * カテゴリーがヒットしたら更新
+         */
+        if (category) {
+          expense.category = category;
+        }
+      }
+      /* Firestoreに保存する */
+      /**
+       * 1個も保存できていなかったら、エラーを吐く
+       * なぜならメールのフォーマットが変わって何も取得できなかったか、addができなかった可能性があるから。
+       *  */
+      const addRet = await this.addExpenseFromMailExtraction(expense, setting);
+      if (addRet.status == FuncStatus.SUCCESS) {
+        expenseAddedFlag = true;
+      } else {
+        logger.error(`error at saveExpenseFromAmazonItem:${addRet.message}`);
+      }
+    }
+
+    if (expenseAddedFlag) {
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `at least one expense was added`,
+      };
+    } else {
+      return {
+        status: FuncStatus.ERROR,
+        message: `No expense was added. Unable to extract any expenses`,
+      };
+    }
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
