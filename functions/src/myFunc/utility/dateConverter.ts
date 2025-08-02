@@ -1,3 +1,4 @@
+import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 
 /**
@@ -11,7 +12,7 @@ export function convertToUtcIsoString(date: Date, timeZone: string): string {
   const dt = DateTime.fromJSDate(date, { zone: timeZone });
 
   if (!dt.isValid) {
-    console.error(`Invalid time zone: ${timeZone} — ${dt.invalidExplanation}`);
+    logger.error(`Invalid time zone: ${timeZone} — ${dt.invalidExplanation}`);
     timeZone = TimeZone.JST; //事故っていたら日本時間に設定
   }
 

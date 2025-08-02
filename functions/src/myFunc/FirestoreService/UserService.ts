@@ -1,4 +1,5 @@
 import { Firestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
 import {
   FuncResult,
   FuncResultWithData,
@@ -59,7 +60,7 @@ export class UserService {
   async getAllUserIds(): Promise<FuncResultWithData<string[]>> {
     try {
       const snapshot = await this.getUsersColRef().get();
-      console.log("snapshot size:", snapshot.size);
+      logger.log("snapshot size:", snapshot.size);
       const userIds: string[] = [];
 
       snapshot.forEach((doc) => {

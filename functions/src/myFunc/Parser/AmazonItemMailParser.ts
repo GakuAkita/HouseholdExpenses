@@ -2,7 +2,7 @@ import { logger } from "firebase-functions";
 import { Expense } from "../../type/Expense";
 import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
 
-export class AmazonItemParser {
+export class AmazonItemMailParser {
   constructor(private rawText: string, private internalDate: string) {}
 
   extractDate(): string | null {

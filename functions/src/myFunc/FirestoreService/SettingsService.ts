@@ -1,4 +1,5 @@
 import { Firestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { UserPreferences } from "../../type/UserPreferences";
@@ -68,7 +69,7 @@ export class SettingsService {
        */
       if (typeof raw.timeZone !== "string") {
         /* ログに残しておくけど次に行く。 */
-        console.error(
+        logger.error(
           `Invalid timeZone format for user ${userId}. Expected string, got ${typeof raw.timeZone}.`
         );
       }

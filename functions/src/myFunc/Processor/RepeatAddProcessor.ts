@@ -1,4 +1,5 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
+import { logger } from "firebase-functions";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
 import { TriggerTimeZone } from "../../constants/TimeZone";
@@ -51,7 +52,7 @@ export class RepeatAddProcessor {
     const freq = repeatAdd.frequencyInfo.frequency;
 
     let datesArr: Date[] = [];
-    console.log(`This is ${freq}`);
+    logger.log(`This is ${freq}`);
     switch (freq) {
       case RepeatFrequency.EVERYDAY:
         datesArr = getEverydayOfMonth(year, month);
@@ -60,7 +61,7 @@ export class RepeatAddProcessor {
       case RepeatFrequency.EVERY_WEEK:
         const daysOfWeek = repeatAdd.frequencyInfo.dayOfWeek;
         /* 保存されているのは文字列なので、数値に変換する */
-        console.log(daysOfWeek);
+        logger.log(daysOfWeek);
         if (daysOfWeek == null) {
           return {
             status: FuncStatus.ERROR,
@@ -190,7 +191,7 @@ export class RepeatAddProcessor {
    * 各repeatAddからexpenseを追加していく
    */
   async addExpensesFromAllRepeatAdd(userId: string): Promise<FuncResult> {
-    console.log("Processing user ID:", userId);
+    logger.log("Processing user ID:", userId);
     /* まずはユーザーのRepeatAddをすべて取ってくる */
     const repeatAddsStatus = await this.repeatAddService.getAllRepeatAdds(
       userId
@@ -224,7 +225,8 @@ export class RepeatAddProcessor {
 
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
-    const triggerRegionTime =
+    const triggerRegionTime =import { logger } from 'firebase-functions';
+
       DateTime.now().setZone(TriggerTimeZone); /* トリガーに合わせる */
     const currentYear = triggerRegionTime.year;
     const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1
@@ -239,14 +241,14 @@ export class RepeatAddProcessor {
         currentMonth
       );
       if (targetResult.status !== FuncStatus.SUCCESS) {
-        console.error(
+        logger.error(
           `Failed to get target dates for repeat add ${repeatAdd.id}: ${targetResult.message}`
         );
         continue;
       }
       const targetDates = targetResult.data;
       if (targetDates == null) {
-        console.error(`No target dates found for repeat add ${repeatAdd.id}.`);
+        logger.error(`No target dates found for repeat add ${repeatAdd.id}.`);
         continue;
       }
 
@@ -260,7 +262,7 @@ export class RepeatAddProcessor {
           userTimeZone /* ユーザーの設定をみる！！！ */
         );
         if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
-          console.error(
+          logger.error(
             `Failed to add expense for repeat add ${
               repeatAdd.id
             } on ${targetDate.toISOString()}: ${addExpenseStatus.message}`
@@ -271,7 +273,7 @@ export class RepeatAddProcessor {
       }
 
       if (addedExpenseCount !== targetDates.length) {
-        console.warn(
+        logger.warn(
           `Not all expenses were added for repeat add ${repeatAdd.id}. Added: ${addedExpenseCount}, Target: ${targetDates.length}`
         );
       }

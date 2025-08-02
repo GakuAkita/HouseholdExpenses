@@ -19,18 +19,21 @@ import {
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
+  createUdemmySettingInstance,
   LastMailboxExtractionExec,
   RakutenPaySetting,
   ShikokuElectricPowerSetting,
+  UdemySetting,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
-import { AmazonItemParser } from "../Parser/AmazonItemParser";
+import { AmazonItemMailParser } from "../Parser/AmazonItemMailParser";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMailParser";
+import { UdemyMailParser } from "../Parser/UdemyMailParser";
 import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import { categoryAssign } from "../utility/cateogryAssign";
@@ -230,6 +233,7 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
+    const udemySetting = createUdemmySettingInstance();
 
     let ret: FuncResultWithData<string[]>;
     switch (nodeName) {
@@ -260,6 +264,10 @@ export class MailboxExtractionProcessor {
 
       case amazonItemSamp.nodeName:
         ret = await this.getAmazonItemMailIds(gmailClient, startTime, endTime);
+        break;
+
+      case udemySetting.nodeName:
+        ret = await this.getUdemyMailIds(gmailClient, startTime, endTime);
         break;
 
       default:
@@ -336,6 +344,19 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
+  async getUdemyMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "hello@alerts.udemy.com";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
   /**
    * Expenseに対して保管して保存する
@@ -374,6 +395,7 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
+    const udemySamp = createUdemmySettingInstance();
 
     let categories: Record<string, Category> = {};
     const categoryRet = await this.loadCategories();
@@ -436,6 +458,16 @@ export class MailboxExtractionProcessor {
 
       case amazonItemSamp.nodeName:
         ret = await this.saveExpenseFromAmazonItem(
+          rawText,
+          setting,
+          categories,
+          categoryAssignmentData,
+          sentDate
+        );
+        break;
+
+      case udemySamp.nodeName:
+        ret = await this.saveExpenseFromUdemmy(
           rawText,
           setting,
           categories,
@@ -556,9 +588,7 @@ export class MailboxExtractionProcessor {
         message: `when saving AmazonItem, internal Date should not be empty.`,
       };
     }
-    const parser = new AmazonItemParser(rawText, internalDate);
-    console.log(parser.extractDate());
-    console.log(rawText);
+    const parser = new AmazonItemMailParser(rawText, internalDate);
     const expensesAdded = parser.toExpenses();
 
     /* 一個でもaddできたらtrueに戻す */
@@ -604,6 +634,24 @@ export class MailboxExtractionProcessor {
         message: `No expense was added. Unable to extract any expenses`,
       };
     }
+  }
+
+  async saveExpenseFromUdemmy(
+    rawText: string,
+    setting: UdemySetting,
+    categories: Record<string, Category>,
+    assignmentData: CategoryAssignmentData,
+    internalDate?: string | null
+  ): Promise<FuncResult> {
+    if (!internalDate) {
+      return {
+        status: FuncStatus.ERROR,
+        message: "when saving from udemy, internalDate should be given.",
+      };
+    }
+
+    /* 一個でもaddできたらtrueに設定する */
+    const parser = new UdemyMailParser(rawText, internalDate);
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

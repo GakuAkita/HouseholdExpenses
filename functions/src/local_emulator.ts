@@ -30,6 +30,7 @@ import {
   createAmazonKindleSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
+  createUdemmySettingInstance,
   EmailProvider,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
@@ -185,6 +186,15 @@ const init_add = async () => {
     amazonItemSetting
   );
 
+  const udemySetting = createUdemmySettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    udemySetting
+  );
+
   /**
    * refreshTokenをRTDbに保存しておく
    */
@@ -209,7 +219,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-// init_add();
+init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -342,7 +352,7 @@ const processMailTest = async () => {
     categoryAssignmentService
   );
 
-  const type = createAmazonItemSettingInstance();
+  const type = createUdemmySettingInstance();
 
   const ret = await processInstance.processSingleMailType(type);
 
