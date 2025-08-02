@@ -225,8 +225,7 @@ export class RepeatAddProcessor {
 
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
-    const triggerRegionTime =import { logger } from 'firebase-functions';
-
+    const triggerRegionTime =
       DateTime.now().setZone(TriggerTimeZone); /* トリガーに合わせる */
     const currentYear = triggerRegionTime.year;
     const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1

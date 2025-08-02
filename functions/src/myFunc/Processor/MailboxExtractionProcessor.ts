@@ -36,7 +36,10 @@ import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMa
 import { UdemyMailParser } from "../Parser/UdemyMailParser";
 import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
-import { categoryAssign } from "../utility/cateogryAssign";
+import {
+  assignCategoryById,
+  assignCategoryFromAssignmentData,
+} from "../utility/cateogryAssign";
 import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
@@ -471,7 +474,6 @@ export class MailboxExtractionProcessor {
           rawText,
           setting,
           categories,
-          categoryAssignmentData,
           sentDate
         );
         break;
@@ -501,23 +503,24 @@ export class MailboxExtractionProcessor {
     }
 
     const baseExpense: Expense = ret.data;
-    if (assignmentData.storeName && baseExpense.storeName) {
-      const category = categoryAssign(
-        baseExpense.storeName,
-        assignmentData.storeName,
-        categories
-      );
-
-      /**
-       * カテゴリーがヒットしたら更新
-       */
-      if (category) {
-        baseExpense.category = category;
-      }
-    }
+    /**
+     * baseExpenseに店名が入っていて
+     * かつ、
+     * ユーザーが登録した店名のカテゴリー割当データが存在すれば
+     * 見つけてカテゴリー割当をする。(ヒットしない可能性もあるが)
+     */
+    const expenseWithCategory =
+      assignmentData.storeName && baseExpense.storeName
+        ? assignCategoryFromAssignmentData(
+            baseExpense,
+            baseExpense.storeName,
+            assignmentData.storeName,
+            categories
+          )
+        : baseExpense;
 
     const addRet = await this.addExpenseFromMailExtraction(
-      baseExpense,
+      expenseWithCategory,
       setting
     );
 
@@ -536,12 +539,14 @@ export class MailboxExtractionProcessor {
     }
 
     const baseExpense: Expense = ret.data;
-    if (setting.categoryId) {
-      baseExpense.category = categories[setting.categoryId];
-    }
+    const expenseWithCategory = assignCategoryById(
+      baseExpense,
+      setting.categoryId /* カテゴリーidが何もなければ無割当で返ってくる。それも関数内でやっている */,
+      categories
+    );
 
     const addRet = await this.addExpenseFromMailExtraction(
-      baseExpense,
+      expenseWithCategory,
       setting
     );
 
@@ -567,10 +572,16 @@ export class MailboxExtractionProcessor {
       return ret;
     }
     const baseExpense = ret.data;
-    if (setting.categoryId) {
-      baseExpense.category = categories[setting.categoryId];
-    }
-    const addRet = this.addExpenseFromMailExtraction(baseExpense, setting);
+    const expenseWithCategory = assignCategoryById(
+      baseExpense,
+      setting.categoryId,
+      categories
+    );
+
+    const addRet = this.addExpenseFromMailExtraction(
+      expenseWithCategory,
+      setting
+    );
 
     return addRet;
   }
@@ -589,33 +600,45 @@ export class MailboxExtractionProcessor {
       };
     }
     const parser = new AmazonItemMailParser(rawText, internalDate);
-    const expensesAdded = parser.toExpenses();
+    const parseRet = parser.toExpenses();
+    if (parseRet.status != FuncStatus.SUCCESS) {
+      return parseRet;
+    } else if (!parseRet.data) {
+      return {
+        status: FuncStatus.ERROR,
+        message:
+          "saveExepnseFromAmazonItem : funcStatus was success, but data was not attached.",
+      };
+    } else {
+      /* Do nothing */
+    }
+
+    const expensesAdded = parseRet.data;
 
     /* 一個でもaddできたらtrueに戻す */
     let expenseAddedFlag = false;
     /* 配列にExpenseが入っているので全部ループする。 */
     for (const expense of expensesAdded) {
       /* 製品名でカテゴリー割当をする */
-      if (assignmentData.productName && expense.itemName) {
-        const category = categoryAssign(
-          expense.itemName,
-          assignmentData.productName,
-          categories
-        );
+      const expenseWithCategory =
+        assignmentData.productName && expense.itemName
+          ? assignCategoryFromAssignmentData(
+              expense,
+              expense.itemName,
+              assignmentData.productName,
+              categories
+            )
+          : expense;
 
-        /**
-         * カテゴリーがヒットしたら更新
-         */
-        if (category) {
-          expense.category = category;
-        }
-      }
       /* Firestoreに保存する */
       /**
        * 1個も保存できていなかったら、エラーを吐く
        * なぜならメールのフォーマットが変わって何も取得できなかったか、addができなかった可能性があるから。
        *  */
-      const addRet = await this.addExpenseFromMailExtraction(expense, setting);
+      const addRet = await this.addExpenseFromMailExtraction(
+        expenseWithCategory,
+        setting
+      );
       if (addRet.status == FuncStatus.SUCCESS) {
         expenseAddedFlag = true;
       } else {
@@ -623,24 +646,21 @@ export class MailboxExtractionProcessor {
       }
     }
 
-    if (expenseAddedFlag) {
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `at least one expense was added`,
-      };
-    } else {
-      return {
-        status: FuncStatus.ERROR,
-        message: `No expense was added. Unable to extract any expenses`,
-      };
-    }
+    return expenseAddedFlag
+      ? {
+          status: FuncStatus.SUCCESS,
+          message: `at least one expense was added`,
+        }
+      : {
+          status: FuncStatus.ERROR,
+          message: `No expense was added. Unable to extract any expenses`,
+        };
   }
 
   async saveExpenseFromUdemmy(
     rawText: string,
     setting: UdemySetting,
     categories: Record<string, Category>,
-    assignmentData: CategoryAssignmentData,
     internalDate?: string | null
   ): Promise<FuncResult> {
     if (!internalDate) {
@@ -650,8 +670,51 @@ export class MailboxExtractionProcessor {
       };
     }
 
-    /* 一個でもaddできたらtrueに設定する */
     const parser = new UdemyMailParser(rawText, internalDate);
+    const parseRet = parser.toExpenses();
+    if (parseRet.status != FuncStatus.SUCCESS) {
+      return parseRet;
+    } else if (!parseRet.data) {
+      return {
+        status: FuncStatus.ERROR,
+        message: "toExpenses status was Success, but data was not attached.",
+      };
+    } else {
+      /* Do nothing */
+    }
+
+    const expensesAdded = parseRet.data;
+
+    /* 一個でもaddできたらtrueに設定する */
+    let expenseAddedFlag = false;
+    for (const expense of expensesAdded) {
+      const expenseWithCategory = assignCategoryById(
+        expense,
+        setting.categoryId,
+        categories
+      );
+
+      const addRet = await this.addExpenseFromMailExtraction(
+        expenseWithCategory,
+        setting
+      );
+
+      if (addRet.status == FuncStatus.SUCCESS) {
+        expenseAddedFlag = true;
+      } else {
+        logger.error(`saveExpenseFromUdemy: ${addRet.message}`);
+      }
+    }
+
+    return expenseAddedFlag
+      ? {
+          status: FuncStatus.SUCCESS,
+          message: `At least one expense was added.`,
+        }
+      : {
+          status: FuncStatus.ERROR,
+          message: `No expense was added`,
+        };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

@@ -1,5 +1,6 @@
 import { logger } from "firebase-functions";
 import { Expense } from "../../type/Expense";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
 
 export class AmazonItemMailParser {
@@ -11,7 +12,7 @@ export class AmazonItemMailParser {
     return dateStr;
   }
 
-  toExpenses(): Expense[] {
+  toExpenses(): FuncResultWithData<Expense[]> {
     /**
      * 2パターンくらいある。
      */
@@ -63,7 +64,11 @@ export class AmazonItemMailParser {
     });
 
     if (expensesPat1.length > 0) {
-      return expensesPat1;
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "more than 1 expense was extracted.",
+        data: expensesPat1,
+      };
     }
 
     /* パターン2で調べてみる */
@@ -82,9 +87,17 @@ export class AmazonItemMailParser {
       return expense;
     });
 
-    // if (expensesPat2.length > 0) {
-    // }
+    if (expensesPat2.length > 0) {
+      return {
+        status: FuncStatus.SUCCESS,
+        message: "more than 1 expense was added by Pattern2",
+        data: expensesPat2,
+      };
+    }
 
-    return expensesPat2;
+    return {
+      status: FuncStatus.ERROR,
+      message: "No expense was extracted",
+    };
   }
 }

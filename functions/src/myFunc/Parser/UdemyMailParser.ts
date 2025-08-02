@@ -1,4 +1,5 @@
 import { Expense } from "../../type/Expense";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
 
 export class UdemyMailParser {
@@ -10,7 +11,10 @@ export class UdemyMailParser {
     return dateStr;
   }
 
-  extractExpenses(): Expense[] {
-    return [];
+  toExpenses(): FuncResultWithData<Expense[]> {
+    return {
+      status: FuncStatus.ERROR,
+      message: "No expense was extracted from Udemy",
+    };
   }
 }

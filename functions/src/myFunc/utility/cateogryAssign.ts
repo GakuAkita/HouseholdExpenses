@@ -2,12 +2,42 @@ import { logger } from "firebase-functions";
 import { AssignmentCondition } from "../../constants/AssignmentCondition";
 import { Category } from "../../type/Category";
 import { CategoryAssignment } from "../../type/CategoryAssignment";
+import { Expense } from "../../type/Expense";
+
+/**
+ * 引数にはベースのExpenseを渡して、
+ */
+export const assignCategoryFromAssignmentData = (
+  baseExpense: Expense,
+  name: string,
+  assignments: Record<string, CategoryAssignment>,
+  categories: Record<string, Category>
+): Expense => {
+  const category = findCategoryFromAssignmentData(
+    name,
+    assignments,
+    categories
+  );
+
+  /**
+   * categoryが見つかればbaseExpenseのcategoryに割当てる。
+   * 見つからなかったらそのまま返す
+   */
+  const retExpense = category
+    ? {
+        ...baseExpense,
+        category: category,
+      }
+    : baseExpense;
+
+  return retExpense;
+};
 
 /**
  * exact matchから優先的に検索し、
  * なかったら、containsを探す
  */
-export const categoryAssign = (
+export const findCategoryFromAssignmentData = (
   name: string,
   assignments: Record<string, CategoryAssignment>,
   categories: Record<string, Category>
@@ -50,3 +80,13 @@ export const categoryAssign = (
   // どれにもマッチしなければ null
   return null;
 };
+
+export function assignCategoryById(
+  baseExpense: Expense,
+  categoryId: string | undefined,
+  categories: Record<string, Category>
+): Expense {
+  return categoryId
+    ? { ...baseExpense, category: categories[categoryId] }
+    : baseExpense;
+}
