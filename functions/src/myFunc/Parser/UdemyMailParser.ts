@@ -1,15 +1,11 @@
 import { logger } from "firebase-functions";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
+import { MailParserBase } from "./MailParserBase";
 
-export class UdemyMailParser {
-  constructor(private rawText: string, private internalDate: string) {}
-
-  extractDate(): string | undefined {
-    const milliSec = Number(this.internalDate);
-    const dateStr = convertUnixMillisecToDateString(milliSec);
-    return dateStr;
+export class UdemyMailParser extends MailParserBase {
+  constructor(rawText: string, internalDate: string) {
+    super(rawText, internalDate);
   }
 
   toExpenses(): FuncResultWithData<Expense[]> {

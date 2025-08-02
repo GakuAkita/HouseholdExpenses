@@ -530,9 +530,17 @@ export class MailboxExtractionProcessor {
   async saveExpenseFromAmazonKindle(
     rawText: string,
     setting: AmazonKindleSetting,
-    categories: Record<string, Category>
+    categories: Record<string, Category>,
+    internalDate?: string | null
   ): Promise<FuncResult> {
-    const parser = new AmazonKindleMailParser(rawText);
+    if (!internalDate) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `when sving AmazonKindle, internalDate should not be empty.`,
+      };
+    }
+
+    const parser = new AmazonKindleMailParser(rawText, internalDate);
     const ret = parser.toExpense();
     if (ret.status != FuncStatus.SUCCESS || !ret.data) {
       return ret;

@@ -1,14 +1,10 @@
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
 import { Expense } from "./../../type/Expense";
+import { MailParserBase } from "./MailParserBase";
 
-export class ShikokuElectricPowerMailParser {
-  constructor(private rawText: string, private internalDate: string) {}
-
-  extractDate(): string | null {
-    const milliSec = Number(this.internalDate);
-    const dateStr = convertUnixMillisecToDateString(milliSec);
-    return dateStr;
+export class ShikokuElectricPowerMailParser extends MailParserBase {
+  constructor(rawText: string, internalDate: string) {
+    super(rawText, internalDate);
   }
 
   extractAmount(): number | null {

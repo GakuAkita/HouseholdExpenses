@@ -1,36 +1,14 @@
-import { logger } from "firebase-functions";
-import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { convertToUtcIsoString } from "../utility/dateConverter";
+import { MailParserBase } from "./MailParserBase";
 
 /**
  * Kindleのフォーマットはしょっちゅう変わるから
  * 定期的にこのParserを更新する必要あり。
  */
-export class AmazonKindleMailParser {
-  constructor(private rawText: string) {}
-
-  extractOrderDate(): string | null {
-    const match = this.rawText.match(
-      /注文日:\s*(\d{4})年(\d{1,2})月(\d{1,2})日(?:\([^)]*\))?/
-    );
-    if (!match) return null;
-
-    // match[1] = 年, match[2] = 月, match[3] = 日
-    const year = match[1];
-    const month = ("0" + match[2]).slice(-2); // 先頭に0をつけて後ろ2文字を取得
-    const day = ("0" + match[3]).slice(-2);
-
-    const isoStr = `${year}-${month}-${day}T00:00:00`; /* これは日本時間なのでUTCに変換しておく */
-    logger.debug(`${isoStr}`);
-    const date = new Date(isoStr);
-
-    if (isNaN(date.getTime())) {
-      logger.error(`Invalid Date:`, isoStr);
-      return null;
-    }
-    return convertToUtcIsoString(date, TimeZone.JST);
+export class AmazonKindleMailParser extends MailParserBase {
+  constructor(rawText: string, internalDate: string) {
+    super(rawText, internalDate);
   }
 
   extractBookTitle(): string | null {
@@ -61,7 +39,7 @@ export class AmazonKindleMailParser {
   }
 
   toExpense(): FuncResultWithData<Expense> {
-    const orderDate = this.extractOrderDate();
+    const orderDate = this.extractDate();
     const total = this.extractTotalAmount();
     const bookTitle = this.extractBookTitle();
     if (!orderDate || !bookTitle || total === null) {
