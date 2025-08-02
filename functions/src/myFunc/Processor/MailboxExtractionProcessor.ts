@@ -706,17 +706,20 @@ export class MailboxExtractionProcessor {
        * 何もヒットしなかった
        */
       logger.info("Nothing was found After query.");
+      const newLastExec: LastMailboxExtractionExec = {
+        ...lastExecRet.data,
+        timestamp: endTime /* UNIXミリ秒で保存 */,
+      };
       const ret =
         await this.mailboxExtractionService.setMailboxExtractionLastExec(
           this.userId,
           type,
-          {
-            timestamp: endTime /* UNIXミリ秒で保存 */,
-            ...lastExecRet.data,
-          }
+          newLastExec
         );
       if (ret.status != FuncStatus.SUCCESS) {
         logger.error(`${ret.message}`);
+      } else {
+        logger.info(`Updated last exec. ${JSON.stringify({ newLastExec })}`);
       }
     } else {
       /**

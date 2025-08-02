@@ -53,12 +53,22 @@ export type AmazonItemSetting = {
   readonly categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME;
 };
 
+export type UdemySetting = {
+  enabled: boolean;
+  emailProvider: string;
+  readonly nodeName: "udemy";
+  readonly menuName: "Udemy";
+  categoryId?: string;
+  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
+};
+
 /* ここに全ての型を含めておく */
 export type AllMailType =
   | RakutenPaySetting
   | AmazonKindleSetting
   | ShikokuElectricPowerSetting
-  | AmazonItemSetting;
+  | AmazonItemSetting
+  | UdemySetting;
 
 export const allMailTypeList: AllMailType[] = [
   createRakutenPaySettingInstance(), //ここがamazon_kindleになってた、、、
@@ -126,6 +136,9 @@ export function createShikokuElectricPowerSettingInstance(
   };
 }
 
+/**
+ * Amazon物の設定を生成する
+ */
 export function createAmazonItemSettingInstance(
   params: {
     enabled: boolean;
@@ -136,6 +149,27 @@ export function createAmazonItemSettingInstance(
     nodeName: "amazon_item",
     menuName: "Amazon 物",
     categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME,
+    ...params,
+  };
+}
+
+/**
+ * Udemyの設定を生成する
+ */
+export function createUdemmySettingInstance(
+  params: {
+    enabled: boolean;
+    categoryId?: string;
+    emailProvider: EmailProvider;
+  } = {
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  }
+): UdemySetting {
+  return {
+    nodeName: "udemy",
+    menuName: "Udemy",
+    categoryAssignFlag: CategoryAssignFlags.NONE,
     ...params,
   };
 }

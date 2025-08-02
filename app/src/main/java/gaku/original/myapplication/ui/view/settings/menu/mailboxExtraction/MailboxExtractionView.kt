@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.Button
@@ -65,6 +67,7 @@ fun MailboxExtractionView(
     val amazonKindleSettingState by viewModel.amazonKindleSettingState.collectAsState()
     val amazonItemSettingState by viewModel.amazonItemSettingState.collectAsState()
     val shikokuElectricSettingState by viewModel.shikokuElectricPowerSettingState.collectAsState()
+    val udemySettingState by viewModel.udemySettingState.collectAsState()
 
     val allCategories by viewModel.allCategories.collectAsState()
     val isGmailTokenExist by viewModel.isGmailTokenExist.collectAsState()
@@ -230,7 +233,7 @@ fun MailboxExtractionView(
                 }
             }
 
-            Row() {
+            Row {
                 val timestamp = lastExecMap[settingState.type.nodeName]?.timestamp
                 var execTimeStr: String? = null
                 if (timestamp != null && timestamp > 0L) {
@@ -262,7 +265,9 @@ fun MailboxExtractionView(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
         ) {
             if (loading) {
@@ -326,6 +331,10 @@ fun MailboxExtractionView(
 
                     MailboxExtractionMenu(
                         shikokuElectricSettingState,
+                    )
+
+                    MailboxExtractionMenu(
+                        udemySettingState,
                     )
                 }
             }

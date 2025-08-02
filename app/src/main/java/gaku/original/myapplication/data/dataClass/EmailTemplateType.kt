@@ -73,7 +73,17 @@ sealed class EmailTemplateType : CategorizationMode {
         override fun defaultInstance() = AmazonItem()
         override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME.value
     }
-    //ユニクロ？
+
+    data class Udemy(
+        override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
+        override val categoryId: String? = null,
+    ) : EmailTemplateType(), HasCategoryId {
+        override val nodeName = "udemy"
+        override val menuName = "Udemy"
+        override fun defaultInstance(): EmailTemplateType = Udemy()
+        override val categoryAssignFlag: Int = CategoryAssignFlag.NONE.value
+    }
 }
 
 /* EmailTemplateTypeでもcopy()てきなのが使えるように。 */
@@ -100,6 +110,12 @@ fun EmailTemplateType.copyWith(
         )
 
         is EmailTemplateType.ShikokuElectricPower -> this.copy(
+            enabled = enabled,
+            emailProvider = emailProvider,
+            categoryId = categoryId
+        )
+
+        is EmailTemplateType.Udemy -> this.copy(
             enabled = enabled,
             emailProvider = emailProvider,
             categoryId = categoryId
