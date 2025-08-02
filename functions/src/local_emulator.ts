@@ -219,7 +219,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-init_add();
+// init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -352,19 +352,27 @@ const processMailTest = async () => {
     categoryAssignmentService
   );
 
-  const type = createUdemmySettingInstance();
+  const testTypes = [
+    // createRakutenPaySettingInstance(),
+    // createAmazonItemSettingInstance(),
+    // createAmazonKindleSettingInstance(),
+    // createShikokuElectricPowerSettingInstance(),
+    createUdemmySettingInstance(),
+  ];
 
-  const ret = await processInstance.processSingleMailType(type);
+  for (const type of testTypes) {
+    const ret = await processInstance.processSingleMailType(type);
 
-  logger.debug(`processSingleMailType result: ${ret}`);
+    logger.debug(`processSingleMailType result: ${ret}`);
 
-  const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
-    userId,
-    type,
-    {
-      timestamp: 2,
-    }
-  );
+    const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
+      userId,
+      type,
+      {
+        timestamp: 2,
+      }
+    );
+  }
   logger.debug("process Done");
 };
 

@@ -66,7 +66,7 @@ export class CategoryAssignmentService {
         storeName: {
           store1: {
             id: "store1",
-            name: "ローソン",
+            name: "ハローズ",
             categoryId: "category1",
             condition: AssignmentCondition.CONTAINS,
             regex: false,

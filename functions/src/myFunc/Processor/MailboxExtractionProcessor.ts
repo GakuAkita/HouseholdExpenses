@@ -669,7 +669,6 @@ export class MailboxExtractionProcessor {
         message: "when saving from udemy, internalDate should be given.",
       };
     }
-
     const parser = new UdemyMailParser(rawText, internalDate);
     const parseRet = parser.toExpenses();
     if (parseRet.status != FuncStatus.SUCCESS) {
