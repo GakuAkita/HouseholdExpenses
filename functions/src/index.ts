@@ -12,8 +12,8 @@ import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
 import {
   AllMailType,
+  mailboxExtractionSchedules,
   MailboxGmailTokenType,
-  shortPeriodMailTypeList,
 } from "./type/Mailbox";
 const {
   userService,
@@ -234,13 +234,15 @@ const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
   }
 };
 
-exports.mailboxExtractionJob = onSchedule(
-  {
-    schedule: "*/5 * * * *", // 毎時5分おき
-    timeZone: TriggerTimeZone,
-    concurrency: 1,
-  },
-  async () => {
-    await scheduledMailboxExtraction(shortPeriodMailTypeList);
-  }
-);
+for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
+  exports[`mailboxExtractionJob_${schedule.id}`] = onSchedule(
+    {
+      schedule: schedule.cron,
+      timeZone: TriggerTimeZone,
+      concurrency: 1,
+    },
+    async () => {
+      await scheduledMailboxExtraction(schedule.mailTypes);
+    }
+  );
+}

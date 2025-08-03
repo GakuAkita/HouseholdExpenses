@@ -62,13 +62,28 @@ export type UdemySetting = {
   readonly categoryAssignFlag: CategoryAssignFlags.NONE;
 };
 
+/**
+ * 将来的にはスクレーピングにするかな～
+ * その時はこいつを消せばいいか。
+ * あと、使ってから費用追加されるまで時間差があるからできれば通知をしたい
+ */
+export type RakutenCardETCSetting = {
+  enabled: boolean;
+  emailProvider: string;
+  readonly nodeName: "rakuten_card_etc";
+  readonly menuName: "楽天ETC";
+  categoryId?: string;
+  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
+};
+
 /* ここに全ての型を含めておく */
 export type AllMailType =
   | RakutenPaySetting
   | AmazonKindleSetting
   | ShikokuElectricPowerSetting
   | AmazonItemSetting
-  | UdemySetting;
+  | UdemySetting
+  | RakutenCardETCSetting;
 
 /**
  * クロン表現
@@ -99,7 +114,8 @@ export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
     description: "毎日:四国電力、udemy、楽天ETCなど",
     mailTypes: [
       createShikokuElectricPowerSettingInstance(),
-      createUdemmySettingInstance(),
+      createUdemySettingInstance(),
+      createRakutenCardETCSettingInstance(),
     ],
   },
 ];
@@ -183,7 +199,7 @@ export function createAmazonItemSettingInstance(
 /**
  * Udemyの設定を生成する
  */
-export function createUdemmySettingInstance(
+export function createUdemySettingInstance(
   params: {
     enabled: boolean;
     categoryId?: string;
@@ -196,6 +212,27 @@ export function createUdemmySettingInstance(
   return {
     nodeName: "udemy",
     menuName: "Udemy",
+    categoryAssignFlag: CategoryAssignFlags.NONE,
+    ...params,
+  };
+}
+
+/**
+ * 楽天カードETCの設定を生成する
+ */
+export function createRakutenCardETCSettingInstance(
+  params: {
+    enabled: boolean;
+    categoryId?: string;
+    emailProvider: EmailProvider;
+  } = {
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  }
+): RakutenCardETCSetting {
+  return {
+    nodeName: "rakuten_card_etc",
+    menuName: "楽天ETC",
     categoryAssignFlag: CategoryAssignFlags.NONE,
     ...params,
   };

@@ -16,10 +16,12 @@ import {
   AmazonKindleSetting,
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
+  createRakutenCardETCSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
-  createUdemmySettingInstance,
+  createUdemySettingInstance,
   LastMailboxExtractionExec,
+  RakutenCardETCSetting,
   RakutenPaySetting,
   ShikokuElectricPowerSetting,
   UdemySetting,
@@ -30,6 +32,7 @@ import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { loadGoogleOAuthSecrets } from "../googleOAuthSecrets";
 import { AmazonItemMailParser } from "../Parser/AmazonItemMailParser";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
+import { RakutenCardETCParser } from "../Parser/RakutenCardETCParser";
 import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
 import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMailParser";
 import { UdemyMailParser } from "../Parser/UdemyMailParser";
@@ -235,7 +238,8 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
-    const udemySetting = createUdemmySettingInstance();
+    const udemySetting = createUdemySettingInstance();
+    const rakutenETCSamp = createRakutenCardETCSettingInstance();
 
     let ret: FuncResultWithData<string[]>;
     switch (nodeName) {
@@ -270,6 +274,14 @@ export class MailboxExtractionProcessor {
 
       case udemySetting.nodeName:
         ret = await this.getUdemyMailIds(gmailClient, startTime, endTime);
+        break;
+
+      case rakutenETCSamp.nodeName:
+        ret = await this.getRakutenCardETCMailIds(
+          gmailClient,
+          startTime,
+          endTime
+        );
         break;
 
       default:
@@ -359,6 +371,19 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
+  async getRakutenCardETCMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "info@mail.rakuten-card.co.jp";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} ETCカード売上 after:${startTime} before:${endTimeAdded}`;
+    logger.debug(`Query:${query}`);
+    const funcResult = await gmailClient.queryMessages(query);
+    return funcResult;
+  }
+
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
   /**
    * Expenseに対して保管して保存する
@@ -397,7 +422,8 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
-    const udemySamp = createUdemmySettingInstance();
+    const udemySamp = createUdemySettingInstance();
+    const rakutenETCSamp = createRakutenCardETCSettingInstance();
 
     let categories: Record<string, Category> = {};
     const categoryRet = await this.loadCategories();
@@ -475,6 +501,14 @@ export class MailboxExtractionProcessor {
           setting,
           categories,
           sentDate
+        );
+        break;
+
+      case rakutenETCSamp.nodeName:
+        ret = await this.saveExpenseFromRakutenCardETC(
+          rawText,
+          setting,
+          categories
         );
         break;
 
@@ -722,6 +756,21 @@ export class MailboxExtractionProcessor {
           status: FuncStatus.ERROR,
           message: `No expense was added`,
         };
+  }
+
+  async saveExpenseFromRakutenCardETC(
+    rawText: string,
+    setting: RakutenCardETCSetting,
+    categories: Record<string, Category>
+  ): Promise<FuncResult> {
+    const parser = new RakutenCardETCParser(rawText);
+
+    const ret = parser.toExpenses();
+
+    return {
+      status: FuncStatus.ERROR,
+      message: "In the middle of debugging.",
+    };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

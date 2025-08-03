@@ -28,9 +28,10 @@ import {
 import {
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
+  createRakutenCardETCSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
-  createUdemmySettingInstance,
+  createUdemySettingInstance,
   EmailProvider,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
@@ -188,7 +189,7 @@ const init_add = async () => {
     amazonItemSetting
   );
 
-  const udemySetting = createUdemmySettingInstance({
+  const udemySetting = createUdemySettingInstance({
     enabled: true,
     emailProvider: EmailProvider.GMAIL,
     categoryId: "category1",
@@ -196,6 +197,16 @@ const init_add = async () => {
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
     udemySetting
+  );
+
+  const r10ETCSetting = createRakutenCardETCSettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+    categoryId: "category1",
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    r10ETCSetting
   );
 
   /**
@@ -356,11 +367,12 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    createRakutenPaySettingInstance(),
-    createAmazonItemSettingInstance(),
-    createAmazonKindleSettingInstance(),
+    // createRakutenPaySettingInstance(),
+    // createAmazonItemSettingInstance(),
+    // createAmazonKindleSettingInstance(),
     // createShikokuElectricPowerSettingInstance(),
-    // createUdemmySettingInstance(),
+    // createUdemySettingInstance(),
+    createRakutenCardETCSettingInstance(),
   ];
 
   for (const type of testTypes) {
