@@ -446,7 +446,8 @@ export class MailboxExtractionProcessor {
         ret = await this.saveExpenseFromAmazonKindle(
           rawText,
           setting,
-          categories
+          categories,
+          sentDate
         );
         break;
 

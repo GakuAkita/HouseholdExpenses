@@ -162,6 +162,7 @@ const init_add = async () => {
   const kindleSetting = createAmazonKindleSettingInstance({
     enabled: true,
     emailProvider: EmailProvider.GMAIL,
+    categoryId: "category1",
   });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
@@ -171,6 +172,7 @@ const init_add = async () => {
   const shikokuESetting = createShikokuElectricPowerSettingInstance({
     enabled: true,
     emailProvider: EmailProvider.GMAIL,
+    categoryId: "category1",
   });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
@@ -189,6 +191,7 @@ const init_add = async () => {
   const udemySetting = createUdemmySettingInstance({
     enabled: true,
     emailProvider: EmailProvider.GMAIL,
+    categoryId: "category1",
   });
   await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
     userId,
@@ -353,11 +356,11 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    // createRakutenPaySettingInstance(),
-    // createAmazonItemSettingInstance(),
-    // createAmazonKindleSettingInstance(),
+    createRakutenPaySettingInstance(),
+    createAmazonItemSettingInstance(),
+    createAmazonKindleSettingInstance(),
     // createShikokuElectricPowerSettingInstance(),
-    createUdemmySettingInstance(),
+    // createUdemmySettingInstance(),
   ];
 
   for (const type of testTypes) {
