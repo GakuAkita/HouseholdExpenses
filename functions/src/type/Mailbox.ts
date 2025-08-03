@@ -70,11 +70,38 @@ export type AllMailType =
   | AmazonItemSetting
   | UdemySetting;
 
-export const allMailTypeList: AllMailType[] = [
-  createRakutenPaySettingInstance(), //ここがamazon_kindleになってた、、、
-  createAmazonKindleSettingInstance(),
-  createShikokuElectricPowerSettingInstance(),
-  createAmazonItemSettingInstance(),
+/**
+ * クロン表現
+ * 実行タイプ等を紐づけておく
+ * このほうがメンテナンスしやすい
+ */
+type MailExtractionSchedule = {
+  cron: string;
+  id: string; // ← 追加（任意）
+  description: string;
+  mailTypes: AllMailType[];
+};
+
+export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
+  {
+    id: "shortPeriod",
+    cron: "*/5 * * * *",
+    description: "5分周期:楽天Pay、Amazon",
+    mailTypes: [
+      createRakutenPaySettingInstance(),
+      createAmazonItemSettingInstance(),
+      createAmazonKindleSettingInstance(),
+    ],
+  },
+  {
+    id: "daily",
+    cron: "0 1 * * *",
+    description: "毎日:四国電力、udemy、楽天ETCなど",
+    mailTypes: [
+      createShikokuElectricPowerSettingInstance(),
+      createUdemmySettingInstance(),
+    ],
+  },
 ];
 
 /**

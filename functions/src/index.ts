@@ -10,7 +10,11 @@ import { initializeServices } from "./myFunc/initializeServices";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
-import { MailboxGmailTokenType } from "./type/Mailbox";
+import {
+  AllMailType,
+  MailboxGmailTokenType,
+  shortPeriodMailTypeList,
+} from "./type/Mailbox";
 const {
   userService,
   repeatAddProcessor,
@@ -202,7 +206,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
   }
 });
 
-const scheduledMailboxExtraction = async () => {
+const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
   /* ユーザーIDをすべて取得してくる */
   let funcResult = await userService.getAllUserIds();
   if (funcResult.status !== FuncStatus.SUCCESS) {
@@ -217,6 +221,7 @@ const scheduledMailboxExtraction = async () => {
   }
   logger.log(`Found ${userIds.length} users.`);
   for (const uid of userIds) {
+    /* ユーザーごとにインスタンスを生成 */
     const mailboxExtrInstance = new MailboxExtractionProcessor(
       uid,
       mailboxExtractionService,
@@ -225,7 +230,7 @@ const scheduledMailboxExtraction = async () => {
       categoryAssignmentService
     );
     /* ユーザーごとに実行 */
-    await mailboxExtrInstance.processAllMailType();
+    await mailboxExtrInstance.processAllMailTypeList(mailTypeList);
   }
 };
 
@@ -235,7 +240,7 @@ exports.mailboxExtractionJob = onSchedule(
     timeZone: TriggerTimeZone,
     concurrency: 1,
   },
-  async (_) => {
-    await scheduledMailboxExtraction();
+  async () => {
+    await scheduledMailboxExtraction(shortPeriodMailTypeList);
   }
 );

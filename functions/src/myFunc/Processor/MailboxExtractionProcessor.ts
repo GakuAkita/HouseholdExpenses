@@ -12,7 +12,6 @@ import {
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 import {
   AllMailType,
-  allMailTypeList,
   AmazonItemSetting,
   AmazonKindleSetting,
   createAmazonItemSettingInstance,
@@ -933,8 +932,8 @@ export class MailboxExtractionProcessor {
   /**
    * すべてのメールタイプに対して、実行する
    */
-  async processAllMailType() {
-    for (const type of allMailTypeList) {
+  async processAllMailTypeList(mailTypeList: AllMailType[]) {
+    for (const type of mailTypeList) {
       await this.processSingleMailType(type);
     }
   }
