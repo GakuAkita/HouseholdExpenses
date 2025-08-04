@@ -12,7 +12,7 @@ import kotlin.reflect.full.createInstance
  */
 
 /**
- * Firestoreには"gamil"ではなくて、"GMAIL"で保存されるらしい、、
+ * Firestoreには"gmail"ではなくて、"GMAIL"で保存されるらしい、、
  */
 enum class EmailProvider(val value: String) {
     GMAIL("gmail"),
@@ -84,6 +84,17 @@ sealed class EmailTemplateType : CategorizationMode {
         override fun defaultInstance(): EmailTemplateType = Udemy()
         override val categoryAssignFlag: Int = CategoryAssignFlag.NONE.value
     }
+
+    data class RakutenCardETC(
+        override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL,
+        override val categoryId: String? = null
+    ) : EmailTemplateType(), HasCategoryId {
+        override val nodeName = "rakuten_card_etc"
+        override val menuName = "楽天ETC"
+        override fun defaultInstance(): EmailTemplateType = RakutenCardETC()
+        override val categoryAssignFlag: Int = CategoryAssignFlag.NONE.value
+    }
 }
 
 /* EmailTemplateTypeでもcopy()てきなのが使えるように。 */
@@ -116,6 +127,12 @@ fun EmailTemplateType.copyWith(
         )
 
         is EmailTemplateType.Udemy -> this.copy(
+            enabled = enabled,
+            emailProvider = emailProvider,
+            categoryId = categoryId
+        )
+
+        is EmailTemplateType.RakutenCardETC -> this.copy(
             enabled = enabled,
             emailProvider = emailProvider,
             categoryId = categoryId

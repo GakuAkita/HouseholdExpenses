@@ -766,11 +766,46 @@ export class MailboxExtractionProcessor {
     const parser = new RakutenCardETCParser(rawText);
 
     const ret = parser.toExpenses();
+    if (ret.status != FuncStatus.SUCCESS) {
+      return ret;
+    } else if (!ret.data) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `data was not attached. ${ret.message}`,
+      };
+    } else {
+      /* 特に問題ない */
+    }
 
-    return {
-      status: FuncStatus.ERROR,
-      message: "In the middle of debugging.",
-    };
+    const expenses = ret.data;
+    let expensesAdded = false;
+    for (const expense of expenses) {
+      const expenseWithCategory = assignCategoryById(
+        expense,
+        setting.categoryId,
+        categories
+      );
+
+      const addRet = await this.addExpenseFromMailExtraction(
+        expenseWithCategory,
+        setting
+      );
+      if (addRet.status == FuncStatus.SUCCESS) {
+        expensesAdded = true;
+      } else {
+        logger.error(addRet.message);
+      }
+    }
+
+    return expensesAdded
+      ? {
+          status: FuncStatus.SUCCESS,
+          message: `More than 1 expense was added from Rakuten ETC`,
+        }
+      : {
+          status: FuncStatus.ERROR,
+          message: "No expense was added from Rakuten ETC",
+        };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */

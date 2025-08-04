@@ -156,6 +156,18 @@ class MailboxExtractionViewModel @Inject constructor(
     )
     val udemySettingState: StateFlow<EmailTemplateSettingState> get() = _udemySettingState
 
+    private val _rakutenCardETCSettingState = MutableStateFlow(
+        EmailTemplateSettingState(
+            type = EmailTemplateType.RakutenCardETC(),
+            setting = null,
+            status = SuspendFuncStatusInfo(
+                SuspendFuncStatus.SUCCESS,
+                "Not loaded yet"
+            )
+        )
+    )
+    val rakutenCardETCSettingState: StateFlow<EmailTemplateSettingState> get() = _rakutenCardETCSettingState
+
     /**
      * 手打ちはやりたくない、、、
      */
@@ -163,13 +175,18 @@ class MailboxExtractionViewModel @Inject constructor(
         LogAkitaDebug("$className: Initializing MailboxExtractionViewModel")
     }
 
+    /**
+     * ここに追加しておかないと、
+     * ロードもされないし、アップロードもされない
+     */
     private val allEmailTemplateStateFlowsList: List<MutableStateFlow<EmailTemplateSettingState>> =
         listOf(
             _rakutenPaySettingState,
             _shikokuElectricPowerSettingState,
             _amazonKindleSettingState,
             _amazonItemSettingState,
-            _udemySettingState
+            _udemySettingState,
+            _rakutenCardETCSettingState
         )
 
     /**

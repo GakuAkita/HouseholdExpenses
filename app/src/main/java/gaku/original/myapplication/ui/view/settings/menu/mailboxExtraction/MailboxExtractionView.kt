@@ -68,6 +68,7 @@ fun MailboxExtractionView(
     val amazonItemSettingState by viewModel.amazonItemSettingState.collectAsState()
     val shikokuElectricSettingState by viewModel.shikokuElectricPowerSettingState.collectAsState()
     val udemySettingState by viewModel.udemySettingState.collectAsState()
+    val rakutenCardETCSettingState by viewModel.rakutenCardETCSettingState.collectAsState()
 
     val allCategories by viewModel.allCategories.collectAsState()
     val isGmailTokenExist by viewModel.isGmailTokenExist.collectAsState()
@@ -335,6 +336,10 @@ fun MailboxExtractionView(
 
                     MailboxExtractionMenu(
                         udemySettingState,
+                    )
+
+                    MailboxExtractionMenu(
+                        rakutenCardETCSettingState,
                     )
                 }
             }

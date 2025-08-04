@@ -18,3 +18,20 @@ export function convertToUtcIsoString(date: Date, timeZone: string): string {
 
   return dt.toUTC().toISO();
 }
+
+/**
+ * "yyyy/mm/dd"の文字列をISO文字列に変換する
+ */
+export function convertyyyymmddToUTCIsoString(
+  input: string,
+  timeZone = TimeZone.JST
+): string {
+  const [yearStr, monthStr, dayStr] = input.split("/");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  const date = new Date(year, month - 1, day);
+
+  return convertToUtcIsoString(date, timeZone);
+}
