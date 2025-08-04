@@ -64,7 +64,7 @@ export class RakutenCardETCParser {
         }
 
         /* ここまで来ることは基本ない */
-        logger.error(`Something went wrong...${etcblock}`);
+        logger.error(`Something went wrong...[${etcblock}]`);
         return null;
       })
       .filter((e): e is Expense => e !== null); // null を取り除く型ガード;
