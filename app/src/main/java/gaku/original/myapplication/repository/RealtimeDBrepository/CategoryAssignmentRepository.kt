@@ -6,7 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.GenericTypeIndicator
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
@@ -25,23 +25,23 @@ class CategoryAssignmentRepository @Inject constructor(
 ) {
     private val className = this::class.simpleName ?: "UnableToGetClassName"
 
-    suspend fun getCategoryAssignmentDataRef(): FetchResult<DatabaseReference> {
+    suspend fun getCategoryAssignmentDataRef(): FuncResultWithData<DatabaseReference> {
         return realtimeDbReference.getCategoryAssignmentDataRef()
     }
 
-    suspend fun getProductNameCategoryAssignmentRef(): FetchResult<DatabaseReference> {
+    suspend fun getProductNameCategoryAssignmentRef(): FuncResultWithData<DatabaseReference> {
         return realtimeDbReference.getProductNameCategoryAssignmentRef()
     }
 
-    suspend fun getStoreNameCategoryAssignmentRef(): FetchResult<DatabaseReference> {
+    suspend fun getStoreNameCategoryAssignmentRef(): FuncResultWithData<DatabaseReference> {
         return realtimeDbReference.getStoreNameCategoryAssignmentRef()
     }
 
-    suspend fun getCategoryAssignmentData(): FetchResult<CategoryAssignmentData> {
+    suspend fun getCategoryAssignmentData(): FuncResultWithData<CategoryAssignmentData> {
         val funcName = ::getCategoryAssignmentData.name
 
         val refRet = getCategoryAssignmentDataRef()
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
 
@@ -52,20 +52,20 @@ class CategoryAssignmentRepository @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     if (!snapshot.exists()) {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             data = CategoryAssignmentData(),
                         )
                         return@withContext result
                     }
                     val data = snapshot.getValue(CategoryAssignmentData::class.java)
                     if (data == null) {
-                        val result = FetchResult.Failure.GenericFailure(
+                        val result = FuncResultWithData.Failure.GenericFailure(
                             status = SuspendFuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${CategoryAssignmentData::class.simpleName}"
                         )
                         return@withContext result
                     } else {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             data = data
                         )
                         return@withContext result
@@ -74,27 +74,27 @@ class CategoryAssignmentRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }
     }
 
-    suspend fun getProductNameCategoryAssignment(): FetchResult<Map<String, CategoryAssignment>> {
+    suspend fun getProductNameCategoryAssignment(): FuncResultWithData<Map<String, CategoryAssignment>> {
         val refRet = getProductNameCategoryAssignmentRef()
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
         val ref = refRet.data
         return getCategoryAssignments(ref)
     }
 
-    suspend fun getStoreNameCategoryAssignment(): FetchResult<Map<String, CategoryAssignment>> {
+    suspend fun getStoreNameCategoryAssignment(): FuncResultWithData<Map<String, CategoryAssignment>> {
         val refRet = getStoreNameCategoryAssignmentRef()
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
         val ref = refRet.data
@@ -102,14 +102,14 @@ class CategoryAssignmentRepository @Inject constructor(
     }
 
     /* Productなのか、Storeなのかはreferenceだけが違う */
-    suspend fun getCategoryAssignments(reference: DatabaseReference): FetchResult<Map<String, CategoryAssignment>> {
+    suspend fun getCategoryAssignments(reference: DatabaseReference): FuncResultWithData<Map<String, CategoryAssignment>> {
         val funcName = ::getCategoryAssignments.name
         return try {
             withTimeout(10000) {
                 withContext(Dispatchers.IO) {
                     val snapshot = reference.get().await()
                     if (!snapshot.exists()) {
-                        val result = FetchResult.Success<Map<String, CategoryAssignment>>(
+                        val result = FuncResultWithData.Success<Map<String, CategoryAssignment>>(
                             data = emptyMap(),
                             isEmpty = true
                         )
@@ -119,13 +119,13 @@ class CategoryAssignmentRepository @Inject constructor(
                         object : GenericTypeIndicator<Map<String, CategoryAssignment>>() {}
                     val data = snapshot.getValue(typeIndicator)
                     if (data == null) {
-                        val result = FetchResult.Failure.GenericFailure(
+                        val result = FuncResultWithData.Failure.GenericFailure(
                             status = SuspendFuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${CategoryAssignmentData::class.simpleName}"
                         )
                         return@withContext result
                     } else {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             data = data
                         )
                         return@withContext result
@@ -134,9 +134,9 @@ class CategoryAssignmentRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )

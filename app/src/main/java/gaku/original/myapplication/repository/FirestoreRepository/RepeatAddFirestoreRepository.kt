@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.utility.LogClassFuncCalled
@@ -29,13 +29,13 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
     suspend fun addRepeatAdd(
         repeatAdd: RepeatAdd,
-    ): SuspendFuncStatusInfo {
+    ): FuncResultWithData<RepeatAdd> {
         val funcName = ::addRepeatAdd.name
         LogClassFuncCalled(className, funcName)
 
         val ref = getRepeatAddColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
+            val statusInfo = FuncResultWithData.Failure.GenericFailure(
                 SuspendFuncStatus.FAILED,
                 "RepeatAddコレクションが参照できませんでした"
             )
@@ -80,14 +80,14 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
     suspend fun fetchAllRepeatAdd(
         timeout: Long = 10000
-    ): FetchResult<List<RepeatAdd>> {
+    ): FuncResultWithData<List<RepeatAdd>> {
         val funcName = ::fetchAllRepeatAdd.name
         LogClassFuncCalled(className, funcName)
 
         val repeatAddRef = getRepeatAddColRef()
 
         if (repeatAddRef == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "RepeatAddコレクションが参照できませんでした"
             )
@@ -107,7 +107,7 @@ class RepeatAddFirestoreRepository @Inject constructor(
                     }
 
                     Log.d(className, "Fetched Categories: $list")
-                    val result = FetchResult.Success(
+                    val result = FuncResultWithData.Success(
                         data = list
                     )
                     /* 戻り値 */
@@ -116,11 +116,11 @@ class RepeatAddFirestoreRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
-            val result = FetchResult.Failure.Timeout()
+            val result = FuncResultWithData.Failure.Timeout()
             result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )

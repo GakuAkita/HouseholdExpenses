@@ -3,7 +3,7 @@ package gaku.original.myapplication.viewModel.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
@@ -48,7 +48,7 @@ class RepeatAddViewModel @Inject constructor(
     fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val fetchResult = repeatAddRepository.fetchAllRepeatAdd()
-            if (fetchResult is FetchResult.Success) {
+            if (fetchResult is FuncResultWithData.Success) {
                 _repeatAddSettings.value = fetchResult.data
             } else {
                 _repeatAddSettings.value = emptyList()
@@ -78,5 +78,16 @@ class RepeatAddViewModel @Inject constructor(
             val ret = repeatAddRepository.removeRepeatAdd(repeatAdd)
             callback(ret)
         }
+    }
+
+    /**
+     * RepeatAddをしたあと、月末まで追加する
+     */
+    fun addExpensesForRestOfDays(
+        repeatAdd: RepeatAdd,
+        callback: (SuspendFuncStatusInfo) -> Unit = {}
+    ) {
+        /* RepeatAddのexpenseのgeneratedTypeは入っていないのでここで入れないとだめ */
+        
     }
 }

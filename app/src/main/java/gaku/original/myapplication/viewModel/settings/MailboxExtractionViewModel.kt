@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
@@ -74,7 +74,7 @@ class MailboxExtractionViewModel @Inject constructor(
         _loading.value = true
         viewModelScope.launch {
             val idTokenResult = firebaseAuthRepository.getIdToken()
-            if (idTokenResult !is FetchResult.Success) {
+            if (idTokenResult !is FuncResultWithData.Success) {
                 _loading.value = false
                 callback(idTokenResult.toSuspendFuncStatusInfo(), "")
                 return@launch
@@ -248,7 +248,7 @@ class MailboxExtractionViewModel @Inject constructor(
             for (settingState in allEmailTemplateStateFlowsList) {
                 val fetchResult =
                     mailboxExtractionRepository.getMailTypeSetting(settingState.value.type)
-                if (fetchResult is FetchResult.Success) {
+                if (fetchResult is FuncResultWithData.Success) {
                     if (fetchResult.isEmpty) {
                         /* まだ未設定。明示的にデフォルト値をいれる */
                         settingState.value = settingState.value.copy(
@@ -356,9 +356,9 @@ class MailboxExtractionViewModel @Inject constructor(
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
 
-    private suspend fun fetchAllCategoriesWithLocalUpdate(): FetchResult<List<Category>> {
+    private suspend fun fetchAllCategoriesWithLocalUpdate(): FuncResultWithData<List<Category>> {
         val fetchResult = categoryRepository.fetchAllCategories()
-        if (fetchResult is FetchResult.Success) {
+        if (fetchResult is FuncResultWithData.Success) {
             _allCategories.value = fetchResult.data
         }
         return fetchResult
@@ -372,7 +372,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     /******************* メール抽出の実行状況 **********************/
-    suspend fun getIsGmailTokenExist(): FetchResult<Boolean> {
+    suspend fun getIsGmailTokenExist(): FuncResultWithData<Boolean> {
         return mailboxExtractionRepository.getIsGmailTokenExist()
     }
 
@@ -381,7 +381,7 @@ class MailboxExtractionViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val fetchResult = getIsGmailTokenExist()
-            if (fetchResult is FetchResult.Success) {
+            if (fetchResult is FuncResultWithData.Success) {
                 _isGmailTokenExist.value = fetchResult.data
                 callback(
                     SuspendFuncStatusInfo(
@@ -397,15 +397,15 @@ class MailboxExtractionViewModel @Inject constructor(
 
     suspend fun getMailTypeLastExec(
         type: EmailTemplateType
-    ): FetchResult<MailboxExtractionLastExec> {
+    ): FuncResultWithData<MailboxExtractionLastExec> {
         return mailboxExtractionRepository.getMailTypeLastExec(type)
     }
 
     suspend fun getMailTypeLastExecWithLocalUpdate(
         type: EmailTemplateType
-    ): FetchResult<MailboxExtractionLastExec> {
+    ): FuncResultWithData<MailboxExtractionLastExec> {
         val fetchResult = getMailTypeLastExec(type)
-        if (fetchResult is FetchResult.Success) {
+        if (fetchResult is FuncResultWithData.Success) {
             val lastExec = fetchResult.data
             val updatedMap = _lastExecMap.value.toMutableMap()
             updatedMap[type.nodeName] = lastExec
@@ -421,7 +421,7 @@ class MailboxExtractionViewModel @Inject constructor(
             var failedList = emptyList<String>()
             for (typeState in allEmailTemplateStateFlowsList) {
                 val result = getMailTypeLastExecWithLocalUpdate(typeState.value.type)
-                if (result !is FetchResult.Success) {
+                if (result !is FuncResultWithData.Success) {
                     failedList = failedList + typeState.value.type.menuName
                 }
             }

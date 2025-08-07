@@ -1,13 +1,14 @@
 import com.google.firebase.firestore.CollectionReference
+import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
 
 suspend fun <T : CommonProperty> addDataWithIdToFirestore(
     data: T,
     reference: CollectionReference,
     timeout: Long = 3000,
-): SuspendFuncStatusInfo {
+): FuncResultWithData<T> {
     val funcName = "addDataWithIdToFirestore"
 
     data.timestamp = System.currentTimeMillis()
@@ -20,5 +21,10 @@ suspend fun <T : CommonProperty> addDataWithIdToFirestore(
 
     val setStatus = setDataToFirestore(data, timeout, docRef)
 
-    return setStatus
+    return if (setStatus.status == SuspendFuncStatus.SUCCESS) FuncResultWithData.Success(
+        data = data
+    ) else FuncResultWithData.Failure.GenericFailure(
+        status = setStatus.status,
+        errorMessage = setStatus.errorMessage,
+    )
 }

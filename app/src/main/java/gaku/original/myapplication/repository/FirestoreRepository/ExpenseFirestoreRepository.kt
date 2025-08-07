@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.LogClassFuncCalled
@@ -30,12 +30,12 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun addExpense(
         expense: Expense,
-    ): SuspendFuncStatusInfo {
+    ): FuncResultWithData<Expense> {
         val ref = getExpensesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Expensesコレクションが参照できませんでした"
+            val statusInfo = FuncResultWithData.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
         }
@@ -81,13 +81,13 @@ class ExpenseFirestoreRepository @Inject constructor(
         fromMonth: YearMonth,
         toMonth: YearMonth,
         timeout: Long = 10000
-    ): FetchResult<List<Expense>> {
+    ): FuncResultWithData<List<Expense>> {
         val funcName = ::fetchMonthsExpenses.name
         LogClassFuncCalled(className, funcName)
 
         val expenseRef = getExpensesColRef()
         if (expenseRef == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
@@ -110,17 +110,17 @@ class ExpenseFirestoreRepository @Inject constructor(
                         .await()
 
                     val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
-                    val result = FetchResult.Success(
+                    val result = FuncResultWithData.Success(
                         data = list
                     )
                     result
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            val result = FetchResult.Failure.Timeout()
+            val result = FuncResultWithData.Failure.Timeout()
             result
         } catch (e: Exception) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
@@ -130,12 +130,12 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun fetchNotCategorizedExpenses(
         timeout: Long = 10000
-    ): FetchResult<List<Expense>> {
+    ): FuncResultWithData<List<Expense>> {
         val funcName = ::fetchNotCategorizedExpenses.name
         LogClassFuncCalled(className, funcName)
 
         val expenseRef = getExpensesColRef()
-            ?: return FetchResult.Failure.GenericFailure(
+            ?: return FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
@@ -153,13 +153,13 @@ class ExpenseFirestoreRepository @Inject constructor(
                         .await()
                     val list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
 
-                    FetchResult.Success(data = list)
+                    FuncResultWithData.Success(data = list)
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
@@ -169,14 +169,14 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun fetchAllExpenses(
         timeout: Long = 10000
-    ): FetchResult<List<Expense>> {
+    ): FuncResultWithData<List<Expense>> {
         val funcName = ::fetchAllExpenses.name
         LogClassFuncCalled(className, funcName)
 
         val expenseRef = getExpensesColRef()
 
         if (expenseRef == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
@@ -196,7 +196,7 @@ class ExpenseFirestoreRepository @Inject constructor(
                         list.add(expense)
                     }
 
-                    val result = FetchResult.Success(list)
+                    val result = FuncResultWithData.Success(list)
                     Log.d(className, "Fetched Expenses: $list")
                     /* 戻り値 */
                     result
@@ -204,12 +204,12 @@ class ExpenseFirestoreRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
-            val result = FetchResult.Failure.Timeout()
+            val result = FuncResultWithData.Failure.Timeout()
             /* 戻り値 */
             result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )

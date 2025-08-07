@@ -4,7 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.mergeDataToFirestore
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
@@ -129,10 +129,10 @@ class UserSettingsFirestoreRepository @Inject constructor(
      * その中からタイムゾーンだけ取り出す
      */
     suspend fun getUserTimeZone(
-    ): FetchResult<String> {
+    ): FuncResultWithData<String> {
         val fetchResult = fetchUserPreferences()
-        if (fetchResult !is FetchResult.Success) {
-            val result = FetchResult.Failure.GenericFailure(
+        if (fetchResult !is FuncResultWithData.Success) {
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "UserPreferencesの取得に失敗しました"
             )
@@ -149,7 +149,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
          * 責務の分離的には本当はよくないけど
          */
         AppTimeZone.updateStrZoneId(userPreferences.timeZone)
-        val result = FetchResult.Success(
+        val result = FuncResultWithData.Success(
             userPreferences.timeZone
         )
         return result
@@ -160,13 +160,13 @@ class UserSettingsFirestoreRepository @Inject constructor(
      */
     suspend fun fetchUserPreferences(
         timeout: Long = 3000
-    ): FetchResult<UserPreferences> {
+    ): FuncResultWithData<UserPreferences> {
         val funcName = ::fetchUserPreferences.name
         LogClassFuncCalled(className, funcName)
 
         val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "UserPreferencesドキュメントが参照できませんでした"
             )
@@ -179,19 +179,19 @@ class UserSettingsFirestoreRepository @Inject constructor(
                 if (snapshot.exists()) {
                     val preferences = snapshot.toObject(UserPreferences::class.java)
                     if (preferences != null) {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             preferences
                         )
                         result
                     } else {
-                        val result = FetchResult.Failure.GenericFailure(
+                        val result = FuncResultWithData.Failure.GenericFailure(
                             status = SuspendFuncStatus.FAILED,
                             errorMessage = "UserPreferencesデータの変換に失敗しました"
                         )
                         result
                     }
                 } else {
-                    val result = FetchResult.Failure.GenericFailure(
+                    val result = FuncResultWithData.Failure.GenericFailure(
                         status = SuspendFuncStatus.FAILED,
                         errorMessage = "UserPreferencesドキュメントが存在しません"
                     )
@@ -199,10 +199,10 @@ class UserSettingsFirestoreRepository @Inject constructor(
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            val result = FetchResult.Failure.Timeout()
+            val result = FuncResultWithData.Failure.Timeout()
             result
         } catch (e: Exception) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )

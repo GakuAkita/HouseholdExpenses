@@ -4,7 +4,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //import com.google.firebase.firestore.DocumentReference
 //import gaku.original.myapplication.FirestoreReference
 //import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-//import gaku.original.myapplication.data.FetchResult
+//import gaku.original.myapplication.data.FuncResultWithData
 //import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
 //import gaku.original.myapplication.data.SuspendFuncStatusInfo
 //import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
@@ -69,10 +69,10 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //        instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。nodeNameがほしい
 //        timeout: Long = 3000,
 //        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): FetchResult<MailboxExtractionCommon> {
+//    ): FuncResultWithData<MailboxExtractionCommon> {
 //        val internal = getMailboxExtractionInternalClass(instance)
 //        if (internal == null) {
-//            val fetchResult = FetchResult<MailboxExtractionCommon>(
+//            val fetchResult = FuncResultWithData<MailboxExtractionCommon>(
 //                status = SuspendFuncStatus.FAILED,
 //                errorMessage = "MailboxExtractionのdata classに含まれていません \n開発者のミスです"
 //            )
@@ -82,7 +82,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //
 //        val docRef = getMailboxExtractionMailTypeDocRef(instance)
 //        if (docRef == null) {
-//            val fetchResult = FetchResult<MailboxExtractionCommon>(
+//            val fetchResult = FuncResultWithData<MailboxExtractionCommon>(
 //                status = SuspendFuncStatus.FAILED,
 //                errorMessage = "MailboxExtraction/${instance.nodeName}を参照できませんでした"
 //            )
@@ -90,7 +90,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //            return fetchResult
 //        }
 //
-//        var fetchResult: FetchResult<MailboxExtractionCommon>
+//        var fetchResult: FuncResultWithData<MailboxExtractionCommon>
 //        try {
 //            withTimeout(timeout) {
 //                val snapshot = docRef.get().await()
@@ -98,13 +98,13 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //                    /* インスタンスと同じクラスに変換 */
 //                    val typedInstance = snapshot.toObject(instance::class.java)
 //                    if (typedInstance != null) {
-//                        fetchResult = FetchResult(
+//                        fetchResult = FuncResultWithData(
 //                            status = SuspendFuncStatus.SUCCESS,
 //                            data = typedInstance,
 //                            errorMessage = ""
 //                        )
 //                    } else {
-//                        fetchResult = FetchResult(
+//                        fetchResult = FuncResultWithData(
 //                            status = SuspendFuncStatus.FAILED,
 //                            errorMessage = "変換に失敗しました"
 //                        )
@@ -114,7 +114,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //                        className,
 //                        "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
 //                    )
-//                    fetchResult = FetchResult(
+//                    fetchResult = FuncResultWithData(
 //                        status = SuspendFuncStatus.SUCCESS,
 //                        data = null,
 //                        errorMessage = "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
@@ -122,7 +122,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //                }
 //            }
 //        } catch (e: Exception) {
-//            fetchResult = FetchResult(
+//            fetchResult = FuncResultWithData(
 //                status = SuspendFuncStatus.FAILED,
 //                errorMessage = "データ取得中にエラーが発生しました。:${e.message}"
 //            )

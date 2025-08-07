@@ -8,7 +8,7 @@ import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
@@ -196,7 +196,7 @@ class ExpenseSharedViewModel @Inject constructor(
             addAllListeners()
 
             val tzRet = userSettingsRepository.getUserTimeZone()
-            if (tzRet !is FetchResult.Success) {
+            if (tzRet !is FuncResultWithData.Success) {
                 LogAkitaDebug("Unable to get timezone!!")
             } else {
                 Log.d(className, "userTimeZone:${AppTimeZone.currentZoneId.id}")
@@ -251,7 +251,7 @@ class ExpenseSharedViewModel @Inject constructor(
             fromMonth,
             toMonth,
         )
-        if (fetchResult is FetchResult.Success) {
+        if (fetchResult is FuncResultWithData.Success) {
             //成功のときだけ更新
             _storedExpenses.value = fetchResult.data
             Log.d(className, "Expenses:${_storedExpenses.value}")
@@ -268,7 +268,7 @@ class ExpenseSharedViewModel @Inject constructor(
 //    ): SuspendFuncStatusInfo {
 //        onStart()
 //        val fetchResult = expenseRepository.fetchAllExpenses(callback = callback)
-//        if (fetchResult !is FetchResult.Success) {
+//        if (fetchResult !is FuncResultWithData.Success) {
 //            return fetchResult.toSuspendFuncStatusInfo()
 //        }
 //        val statusInfo = fetchStatusInf.toSuspendFuncStatusInfo()
@@ -285,7 +285,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun addExpense(
         expense: Expense
-    ): SuspendFuncStatusInfo {
+    ): FuncResultWithData<Expense> {
         /* ここでMANUALにしている */
         if (expense.generatedType == null) {
             expense.generatedType = GeneratedType.MANUAL
@@ -317,7 +317,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
         val fetchResult = categoryRepository.fetchAllCategories()
 
-        if (fetchResult is FetchResult.Success) {
+        if (fetchResult is FuncResultWithData.Success) {
             _allCategories.value = fetchResult.data
         }
         Log.d(className, "Categories:${_allCategories.value}")
@@ -331,11 +331,11 @@ class ExpenseSharedViewModel @Inject constructor(
     */
     suspend fun addCategory(
         category: Category
-    ): SuspendFuncStatusInfo {
+    ): FuncResultWithData<Category> {
         //@TODO オフラインのときの対応。categoriesがうまく取得できなかった時
         val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            val statusInfo = SuspendFuncStatusInfo(
+            val statusInfo = FuncResultWithData.Failure.GenericFailure(
                 SuspendFuncStatus.FAILED,
                 "${category.name} はすでに存在しています。"
             )
@@ -362,7 +362,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
         /* 繰り返し追加に存在するときは、チェックして、そこをupdateする */
         val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
-        if (resultStatus !is FetchResult.Success) {
+        if (resultStatus !is FuncResultWithData.Success) {
             return resultStatus.toSuspendFuncStatusInfo()
         }
         val repeatAddList: List<RepeatAdd> = resultStatus.data
@@ -424,7 +424,7 @@ class ExpenseSharedViewModel @Inject constructor(
         categoryId: String
     ): SuspendFuncStatusInfo {
         val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
-        if (resultStatus !is FetchResult.Success) {
+        if (resultStatus !is FuncResultWithData.Success) {
             return resultStatus.toSuspendFuncStatusInfo()
         }
 
@@ -454,7 +454,7 @@ class ExpenseSharedViewModel @Inject constructor(
         categoryId: String
     ): SuspendFuncStatusInfo {
         val resultStatus = categoryAssignmentUseCase.getCategoryAssignmentData()
-        if (resultStatus !is FetchResult.Success) {
+        if (resultStatus !is FuncResultWithData.Success) {
             return resultStatus.toSuspendFuncStatusInfo()
         }
         val categoryAssignmentData = resultStatus.data
@@ -491,7 +491,7 @@ class ExpenseSharedViewModel @Inject constructor(
         val allTemplates = getAllEmailTemplateTypes()
         for (template in allTemplates) {
             val fetchResult = mailboxExtractionRepository.getMailTypeSetting(template)
-            if (fetchResult !is FetchResult.Success) {
+            if (fetchResult !is FuncResultWithData.Success) {
                 return SuspendFuncStatusInfo(
                     status = SuspendFuncStatus.FAILED,
                     errorMessage = "メールボックス設定(${template.menuName})とのダブりチェックでエラーが発生しました。${fetchResult.toSuspendFuncStatusInfo().errorMessage}"

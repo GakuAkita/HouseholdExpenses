@@ -4,7 +4,7 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
@@ -24,7 +24,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun getEmailTemplateSettingSingleRef(
         type: EmailTemplateType
-    ): FetchResult<DatabaseReference> {
+    ): FuncResultWithData<DatabaseReference> {
         return realtimeDbReference.getMailboxExtractionEmailTemplateSettingSingleRef(type)
     }
 
@@ -32,7 +32,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         setting: EmailTemplateType
     ): SuspendFuncStatusInfo {
         val refRet = getEmailTemplateSettingSingleRef(setting)
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
 
@@ -43,10 +43,10 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun getMailTypeSetting(
         setting: EmailTemplateType
-    ): FetchResult<EmailTemplateType> {
+    ): FuncResultWithData<EmailTemplateType> {
         val funcName = ::getMailTypeSetting.name
         val refRet = getEmailTemplateSettingSingleRef(setting)
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
 
@@ -57,7 +57,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     if (!snapshot.exists()) {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             data = setting.defaultInstance(),
                             isEmpty = true
                         )
@@ -65,13 +65,13 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                     }
                     val data = snapshot.getValue(setting::class.java)
                     if (data == null) {
-                        val result = FetchResult.Failure.GenericFailure(
+                        val result = FuncResultWithData.Failure.GenericFailure(
                             status = SuspendFuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${setting::class.simpleName}"
                         )
                         return@withContext result
                     } else {
-                        val result = FetchResult.Success(
+                        val result = FuncResultWithData.Success(
                             data = data
                         )
                         return@withContext result
@@ -80,9 +80,9 @@ class MailboxExtractionRTDbRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
@@ -91,14 +91,14 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun getIsGmailTokenExist(
         email: String? = null /* nullだったらcurrentUserEmailが使われる */
-    ): FetchResult<Boolean> {
+    ): FuncResultWithData<Boolean> {
         val funcName = ::getIsGmailTokenExist.name
 
         val refRet =
             if (email != null) realtimeDbReference.getMailboxExtractionGmailTokenSingleRef(email)
             else realtimeDbReference.getMailboxExtractionGmailTokenSingleRef( /* デフォルト値 */)
 
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
         val ref = refRet.data
@@ -108,17 +108,17 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     if (snapshot.exists()) {
-                        return@withContext FetchResult.Success(data = true)
+                        return@withContext FuncResultWithData.Success(data = true)
                     } else {
-                        return@withContext FetchResult.Success(data = false)
+                        return@withContext FuncResultWithData.Success(data = false)
                     }
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
@@ -127,10 +127,10 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun getMailTypeLastExec(
         type: EmailTemplateType
-    ): FetchResult<MailboxExtractionLastExec> {
+    ): FuncResultWithData<MailboxExtractionLastExec> {
         val funcName = ::getMailTypeLastExec.name
         val refRet = realtimeDbReference.getMailboxExtractionLastExecRef(type)
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.mapFailure()
         }
         val ref = refRet.data
@@ -140,27 +140,27 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     if (!snapshot.exists()) {
-                        return@withContext FetchResult.Success(
+                        return@withContext FuncResultWithData.Success(
                             data = MailboxExtractionLastExec(type.nodeName, 0L),
                             isEmpty = true
                         )
                     }
                     val data = snapshot.getValue(MailboxExtractionLastExec::class.java)
                     if (data == null) {
-                        FetchResult.Failure.GenericFailure(
+                        FuncResultWithData.Failure.GenericFailure(
                             status = SuspendFuncStatus.FAILED,
                             errorMessage = "Unable to convert data to MailboxExtractionLastExec"
                         )
                     } else {
-                        FetchResult.Success(data = data)
+                        FuncResultWithData.Success(data = data)
                     }
                 }
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "${funcName} Timeout.")
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            FetchResult.Failure.GenericFailure(
+            FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )

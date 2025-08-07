@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
@@ -71,9 +71,9 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
     }
 
-    suspend fun fetchCategoryAssignmentDataWithLocalUpdate(): FetchResult<CategoryAssignmentData> {
+    suspend fun fetchCategoryAssignmentDataWithLocalUpdate(): FuncResultWithData<CategoryAssignmentData> {
         val result = categoryAssignmentUseCase.getCategoryAssignmentData()
-        if (result is FetchResult.Success) {
+        if (result is FuncResultWithData.Success) {
             /**
              * リモートに何もなかった場合は、storeとproductはnullになる。
              */
@@ -126,7 +126,7 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                 val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate()
 
                 var ret: SuspendFuncStatusInfo
-                if (fetchRet is FetchResult.Success) {
+                if (fetchRet is FuncResultWithData.Success) {
                     _assignmentData.value = fetchRet.data
                     ret = fetchRet.toSuspendFuncStatusInfo()
                 } else {
@@ -262,7 +262,7 @@ class CategoryAssignmentEditViewModel @Inject constructor(
     fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val result = categoryRepository.fetchAllCategories()
-            if (result is FetchResult.Success) {
+            if (result is FuncResultWithData.Success) {
                 _allCategories.value = result.data
             }
             callback(result.toSuspendFuncStatusInfo())

@@ -44,7 +44,7 @@ import gaku.original.myapplication.CredentialManagerHelper
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
@@ -239,7 +239,7 @@ fun LoginSignUpView(
                             /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
                             authViewModel.viewModelScope.launch {
                                 val result = CredentialManagerHelper.getGoogleIdToken(context)
-                                if (result !is FetchResult.Success) {
+                                if (result !is FuncResultWithData.Success) {
                                     val errorMessage = result.toSuspendFuncStatusInfo().errorMessage
                                     snackBarHostState.currentSnackbarData?.dismiss()
                                     snackBarHostState.showSnackbar(

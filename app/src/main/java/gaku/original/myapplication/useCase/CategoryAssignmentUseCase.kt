@@ -4,7 +4,7 @@ import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
@@ -23,21 +23,21 @@ class CategoryAssignmentUseCase @Inject constructor(
      */
     suspend fun getCategoryAssignmentRef(
         pattern: CategoryAssignNamePattern
-    ): FetchResult<DatabaseReference> {
+    ): FuncResultWithData<DatabaseReference> {
         if (pattern == CategoryAssignNamePattern.STORE) {
             return categoryAssignmentRepository.getStoreNameCategoryAssignmentRef()
         } else if (pattern == CategoryAssignNamePattern.PRODUCT) {
             return categoryAssignmentRepository.getProductNameCategoryAssignmentRef()
         } else {
             /* Noneの場合もこっちに来る */
-            return FetchResult.Failure.GenericFailure(
+            return FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "category assign name pattern is not accepted ${pattern.label}"
             )
         }
     }
 
-    suspend fun getCategoryAssignmentData(): FetchResult<CategoryAssignmentData> {
+    suspend fun getCategoryAssignmentData(): FuncResultWithData<CategoryAssignmentData> {
         return categoryAssignmentRepository.getCategoryAssignmentData()
     }
 
@@ -51,7 +51,7 @@ class CategoryAssignmentUseCase @Inject constructor(
         val refRet = getCategoryAssignmentRef(
             pattern = namePattern
         )
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
         val reference = refRet.data
@@ -61,7 +61,7 @@ class CategoryAssignmentUseCase @Inject constructor(
          * まあ追加するのは頻繁に起こる作業ではないから、逐一リモートから取ればいいか。
          */
         val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
-        if (dataRet !is FetchResult.Success) {
+        if (dataRet !is FuncResultWithData.Success) {
             val statusInfo = dataRet.toSuspendFuncStatusInfo()
             return SuspendFuncStatusInfo(
                 status = statusInfo.status,
@@ -89,13 +89,13 @@ class CategoryAssignmentUseCase @Inject constructor(
         pattern: CategoryAssignNamePattern
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(pattern)
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
         val reference = refRet.data
 
         val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
-        if (dataRet !is FetchResult.Success) {
+        if (dataRet !is FuncResultWithData.Success) {
             val statusInfo = dataRet.toSuspendFuncStatusInfo()
             return SuspendFuncStatusInfo(
                 status = statusInfo.status,
@@ -126,7 +126,7 @@ class CategoryAssignmentUseCase @Inject constructor(
         pattern: CategoryAssignNamePattern
     ): SuspendFuncStatusInfo {
         val refRet = getCategoryAssignmentRef(pattern)
-        if (refRet !is FetchResult.Success) {
+        if (refRet !is FuncResultWithData.Success) {
             return refRet.toSuspendFuncStatusInfo()
         }
         val reference = refRet.data

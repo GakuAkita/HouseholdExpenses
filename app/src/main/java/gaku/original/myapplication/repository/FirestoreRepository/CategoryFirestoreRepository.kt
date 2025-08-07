@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.utility.LogClassFuncCalled
@@ -29,12 +29,12 @@ class CategoryFirestoreRepository @Inject constructor(
 
     suspend fun addCategory(
         category: Category
-    ): SuspendFuncStatusInfo {
+    ): FuncResultWithData<Category> {
         val ref = getCategoriesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "Categoriesコレクションが参照できませんでした"
+            val statusInfo = FuncResultWithData.Failure.GenericFailure(
+                status = SuspendFuncStatus.FAILED,
+                errorMessage = "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
         }
@@ -77,14 +77,14 @@ class CategoryFirestoreRepository @Inject constructor(
 
     suspend fun fetchAllCategories(
         timeout: Long = 10000,
-    ): FetchResult<List<Category>> {
+    ): FuncResultWithData<List<Category>> {
         val funcName = ::fetchAllCategories.name
         LogClassFuncCalled(className, funcName)
 
         val categoryRef = getCategoriesColRef()
 
         if (categoryRef == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "Categoriesコレクションが参照できませんでした"
             )
@@ -104,7 +104,7 @@ class CategoryFirestoreRepository @Inject constructor(
                     }
 
                     Log.d(className, "Fetched Categories: $list")
-                    val result = FetchResult.Success(
+                    val result = FuncResultWithData.Success(
                         data = list
                     )
                     result
@@ -112,11 +112,11 @@ class CategoryFirestoreRepository @Inject constructor(
             }
         } catch (e: TimeoutCancellationException) {
             Log.d(className, "$funcName Timeout.")
-            val result = FetchResult.Failure.Timeout()
+            val result = FuncResultWithData.Failure.Timeout()
             result
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )

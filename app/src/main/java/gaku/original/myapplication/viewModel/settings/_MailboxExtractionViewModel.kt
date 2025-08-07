@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
@@ -48,7 +48,7 @@ class _MailboxExtractionViewModel @Inject constructor(
             mailboxExtractionRepository.getMailTypeSetting(
                 instance
             )
-        if (result is FetchResult.Success) {
+        if (result is FuncResultWithData.Success) {
             _mailboxExtractionSetting.value = result.data
         }
         return result.toSuspendFuncStatusInfo()
@@ -101,7 +101,7 @@ class _MailboxExtractionViewModel @Inject constructor(
     fun fetchCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val fetchResult = categoryFirestoreRepository.fetchAllCategories()
-            if (fetchResult is FetchResult.Success) {
+            if (fetchResult is FuncResultWithData.Success) {
                 _categories.value = fetchResult.data
             }
             callback(fetchResult.toSuspendFuncStatusInfo())

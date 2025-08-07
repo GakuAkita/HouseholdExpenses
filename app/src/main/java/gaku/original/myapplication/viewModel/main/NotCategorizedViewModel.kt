@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
@@ -33,15 +33,15 @@ class NotCategorizedViewModel @Inject constructor(
     private val _notCategorizedExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val notCategorizedExpenses: StateFlow<List<Expense>> get() = _notCategorizedExpenses
 
-    private suspend fun fetchNotCategorizedExpensesInternal(): FetchResult<List<Expense>> {
+    private suspend fun fetchNotCategorizedExpensesInternal(): FuncResultWithData<List<Expense>> {
         _loadingStatus.value = LoadingStatus.LOADING
         val result = expenseFirestoreRepository.fetchNotCategorizedExpenses()
-        if (result is FetchResult.Success) {
+        if (result is FuncResultWithData.Success) {
             _loadingStatus.value = LoadingStatus.COMPLETED
             _notCategorizedExpenses.value = result.data//成功のときだけ更新
             LogAkitaDebug("expenses:${_notCategorizedExpenses.value}")
         } else {
-            if (result is FetchResult.Failure.Timeout) {
+            if (result is FuncResultWithData.Failure.Timeout) {
                 _loadingStatus.value = LoadingStatus.TIMEOUT
             } else {
                 _loadingStatus.value = LoadingStatus.ERROR

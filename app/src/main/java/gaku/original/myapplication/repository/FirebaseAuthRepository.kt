@@ -2,7 +2,7 @@ package gaku.original.myapplication.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.FetchResult
+import gaku.original.myapplication.data.FuncResultWithData
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -14,10 +14,10 @@ class FirebaseAuthRepository @Inject constructor(
 
     suspend fun getIdToken(
         timeout: Long = 3000
-    ): FetchResult<String> {
+    ): FuncResultWithData<String> {
         val user = firebaseAuth.currentUser
         if (user == null) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = "User is null"
             )
@@ -33,14 +33,14 @@ class FirebaseAuthRepository @Inject constructor(
                 }
                 token
             }
-            val result = FetchResult.Success(
+            val result = FuncResultWithData.Success(
                 data = token
             )
             result
         } catch (e: TimeoutCancellationException) {
-            FetchResult.Failure.Timeout()
+            FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
-            val result = FetchResult.Failure.GenericFailure(
+            val result = FuncResultWithData.Failure.GenericFailure(
                 status = SuspendFuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
