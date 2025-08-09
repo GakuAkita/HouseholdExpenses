@@ -11,8 +11,8 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
 import gaku.original.myapplication.repository.FirebaseAuthRepository
-import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +33,7 @@ data class EmailTemplateSettingState(
 class MailboxExtractionViewModel @Inject constructor(
     private val firebaseAuthRepository: FirebaseAuthRepository,
     private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
-    private val categoryRepository: CategoryFirestoreRepository
+    private val categoryUseCase: CategoryUseCase
 ) : ViewModel() {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -357,7 +357,7 @@ class MailboxExtractionViewModel @Inject constructor(
     val allCategories: StateFlow<List<Category>> get() = _allCategories
 
     private suspend fun fetchAllCategoriesWithLocalUpdate(): FuncResultWithData<List<Category>> {
-        val fetchResult = categoryRepository.fetchAllCategories()
+        val fetchResult = categoryUseCase.fetchAllCategories()
         if (fetchResult is FuncResultWithData.Success) {
             _allCategories.value = fetchResult.data
         }

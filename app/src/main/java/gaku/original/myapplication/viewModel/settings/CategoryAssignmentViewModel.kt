@@ -13,8 +13,8 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.dataClass.copyWithUpdatedMap
 import gaku.original.myapplication.data.dataClass.getAssignmentsByNamePattern
-import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
+import gaku.original.myapplication.useCase.CategoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoryAssignmentEditViewModel @Inject constructor(
     private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
-    private val categoryRepository: CategoryFirestoreRepository
+    private val categoryUseCase: CategoryUseCase
 ) : ViewModel() {
     val className = CategoryAssignmentEditViewModel::class.java.simpleName
 
@@ -261,7 +261,7 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
     fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val result = categoryRepository.fetchAllCategories()
+            val result = categoryUseCase.fetchAllCategories()
             if (result is FuncResultWithData.Success) {
                 _allCategories.value = result.data
             }
