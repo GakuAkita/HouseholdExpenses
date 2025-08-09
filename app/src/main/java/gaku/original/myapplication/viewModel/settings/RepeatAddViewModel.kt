@@ -7,7 +7,7 @@ import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.useCase.RepeatAddUseCase
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RepeatAddViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val repeatAddRepository: RepeatAddFirestoreRepository
+    private val repeatAddUseCase: RepeatAddUseCase
 ) : ViewModel() {
 
 //    private val _tmpRepeatAdd = mutableStateOf<RepeatAdd>(
@@ -47,7 +47,7 @@ class RepeatAddViewModel @Inject constructor(
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
     fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val fetchResult = repeatAddRepository.fetchAllRepeatAdd()
+            val fetchResult = repeatAddUseCase.fetchAllRepeatADd()
             if (fetchResult is FuncResultWithData.Success) {
                 _repeatAddSettings.value = fetchResult.data
             } else {
@@ -57,25 +57,28 @@ class RepeatAddViewModel @Inject constructor(
         }
     }
 
-    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    suspend fun addRepeatAdd(repeatAdd: RepeatAdd): FuncResultWithData<RepeatAdd> {
+        return repeatAddUseCase.addRepeatAdd(repeatAdd)
+    }
 
+    fun addRepeatAddSetting(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         //チェックをいれる
         viewModelScope.launch {
-            val ret = repeatAddRepository.addRepeatAdd(repeatAdd)
-            callback(ret)
+            val ret = addRepeatAdd(repeatAdd)
+            callback(ret.toSuspendFuncStatusInfo())
         }
     }
 
     fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val ret = repeatAddRepository.updateRepeatAdd(repeatAdd)
+            val ret = repeatAddUseCase.updateRepeatAdd(repeatAdd)
             callback(ret)
         }
     }
 
     fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val ret = repeatAddRepository.removeRepeatAdd(repeatAdd)
+            val ret = repeatAddUseCase.removeRepeatAdd(repeatAdd)
             callback(ret)
         }
     }
@@ -88,6 +91,11 @@ class RepeatAddViewModel @Inject constructor(
         callback: (SuspendFuncStatusInfo) -> Unit = {}
     ) {
         /* RepeatAddのexpenseのgeneratedTypeは入っていないのでここで入れないとだめ */
-        
+        viewModelScope.launch {
+            val ret = addRepeatAdd(repeatAdd)
+
+            /* データからidを取り出す。generatedTypeに使うため */
+
+        }
     }
 }

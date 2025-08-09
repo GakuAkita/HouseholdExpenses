@@ -18,12 +18,9 @@ import gaku.original.myapplication.data.dataClass.InitialCategories
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.getAllAssignments
 import gaku.original.myapplication.data.dataClass.getAllEmailTemplateTypes
-import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
-import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,11 +31,8 @@ import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
-    private val categoryRepository: CategoryFirestoreRepository,
-    private val repeatAddRepository: RepeatAddFirestoreRepository,
     private val userSettingsRepository: UserSettingsFirestoreRepository,
     private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
-    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 

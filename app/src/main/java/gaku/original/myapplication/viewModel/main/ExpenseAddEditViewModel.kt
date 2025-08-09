@@ -121,7 +121,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         onStart()
         viewModelScope.launch {
             val ret = expenseSharedViewModel.addExpense(currentTmpExpense)
-            callback(ret)
+            callback(ret.toSuspendFuncStatusInfo())
         }
     }
 

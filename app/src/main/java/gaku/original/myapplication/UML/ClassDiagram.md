@@ -1,122 +1,53 @@
 ```mermaid
 classDiagram
 
-class ExpenseListViewModel{
-calendarDate
-monthOffset
+    class FirebaseAuth
+    class RealtimeDbReference
+    class FirestoreReference
+    class FirestoreListenerManager
 
-incrementMonth()
-decrementMonth()
-filterMonthExpenses()
-%%AddEditとこのdeleteがかぶる
-}
+    class ExpenseFirestoreRepository
+    class CategoryFirestoreRepository
+    class RepeatAddFirestoreRepository
+    class UserSettingsFirestoreRepository
+    class MailboxExtractionRTDbRepository
+    class CategoryAssignmentRepository
+    class FirebaseAuthRepository
 
-class ExpenseAddEditViewModel{
+    class CategoryAssignmentUseCase
+    class RepeatAddUseCase
 
-ExpenseTmpを編集する関数()
-}
+    %% カテゴリー削除のときに、CategoryIdがAssignmentDataにないかチェックしたい。
+    class CategoryUseCase
 
-class ExpenseTmp{
-_expense
-}
+    class ExpenseSharedViewModel
+    class TemporaryExpenseViewModel
 
-ExpenseTmp ..> ExpenseListViewModel :CI
-ExpenseTmp ..> ExpenseAddEditViewModel :CI
+    FirebaseAuthRepository --> FirebaseAuth
+    RealtimeDbReference --> FirebaseAuth
+    FirestoreReference --> FirebaseAuth
+    FirestoreListenerManager --> FirestoreReference
 
+    ExpenseFirestoreRepository --> FirestoreReference
+    CategoryFirestoreRepository --> FirestoreReference
+    RepeatAddFirestoreRepository --> FirestoreReference
+    UserSettingsFirestoreRepository --> FirebaseAuth
+    UserSettingsFirestoreRepository --> FirestoreReference
 
-class ExpenseRepository{
-addUserInitialData()
-fetchUserExpenses()
-addExpense()
-updateExpense()
-removeExpense()
-}
+    MailboxExtractionRTDbRepository --> RealtimeDbReference
+    CategoryAssignmentRepository --> RealtimeDbReference
 
-class CategoryRepository{
-fetchAllCategory()
-addCategory()
-updateCategory()
-removeCategory()
-}
+    CategoryAssignmentUseCase --> CategoryAssignmentRepository
+    RepeatAddUseCase --> RepeatAddFirestoreRepository
+    RepeatAddUseCase --> ExpenseFirestoreRepository
+    CategoryUseCase ..> CategoryFirestoreRepository
+    CategoryUseCase ..> RepeatAddFirestoreRepository
+    CategoryUseCase ..> MailboxExtractionRTDbRepository
 
-class CategoryAssingmentRepository{
-addCategoryAssignment()
-updateCategoryAssignment()
-removeCategoryAssignment()
-}
+    ExpenseSharedViewModel --> ExpenseFirestoreRepository
+    ExpenseSharedViewModel --> CategoryUseCase
+    ExpenseSharedViewModel --> UserSettingsFirestoreRepository
+    ExpenseSharedViewModel --> FirestoreListenerManager
 
-class UserSettingRepository{
-updateTimezone()
-}
-
-class DbListenerManager {
-listeners
-
-clearListeners()
-addListeners()
-}
-
-class ExpenseSharedViewModel{
-allExpenseList
-将来的に数ヶ月分だけ取得とかの仕様にする↑
-
-addExpense()
-updateExpense()
-deleteExpense()
-}
-
-
-ExpenseSharedViewModel ..> AuthManagerViewModel
-
-DbListenerManager ..> ExpenseSharedViewModel :CI
-ExpenseRepository ..> ExpenseSharedViewModel :CI
-CategoryRepository ..> ExpenseSharedViewModel :CI
-UserSettingRepository ..> ExpenseSharedViewModel:CI
-ExpenseSharedViewModel ..> ExpenseListViewModel :CI
-ExpenseSharedViewModel ..> ExpenseAddEditViewModel :CI
-
-
-class FirestoreReference {
-Firebase.database.reference
-
-getUserRef()
-getExpenseRef()
-getCategoryRef()
-}
-
-class RealtimeDbReference{
-getUserRef()
-}
-
-
-%% FirestoreReference ..> DbListenerManager : CI
-FirestoreReference ..> ExpenseRepository : CI
-FirestoreReference ..> CategoryRepository :CI
-FirestoreReference ..> UserSettingRepository: CI
-DbListenerManager <..> RealtimeDatabase :リスナー管理
-
-class AuthManagerViewModel {
-    signIn()
-    signUp()
-    signOut()
-}
-%%キモいけどlistenerをサイン・アウト時にクリアするにはこうやって渡すしかないか～
-%% DbListenerManager ..> UserManageViewModel :CI
-%% UserManageViewModel ..> FirestoreReference : CI
-
-class RealtimeDatabase{
-Database
-}
-RealtimeDatabase <..> ExpenseRepository: CRUD
-RealtimeDatabase <..> CategoryRepository :CRUD
-
-class FirebaseAuth{
-userId
-Firebase Authentication
-}
-
-FirebaseAuth ..> AuthManagerViewModel :CI
-
-FirebaseAuth ..> FirestoreReference :CI<br>userId取得
 
 ```

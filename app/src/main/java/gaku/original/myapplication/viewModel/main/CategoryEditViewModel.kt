@@ -25,7 +25,7 @@ class CategoryEditViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val ret = expenseSharedViewModel.addCategory(category)
-            callback(ret)
+            callback(ret.toSuspendFuncStatusInfo())
         }
     }
 
