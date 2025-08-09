@@ -9,18 +9,14 @@ import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.InitialCategories
-import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.data.dataClass.getAllAssignments
-import gaku.original.myapplication.data.dataClass.getAllEmailTemplateTypes
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
-import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,8 +27,8 @@ import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseFirestoreRepository,
+    private val categoryUseCase: CategoryUseCase,
     private val userSettingsRepository: UserSettingsFirestoreRepository,
-    private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {
 
@@ -134,7 +130,7 @@ class ExpenseSharedViewModel @Inject constructor(
     fun addInitialCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             for (category in InitialCategories.categories) {
-                categoryRepository.addCategory(category)
+                categoryUseCase.addCategory(category)
             }
         }
     }
@@ -309,7 +305,7 @@ class ExpenseSharedViewModel @Inject constructor(
     /*******************Category CRUD関連**************************/
     suspend fun fetchAllCategories(): SuspendFuncStatusInfo {
 
-        val fetchResult = categoryRepository.fetchAllCategories()
+        val fetchResult = categoryUseCase.fetchAllCategories()
 
         if (fetchResult is FuncResultWithData.Success) {
             _allCategories.value = fetchResult.data
@@ -335,7 +331,7 @@ class ExpenseSharedViewModel @Inject constructor(
             )
             return statusInfo
         } else {
-            return categoryRepository.addCategory(
+            return categoryUseCase.addCategory(
                 category = category,
             )
         }
@@ -354,159 +350,13 @@ class ExpenseSharedViewModel @Inject constructor(
             return statusInfo
         }
 
-        /* 繰り返し追加に存在するときは、チェックして、そこをupdateする */
-        val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
-        if (resultStatus !is FuncResultWithData.Success) {
-            return resultStatus.toSuspendFuncStatusInfo()
-        }
-        val repeatAddList: List<RepeatAdd> = resultStatus.data
-
-        val categoryUpdateStatus = categoryRepository.updateCategory(
-            category = category
-        )
-        if (categoryUpdateStatus.status != SuspendFuncStatus.SUCCESS) {
-            return categoryUpdateStatus
-        }
-
-        /**
-         * @FIXME こんなことやらなくてCategoryのidだけ持っておけばよいのか、、
-         */
-        for (repeatAdd in repeatAddList) {
-            if (repeatAdd.expense.category?.id == category.id) {
-                repeatAdd.expense.category = category
-                /* 変数をあてておかないとすぐreturnしてしまう。 */
-                val status = repeatAddRepository.updateRepeatAdd(repeatAdd)
-            }
-        }
-        return categoryUpdateStatus
+        return categoryUseCase.updateCategory(category)
     }
 
     suspend fun removeCategory(
         category: Category
     ): SuspendFuncStatusInfo {
-        if (category.id == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "カテゴリーIDがnullのため、削除できません。"
-            )
-            return statusInfo
-        }
-
-        val statusInfo = checkRepeatAddExists(category.id ?: "")/* 上でnullチェックしているのでnullなことはない */
-        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
-            LogAkitaDebug(statusInfo.errorMessage)
-            return statusInfo
-        }
-
-        val assignmentDuplicateCheck = checkCategoryExistInCategoryAssignment(category.id ?: "")
-        if (assignmentDuplicateCheck.status != SuspendFuncStatus.SUCCESS) {
-            return assignmentDuplicateCheck
-        }
-
-        val emailTemplateDuplicateCheck = checkCategoryExistInEmailTemplateType(category.id ?: "")
-        if (emailTemplateDuplicateCheck.status != SuspendFuncStatus.SUCCESS) {
-            return emailTemplateDuplicateCheck
-        }
-
-        return categoryRepository.removeCategory(
-            category
-        )
-    }
-
-    /* カテゴリーが繰り返し追加に登録されているかチェックする */
-    suspend fun checkRepeatAddExists(
-        categoryId: String
-    ): SuspendFuncStatusInfo {
-        val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
-        if (resultStatus !is FuncResultWithData.Success) {
-            return resultStatus.toSuspendFuncStatusInfo()
-        }
-
-        val repeatAddList: List<RepeatAdd> = resultStatus.data
-        /* 内部でチェックする */
-        val exists = repeatAddList.any { it.expense.category?.id == categoryId }
-        if (exists) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
-                "このカテゴリは繰り返し追加に登録されています。\n" +
-                        "繰り返し追加を削除してから、カテゴリを削除してください。"
-            )
-            return statusInfo
-        } else {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
-                ""
-            )
-            return statusInfo
-        }
-    }
-
-    /**
-     * カテゴリー割当のcategoryIdに存在していないかチェック
-     */
-    suspend fun checkCategoryExistInCategoryAssignment(
-        categoryId: String
-    ): SuspendFuncStatusInfo {
-        val resultStatus = categoryAssignmentUseCase.getCategoryAssignmentData()
-        if (resultStatus !is FuncResultWithData.Success) {
-            return resultStatus.toSuspendFuncStatusInfo()
-        }
-        val categoryAssignmentData = resultStatus.data
-
-        val allAssignments = categoryAssignmentData.getAllAssignments()
-        if (allAssignments.isEmpty()) {
-            return SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
-                "カテゴリー割当が何もないのでダブりチェックの必要ありません"
-            )
-        }
-
-        for (assignment in allAssignments) {
-            if (assignment.categoryId == categoryId) {
-                return SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
-                    "カテゴリー割当に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。名前：${assignment.name}"
-                )
-            }
-        }
-
-        return SuspendFuncStatusInfo(
-            SuspendFuncStatus.SUCCESS,
-            "カテゴリー割当には重複がありませんでした"
-        )
-    }
-
-    /**
-     * EmailTemplateのcategoryIdに存在していないか
-     */
-    suspend fun checkCategoryExistInEmailTemplateType(
-        categoryId: String
-    ): SuspendFuncStatusInfo {
-        val allTemplates = getAllEmailTemplateTypes()
-        for (template in allTemplates) {
-            val fetchResult = mailboxExtractionRepository.getMailTypeSetting(template)
-            if (fetchResult !is FuncResultWithData.Success) {
-                return SuspendFuncStatusInfo(
-                    status = SuspendFuncStatus.FAILED,
-                    errorMessage = "メールボックス設定(${template.menuName})とのダブりチェックでエラーが発生しました。${fetchResult.toSuspendFuncStatusInfo().errorMessage}"
-                )
-            }
-            val setting = fetchResult.data
-            if (setting is HasCategoryId) {
-                /* categoryIdを持っているので、被っていないかチェック */
-                if (categoryId == setting.categoryId) {
-                    return SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
-                        errorMessage = "メールボックス設定(${template.menuName})に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。"
-                    )
-                }
-            }
-        }
-
-        return SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.SUCCESS,
-            errorMessage = "メールボックス設定には重複がありませんでした"
-        )
+        return categoryUseCase.removeCategory(category)
     }
 
     fun addCategoryListenerModifiedRemoved() {

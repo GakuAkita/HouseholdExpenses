@@ -14,6 +14,7 @@ import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFi
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
+import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.useCase.RepeatAddUseCase
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
@@ -118,26 +119,36 @@ object AppModule {
         return RepeatAddUseCase(repeatAddRepository, expenseRepository)
     }
 
+    @Provides
+    @ActivityRetainedScoped
+    fun provideCategoryUseCase(
+        categoryRepository: CategoryFirestoreRepository,
+        repeatAddRepository: RepeatAddFirestoreRepository,
+        mailboxExtractionRepository: MailboxExtractionRTDbRepository,
+        categoryAssignmentRepository: CategoryAssignmentRepository
+    ): CategoryUseCase {
+        return CategoryUseCase(
+            categoryRepository,
+            repeatAddRepository,
+            mailboxExtractionRepository,
+            categoryAssignmentRepository
+        )
+    }
+
     /* ------------------------------------------------------------------ */
 
     @Provides
     @ActivityRetainedScoped//つけなくてもよい？
     fun provideExpenseSharedViewModel(
         expenseRepository: ExpenseFirestoreRepository,
-        categoryRepository: CategoryFirestoreRepository,
-        repeatAddRepository: RepeatAddFirestoreRepository,
+        categoryUseCase: CategoryUseCase,
         userSettingsFirestoreRepository: UserSettingsFirestoreRepository,
-        categoryAssignmentUseCase: CategoryAssignmentUseCase,
-        mailboxExtractionRTDbRepository: MailboxExtractionRTDbRepository,
         firestoreListenerManager: FirestoreListenerManager
     ): ExpenseSharedViewModel {
         return ExpenseSharedViewModel(
             expenseRepository,
-            categoryRepository,
-            repeatAddRepository,
+            categoryUseCase,
             userSettingsFirestoreRepository,
-            mailboxExtractionRTDbRepository,
-            categoryAssignmentUseCase,
             firestoreListenerManager
         )
     }
