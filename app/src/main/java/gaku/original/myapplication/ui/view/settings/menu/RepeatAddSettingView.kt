@@ -59,12 +59,14 @@ import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.defaultFrequency
 import gaku.original.myapplication.data.dataClass.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -88,6 +90,7 @@ fun RepeatAddSettingView(
     val funcName = "RepeatAddSettingView"
 
     var showAddEditDialog by remember { mutableStateOf(false) }
+    var showAddExpenseConfirmDialog by remember { mutableStateOf(false) }
 
     var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
 
@@ -190,6 +193,7 @@ fun RepeatAddSettingView(
 
             Button(
                 onClick = {
+                    editedRepeatAdd = defaultRepeatAdd
                     showAddEditDialog = true
                 }
             ) {
@@ -201,23 +205,30 @@ fun RepeatAddSettingView(
                     repeatAdd = editedRepeatAdd,
                     allCategories = allCategories,
                     onSave = { newRepeatAdd ->
-                        //ここに関数を挟んで、
-                        showAddEditDialog = false
                         if (newRepeatAdd.id == null)//新規追加
                         {
-                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { status ->
-                                if (status.status == SuspendFuncStatus.SUCCESS) {
+                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { result ->
+                                if (result is FuncResultWithData.Success) {
                                     viewModel.fetchAllRepeatAddSettings()
+                                    showAddEditDialog = false
+
+                                    /* 新規追加のときは、こいつをtrueにして、このあと月末まで追加するか選ばせる */
+                                    editedRepeatAdd = result.data
+                                    showAddExpenseConfirmDialog = true
                                 } else {
                                     /* do nothing */
-                                    Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
-                                        .show()
+                                    Toast.makeText(
+                                        context,
+                                        result.toSuspendFuncStatusInfo().errorMessage,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             })
                         } else {/* 編集 */
                             viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
                                 if (status.status == SuspendFuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
+                                    showAddEditDialog = false
                                 } else {
                                     /* do nothing */
                                     Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
@@ -233,6 +244,36 @@ fun RepeatAddSettingView(
                     scope = scope,
                     snackBarHostState = snackBarHostState
                 )
+            }
+
+            if (showAddExpenseConfirmDialog) {
+                ConfirmAlertDialog(
+                    onClick = {
+                        viewModel.addExpensesForRestOfDays(
+                            editedRepeatAdd
+                        ) {
+                            showAddExpenseConfirmDialog = false
+                        }
+                    },
+                    onDismissRequest = {
+                        /**
+                         * 追加のときも編集のときもeditedRepeatAddはボタン押下時に初期化されるから
+                         * ここで初期化はしなくて良い
+                         */
+                        showAddExpenseConfirmDialog = false
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                vertical = 20.dp,
+                                horizontal = 10.dp
+                            )
+                    ) {
+                        Text("今月翌日から月末まで費用を追加しますか？\n")
+                    }
+                }
             }
         }
     }
