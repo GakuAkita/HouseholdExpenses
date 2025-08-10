@@ -74,7 +74,8 @@ fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, Strin
     return when (parts.size) {
         2 -> {
             val mainType = convertGeneratedTypeToDisplay(parts[0])
-            val subType = convertNodeNameToMenuName(parts[1])
+            val subType =
+                if (mainType == GeneratedType.MAIL_EXTRACTION) convertNodeNameToMenuName(parts[1]) else ""
             mainType to subType
         }
 

@@ -36,6 +36,8 @@ class ExpenseAddEditViewModel @Inject constructor(
     val currentTmpExpense: Expense
         get() = tmpExpenseViewModel.tmpExpense.value
 
+    private val
+
     //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 

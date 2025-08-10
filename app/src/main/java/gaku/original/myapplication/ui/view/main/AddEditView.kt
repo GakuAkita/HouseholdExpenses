@@ -214,6 +214,7 @@ fun ExpenseAddEditView(
     }
 
     Scaffold(
+        modifier = Modifier.padding(horizontal = 5.dp),
         topBar = {
             //↓これいつの話？
             //悩みどころだが、BackだとGraphから来たときにGraphに戻る可能性があるので
@@ -376,7 +377,6 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* カテゴリーの項目 */
             /*************************************************/
-
             Row()
             {
                 ExposedDropdownMenuBox(
@@ -529,6 +529,44 @@ fun ExpenseAddEditView(
             /* 普通のやつにもつけておくわ */
             /* 使ってみていらなそうだったら表示のみor Not Categorizedのときのみに変更 */
             /*************************************************/
+            /* @TODO 検索候補をつけたい */
+            RowSpace()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = viewModel.currentTmpExpense.itemName ?: "",
+                    onValueChange = {
+                        viewModel.updateTmpExpenseItemName(it)
+                    },
+                    label = { Text(text = "商品名(空欄可)") },
+                    modifier = basicModifier
+                )
+                if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
+                        val templateType = getEmailTemplateTypeByNodeName(subType)
+                        if (templateType != null) {
+                            val bitResult =
+                                templateType.categoryAssignFlag and CategoryAssignFlag.PRODUCT_NAME.value
+                            if (bitResult != 0) {
+                                CategoryAssignmentArea(
+                                    onClick = {
+                                        assignmentEdited = CategoryAssignment(
+                                            name = viewModel.currentTmpExpense.itemName ?: "",
+                                            categoryId = viewModel.currentTmpExpense.category?.id,
+                                            condition = AssignmentCondition.EXACT_MATCH
+                                        )
+                                        namePattern = CategoryAssignNamePattern.PRODUCT
+                                        showCategoryAssignmentDialog = true
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             RowSpace()
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -568,44 +606,6 @@ fun ExpenseAddEditView(
                                     }
                                 )
 
-                            }
-                        }
-                    }
-                }
-            }
-
-            /* @TODO 検索候補をつけたい */
-            RowSpace()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    value = viewModel.currentTmpExpense.itemName ?: "",
-                    onValueChange = {
-                        viewModel.updateTmpExpenseItemName(it)
-                    },
-                    label = { Text(text = "商品名(空欄可)") },
-                    modifier = basicModifier
-                )
-                if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                    if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
-                        val templateType = getEmailTemplateTypeByNodeName(subType)
-                        if (templateType != null) {
-                            val bitResult =
-                                templateType.categoryAssignFlag and CategoryAssignFlag.PRODUCT_NAME.value
-                            if (bitResult != 0) {
-                                CategoryAssignmentArea(
-                                    onClick = {
-                                        assignmentEdited = CategoryAssignment(
-                                            name = viewModel.currentTmpExpense.itemName ?: "",
-                                            categoryId = viewModel.currentTmpExpense.category?.id,
-                                            condition = AssignmentCondition.EXACT_MATCH
-                                        )
-                                        namePattern = CategoryAssignNamePattern.PRODUCT
-                                        showCategoryAssignmentDialog = true
-                                    }
-                                )
                             }
                         }
                     }
