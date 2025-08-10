@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view.settings.menu
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -97,6 +99,8 @@ fun RepeatAddSettingView(
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
+
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.fetchAllRepeatAddSettings()
@@ -206,6 +210,8 @@ fun RepeatAddSettingView(
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */
+                                    Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             })
                         } else {/* 編集 */
@@ -214,6 +220,8 @@ fun RepeatAddSettingView(
                                     viewModel.fetchAllRepeatAddSettings()
                                 } else {
                                     /* do nothing */
+                                    Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             })
                         }
@@ -559,22 +567,7 @@ fun RepeatAddEditDialog(
                     modifier = Modifier
                         .padding(end = 10.dp),
                     onClick = {
-                        /* ここでnewRepeatAddが適切かどうかチェックする */
-                        val errorMsg = checkNewRepeatAddValid(newRepeatAdd)
-                        if (errorMsg == "") {
-                            //expenseのid,datetimeはいらないので、
-                            newRepeatAdd = newRepeatAdd.copy(
-                                expense = newRepeatAdd.expense.copy(
-                                    id = null,
-                                    timestamp = null,
-                                    datetime = null
-                                )
-                            )
-                            onSave(newRepeatAdd)
-                        } else {
-                            //エラーをUIに通知する
-                            LogAkitaDebug(errorMsg)
-                        }
+                        onSave(newRepeatAdd)
                     }
                 ) {
                     Text("Save")
@@ -1022,45 +1015,3 @@ fun FrequencyTextField(
     LogAkitaDebug("The end of FrequencyTextField:newFrequencyInfo:${newFrequencyInfo}")
 }
 
-
-//ErrorMsgを返したほうが良いのかな？
-fun checkNewRepeatAddValid(newRepeatAdd: RepeatAdd): String {
-    if (newRepeatAdd.expense.amount == null || newRepeatAdd.expense.amount == 0L) {
-        return "expense amount is empty or 0"
-    } else if (newRepeatAdd.expense.category == null) {
-        return "expense category is empty"
-    } else if (newRepeatAdd.frequencyInfo.frequency == null) {
-        return "frequency is empty"
-    }
-
-    val frequencyInfo = newRepeatAdd.frequencyInfo
-    val frequency = frequencyInfo.frequency
-
-    //各頻度ごとに該当するフィールドのチェックを追加
-    if (frequency == RepeatFrequency.EVERY_YEAR) {
-        if (frequencyInfo.month == null) return "month is empty"
-    }
-
-    if (frequency == RepeatFrequency.EVERY_YEAR ||
-        frequency == RepeatFrequency.EVERY_MONTH
-    ) {
-        if (frequencyInfo.day == null) return "day is empty"
-    }
-
-    if (frequency == RepeatFrequency.EVERY_WEEK) {
-        if (frequencyInfo.dayOfWeek == null) return "day of week is empty"
-    }
-
-    if (frequency == RepeatFrequency.EVERY_YEAR ||
-        frequency == RepeatFrequency.EVERY_MONTH ||
-        frequency == RepeatFrequency.EVERY_WEEK ||
-        frequency == RepeatFrequency.WEEKENDS ||
-        frequency == RepeatFrequency.WEEKDAYS ||
-        frequency == RepeatFrequency.EVERYDAY
-    ) {
-        if (frequencyInfo.hour == null) return "hour is empty"
-        if (frequencyInfo.minute == null) return "minute is empty"
-    }
-
-    return ""
-}

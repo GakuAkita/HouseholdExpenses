@@ -39,9 +39,9 @@ val defaultRepeatAdd = RepeatAdd(
     id = null,
     timestamp = null,
     expense = getDefaultExpense().copy(
+        id = null,
         datetime = null,
         timestamp = null
     ),
     frequencyInfo = defaultFrequency,
 )
-
