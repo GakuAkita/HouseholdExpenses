@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -29,6 +30,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -82,6 +84,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalTime
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepeatAddSettingView(
     viewModel: RepeatAddViewModel = hiltViewModel(),
@@ -91,6 +94,9 @@ fun RepeatAddSettingView(
 
     var showAddEditDialog by remember { mutableStateOf(false) }
     var showAddExpenseConfirmDialog by remember { mutableStateOf(false) }
+
+    val progress by viewModel.progress.collectAsState()
+    var expenseAddLoading by remember { mutableStateOf(false) }
 
     var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
 
@@ -249,10 +255,24 @@ fun RepeatAddSettingView(
             if (showAddExpenseConfirmDialog) {
                 ConfirmAlertDialog(
                     onClick = {
+                        viewModel.initProgress()
+                        showAddExpenseConfirmDialog = false
+                        expenseAddLoading = true
                         viewModel.addExpensesForRestOfDays(
                             editedRepeatAdd
-                        ) {
-                            showAddExpenseConfirmDialog = false
+                        ) { status ->
+                            /**
+                             * インジケーターの表示を消して、
+                             * snackbarで成功なのか失敗なのかを伝える
+                             */
+                            expenseAddLoading = false
+                            scope.launch {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                snackBarHostState.showSnackbar(
+                                    status.errorMessage,
+                                    actionLabel = "OK"
+                                )
+                            }
                         }
                     },
                     onDismissRequest = {
@@ -272,6 +292,23 @@ fun RepeatAddSettingView(
                             )
                     ) {
                         Text("今月翌日から月末まで費用を追加しますか？\n")
+                    }
+                }
+            }
+
+            if (expenseAddLoading) {
+                BasicAlertDialog(
+                    onDismissRequest = {}
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("費用追加中...")
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }

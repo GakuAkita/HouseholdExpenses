@@ -8,7 +8,6 @@ import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.useCase.RepeatAddUseCase
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +24,9 @@ class RepeatAddViewModel @Inject constructor(
 
     private val _repeatAddSettings = MutableStateFlow<List<RepeatAdd>>(emptyList())
     val repeatAddSettings: StateFlow<List<RepeatAdd>> get() = _repeatAddSettings
+
+    private val _progress = MutableStateFlow(0f)
+    val progress: StateFlow<Float> = _progress
 
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
     fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
@@ -68,6 +70,10 @@ class RepeatAddViewModel @Inject constructor(
         }
     }
 
+    fun initProgress() {
+        _progress.value = 0f
+    }
+
     /**
      * RepeatAddをしたあと、月末まで追加する
      */
@@ -78,7 +84,10 @@ class RepeatAddViewModel @Inject constructor(
         /* RepeatAddのexpenseのgeneratedTypeは入っていないのでここで入れないとだめ */
         viewModelScope.launch {
             repeatAddUseCase.addExpensesForRestOfDaysFlow(repeatAdd).collect { (progress, status) ->
-                LogAkitaDebug("progress: $progress, status: $status")
+                _progress.value = progress
+                if (status != null) {
+                    callback(status)
+                }
             }
         }
     }
