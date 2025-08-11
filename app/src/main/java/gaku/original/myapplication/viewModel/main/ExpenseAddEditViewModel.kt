@@ -44,8 +44,33 @@ class ExpenseAddEditViewModel @Inject constructor(
     val splitInputEnabled: StateFlow<Boolean> = _splitInputEnabled
 
     /* 分割入力のときの合計金額 */
-    private val _totalAmount = MutableStateFlow<Long>(0)
-    val totalAmount: StateFlow<Long> = _totalAmount
+    private val _totalAmount = MutableStateFlow<Long?>(0L)
+    val totalAmount: StateFlow<Long?> = _totalAmount
+    private var _initTotalAmount = false/* こいつはview側で見る必要はない */
+
+    /* 分割入力で選択したindexを覚えておくだけ */
+    private var selectedIndex: Int? = null
+    fun setSelectedIndex(index: Int) {
+        selectedIndex = index
+    }
+
+    fun updateTotalAmount(amount: Long?) {
+        _totalAmount.value = amount
+    }
+
+    fun switchSplitInput() {
+        /* ここで合計金額を転写しておく */
+        if (!_initTotalAmount) {
+            _initTotalAmount = true
+            /* 転写するのは一度だけ。その後はViewで編集 */
+            /* まあ入力制限しているのでamountがnullのときはないのだが、、 */
+            _totalAmount.value = getHeadExpense().amount ?: 0L
+
+            /* 先頭費用は0にしておいた方が良い */
+            updateTmpExpenseAmountAt(index = 0, 0L)
+        }
+        _splitInputEnabled.value = !_splitInputEnabled.value
+    }
 
     /* 設定のタイムゾーンに合わせて現在日付 */
     fun getTimeZoneDate(): LocalDate {
@@ -94,6 +119,27 @@ class ExpenseAddEditViewModel @Inject constructor(
 //        )
     }
 
+    fun calcLastExpenseAmount() {
+        val arr = expenseList.value
+        val size = arr.size
+        if (size > 1) {
+            val sumBeforeLast = arr.dropLast(1).sumOf { it.amount ?: 0L }
+            val remaining = (_totalAmount.value ?: 0L) - sumBeforeLast
+            tmpExpenseViewModel.updateTmpExpenseAt(
+                size - 1,
+                arr[size - 1].copy(
+                    amount = remaining
+                )
+            )
+        }
+    }
+
+    /* selectedIndexを使って更新 */
+    fun updateTmpExpenseAmountAtSelectedIndex(newAmount: Long?) {
+        val index = selectedIndex ?: return
+        updateTmpExpenseAmountAt(index, newAmount)
+    }
+
     // 各項目を個別に更新するメソッド
     fun updateTmpExpenseAmountAt(index: Int = 0, newAmount: Long?) {
         tmpExpenseViewModel.updateTmpExpenseAt(
@@ -102,6 +148,10 @@ class ExpenseAddEditViewModel @Inject constructor(
                 amount = newAmount
             )
         )
+        /**
+         * expenseListのサイズが1以上のとき、最後の要素は自動計算
+         */
+        calcLastExpenseAmount()
     }
 
     fun updateTmpExpenseCategoryAt(index: Int = 0, newCategory: Category?) {
@@ -146,8 +196,6 @@ class ExpenseAddEditViewModel @Inject constructor(
     fun resetTmpExpenseList() {
         tmpExpenseViewModel.resetTmpExpenseList()
     }
-
-    fun copyCommonPropertyToExpenses() {}
 
     fun addTmpExpenseToDb(callback: (SuspendFuncStatusInfo) -> Unit) {
         /**
@@ -256,5 +304,13 @@ class ExpenseAddEditViewModel @Inject constructor(
                 categoryAssignmentUseCase.addCategoryAssignmentWithCheck(assignment, namePattern)
             callback(ret)
         }
+    }
+
+    /*******************************/
+    /* 費用を追加する */
+    /*******************************/
+    fun addExpenseToList() {
+        tmpExpenseViewModel.addTmpExpense()
+        calcLastExpenseAmount()
     }
 }

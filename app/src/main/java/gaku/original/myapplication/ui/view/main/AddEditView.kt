@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -29,9 +31,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
@@ -51,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -127,6 +132,10 @@ fun ExpenseAddEditView(
     val allCategories by viewModel.allCategories.collectAsState(initial = emptyList())
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
+
+    /* 分割入力ボタン */
+    val splitInputState by viewModel.splitInputEnabled.collectAsState()
+    val totalAmount by viewModel.totalAmount.collectAsState()
 
     /* 割当をするかしないか問題 */
     var showCategoryAssignmentDialog by rememberSaveable { mutableStateOf(false) }
@@ -319,6 +328,35 @@ fun ExpenseAddEditView(
                 }
             }
 
+            /*************************************************/
+            /* 合計金額の表示(分割入力のときのみ!!) */
+            /*************************************************/
+            if (splitInputState) {
+                /**
+                 * trueに入ったときに、index=0の値をトータルに代入する。
+                 * trueからfalseに入ったときは、index=0にこの値を返す
+                 */
+                RowSpace()
+                TextField(
+                    modifier = basicModifier,
+                    value = totalAmount?.toString() ?: "",
+                    onValueChange = {
+                        val convertedVal = it.roundToLongOrNull()/* 自作 */
+                        if (it != "" && convertedVal == null) {
+                            scope.launch {
+                                snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
+                            }
+                            //viewModel.updateExpenseInstanceAmount(null)
+                        } else {
+                            viewModel.updateTotalAmount(convertedVal)
+                            showCalculator = false
+                        }
+                    },
+                    label = { Text(text = "合計金額") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+
             /* expenseListをぶん回す */
             viewModel.expenseList.value.forEachIndexed { index, expense ->
                 /*************************************************/
@@ -328,6 +366,9 @@ fun ExpenseAddEditView(
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    /* 最後の要素は自動で入力できないようにする */
+                    val isLastElement =
+                        index == viewModel.expenseList.value.size - 1 && splitInputState && index != 0
                     TextField(
                         //数値だけ受け付ける感じにしたい
                         value = expense.amount?.toString() ?: "",
@@ -338,10 +379,43 @@ fun ExpenseAddEditView(
                         modifier = basicModifier
                             .clickable {
                                 showCalculator = true
+                                viewModel.setSelectedIndex(index)
                                 Log.d(viewName, "Amount was tapped!!!")
                             },
-                        colors = enabledTextFiledColorSet()
+                        colors = if (!isLastElement) enabledTextFiledColorSet() else TextFieldDefaults.colors()
                     )
+
+                    /* 先頭費用しか載せない */
+                    if (index == 0) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 0.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Top
+                        ) {
+                            Text("分割入力", fontSize = 10.sp)
+                            Switch(
+                                checked = splitInputState,
+                                onCheckedChange = {
+                                    if (!splitInputState && expense.amount == null) {
+                                        scope.launch {
+                                            snackBarHostState.currentSnackbarData?.dismiss()
+                                            snackBarHostState.showSnackbar(
+                                                "先頭費用を入力しないとONできません",
+                                                actionLabel = "OK"
+                                            )
+                                        }
+                                    } else {
+                                        viewModel.switchSplitInput()
+                                    }
+                                },
+                                modifier = Modifier.padding(vertical = 0.dp)
+                            )
+                        }
+                    } else {
+                        /* 削除ボタン */
+                    }
                 }
 
                 if (showCalculator) {
@@ -358,10 +432,12 @@ fun ExpenseAddEditView(
                                         scope.launch {
                                             snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
                                         }
-                                        //viewModel.updateExpenseInstanceAmount(null)
                                     } else {
-                                        viewModel.updateTmpExpenseAmountAt(index, convertedVal)
+                                        Log.d(viewName, "selected index:${index}")
                                         showCalculator = false
+                                        viewModel.updateTmpExpenseAmountAtSelectedIndex(
+                                            convertedVal
+                                        )
                                     }
                                 } else {
                                     /* ラウンドしない場合、、 */
@@ -378,7 +454,9 @@ fun ExpenseAddEditView(
                         initialCategoryId = expense.category?.id,
                         categories = allCategories,
                         onCategorySelected = {
+                            viewModel.updateTmpExpenseCategoryAt(index, it)
                         },
+                        modifier = basicModifier,
                     )
 
                     // カテゴリー編集ボタン
@@ -466,7 +544,25 @@ fun ExpenseAddEditView(
                     }
                 }
             }
-            
+
+            if (splitInputState) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    IconButton(
+                        onClick = {
+                            viewModel.addExpenseToList()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add"
+                        )
+                    }
+                }
+            }
+
             /**
              * 店名
              * これは、分割入力の場合でもすべて一緒
