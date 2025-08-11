@@ -11,24 +11,51 @@ class TemporaryExpenseViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-    // 初期値として null もしくは適切なデフォルト値を設定
-    /*** AddEditとMainViewのデータの受け渡しに使う ***/
-    // 内部で状態を管理する
-    private val _tmpExpense = mutableStateOf(
-        getDefaultExpense()
+    /** AddEditとMainView間でのデータ受け渡し用 **/
+    // 内部状態: 常に1件以上のExpenseを保持
+    private val _tmpExpenseList = mutableStateOf(
+        listOf(getDefaultExpense())
     )
 
-    // 外部には読み取り専用のインターフェースを公開
-    val tmpExpense: State<Expense> get() = _tmpExpense
+    // 外部公開用（読み取り専用）
+    val tmpExpenseList: State<List<Expense>> get() = _tmpExpenseList
 
-    //内部からのみ相対を変更できるようにする。
-    //こうすると、UIから直接代入はできないが、TmpViewModelを渡された先のViewModelでは変更できる
-    fun updateTmpExpense(newExpense: Expense) {
-        _tmpExpense.value = newExpense
+    /** 現在編集中のExpense（とりあえず最初の要素を返す） **/
+    val currentTmpExpense: Expense
+        get() = _tmpExpenseList.value.first()
+
+    /** Expenseを追加 **/
+    fun addTmpExpense(newExpense: Expense = getDefaultExpense()) {
+        _tmpExpenseList.value = _tmpExpenseList.value + newExpense
     }
 
-    // tmpExpenseを一旦リセットする
-    fun resetTmpExpense() {
-        _tmpExpense.value = getDefaultExpense()
+    /** 特定インデックスのExpenseを更新 **/
+    fun updateTmpExpenseAt(index: Int, newExpense: Expense) {
+        _tmpExpenseList.value = _tmpExpenseList.value.toMutableList().apply {
+            if (index in indices) {
+                this[index] = newExpense
+            }
+        }
+    }
+
+    /** 現在のExpense（先頭）を更新（従来互換） **/
+    fun updateTmpExpense(newExpense: Expense) {
+        updateTmpExpenseAt(0, newExpense)
+    }
+
+    /** 特定インデックスのExpenseを削除 **/
+    fun removeTmpExpenseAt(index: Int) {
+        if (_tmpExpenseList.value.size > 1) { // 最低1件は残す
+            _tmpExpenseList.value = _tmpExpenseList.value.toMutableList().apply {
+                if (index in indices) {
+                    removeAt(index)
+                }
+            }
+        }
+    }
+
+    /** 全てリセット（1件のデフォルト状態に戻す） **/
+    fun resetTmpExpenseList() {
+        _tmpExpenseList.value = listOf(getDefaultExpense())
     }
 }

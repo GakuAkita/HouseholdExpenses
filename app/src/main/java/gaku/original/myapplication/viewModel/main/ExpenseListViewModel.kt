@@ -7,8 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
@@ -211,7 +211,7 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     fun resetTmpExpense() {
-        tmpExpenseViewModel.resetTmpExpense()
+        tmpExpenseViewModel.resetTmpExpenseList()
     }
 
     /**
@@ -224,9 +224,9 @@ class ExpenseListViewModel @Inject constructor(
          * 入力は設定タイムゾーンの時間なので、UTCになおしてそれを
          */
         val utcStr = AppTimeZone.localDateTimeToIsoString(newDateTimeZone)
-        tmpExpenseViewModel.resetTmpExpense()
+        tmpExpenseViewModel.resetTmpExpenseList()
         tmpExpenseViewModel.updateTmpExpense(
-            tmpExpenseViewModel.tmpExpense.value.copy(
+            tmpExpenseViewModel.currentTmpExpense.copy(
                 //datetimeはStringなので注意!!! 変換必要
                 datetime = utcStr
             )
