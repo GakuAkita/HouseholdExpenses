@@ -43,6 +43,10 @@ class TemporaryExpenseViewModel @Inject constructor(
         updateTmpExpenseAt(0, newExpense)
     }
 
+    fun removeTmpExpenseExceptHead() {
+        _tmpExpenseList.value = _tmpExpenseList.value.take(1)
+    }
+
     /** 特定インデックスのExpenseを削除 **/
     fun removeTmpExpenseAt(index: Int) {
         if (_tmpExpenseList.value.size > 1) { // 最低1件は残す

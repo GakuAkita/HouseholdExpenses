@@ -69,6 +69,16 @@ class ExpenseAddEditViewModel @Inject constructor(
             /* 先頭費用は0にしておいた方が良い */
             updateTmpExpenseAmountAt(index = 0, 0L)
         }
+
+        if (_splitInputEnabled.value) {
+            /**
+             *  ボタンをオフに戻した時
+             *  リストの先頭以外を消す
+             * */
+            tmpExpenseViewModel.removeTmpExpenseExceptHead()
+            /* totalAmountを先頭にコピーしたほうがいいか */
+            updateTmpExpenseAmountAt(0, _totalAmount.value)
+        }
         _splitInputEnabled.value = !_splitInputEnabled.value
     }
 
@@ -307,10 +317,20 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     /*******************************/
-    /* 費用を追加する */
+    /* 費用を追加/削除する */
     /*******************************/
     fun addExpenseToList() {
         tmpExpenseViewModel.addTmpExpense()
+        calcLastExpenseAmount()
+    }
+
+    fun removeExpenseFromListAtSelectedIndex() {
+        val index = selectedIndex ?: return
+        removeExpenseFromListAt(index)
+    }
+
+    fun removeExpenseFromListAt(index: Int) {
+        tmpExpenseViewModel.removeTmpExpenseAt(index)
         calcLastExpenseAmount()
     }
 }

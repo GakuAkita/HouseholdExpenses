@@ -3,6 +3,7 @@ package gaku.original.myapplication.ui.view.main
 import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -359,42 +361,41 @@ fun ExpenseAddEditView(
 
             /* expenseListをぶん回す */
             viewModel.expenseList.value.forEachIndexed { index, expense ->
-                /*************************************************/
-                /* 費用の項目 */
-                /*************************************************/
-                RowSpace()
-                Row(
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = if (splitInputState) Modifier.border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.secondary
+                    ) else Modifier
                 ) {
-                    /* 最後の要素は自動で入力できないようにする */
-                    val isLastElement =
-                        index == viewModel.expenseList.value.size - 1 && splitInputState && index != 0
-                    TextField(
-                        //数値だけ受け付ける感じにしたい
-                        value = expense.amount?.toString() ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
-                        label = { Text(text = "Amount") },
-                        modifier = basicModifier
-                            .clickable {
-                                showCalculator = true
-                                viewModel.setSelectedIndex(index)
-                                Log.d(viewName, "Amount was tapped!!!")
-                            },
-                        colors = if (!isLastElement) enabledTextFiledColorSet() else TextFieldDefaults.colors()
-                    )
 
-                    /* 先頭費用しか載せない */
-                    if (index == 0) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 0.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Top
-                        ) {
-                            Text("分割入力", fontSize = 10.sp)
+                    /*************************************************/
+                    /* 費用の項目 */
+                    /*************************************************/
+                    RowSpace()
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        /* 最後の要素は自動で入力できないようにする */
+                        val isLastElement =
+                            index == viewModel.expenseList.value.size - 1 && splitInputState && index != 0
+                        TextField(
+                            //数値だけ受け付ける感じにしたい
+                            value = expense.amount?.toString() ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false,
+                            label = { Text(text = "Amount") },
+                            modifier = basicModifier
+                                .clickable {
+                                    showCalculator = true
+                                    viewModel.setSelectedIndex(index)
+                                    Log.d(viewName, "Amount was tapped!!!")
+                                },
+                            colors = if (!isLastElement) enabledTextFiledColorSet() else TextFieldDefaults.colors()
+                        )
+
+                        /* 先頭費用しか載せない */
+                        if (index == 0) {
                             Switch(
                                 checked = splitInputState,
                                 onCheckedChange = {
@@ -412,154 +413,168 @@ fun ExpenseAddEditView(
                                 },
                                 modifier = Modifier.padding(vertical = 0.dp)
                             )
+                            Text("分割入力")
+                        } else {
+                            /* 削除ボタン */
+                            IconButton(
+                                onClick = {
+                                    viewModel.setSelectedIndex(index)
+                                    viewModel.removeExpenseFromListAtSelectedIndex()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete"
+                                )
+                            }
                         }
-                    } else {
-                        /* 削除ボタン */
                     }
-                }
 
-                if (showCalculator) {
-                    ModalBottomSheet(
-                        onDismissRequest = { showCalculator = false },
-                        sheetState = bottomSheetState
-                    ) {
-                        CalculatorUI(
-                            initialValue = expense.amount ?: 0L,
-                            onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
-                                if (true/* 日本円。設定から制御できるように、、 */) {
-                                    val convertedVal = it.roundToLongOrNull()/* 自作 */
-                                    if (it != "" && convertedVal == null) {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
+                    if (showCalculator) {
+                        ModalBottomSheet(
+                            onDismissRequest = { showCalculator = false },
+                            sheetState = bottomSheetState
+                        ) {
+                            CalculatorUI(
+                                initialValue = expense.amount ?: 0L,
+                                onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
+                                    if (true/* 日本円。設定から制御できるように、、 */) {
+                                        val convertedVal = it.roundToLongOrNull()/* 自作 */
+                                        if (it != "" && convertedVal == null) {
+                                            scope.launch {
+                                                snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
+                                            }
+                                        } else {
+                                            Log.d(viewName, "selected index:${index}")
+                                            showCalculator = false
+                                            viewModel.updateTmpExpenseAmountAtSelectedIndex(
+                                                convertedVal
+                                            )
                                         }
                                     } else {
-                                        Log.d(viewName, "selected index:${index}")
-                                        showCalculator = false
-                                        viewModel.updateTmpExpenseAmountAtSelectedIndex(
-                                            convertedVal
+                                        /* ラウンドしない場合、、 */
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    /* カテゴリー割当て */
+                    RowSpace()
+                    Row {
+                        CategoryDropDown(
+                            initialCategoryId = expense.category?.id,
+                            categories = allCategories,
+                            onCategorySelected = {
+                                viewModel.updateTmpExpenseCategoryAt(index, it)
+                            },
+                            modifier = basicModifier,
+                        )
+
+                        // カテゴリー編集ボタン
+                        IconButton(
+                            onClick = {
+                                navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                                contentDescription = "Edit Category"
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                viewModel.updateStoredCategories {
+                                    /* カテゴリーを更新する */
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Update"
+                            )
+                        }
+                    }
+
+                    /*************************************************/
+                    /* Noteの項目 */
+                    /*************************************************/
+                    RowSpace()
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        //メモ
+                        TextField(
+                            value = expense.note ?: "",
+                            onValueChange = {
+                                viewModel.updateTmpExpenseNoteAt(index, it)
+                            },
+                            modifier = basicModifier,
+                            label = { Text(text = "Note(空欄可)") },
+                            singleLine = false
+                        )
+                    }
+
+                    /*****************************************************/
+                    /* 商品名 */
+                    /*****************************************************/
+                    RowSpace()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = expense.itemName ?: "",
+                            onValueChange = {
+                                viewModel.updateTmpExpenseItemNameAt(index, it)
+                            },
+                            label = { Text(text = "商品名(空欄可)") },
+                            modifier = basicModifier
+                        )
+                        if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                            if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
+                                val templateType = getEmailTemplateTypeByNodeName(subType)
+                                if (templateType != null) {
+                                    val bitResult =
+                                        templateType.categoryAssignFlag and CategoryAssignFlag.PRODUCT_NAME.value
+                                    if (bitResult != 0) {
+                                        CategoryAssignmentArea(
+                                            onClick = {
+                                                assignmentEdited = CategoryAssignment(
+                                                    name = expense.itemName ?: "",
+                                                    categoryId = expense.category?.id,
+                                                    condition = AssignmentCondition.EXACT_MATCH
+                                                )
+                                                namePattern = CategoryAssignNamePattern.PRODUCT
+                                                showCategoryAssignmentDialog = true
+                                            }
                                         )
                                     }
-                                } else {
-                                    /* ラウンドしない場合、、 */
-                                }
-                            }
-                        )
-                    }
-                }
-
-                /* カテゴリー割当て */
-                RowSpace()
-                Row {
-                    CategoryDropDown(
-                        initialCategoryId = expense.category?.id,
-                        categories = allCategories,
-                        onCategorySelected = {
-                            viewModel.updateTmpExpenseCategoryAt(index, it)
-                        },
-                        modifier = basicModifier,
-                    )
-
-                    // カテゴリー編集ボタン
-                    IconButton(
-                        onClick = {
-                            navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
-                            contentDescription = "Edit Category"
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            viewModel.updateStoredCategories {
-                                /* カテゴリーを更新する */
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Update"
-                        )
-                    }
-                }
-
-                /*************************************************/
-                /* Noteの項目 */
-                /*************************************************/
-                RowSpace()
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    //メモ
-                    TextField(
-                        value = expense.note ?: "",
-                        onValueChange = {
-                            viewModel.updateTmpExpenseNoteAt(index, it)
-                        },
-                        modifier = basicModifier,
-                        label = { Text(text = "Note(空欄可)") },
-                        singleLine = false
-                    )
-                }
-
-                /*****************************************************/
-                /* 商品名 */
-                /*****************************************************/
-                RowSpace()
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = expense.itemName ?: "",
-                        onValueChange = {
-                            viewModel.updateTmpExpenseItemNameAt(index, it)
-                        },
-                        label = { Text(text = "商品名(空欄可)") },
-                        modifier = basicModifier
-                    )
-                    if (fromScreen == FromScreen.NOT_CATEGORIZED) {
-                        if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
-                            val templateType = getEmailTemplateTypeByNodeName(subType)
-                            if (templateType != null) {
-                                val bitResult =
-                                    templateType.categoryAssignFlag and CategoryAssignFlag.PRODUCT_NAME.value
-                                if (bitResult != 0) {
-                                    CategoryAssignmentArea(
-                                        onClick = {
-                                            assignmentEdited = CategoryAssignment(
-                                                name = expense.itemName ?: "",
-                                                categoryId = expense.category?.id,
-                                                condition = AssignmentCondition.EXACT_MATCH
-                                            )
-                                            namePattern = CategoryAssignNamePattern.PRODUCT
-                                            showCategoryAssignmentDialog = true
-                                        }
-                                    )
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if (splitInputState) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    IconButton(
-                        onClick = {
-                            viewModel.addExpenseToList()
-                        }
+                if (splitInputState && index == viewModel.expenseList.value.size - 1) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add"
-                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.addExpenseToList()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add"
+                            )
+                        }
                     }
+                } else {
+                    RowSpace()
                 }
             }
 
