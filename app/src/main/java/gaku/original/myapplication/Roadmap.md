@@ -60,8 +60,8 @@
   にも保存しておいて、Remote と同期させるのがいいのかなあ？
 - done:::カテゴリー分割入力
 - done:::Amazon スクレイピング
-- repeatAddのeveryWeekがちゃんと選択できない
-- repeatAddの周りのリファクタリング
+- done:::repeatAddのeveryWeekがちゃんと選択できない
+- done:::repeatAddの周りのリファクタリング(なんだかんだ綺麗かもしれない)
 - AddEditのリファクタリング
 
 PayPay で使ったときに取得して自動転記 ← 無理そう。PayPay
