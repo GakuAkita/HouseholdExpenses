@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.settings.menu
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -68,6 +69,7 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.defaultFrequency
 import gaku.original.myapplication.data.dataClass.defaultRepeatAdd
 import gaku.original.myapplication.ui.common.BottomBarView
+import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
@@ -77,7 +79,6 @@ import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getLastDayOfMonth
 import gaku.original.myapplication.viewModel.settings.RepeatAddViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -131,6 +132,13 @@ fun RepeatAddSettingView(
                 .padding(innerPadding)
                 .padding(top = 30.dp)
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+                Text("毎月1日に自動で追加されます")
+            }
             if (repeatAddSettings.isNotEmpty()) {
                 Row(
                     modifier = Modifier
@@ -247,11 +255,11 @@ fun RepeatAddSettingView(
                         showAddEditDialog = false
                         editedRepeatAdd = defaultRepeatAdd
                     },
-                    scope = scope,
-                    snackBarHostState = snackBarHostState
+                    context = context
                 )
             }
 
+            /* 月末まで追加するときの確認をする */
             if (showAddExpenseConfirmDialog) {
                 ConfirmAlertDialog(
                     onClick = {
@@ -386,10 +394,8 @@ fun RepeatAddEditDialog(
     allCategories: StateFlow<List<Category>>,
     onSave: (repeatAdd: RepeatAdd) -> Unit,
     onDismiss: () -> Unit,
-    scope: CoroutineScope,
-    snackBarHostState: SnackbarHostState
+    context: Context
 ) {
-    LogAkitaDebug("RepeatAddEditDialog Recomposed")
     var newRepeatAdd by remember { mutableStateOf(repeatAdd.copy()) }
 
     val categories = allCategories.collectAsState()
@@ -404,10 +410,8 @@ fun RepeatAddEditDialog(
     LaunchedEffect(amountWarning) {
         //amountWarningは表示したらすぐ消す
         if (amountWarning) {
-            scope.launch {
-                snackBarHostState.showSnackbar("これ以上入力できません。数値が大きすぎます")
-            }
-
+            Toast.makeText(context, "これ以上入力できません。数値が大きすぎます", Toast.LENGTH_SHORT)
+                .show()
             delay(2000)
 
             amountWarning = false
@@ -463,54 +467,17 @@ fun RepeatAddEditDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    ExposedDropdownMenuBox(
-                        expanded = categoryOptionsExpanded,
-                        onExpandedChange = {
-                            categoryOptionsExpanded = !categoryOptionsExpanded
-                        }
-                    ) {
-                        //カテゴリー(選択肢から選んでもらいたい。RoomDB?)
-                        //@Todo タップしたら画面右からスライドして選択肢が入った列が出てくる感じ
-                        //とりあえずこれで一応は凌ぐが、本当はもっと使いやすくしたい。
-
-                        /* 設定したcategoryが消えていたらどうしよう.... */
-                        TextField(
-                            value = newRepeatAdd.expense.category?.name ?: "",
-                            onValueChange = {/* ドロップダウンから選択すれば値が更新される */ },
-                            enabled = false,
-                            readOnly = true,
-                            modifier = Modifier
-                                .width(260.dp)
-                                .menuAnchor(),//menuAnchorをつけないとだめっぽいな。
-                            label = { Text(text = "Category") },
-                            singleLine = true,
-                            colors = enabledTextFiledColorSet(),
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = categoryOptionsExpanded,
-                            onDismissRequest = { categoryOptionsExpanded = false }
-                        ) {
-                            if (categories.value.isEmpty()) {
-                                //何もなかったらToastを出す
-                                LogAkitaDebug("allCategories is empty")
-                                categoryOptionsExpanded = false
-                            }
-                            categories.value.forEachIndexed { _, category ->
-                                DropdownMenuItem(
-                                    text = { Text(text = category.name.toString()) },
-                                    onClick = {
-                                        newRepeatAdd = newRepeatAdd.copy(
-                                            expense = newRepeatAdd.expense.copy(
-                                                category = category
-                                            )
-                                        )
-                                        categoryOptionsExpanded = false
-                                    }
+                    CategoryDropDown(
+                        initialCategoryId = newRepeatAdd.expense.category?.id,
+                        categories = categories.value,
+                        onCategorySelected = {
+                            newRepeatAdd = newRepeatAdd.copy(
+                                expense = newRepeatAdd.expense.copy(
+                                    category = it
                                 )
-                            }
+                            )
                         }
-                    }
+                    )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
