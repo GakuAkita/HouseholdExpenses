@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -144,6 +145,9 @@ fun ExpenseAddEditView(
     var showDeleteResetConfirmDialog by remember { mutableStateOf(false) }
     var namePattern by remember { mutableStateOf(CategoryAssignNamePattern.STORE) }
     var assignmentEdited by remember { mutableStateOf(CategoryAssignment()) }
+
+    /* 保存時、ボタンを押せないようにするため */
+    val loadingState by viewModel.loadingState.collectAsState()
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
@@ -674,57 +678,62 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* 保存ボタンの実装 */
             /*************************************************/
-            Button(
-                onClick = {
-                    handleSaveClick()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                colors = ButtonDefaults.textButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text("Save")
-            }
+            if (loadingState) {
+                RowSpace()
+                CircularProgressIndicator()
+            } else {
+                Button(
+                    onClick = {
+                        handleSaveClick()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Save")
+                }
 
-            // 新規作成時：リセット、更新時：削除
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                if (viewModel.getHeadExpense().id == null) {
-                    Button(
-                        onClick = {
-                            viewModel.resetTmpExpenseList()
-                        },
-                        modifier = Modifier
-                            .width(140.dp)
-                            .padding(4.dp),
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
-                        )
-                    ) {
-                        Text("Reset")
-                    }
-                } else {
-                    Button(
-                        onClick = {
-                            showDeleteResetConfirmDialog = true
-                        },
-                        modifier = Modifier
-                            .width(140.dp)
-                            .padding(4.dp),
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
-                    ) {
-                        Text("Delete")
+                // 新規作成時：リセット、更新時：削除
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    if (viewModel.getHeadExpense().id == null) {
+                        Button(
+                            onClick = {
+                                viewModel.resetTmpExpenseList()
+                            },
+                            modifier = Modifier
+                                .width(140.dp)
+                                .padding(4.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onSecondary
+                            )
+                        ) {
+                            Text("Reset")
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                showDeleteResetConfirmDialog = true
+                            },
+                            modifier = Modifier
+                                .width(140.dp)
+                                .padding(4.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        ) {
+                            Text("Delete")
+                        }
                     }
                 }
             }

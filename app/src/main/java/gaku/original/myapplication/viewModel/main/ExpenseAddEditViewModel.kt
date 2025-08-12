@@ -48,6 +48,9 @@ class ExpenseAddEditViewModel @Inject constructor(
     val totalAmount: StateFlow<Long?> = _totalAmount
     private var _initTotalAmount = false/* こいつはview側で見る必要はない */
 
+    private val _loadingState = MutableStateFlow(false)
+    val loadingState: StateFlow<Boolean> = _loadingState
+
     /* 分割入力で選択したindexを覚えておくだけ */
     private var selectedIndex: Int? = null
     fun setSelectedIndex(index: Int) {
@@ -80,6 +83,10 @@ class ExpenseAddEditViewModel @Inject constructor(
             updateTmpExpenseAmountAt(0, _totalAmount.value)
         }
         _splitInputEnabled.value = !_splitInputEnabled.value
+    }
+
+    fun setLoadingState(state: Boolean) {
+        _loadingState.value = state
     }
 
     /* 設定のタイムゾーンに合わせて現在日付 */
@@ -230,6 +237,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun addTmpExpenseToDb(callback: (SuspendFuncStatusInfo) -> Unit) {
+        setLoadingState(true)
         /**
          * ここで中身チェックを行った方が良い。
          * あくまでViewではこいつを呼び出すだけで。
@@ -246,6 +254,7 @@ class ExpenseAddEditViewModel @Inject constructor(
                 }
             }
 
+            setLoadingState(false)
             if (expenseList.value.size == cnt) {
                 callback(
                     SuspendFuncStatusInfo(
@@ -264,6 +273,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
+        setLoadingState(true)
         onStart()
         var cnt: Int = 0
         copyCommonPropertyToList()
@@ -283,6 +293,8 @@ class ExpenseAddEditViewModel @Inject constructor(
                     }
                 }
             }
+
+            setLoadingState(false)
 
             if (cnt == expenseList.value.size) {
                 callback(
