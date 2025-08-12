@@ -124,9 +124,9 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun updateTmpExpenseDatetime(datetimeStr: String) {
-//        tmpExpenseViewModel.updateTmpExpense(
-//            currentTmpExpense.copy(datetime = datetimeStr)
-//        )
+        tmpExpenseViewModel.updateTmpExpense(
+            getHeadExpense().copy(datetime = datetimeStr)
+        )
     }
 
     fun calcLastExpenseAmount() {
@@ -142,6 +142,12 @@ class ExpenseAddEditViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun calcExpenseListSum(): Long {
+        val arr = expenseList.value
+        val sum = arr.sumOf { it.amount ?: 0L }
+        return sum
     }
 
     /* selectedIndexを使って更新 */
@@ -207,11 +213,28 @@ class ExpenseAddEditViewModel @Inject constructor(
         tmpExpenseViewModel.resetTmpExpenseList()
     }
 
+    fun copyCommonPropertyToList() {
+        val head = getHeadExpense()
+        val updatedList = expenseList.value.mapIndexed { index, expense ->
+            if (index == 0) {
+                expense // 先頭はそのまま
+            } else {
+                expense.copy(
+                    datetime = head.datetime,
+                    generatedType = head.generatedType,
+                    storeName = head.storeName
+                )
+            }
+        }
+        tmpExpenseViewModel.updateTmpExpenseList(updatedList)
+    }
+
     fun addTmpExpenseToDb(callback: (SuspendFuncStatusInfo) -> Unit) {
         /**
          * ここで中身チェックを行った方が良い。
          * あくまでViewではこいつを呼び出すだけで。
          */
+        copyCommonPropertyToList()
         var cnt = 0
         viewModelScope.launch {
             for (ex in expenseList.value) {
@@ -243,6 +266,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
         onStart()
         var cnt: Int = 0
+        copyCommonPropertyToList()
         viewModelScope.launch {
             for (ex in expenseList.value) {
                 if (ex.id == null) {

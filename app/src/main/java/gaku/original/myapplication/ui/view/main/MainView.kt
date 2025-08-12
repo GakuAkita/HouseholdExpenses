@@ -315,6 +315,7 @@ fun MainView(
                                 expense = expense,
                                 onEdit = {
                                     print("onEdit was tapped...")
+                                    viewModel.resetTmpExpense()
                                     //viewModel内の値を転写
                                     viewModel.setToTmpExpense(expense)
                                     //ExpenseAddEditViewに移動

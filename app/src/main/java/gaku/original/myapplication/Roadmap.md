@@ -46,7 +46,8 @@
   repeatAdd は category の id だけ保持しておけば良い、、)
 - done:::refresh_token を暗号化して保存
 - done:::RepeatAdd 画面でスワイプすると削除ボタンが現れると案内を出す
-- Not Categorized タブの作成。外部連携のやつは null でいれる。not categorizedのやつを保存するときに、mailタイプを更新する
+- done:::Not Categorized タブの作成。外部連携のやつは null でいれる。not
+  categorizedのやつを保存するときに、mailタイプを更新する
 - done:::日付のやつが直ってない!!
 - done:::tokenがすでにあって、もう一度API許可をしようとしていたらポップアップ
 - done:::CategoryAssignmentの構造再検討。どんな支払い方法だろうが、店に対して値段は決まっている。
@@ -57,9 +58,11 @@
 - デザインを整える
 - オフライン対応。Category は少なくともローカルに保存しておきたい。カテゴリーは RoomDB
   にも保存しておいて、Remote と同期させるのがいいのかなあ？
-- カテゴリー分割入力
+- done:::カテゴリー分割入力
 - done:::Amazon スクレイピング
 - repeatAddのeveryWeekがちゃんと選択できない
+- repeatAddの周りのリファクタリング
+- AddEditのリファクタリング
 
 PayPay で使ったときに取得して自動転記 ← 無理そう。PayPay
 の電子レシートを手動で共有することで転機していた(

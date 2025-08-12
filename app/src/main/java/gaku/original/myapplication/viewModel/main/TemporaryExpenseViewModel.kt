@@ -62,4 +62,8 @@ class TemporaryExpenseViewModel @Inject constructor(
     fun resetTmpExpenseList() {
         _tmpExpenseList.value = listOf(getDefaultExpense())
     }
+
+    fun updateTmpExpenseList(list: List<Expense>) {
+        _tmpExpenseList.value = list
+    }
 }

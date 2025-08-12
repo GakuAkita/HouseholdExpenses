@@ -161,12 +161,35 @@ fun ExpenseAddEditView(
             return
         }
 
-//        if (viewModel.currentTmpExpense.amount == null) {
-//            scope.launch {
-//                snackBarHostState.showSnackbar("金額が入力されていません", actionLabel = "OK")
-//            }
-//            return
-//        }
+        /**
+         * 0はいいけど、負の値があったら弾く
+         */
+        for (expense in viewModel.expenseList.value) {
+            if (expense.amount == null) {
+                scope.launch {
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    snackBarHostState.showSnackbar("金額が入力されていません", actionLabel = "OK")
+                }
+                return
+            } else if (expense.amount!! < 0) {/* 落ちるかも？？ */
+                scope.launch {
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    snackBarHostState.showSnackbar(
+                        "負の値になっている金額ものがあります",
+                        actionLabel = "OK"
+                    )
+                }
+                return
+            }
+        }
+
+        if (viewModel.calcExpenseListSum() != totalAmount && splitInputState) {
+            scope.launch {
+                snackBarHostState.currentSnackbarData?.dismiss()
+                snackBarHostState.showSnackbar("それぞれの費用の合計と合計金額が一致しません")
+            }
+            return
+        }
 
         val dateTime = LocalDateTime.of(selectedDate, selectedTime)
         val isoStr = AppTimeZone.localDateTimeToIsoString(dateTime)
