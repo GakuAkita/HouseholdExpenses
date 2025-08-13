@@ -104,22 +104,21 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun decideDestination(): String {
-        setArgsToSharedImageViewModel()
-        val isFromShareReceiver = sharedImageViewModel.isFromShareReceiver
-
         val firebaseUser = FirebaseAuth.getInstance().currentUser
-        if (isFromShareReceiver) {
-            if (firebaseUser == null) {
-                return Screen.StartScreen.Login.route
-            } else {
-                return Screen.MainScreen.Content.route
-            }
-        } else {
-            if (firebaseUser == null) {
+        if (firebaseUser == null) {
+            if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+                /**
+                 * アイコンタップにより起動された
+                 */
                 return Screen.StartScreen.Start.route
             } else {
-                return Screen.MainScreen.Content.route
+                /**
+                 * 画像共有等で起動された
+                 */
+                return Screen.StartScreen.Login.route
             }
+        } else {
+            return Screen.MainScreen.Content.route
         }
     }
 }

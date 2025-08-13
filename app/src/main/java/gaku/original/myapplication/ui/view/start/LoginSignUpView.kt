@@ -211,7 +211,9 @@ fun LoginSignUpView(
 //                )
 //            }
             /* Mainスクリーンに遷移 */
-            navController.navigate(Screen.MainScreen.Content.route)
+            navController.navigate(Screen.MainScreen.Content.route) {
+                popUpTo(0) { inclusive = true }
+            }
         }
     }
 

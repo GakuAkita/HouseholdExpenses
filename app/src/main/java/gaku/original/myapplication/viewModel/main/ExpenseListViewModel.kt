@@ -10,7 +10,6 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.SharedImageViewModel
 import kotlinx.coroutines.delay
@@ -179,13 +178,6 @@ class ExpenseListViewModel @Inject constructor(
             Log.d("ExpenseListViewModel", "storedExpenses:${storedExpenses}↓")
             _filteredExpenses.value = expenseSharedViewModel.storedExpenses.value
                 .filter { expense ->
-                    LogAkitaDebug(
-                        "expense:${expense.datetime} filtered:${
-                            AppTimeZone.isoStringToLocalDateTime(
-                                expense.datetime
-                            )
-                        }"
-                    )
                     AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.let { localDateTime ->
                         localDateTime.year == targetYear && localDateTime.monthValue == targetMonth
                     } ?: false

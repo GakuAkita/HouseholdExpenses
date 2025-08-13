@@ -121,6 +121,12 @@ fun MainView(
     }
 
     LaunchedEffect(Unit) {
+        LogAkitaDebug("Check should moveOCR:${viewModel.isShouldMoveToOCR()}")
+        if (viewModel.isShouldMoveToOCR()) {
+            viewModel.setIsMovedToOCR()
+            navController.navigate(Screen.GlobalScreen.OcrRead.route)
+        }
+
         LogAkitaDebug("LaunchedEffect(Unit) Running???")
         /* 内部で一回だけ実行するようにしている、、 */
         viewModel.onSignedIn(callback = { status ->
