@@ -203,6 +203,13 @@ fun LoginSignUpView(
          * userが変化したら走る。
          */
         if (user != null) {
+//            scope.launch {
+//                snackBarHostState.showSnackbar(
+//                    "ログインしました。",
+//                    actionLabel = "OK",
+//                    duration = SnackbarDuration.Long
+//                )
+//            }
             /* Mainスクリーンに遷移 */
             navController.navigate(Screen.MainScreen.Content.route)
         }

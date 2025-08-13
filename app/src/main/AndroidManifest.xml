@@ -21,7 +21,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.HouseholdExpenses">
+            android:theme="@style/Theme.HouseholdExpenses"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,7 +30,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ShareReceiverActivity"
+            android:name=".ShareReceiver.ShareReceiverActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

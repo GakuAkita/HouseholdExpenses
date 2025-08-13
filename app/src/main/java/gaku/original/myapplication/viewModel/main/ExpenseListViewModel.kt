@@ -12,6 +12,7 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.SharedImageViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,8 @@ rememberとViewModelは違う。
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val tmpExpenseViewModel: TemporaryExpenseViewModel
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+    private val sharedImageViewModel: SharedImageViewModel
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -245,5 +247,13 @@ class ExpenseListViewModel @Inject constructor(
             }
             expenseSharedViewModel.setIsFirstSignIn(false)
         }
+    }
+
+    fun isShouldMoveToOCR(): Boolean {
+        return sharedImageViewModel.isFromShareReceiver && !sharedImageViewModel.isMovedToOCR
+    }
+
+    fun setIsMovedToOCR(value: Boolean = true) {
+        sharedImageViewModel.isMovedToOCR = value
     }
 }

@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthManagerViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val expenseSharedViewModel: ExpenseSharedViewModel
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
     override fun onCleared() {
@@ -250,12 +250,11 @@ class AuthManagerViewModel @Inject constructor(
             if (result.additionalUserInfo?.isNewUser == true) {
                 expenseSharedViewModel.addInitialCategories(callback = {})
             }
-            _signInLoading.value = false
+//            _signInLoading.value = false
         } catch (e: Exception) {
             Log.e("AuthViewModel", "Sign-in failed", e)
             _currentUser.value = null
             _signInLoading.value = false
         }
-
     }
 }

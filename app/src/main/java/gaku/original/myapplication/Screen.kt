@@ -56,6 +56,7 @@ sealed class Screen(val route: String) {
             const val EXPENSE_ADD_EDIT_BASE = "expense_add_edit"
             const val CATEGORY_ADD_EDIT_BASE = "category_add_edit"
             const val CATEGORY_ASSIGNMENT_EDIT_BASE = "category_assignment_edit"
+            const val OCR_BASE = "ocr"
         }
 
         object ExpenseAddEdit : GlobalScreen("$EXPENSE_ADD_EDIT_BASE?from={from}") {
@@ -65,5 +66,7 @@ sealed class Screen(val route: String) {
         object CategoryAddEdit : GlobalScreen(CATEGORY_ADD_EDIT_BASE)
 
         object CategoryAssignmentEdit : GlobalScreen(CATEGORY_ASSIGNMENT_EDIT_BASE)
+
+        object OcrRead : GlobalScreen(OCR_BASE)
     }
 }

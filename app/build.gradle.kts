@@ -107,6 +107,8 @@ dependencies {
     //Gson
     implementation("com.google.code.gson:gson:${gson_version}")
 
+    /* coil-compose paypayの画像共有で表示するために使用 */
+    implementation(libs.coil.kt.coil.compose)
 
     /**************************Room DB用************************************/
     // Roomのコアライブラリ

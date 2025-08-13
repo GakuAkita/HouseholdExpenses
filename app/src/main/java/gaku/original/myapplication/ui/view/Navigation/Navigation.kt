@@ -1,14 +1,15 @@
-package gaku.original.myapplication
+package gaku.original.myapplication.ui.view.Navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.firebase.auth.FirebaseAuth
+import gaku.original.myapplication.Screen
+import gaku.original.myapplication.ui.view.OCRView
 import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.GraphView
@@ -27,23 +28,9 @@ import gaku.original.myapplication.ui.view.start.StartView
 
 @Composable
 fun Navigation(
+    navController: NavHostController,
+    startDestination: String = Screen.StartScreen.Start.route
 ) {
-    val navController = rememberNavController()
-
-    //サインインすでにしているかをみたい
-    val firebaseUser = FirebaseAuth.getInstance().currentUser
-
-    /**
-     * ん～なんかちょっと変。構造が。
-     */
-    /* こうすることで、再起動前にログインしていた場合、MainViewに直接飛ぶ */
-    val startDestination: String = if (firebaseUser != null && firebaseUser.isEmailVerified) {
-        Screen.MainScreen.Content.route
-    } else {
-        Screen.StartScreen.Start.route
-
-    }
-
     NavHost(
         modifier = Modifier.fillMaxSize()/* これをつけるとnavigateすると左上から右下に行くやつがなくなる？　*/,
         navController = navController,
@@ -121,5 +108,11 @@ fun Navigation(
         composable(Screen.GlobalScreen.CategoryAssignmentEdit.route) {
             CategoryAssignmentEditView(navController = navController)
         }
+
+        //OCR用のスクリーン
+        composable(Screen.GlobalScreen.OcrRead.route) {
+            OCRView(navController = navController)
+        }
+
     }
 }

@@ -17,6 +17,7 @@ import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.useCase.RepeatAddUseCase
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.SharedImageViewModel
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 
 @Module
@@ -157,5 +158,11 @@ object AppModule {
     @ActivityRetainedScoped
     fun provideTemporaryExpenseViewModel(): TemporaryExpenseViewModel {
         return TemporaryExpenseViewModel()
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideSharedImageViewModel(): SharedImageViewModel {
+        return SharedImageViewModel()
     }
 }
