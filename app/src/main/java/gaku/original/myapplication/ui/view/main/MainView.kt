@@ -121,12 +121,6 @@ fun MainView(
     }
 
     LaunchedEffect(Unit) {
-        LogAkitaDebug("Check should moveOCR:${viewModel.isShouldMoveToOCR()}")
-        if (viewModel.isShouldMoveToOCR()) {
-            viewModel.setIsMovedToOCR()
-            navController.navigate(Screen.GlobalScreen.OcrRead.route)
-        }
-
         LogAkitaDebug("LaunchedEffect(Unit) Running???")
         /* 内部で一回だけ実行するようにしている、、 */
         viewModel.onSignedIn(callback = { status ->
@@ -145,6 +139,18 @@ fun MainView(
             }
         })
     }
+
+    LaunchedEffect(Unit) {
+        /**
+         * すでにonCreateが起動しているがログインしていないときログイン→メイン画面を通ってOCR画面を起動
+         * ログインしていないときはメインを経由するので、ここからOCRを起動する
+         */
+        if (viewModel.isShouldMoveToOCR()) {
+            viewModel.setIsMovedToOCR()
+            navController.navigate(Screen.GlobalScreen.OcrRead.route)
+        }
+    }
+
 
     //rememberをつけると再コンポーズのとき無駄に走らない
     val monthExpenses by remember { viewModel.filteredExpenses }.collectAsState(initial = emptyList())

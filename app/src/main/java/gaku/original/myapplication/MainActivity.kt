@@ -2,6 +2,7 @@ package gaku.original.myapplication
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
             HouseholdExpensesTheme(
                 darkTheme = true/*システム設定によらずずっとダーク*/
             ) {
+                setArgsToSharedImageViewModel()
                 // 一番最初にデフォルで存在するScaffold
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -48,11 +50,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * onCreateが起動されていないとonNewIntentは呼ばれない
+     */
     override fun onNewIntent(intent: Intent?) {
         LogAkitaDebug("onNewIntent() called.")
         super.onNewIntent(intent)
         setIntent(intent)
         setArgsToSharedImageViewModel()
+        LogAkitaDebug("In onNewIntent isFromShareReceiver=${sharedImageViewModel.isFromShareReceiver} isMovedToOCR=${sharedImageViewModel.isMovedToOCR}")
+
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        if (firebaseUser == null) {
+            navController.navigate(Screen.StartScreen.Login.route) {
+                launchSingleTop = true // 既に最上位にあれば再作成しない
+                popUpTo(Screen.StartScreen.Login.route) {
+                    inclusive = false // Login 自体は残す
+                }
+            }
+        } else {
+            Log.d("onNewIntent", "pile OCRRead on the stack")
+            sharedImageViewModel.setIsMovedToOCR(true)
+            navController.navigate(Screen.GlobalScreen.OcrRead.route)
+        }
     }
 
     override fun onStart() {
@@ -105,8 +125,12 @@ class MainActivity : ComponentActivity() {
 
     private fun decideDestination(): String {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
+        val launchedByTap =
+            intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
+        LogAkitaDebug("decideDestination action:${Intent.ACTION_MAIN} category:${Intent.CATEGORY_LAUNCHER} launchedByTap:$launchedByTap")
+
         if (firebaseUser == null) {
-            if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+            if (launchedByTap) {
                 /**
                  * アイコンタップにより起動された
                  */

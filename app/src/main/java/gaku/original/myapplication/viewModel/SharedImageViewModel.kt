@@ -14,6 +14,10 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
 
     var isFromShareReceiver: Boolean = false
 
+    /**
+     * このフラグを扱わないと
+     * ダブルでnavigateしている？(どこでしているのかまじでわからん)
+     */
     var isMovedToOCR: Boolean = false
 
     fun updateSharedImageUri(uri: String?) {

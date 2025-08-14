@@ -10,6 +10,7 @@ import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
 import gaku.original.myapplication.data.SuspendFuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.SharedImageViewModel
 import kotlinx.coroutines.delay
@@ -242,6 +243,7 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     fun isShouldMoveToOCR(): Boolean {
+        LogAkitaDebug("isFromShareReceiver:${sharedImageViewModel.isFromShareReceiver} isMovedToOCR:${sharedImageViewModel.isMovedToOCR}")
         return sharedImageViewModel.isFromShareReceiver && !sharedImageViewModel.isMovedToOCR
     }
 
