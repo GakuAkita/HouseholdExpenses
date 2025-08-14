@@ -1,6 +1,7 @@
 package gaku.original.myapplication
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -19,6 +20,7 @@ import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation.Navigation
 import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.viewModel.SharedImageViewModel
 
 @AndroidEntryPoint
@@ -114,7 +116,8 @@ class MainActivity : ComponentActivity() {
      * 必ずShareReceiverを
      */
     private fun setArgsToSharedImageViewModel() {
-        val imageUri = intent?.getStringExtra(ShareReceiverKeys.SHARED_IMAGE_URI)
+        val imageUri: Uri? =
+            intent.getParcelableExtraCompat(ShareReceiverKeys.SHARED_IMAGE_URI)
         val isFromSharedReceiver =
             intent?.getBooleanExtra(ShareReceiverKeys.IS_FROM_SHARE_RECEIVER, false) ?: false
 

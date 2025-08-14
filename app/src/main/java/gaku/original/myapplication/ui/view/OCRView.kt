@@ -17,7 +17,6 @@ fun OCRView(
     viewModel: OCRViewModel = hiltViewModel(),
     navController: NavController
 ) {
-
     Scaffold(
         topBar = {
             TopBarView(

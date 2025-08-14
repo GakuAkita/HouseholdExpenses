@@ -1,5 +1,6 @@
 package gaku.original.myapplication.viewModel
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SharedImageViewModel @Inject constructor() : ViewModel() {
-    var sharedImageUri by mutableStateOf<String?>(null)
+    var sharedImageUri by mutableStateOf<Uri?>(null)
         private set
 
     var isFromShareReceiver: Boolean = false
@@ -20,7 +21,7 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
      */
     var isMovedToOCR: Boolean = false
 
-    fun updateSharedImageUri(uri: String?) {
+    fun updateSharedImageUri(uri: Uri?) {
         sharedImageUri = uri
     }
 

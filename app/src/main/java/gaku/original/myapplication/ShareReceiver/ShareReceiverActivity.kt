@@ -8,13 +8,11 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
+import gaku.original.myapplication.utility.getParcelableExtraCompat
 
 class ShareReceiverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-        val tiramisu = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
 
         /**
          * パッケージが取れていない！！
@@ -52,21 +50,15 @@ class ShareReceiverActivity : ComponentActivity() {
         }
 
         /* 画像uriを取得 */
-        val imageUri =
+        val imageUri: Uri? =
             if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("image/") == true) {
-                if (tiramisu) {
-                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-                } else {
-                    /* API33以下はこっち */
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-                }
+                intent.getParcelableExtraCompat<Uri>(Intent.EXTRA_STREAM)
             } else null
 
         if (imageUri != null) {
             /* mainActivityに遷移してUriを渡す */
             val mainIntent = Intent(this, MainActivity::class.java).apply {
-                putExtra(ShareReceiverKeys.SHARED_IMAGE_URI, imageUri.toString())/* stringにして渡す */
+                putExtra(ShareReceiverKeys.SHARED_IMAGE_URI, imageUri)
                 putExtra(
                     ShareReceiverKeys.IS_FROM_SHARE_RECEIVER,
                     true
