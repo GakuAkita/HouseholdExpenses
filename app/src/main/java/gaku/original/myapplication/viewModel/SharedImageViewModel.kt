@@ -1,17 +1,17 @@
 package gaku.original.myapplication.viewModel
 
 import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class SharedImageViewModel @Inject constructor() : ViewModel() {
-    var sharedImageUri by mutableStateOf<Uri?>(null)
-        private set
+
+    private val _sharedImageUri = MutableStateFlow<Uri?>(null)
+    val sharedImageUri: StateFlow<Uri?> = _sharedImageUri
 
     var isFromShareReceiver: Boolean = false
 
@@ -22,7 +22,7 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
     var isMovedToOCR: Boolean = false
 
     fun updateSharedImageUri(uri: Uri?) {
-        sharedImageUri = uri
+        _sharedImageUri.value = uri
     }
 
     fun setIsFromShareReceiver(value: Boolean) {
@@ -34,7 +34,7 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
     }
 
     fun clearSharedImageUri() {
-        sharedImageUri = null
+        _sharedImageUri.value = null
         isFromShareReceiver = false
     }
 }

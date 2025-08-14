@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,8 +32,22 @@ class OCRViewModel @Inject constructor(
     private val _ocrResult = MutableStateFlow("")
     val ocrResult: StateFlow<String> get() = _ocrResult
 
+    private val _ocrUri = MutableStateFlow<Uri?>(null)
+    val ocrUri: StateFlow<Uri?> = _ocrUri.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            /**
+             *  sharedViewModelのuriに更新があったときに検知できるように画面が生きている間は監視しておく
+             *  */
+            sharedImageViewModel.sharedImageUri.collect { uri ->
+                _ocrUri.value = uri
+            }
+        }
+    }
+
     fun getImageUri(): Uri? {
-        return sharedImageViewModel.sharedImageUri
+        return sharedImageViewModel.sharedImageUri.value
     }
 
     fun runOcr(context: Context) {
