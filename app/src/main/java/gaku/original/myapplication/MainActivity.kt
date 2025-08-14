@@ -19,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation.Navigation
+import gaku.original.myapplication.ui.view.navigateToOCRView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.viewModel.SharedImageViewModel
@@ -73,7 +74,7 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.d("onNewIntent", "pile OCRRead on the stack")
             sharedImageViewModel.setIsMovedToOCR(true)
-            navController.navigate(Screen.GlobalScreen.OcrRead.route)
+            navigateToOCRView(navController)
         }
     }
 

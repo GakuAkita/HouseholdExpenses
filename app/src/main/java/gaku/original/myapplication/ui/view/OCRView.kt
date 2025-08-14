@@ -12,8 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.OCRViewModel
 
 @Composable
@@ -23,6 +26,8 @@ fun OCRView(
 ) {
     val context = LocalContext.current
     val ocrResult = viewModel.ocrResult.collectAsState()
+
+
     Scaffold(
         topBar = {
             TopBarView(
@@ -56,4 +61,9 @@ fun OCRView(
             )
         }
     }
+}
+
+/* OCR画面は基本的に単一画面。すでに存在する場合は強制的に上書きする */
+fun navigateToOCRView(navController: NavHostController) {
+    navigateToSingle(navController, Screen.GlobalScreen.OcrRead.route)
 }

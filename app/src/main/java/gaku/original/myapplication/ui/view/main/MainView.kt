@@ -45,6 +45,7 @@ import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.CalendarDisplay
 import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.view.navigateToOCRView
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
@@ -147,7 +148,7 @@ fun MainView(
          */
         if (viewModel.isShouldMoveToOCR()) {
             viewModel.setIsMovedToOCR()
-            navController.navigate(Screen.GlobalScreen.OcrRead.route)
+            navigateToOCRView(navController)
         }
     }
 

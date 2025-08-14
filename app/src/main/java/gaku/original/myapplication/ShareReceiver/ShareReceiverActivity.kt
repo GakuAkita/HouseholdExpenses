@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
+import gaku.original.myapplication.utility.copyUriToCache
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 
 class ShareReceiverActivity : ComponentActivity() {
@@ -57,8 +58,9 @@ class ShareReceiverActivity : ComponentActivity() {
 
         if (imageUri != null) {
             /* mainActivityに遷移してUriを渡す */
+            val copiedUri = copyUriToCache(this, imageUri)
             val mainIntent = Intent(this, MainActivity::class.java).apply {
-                putExtra(ShareReceiverKeys.SHARED_IMAGE_URI, imageUri)
+                putExtra(ShareReceiverKeys.SHARED_IMAGE_URI, copiedUri)
                 putExtra(
                     ShareReceiverKeys.IS_FROM_SHARE_RECEIVER,
                     true
@@ -82,3 +84,5 @@ class ShareReceiverActivity : ComponentActivity() {
         Log.d("ShareReceiverActivity", "ShareReceiverActivity destroyed")
     }
 }
+
+
