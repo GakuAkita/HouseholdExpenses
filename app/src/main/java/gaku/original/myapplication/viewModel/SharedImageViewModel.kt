@@ -15,6 +15,9 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
 
     var isFromShareReceiver: Boolean = false
 
+    private val _updatedTimeStamp = MutableStateFlow<Long>(0)/* uriを更新したときのタイムスタンプ*/
+    val updatedTimeStamp: StateFlow<Long> = _updatedTimeStamp
+
     /**
      * このフラグを扱わないと
      * ダブルでnavigateしている？(どこでしているのかまじでわからん)
@@ -23,6 +26,7 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
 
     fun updateSharedImageUri(uri: Uri?) {
         _sharedImageUri.value = uri
+        _updatedTimeStamp.value = System.currentTimeMillis()
     }
 
     fun setIsFromShareReceiver(value: Boolean) {
