@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.OCRViewModel
 
@@ -34,6 +35,10 @@ fun OCRView(
                 .padding(innerPadding)
         ) {
             Text("ここに画像が表示される")
+            AsyncImage(
+                model = viewModel.getImageUri(),
+                contentDescription = null
+            )
         }
     }
 }

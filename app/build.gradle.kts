@@ -135,6 +135,11 @@ dependencies {
     //OpenInNewってアイコンがこれを追加しないと使えない？
     implementation("androidx.compose.material:material-icons-extended")
 
+    /************************** OCR 関連 ***********************************/
+    implementation(libs.text.recognition)
+    // To recognize Japanese script
+    implementation(libs.text.recognition.japanese)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
