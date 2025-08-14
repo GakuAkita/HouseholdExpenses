@@ -63,7 +63,8 @@ class ShareReceiverActivity : ComponentActivity() {
                     ShareReceiverKeys.IS_FROM_SHARE_RECEIVER,
                     true
                 )/* Share ReceiverからMainActivityが起動されたとわかるように */
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP //or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                flags =
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_GRANT_READ_URI_PERMISSION//or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             Log.d("ShareReceiverActivity", "passing ${imageUri}")
             startActivity(mainIntent)

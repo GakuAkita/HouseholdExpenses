@@ -2,15 +2,16 @@ package gaku.original.myapplication.viewModel
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -42,12 +43,19 @@ class OCRViewModel @Inject constructor(
     }
 
     /** OCR を実行するメソッド */
-    fun runOcrSub(context: Context, imageUri: Uri) {
+    fun runOcrSub(context: Context, imageUri: Uri, callback: () -> Unit = {}) {
         viewModelScope.launch {
             val bitmap = loadBitmapFromUri(context, imageUri)
+            if (bitmap == null) {
+                LogAkitaDebug("bitmap is null")
+                _ocrResult.value = ""
+                return@launch
+            }
+
             val image = InputImage.fromBitmap(bitmap, 0)
 
-            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+            val recognizer =
+                TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
 
             recognizer.process(image)
                 .addOnSuccessListener { visionText ->
@@ -60,9 +68,15 @@ class OCRViewModel @Inject constructor(
         }
     }
 
-    private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap {
-        val source = ImageDecoder.createSource(context.contentResolver, uri)
-        return ImageDecoder.decodeBitmap(source)
+    private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            null
+        }
     }
 
 }

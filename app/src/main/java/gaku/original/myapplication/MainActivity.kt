@@ -118,8 +118,20 @@ class MainActivity : ComponentActivity() {
     private fun setArgsToSharedImageViewModel() {
         val imageUri: Uri? =
             intent.getParcelableExtraCompat(ShareReceiverKeys.SHARED_IMAGE_URI)
+        LogAkitaDebug("OCRDebug: URI to load:${imageUri}")
         val isFromSharedReceiver =
             intent?.getBooleanExtra(ShareReceiverKeys.IS_FROM_SHARE_RECEIVER, false) ?: false
+
+        if (imageUri != null) {
+            try {
+                contentResolver.takePersistableUriPermission(
+                    imageUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+            }
+        }
 
         sharedImageViewModel.updateSharedImageUri(imageUri)
         sharedImageViewModel.setIsFromShareReceiver(isFromSharedReceiver)
