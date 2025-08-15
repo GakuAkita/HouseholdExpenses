@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -21,17 +21,17 @@ class CategoryEditViewModel @Inject constructor(
 
     fun addCategory(
         category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             val ret = expenseSharedViewModel.addCategory(category)
-            callback(ret.toSuspendFuncStatusInfo())
+            callback(ret.toFuncStatusInfo())
         }
     }
 
     fun updateCategory(
         category: Category,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         /**
          * 繰り返し追加に存在していたらそこも更新する
@@ -43,7 +43,7 @@ class CategoryEditViewModel @Inject constructor(
     }
 
 
-    fun removeCategory(category: Category, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun removeCategory(category: Category, callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             /* 内部に繰り返し追加に入っていないかチェックしている */
             val ret = expenseSharedViewModel.removeCategory(category)

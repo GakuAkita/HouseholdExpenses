@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
@@ -43,7 +43,7 @@ class _MailboxExtractionViewModel @Inject constructor(
 
     suspend fun fetchMailboxExtractionIternalSettingWithLocalUpdate(
         instance: EmailTemplateType
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val result =
             mailboxExtractionRepository.getMailTypeSetting(
                 instance
@@ -51,12 +51,12 @@ class _MailboxExtractionViewModel @Inject constructor(
         if (result is FuncResultWithData.Success) {
             _mailboxExtractionSetting.value = result.data
         }
-        return result.toSuspendFuncStatusInfo()
+        return result.toFuncStatusInfo()
     }
 
     fun fetchMailboxExtractionInternalSetting(
         instance: EmailTemplateType,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
             val ret = fetchMailboxExtractionIternalSettingWithLocalUpdate(instance)
@@ -67,12 +67,12 @@ class _MailboxExtractionViewModel @Inject constructor(
     fun addCategoryAssignment(
         type: EmailTemplateType,
         assignment: CategoryAssignment,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
 //        viewModelScope.launch {
 //            val result =
 //                mailboxExtractionRepository.addCategoryAssignment(type, assignment)
-//            if (result.status != SuspendFuncStatus.SUCCESS) {
+//            if (result.status != FuncStatus.SUCCESS) {
 //                callback(result)
 //                return@launch
 //            }
@@ -84,27 +84,27 @@ class _MailboxExtractionViewModel @Inject constructor(
 
     fun setMailboxExtractionInternalSetting(
         instance: EmailTemplateType,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         LogAkitaDebug("${instance}")
         viewModelScope.launch {
             val ret = mailboxExtractionRepository.updateMailTypeSetting(
                 instance
             )
-            if (ret.status == SuspendFuncStatus.SUCCESS) {
+            if (ret.status == FuncStatus.SUCCESS) {
                 _mailboxExtractionSetting.value = instance//内部を更新
             }
             callback(ret)
         }
     }
 
-    fun fetchCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun fetchCategories(callback: (FuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val fetchResult = categoryFirestoreRepository.fetchAllCategories()
             if (fetchResult is FuncResultWithData.Success) {
                 _categories.value = fetchResult.data
             }
-            callback(fetchResult.toSuspendFuncStatusInfo())
+            callback(fetchResult.toFuncStatusInfo())
         }
     }
 

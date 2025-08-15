@@ -3,11 +3,11 @@ package gaku.original.myapplication.repository.FirestoreRepository
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.mergeDataToFirestore
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.UserPreferences
 import gaku.original.myapplication.data.dataClass.getDefaultUserPreferences
 import gaku.original.myapplication.data.dataClass.toMap
@@ -39,14 +39,14 @@ class UserSettingsFirestoreRepository @Inject constructor(
     /* ん～functionsのほうが安全だな、、と思う。 */
     suspend fun addUserInitialData(
         email: String
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val funcName: String = ::addUserInitialData.name
         LogClassFuncCalled(className, funcName)
 
         val userRef = firestoreReference.getUserDocRef()
         if (userRef == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "ユーザーIDが空でユーザーDocを取得できませんでした。"
             )
             return statusInfo
@@ -55,8 +55,8 @@ class UserSettingsFirestoreRepository @Inject constructor(
 
         val uid = firebaseAuth.currentUser?.uid
         if (uid == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "ユーザーIDが空です。"
             )
             return statusInfo
@@ -64,7 +64,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
         val newMap = mapOf("email" to email, "id" to uid)
 
         val statusInfo = setDataToFirestore(newMap, reference = userRef)
-        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+        if (statusInfo.status != FuncStatus.SUCCESS) {
             /* 失敗しても先にすすむ */
             Log.d(
                 className,
@@ -78,8 +78,8 @@ class UserSettingsFirestoreRepository @Inject constructor(
         )
 
         // 両方成功したらSUCCESS返す（失敗していたら上でcallbackされてる）
-        return if (userPrefStatus.status == SuspendFuncStatus.SUCCESS) {
-            SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+        return if (userPrefStatus.status == FuncStatus.SUCCESS) {
+            FuncStatusInfo(FuncStatus.SUCCESS, "")
         } else {
             userPrefStatus
         }
@@ -87,14 +87,14 @@ class UserSettingsFirestoreRepository @Inject constructor(
 
     suspend fun setUserPreferences(
         userPreferences: UserPreferences,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val funcName: String = ::setUserPreferences.name
         LogClassFuncCalled(className, funcName)
 
         val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "UserPreferencesドキュメントが参照できませんでした"
             )
             return statusInfo
@@ -109,11 +109,11 @@ class UserSettingsFirestoreRepository @Inject constructor(
      */
     suspend fun setUserTimeZone(
         zoneId: String = "Asia/Tokyo"
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Userドキュメントが参照できませんでした"
             )
             return statusInfo
@@ -133,7 +133,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
         val fetchResult = fetchUserPreferences()
         if (fetchResult !is FuncResultWithData.Success) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "UserPreferencesの取得に失敗しました"
             )
             return result
@@ -167,7 +167,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
         val ref = firestoreReference.getUserPreferencesDocRef()
         if (ref == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "UserPreferencesドキュメントが参照できませんでした"
             )
             return result
@@ -185,14 +185,14 @@ class UserSettingsFirestoreRepository @Inject constructor(
                         result
                     } else {
                         val result = FuncResultWithData.Failure.GenericFailure(
-                            status = SuspendFuncStatus.FAILED,
+                            status = FuncStatus.FAILED,
                             errorMessage = "UserPreferencesデータの変換に失敗しました"
                         )
                         result
                     }
                 } else {
                     val result = FuncResultWithData.Failure.GenericFailure(
-                        status = SuspendFuncStatus.FAILED,
+                        status = FuncStatus.FAILED,
                         errorMessage = "UserPreferencesドキュメントが存在しません"
                     )
                     result
@@ -203,7 +203,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
             result
         } catch (e: Exception) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
             result

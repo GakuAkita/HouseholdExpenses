@@ -1,7 +1,7 @@
 package gaku.original.myapplication.repository
 
 import com.google.firebase.auth.FirebaseAuth
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -18,7 +18,7 @@ class FirebaseAuthRepository @Inject constructor(
         val user = firebaseAuth.currentUser
         if (user == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "User is null"
             )
             return result
@@ -41,7 +41,7 @@ class FirebaseAuthRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
             result

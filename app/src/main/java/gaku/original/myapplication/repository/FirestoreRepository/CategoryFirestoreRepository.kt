@@ -4,9 +4,9 @@ import addDataWithIdToFirestore
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +33,7 @@ class CategoryFirestoreRepository @Inject constructor(
         val ref = getCategoriesColRef()
         if (ref == null) {
             val statusInfo = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -45,11 +45,11 @@ class CategoryFirestoreRepository @Inject constructor(
 
     suspend fun updateCategory(
         category: Category,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getCategoriesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -61,11 +61,11 @@ class CategoryFirestoreRepository @Inject constructor(
 
     suspend fun removeCategory(
         category: Category
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getCategoriesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -85,7 +85,7 @@ class CategoryFirestoreRepository @Inject constructor(
 
         if (categoryRef == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Categoriesコレクションが参照できませんでした"
             )
             return result
@@ -117,7 +117,7 @@ class CategoryFirestoreRepository @Inject constructor(
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )
             result

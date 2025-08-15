@@ -36,7 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
@@ -119,7 +119,7 @@ fun CategoryAddEditView(
                                 newCategory,
                                 callback = { status ->
                                     when (status.status) {
-                                        SuspendFuncStatus.SUCCESS -> {
+                                        FuncStatus.SUCCESS -> {
                                             Toast.makeText(
                                                 context,
                                                 "カテゴリーを追加しました",
@@ -128,7 +128,7 @@ fun CategoryAddEditView(
                                             showDialog = false
                                         }
 
-                                        SuspendFuncStatus.TIMEOUT -> {
+                                        FuncStatus.TIMEOUT -> {
                                             Toast.makeText(
                                                 context,
                                                 status.errorMessage,
@@ -137,7 +137,7 @@ fun CategoryAddEditView(
                                             showDialog = false
                                         }
 
-                                        SuspendFuncStatus.FAILED -> {
+                                        FuncStatus.FAILED -> {
                                             Toast.makeText(
                                                 context,
                                                 status.errorMessage,
@@ -156,7 +156,7 @@ fun CategoryAddEditView(
 
                                 callback = { status ->
                                     when (status.status) {
-                                        SuspendFuncStatus.SUCCESS -> {
+                                        FuncStatus.SUCCESS -> {
                                             showDialog = false
                                             Toast.makeText(
                                                 context,
@@ -165,7 +165,7 @@ fun CategoryAddEditView(
                                             ).show()
                                         }
 
-                                        SuspendFuncStatus.TIMEOUT -> {
+                                        FuncStatus.TIMEOUT -> {
                                             Toast.makeText(
                                                 context,
                                                 status.errorMessage,
@@ -174,7 +174,7 @@ fun CategoryAddEditView(
                                             showDialog = false
                                         }
 
-                                        SuspendFuncStatus.FAILED -> {
+                                        FuncStatus.FAILED -> {
                                             Toast.makeText(
                                                 context,
                                                 status.errorMessage,
@@ -201,7 +201,7 @@ fun CategoryAddEditView(
                         viewModel.removeCategory(
                             category = categoryRemoved,
                             callback = { status ->
-                                if (status.status != SuspendFuncStatus.SUCCESS) {
+                                if (status.status != FuncStatus.SUCCESS) {
                                     scope.launch {
                                         snackBarHostState.showSnackbar("${status.errorMessage}:${categoryRemoved.name}")
                                     }

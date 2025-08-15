@@ -3,10 +3,10 @@ package gaku.original.myapplication.viewModel.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
@@ -236,7 +236,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         tmpExpenseViewModel.updateTmpExpenseList(updatedList)
     }
 
-    fun addTmpExpenseToDb(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun addTmpExpenseToDb(callback: (FuncStatusInfo) -> Unit) {
         setLoadingState(true)
         /**
          * ここで中身チェックを行った方が良い。
@@ -257,22 +257,22 @@ class ExpenseAddEditViewModel @Inject constructor(
             setLoadingState(false)
             if (expenseList.value.size == cnt) {
                 callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.SUCCESS,
+                    FuncStatusInfo(
+                        FuncStatus.SUCCESS,
                         "追加に成功しました"
                     )
                 )
             } else {
                 callback(
-                    SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED, errorMessage = "追加に失敗しました"
+                    FuncStatusInfo(
+                        status = FuncStatus.FAILED, errorMessage = "追加に失敗しました"
                     )
                 )
             }
         }
     }
 
-    fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
         setLoadingState(true)
         onStart()
         var cnt: Int = 0
@@ -288,7 +288,7 @@ class ExpenseAddEditViewModel @Inject constructor(
                 } else {
                     /* update */
                     val updateRet = expenseSharedViewModel.updateExpense(ex)
-                    if (updateRet.status == SuspendFuncStatus.SUCCESS) {
+                    if (updateRet.status == FuncStatus.SUCCESS) {
                         cnt++
                     }
                 }
@@ -298,22 +298,22 @@ class ExpenseAddEditViewModel @Inject constructor(
 
             if (cnt == expenseList.value.size) {
                 callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.SUCCESS,
+                    FuncStatusInfo(
+                        FuncStatus.SUCCESS,
                         "更新に成功しました"
                     )
                 )
             } else {
                 callback(
-                    SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED, errorMessage = "更新に失敗しました"
+                    FuncStatusInfo(
+                        status = FuncStatus.FAILED, errorMessage = "更新に失敗しました"
                     )
                 )
             }
         }
     }
 
-    fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
         /**
          * 分割入力のときは、
          * それをオフにしてからにする
@@ -327,7 +327,7 @@ class ExpenseAddEditViewModel @Inject constructor(
 
     /* カテゴリーを更新する。通信エラーが起きているとカテゴリーが取れていないときがある */
     fun updateStoredCategories(
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         expenseSharedViewModel.clearAllCategories()
         viewModelScope.launch {
@@ -342,7 +342,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         onStart: () -> Unit = {},
         assignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         onStart()
         viewModelScope.launch {

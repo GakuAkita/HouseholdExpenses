@@ -4,9 +4,9 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //import android.util.Log
 //import com.google.firebase.database.DatabaseReference
 //import gaku.original.myapplication.RealtimeDbReference
-//import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+//import gaku.original.myapplication.data.Constants.Status.FuncStatus
 //import gaku.original.myapplication.data.Repository.RealtimeDBrepository.RepositoryUtil.addSingleDataToRTDb
-//import gaku.original.myapplication.data.SuspendFuncStatusInfo
+//import gaku.original.myapplication.data.FuncStatusInfo
 //import gaku.original.myapplication.data.dataClass.Expense
 //import gaku.original.myapplication.utility.LogClassFuncCalled
 //import kotlinx.coroutines.TimeoutCancellationException
@@ -20,27 +20,27 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //) {
 //    private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 //
-//    suspend fun getExpenseRef(callback: (SuspendFuncStatusInfo) -> Unit): DatabaseReference? {
+//    suspend fun getExpenseRef(callback: (FuncStatusInfo) -> Unit): DatabaseReference? {
 //        return realtimeDbReference.getUserExpenseRef(callback)
 //    }
 //
 //    //SignUp後にやる操作
 //    suspend fun addUserInitialData(
 //        email: String,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName: String = ::addUserInitialData.name
 //        LogClassFuncCalled(className, funcName)
 //
 //        val userRef = realtimeDbReference.getUserRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status) // 失敗時に早期リターン
 //            }
 //        }
 //
 //        if (userRef == null) {
-//            return SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            return FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "userRefがnullでした"
 //            )
 //        }
@@ -53,7 +53,7 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    // ユーザーIDに基づいてデータをリストとして返す（非同期）
 //    suspend fun fetchAllExpenses(
-//        callback: (SuspendFuncStatusInfo) -> Unit
+//        callback: (FuncStatusInfo) -> Unit
 //    ): List<Expense> {
 //        val funcName = ::fetchAllExpenses.name
 //        var ret = emptyList<Expense>()
@@ -61,7 +61,7 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //        /* まずはreferenceを取得 */
 //        val expenseRef = getExpenseRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status)
 //            }
 //        }
@@ -79,23 +79,23 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //                }
 //                Log.d(className, "Fetched Expenses: $expenses")
 //                ret = expenses
-//                val result = SuspendFuncStatusInfo(
-//                    status = SuspendFuncStatus.SUCCESS,
+//                val result = FuncStatusInfo(
+//                    status = FuncStatus.SUCCESS,
 //                    errorMessage = ""
 //                )
 //                callback(result)
 //            }
 //        } catch (e: TimeoutCancellationException) {
 //            Log.d(className, "${funcName} Timeout.")
-//            val result = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.TIMEOUT,
+//            val result = FuncStatusInfo(
+//                status = FuncStatus.TIMEOUT,
 //                errorMessage = "タイムアウトしました"
 //            )
 //            callback(result)
 //        } catch (e: Exception) {
 //            Log.d(className, "${funcName} failed. ${e.message}")
-//            val result = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            val result = FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = e.message ?: "不明なエラー"
 //            )
 //            callback(result)
@@ -105,12 +105,12 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun addExpense(
 //        expense: Expense,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName = ::addExpense.name
 //        LogClassFuncCalled(className, funcName)
 //        val reference = getExpenseRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status)
 //            }
 //        }
@@ -120,8 +120,8 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //         * ここでreturnしておけばcallbackが二回実行されることはない
 //         */
 //        if (reference == null) {
-//            return SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            return FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "referenceがnullでした"
 //            )
 //        }
@@ -135,19 +135,19 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun updateExpense(
 //        expense: Expense,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName = ::updateExpense.name
 //        LogClassFuncCalled(className, funcName)
 //        val reference = getExpenseRef(callback = { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status)
 //            }
 //        })
 //
 //        if (reference == null) {
-//            return SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            return FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "referenceがnullでした"
 //            )
 //        }
@@ -159,17 +159,17 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun removeExpense(
 //        expense: Expense,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val reference = getExpenseRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status)
 //            }
 //        }
 //
 //        if (reference == null) {
-//            return SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            return FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "referenceがnullでした"
 //            )
 //        }

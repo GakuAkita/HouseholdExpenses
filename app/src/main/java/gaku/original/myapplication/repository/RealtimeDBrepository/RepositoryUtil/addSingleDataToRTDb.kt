@@ -2,8 +2,8 @@ package gaku.original.myapplication.repository.RealtimeDBrepository.RepositoryUt
 
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncStatusInfo
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
@@ -14,8 +14,8 @@ suspend fun addSingleDataToRTDb(
     keyName: String,/* キーの名前(childの名前) */
     reference: DatabaseReference,
     timeout: Long = 2000,
-    callback: (SuspendFuncStatusInfo) -> Unit = {}
-): SuspendFuncStatusInfo {
+    callback: (FuncStatusInfo) -> Unit = {}
+): FuncStatusInfo {
     val funcName = "addSingleDataToRTDb"
 
     //data型の確認
@@ -26,8 +26,8 @@ suspend fun addSingleDataToRTDb(
 
         else -> {
             Log.d(funcName, "passed data's type is wrong.${data.javaClass.simpleName}")
-            val statusInfo = SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                status = FuncStatus.FAILED,
                 errorMessage = "passed data's type is wrong.${data.javaClass.simpleName}"
             )
             callback(statusInfo)
@@ -42,16 +42,16 @@ suspend fun addSingleDataToRTDb(
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Log.d(funcName, "Data added successfully")
-                            val statusInfo = SuspendFuncStatusInfo(
-                                status = SuspendFuncStatus.SUCCESS,
+                            val statusInfo = FuncStatusInfo(
+                                status = FuncStatus.SUCCESS,
                                 errorMessage = ""
                             )
                             callback(statusInfo)
                             continuation.resume(statusInfo) //  成功したので再開。これでSUCCESSが返るらしい
                         } else {
                             Log.e(funcName, "Failed to add data", task.exception)
-                            val statusInfo = SuspendFuncStatusInfo(
-                                status = SuspendFuncStatus.FAILED,
+                            val statusInfo = FuncStatusInfo(
+                                status = FuncStatus.FAILED,
                                 errorMessage = task.exception?.message ?: "Unknown error"
                             )
                             callback(statusInfo)
@@ -61,15 +61,15 @@ suspend fun addSingleDataToRTDb(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        val statusInfo = SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.TIMEOUT,
+        val statusInfo = FuncStatusInfo(
+            status = FuncStatus.TIMEOUT,
             errorMessage = "Timeout occurred"
         )
         callback(statusInfo)
         return statusInfo
     } catch (e: Exception) {
-        val statusInfo = SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.FAILED,
+        val statusInfo = FuncStatusInfo(
+            status = FuncStatus.FAILED,
             errorMessage = e.message ?: "Unknown error"
         )
         callback(statusInfo)

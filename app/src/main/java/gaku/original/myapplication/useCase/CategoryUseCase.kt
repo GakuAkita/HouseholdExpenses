@@ -1,9 +1,9 @@
 package gaku.original.myapplication.useCase
 
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.HasCategoryId
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.getAllAssignments
@@ -31,10 +31,10 @@ class CategoryUseCase @Inject constructor(
         return categoryRepository.addCategory(category)
     }
 
-    suspend fun updateCategory(category: Category): SuspendFuncStatusInfo {
+    suspend fun updateCategory(category: Category): FuncStatusInfo {
         val repeatAddRet = repeatAddRepository.fetchAllRepeatAdd()
         if (repeatAddRet !is FuncResultWithData.Success) {
-            return repeatAddRet.toSuspendFuncStatusInfo()
+            return repeatAddRet.toFuncStatusInfo()
         }
         val repeatAddList: List<RepeatAdd> = repeatAddRet.data
 
@@ -42,7 +42,7 @@ class CategoryUseCase @Inject constructor(
             category = category
         )
 
-        if (categoryUpdateStatus.status != SuspendFuncStatus.SUCCESS) {
+        if (categoryUpdateStatus.status != FuncStatus.SUCCESS) {
             return categoryUpdateStatus
         }
 
@@ -60,30 +60,30 @@ class CategoryUseCase @Inject constructor(
     /**
      * categoryIdがRepeatAddやカテゴリー割当にないかチェックする
      */
-    suspend fun removeCategory(category: Category): SuspendFuncStatusInfo {
+    suspend fun removeCategory(category: Category): FuncStatusInfo {
         if (category.id == null) {
             /* ここに来ることは基本ない */
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "カテゴリーIDがnullのため、削除できません"
             )
             return statusInfo
         }
 
         val repeatAddRet = checkRepeatAddExists(category.id ?: "")
-        if (repeatAddRet.status != SuspendFuncStatus.SUCCESS) {
+        if (repeatAddRet.status != FuncStatus.SUCCESS) {
             LogAkitaDebug(repeatAddRet.errorMessage)
             return repeatAddRet
         }
 
         val assignmentExistCheck = checkCategoryExistInCategoryAssignment(category.id ?: "")
-        if (assignmentExistCheck.status != SuspendFuncStatus.SUCCESS) {
+        if (assignmentExistCheck.status != FuncStatus.SUCCESS) {
             LogAkitaDebug(assignmentExistCheck.errorMessage)
             return assignmentExistCheck
         }
 
         val emailTemplateTypeExistCheck = checkCategoryExistInEmailTemplateType(category.id ?: "")
-        if (emailTemplateTypeExistCheck.status != SuspendFuncStatus.SUCCESS) {
+        if (emailTemplateTypeExistCheck.status != FuncStatus.SUCCESS) {
             LogAkitaDebug(emailTemplateTypeExistCheck.errorMessage)
             return emailTemplateTypeExistCheck
         }
@@ -93,26 +93,26 @@ class CategoryUseCase @Inject constructor(
 
     suspend fun checkRepeatAddExists(
         categoryId: String
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val resultStatus = repeatAddRepository.fetchAllRepeatAdd()
         if (resultStatus !is FuncResultWithData.Success) {
-            return resultStatus.toSuspendFuncStatusInfo()
+            return resultStatus.toFuncStatusInfo()
         }
         val repeatAddList: List<RepeatAdd> = resultStatus.data
 
         /* すでに使われているかチェック */
         val exists = repeatAddList.any { it.expense.category?.id == categoryId }
         if (exists) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "このカテゴリーは繰り返し追加に登録されています。\n" +
                         "繰り返し追加を削除or編集してからカテゴリーを削除してください。"
             )
             return statusInfo
         }
 
-        val statusInfo = SuspendFuncStatusInfo(
-            SuspendFuncStatus.SUCCESS,
+        val statusInfo = FuncStatusInfo(
+            FuncStatus.SUCCESS,
             ""
         )
         return statusInfo
@@ -120,62 +120,62 @@ class CategoryUseCase @Inject constructor(
 
     suspend fun checkCategoryExistInCategoryAssignment(
         categoryId: String
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val assignmentDataRet = categoryAssignmentRepository.getCategoryAssignmentData()
         if (assignmentDataRet !is FuncResultWithData.Success) {
-            return assignmentDataRet.toSuspendFuncStatusInfo()
+            return assignmentDataRet.toFuncStatusInfo()
         }
 
         val categoryAssignmentData = assignmentDataRet.data
         val allAssignments = categoryAssignmentData.getAllAssignments()
         if (allAssignments.isEmpty()) {
-            return SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            return FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "カテゴリー割当が何もないのでダブりチェックの必要ありません"
             )
         }
 
         for (assignment in allAssignments) {
             if (assignment.categoryId == categoryId) {
-                return SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
+                return FuncStatusInfo(
+                    FuncStatus.FAILED,
                     "カテゴリー割当に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。名前：${assignment.name}"
                 )
             }
         }
 
-        return SuspendFuncStatusInfo(
-            SuspendFuncStatus.SUCCESS,
+        return FuncStatusInfo(
+            FuncStatus.SUCCESS,
             "カテゴリー割当には重複がありませんでした"
         )
     }
 
     suspend fun checkCategoryExistInEmailTemplateType(
         categoryId: String
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val allTemplates = getAllEmailTemplateTypes()
         for (template in allTemplates) {
             val fetchResult = mailboxExtractionRepository.getMailTypeSetting(template)
             if (fetchResult !is FuncResultWithData.Success) {
-                return SuspendFuncStatusInfo(
-                    status = SuspendFuncStatus.FAILED,
-                    errorMessage = "メールボックス設定(${template.menuName})とのダブりチェックでエラーが発生しました。${fetchResult.toSuspendFuncStatusInfo().errorMessage}"
+                return FuncStatusInfo(
+                    status = FuncStatus.FAILED,
+                    errorMessage = "メールボックス設定(${template.menuName})とのダブりチェックでエラーが発生しました。${fetchResult.toFuncStatusInfo().errorMessage}"
                 )
             }
             val setting = fetchResult.data
             if (setting is HasCategoryId) {
                 /* categoryIdを持っているので、被っていないかチェック */
                 if (categoryId == setting.categoryId) {
-                    return SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    return FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "メールボックス設定(${template.menuName})に存在しているので削除できません。そちらを変更してからカテゴリー削除をしてください。"
                     )
                 }
             }
         }
 
-        return SuspendFuncStatusInfo(
-            status = SuspendFuncStatus.SUCCESS,
+        return FuncStatusInfo(
+            status = FuncStatus.SUCCESS,
             errorMessage = "メールボックス設定には重複がありませんでした"
         )
     }

@@ -3,7 +3,7 @@ package gaku.original.myapplication
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.utility.LogException
@@ -51,7 +51,7 @@ class RealtimeDbReference @Inject constructor(
         } catch (e: Exception) {
             LogException(className, funcName, e)
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "${e.message}"
             )
         }
@@ -91,7 +91,7 @@ class RealtimeDbReference @Inject constructor(
         } catch (e: Exception) {
             LogException(className, funcName, e)
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
             result
@@ -244,7 +244,7 @@ class RealtimeDbReference @Inject constructor(
     ): FuncResultWithData<DatabaseReference> {
         if (email == null) {
             return FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "email is null"
             )
         }

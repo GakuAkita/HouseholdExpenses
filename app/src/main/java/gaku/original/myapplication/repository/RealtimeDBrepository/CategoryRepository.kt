@@ -3,8 +3,8 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //import android.util.Log
 //import com.google.firebase.database.DatabaseReference
 //import gaku.original.myapplication.RealtimeDbReference
-//import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-//import gaku.original.myapplication.data.SuspendFuncStatusInfo
+//import gaku.original.myapplication.data.Constants.Status.FuncStatus
+//import gaku.original.myapplication.data.FuncStatusInfo
 //import gaku.original.myapplication.data.dataClass.Category
 //import gaku.original.myapplication.utility.LogClassFuncCalled
 //import kotlinx.coroutines.TimeoutCancellationException
@@ -19,19 +19,19 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //) {
 //    private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 //
-//    suspend fun getCategoryRef(callback: (SuspendFuncStatusInfo) -> Unit): DatabaseReference? {
+//    suspend fun getCategoryRef(callback: (FuncStatusInfo) -> Unit): DatabaseReference? {
 //        return realtimeDbReference.getUserCategoryRef(callback)
 //    }
 //
 //    suspend fun fetchAllCategories(
-//        callback: (SuspendFuncStatusInfo) -> Unit
+//        callback: (FuncStatusInfo) -> Unit
 //    ): List<Category> {
 //        val funcName: String = ::fetchAllCategories.name
 //        var ret = emptyList<Category>()
 //        LogClassFuncCalled(className, funcName)
 //
 //        val categoryRef = getCategoryRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                callback(status)
 //            }
 //        }
@@ -48,23 +48,23 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //                }
 //                Log.d(className, "Fetched Categories: $categories")
 //                ret = categories
-//                val statusInfo = SuspendFuncStatusInfo(
-//                    status = SuspendFuncStatus.SUCCESS,
+//                val statusInfo = FuncStatusInfo(
+//                    status = FuncStatus.SUCCESS,
 //                    errorMessage = ""
 //                )
 //                callback(statusInfo)
 //            }
 //        } catch (e: TimeoutCancellationException) {
 //            Log.d(className, "${funcName} Timeout.")
-//            val statusInfo = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.TIMEOUT,
+//            val statusInfo = FuncStatusInfo(
+//                status = FuncStatus.TIMEOUT,
 //                errorMessage = "タイムアウトしました"
 //            )
 //            callback(statusInfo)
 //        } catch (e: Exception) {
 //            Log.d(className, "${funcName} failed. ${e.message}")
-//            val statusInfo = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            val statusInfo = FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = e.message ?: "不明なエラー"
 //            )
 //            callback(statusInfo)
@@ -74,16 +74,16 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun addCategory(
 //        category: Category,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName = ::addCategory.name
-//        var ret = SuspendFuncStatusInfo(
-//            status = SuspendFuncStatus.SUCCESS,
+//        var ret = FuncStatusInfo(
+//            status = FuncStatus.SUCCESS,
 //            errorMessage = ""
 //        )
 //        LogClassFuncCalled(className, funcName)
 //        val ref = getCategoryRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                ret = status
 //                callback(status)
 //            }
@@ -100,16 +100,16 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun updateCategory(
 //        category: Category,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName = ::updateCategory.name
 //        LogClassFuncCalled(className, funcName)
-//        var ret = SuspendFuncStatusInfo(
-//            status = SuspendFuncStatus.SUCCESS,
+//        var ret = FuncStatusInfo(
+//            status = FuncStatus.SUCCESS,
 //            errorMessage = ""
 //        )
 //        val reference = getCategoryRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                ret = status
 //                callback(status)
 //            }
@@ -124,16 +124,16 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 //
 //    suspend fun removeCategory(
 //        category: Category,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val funcName = ::removeCategory.name
 //        LogClassFuncCalled(className, funcName)
-//        var ret = SuspendFuncStatusInfo(
-//            status = SuspendFuncStatus.SUCCESS,
+//        var ret = FuncStatusInfo(
+//            status = FuncStatus.SUCCESS,
 //            errorMessage = ""
 //        )
 //        val reference = getCategoryRef { status ->
-//            if (status.status != SuspendFuncStatus.SUCCESS) {
+//            if (status.status != FuncStatus.SUCCESS) {
 //                ret = status
 //                callback(status)
 //            }

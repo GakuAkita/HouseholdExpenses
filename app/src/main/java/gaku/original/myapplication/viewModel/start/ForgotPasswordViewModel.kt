@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.SuspendFuncStatusInfoWithCode
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncStatusInfoWithCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
@@ -29,24 +29,24 @@ class ForgotPasswordViewModel @Inject constructor(
     suspend fun sendPasswordResetEmail(
         email: String,
         timeout: Long = 5000,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
-    ): SuspendFuncStatusInfoWithCode {
+        callback: (FuncStatusInfoWithCode) -> Unit
+    ): FuncStatusInfoWithCode {
         val statusInfo = try {
             withTimeout(timeout) {
                 firebaseAuth.sendPasswordResetEmail(email).await()
-                SuspendFuncStatusInfoWithCode(SuspendFuncStatus.SUCCESS, "")
+                FuncStatusInfoWithCode(FuncStatus.SUCCESS, "")
             }
         } catch (e: TimeoutCancellationException) {
-            SuspendFuncStatusInfoWithCode(SuspendFuncStatus.TIMEOUT, "タイムアウトしました。", null)
+            FuncStatusInfoWithCode(FuncStatus.TIMEOUT, "タイムアウトしました。", null)
         } catch (e: FirebaseAuthException) {
-            SuspendFuncStatusInfoWithCode(
-                SuspendFuncStatus.FAILED,
+            FuncStatusInfoWithCode(
+                FuncStatus.FAILED,
                 e.message ?: "Unknown error",
                 e.errorCode
             )
         } catch (e: Exception) {
-            SuspendFuncStatusInfoWithCode(
-                SuspendFuncStatus.FAILED,
+            FuncStatusInfoWithCode(
+                FuncStatus.FAILED,
                 e.message ?: "Unknown error",
                 null
             )
@@ -62,7 +62,7 @@ class ForgotPasswordViewModel @Inject constructor(
     fun sendPasswordResetEmailWithCallback(
         email: String,
         timeout: Long = 5000,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
+        callback: (FuncStatusInfoWithCode) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             sendPasswordResetEmail(email, timeout, callback)

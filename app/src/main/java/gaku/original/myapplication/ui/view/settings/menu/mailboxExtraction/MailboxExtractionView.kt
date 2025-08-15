@@ -42,7 +42,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.copyWith
 import gaku.original.myapplication.ui.common.CategoryDropDown
@@ -149,7 +149,7 @@ fun MailboxExtractionView(
                                             setting = updateSetting,
                                         ),
                                         callback = {
-                                            if (it.status != SuspendFuncStatus.SUCCESS) {
+                                            if (it.status != FuncStatus.SUCCESS) {
                                                 snackBarHostState.currentSnackbarData?.dismiss()
                                                 scope.launch {
                                                     snackBarHostState.showSnackbar(
@@ -202,7 +202,7 @@ fun MailboxExtractionView(
                                     setting = updatedSetting,
                                 ),
                                 callback = {
-                                    if (it.status != SuspendFuncStatus.SUCCESS) {
+                                    if (it.status != FuncStatus.SUCCESS) {
                                         snackBarHostState.currentSnackbarData?.dismiss()
                                         scope.launch {
                                             snackBarHostState.showSnackbar(
@@ -294,7 +294,7 @@ fun MailboxExtractionView(
                     Button(onClick = {
                         viewModel.getOAuthUrl(
                             callback = { status, url ->
-                                if (status.status == SuspendFuncStatus.SUCCESS) {
+                                if (status.status == FuncStatus.SUCCESS) {
                                     LogAkitaDebug("generated URL:$url")
                                     openOAuthPage(context, url)
                                 } else {

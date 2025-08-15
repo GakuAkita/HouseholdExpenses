@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -100,13 +100,13 @@ class ExpenseListViewModel @Inject constructor(
     fun updateStoredExpenses(
         currentPageYear: Int,
         currentPageMonth: Int,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         /* カテゴリーはクリアしない！！ */
         expenseSharedViewModel.clearAllExpenses()
         expenseSharedViewModel.clearAllListeners()
         fetchMonthsExpensesInternal(currentPageYear, currentPageMonth, callback = { status ->
-            if (status.status == SuspendFuncStatus.SUCCESS) {
+            if (status.status == FuncStatus.SUCCESS) {
                 /* 成功のときのみ、リスナーを追加 */
                 expenseSharedViewModel.addAllListeners(
                     yearMonth = YearMonth.of(
@@ -122,7 +122,7 @@ class ExpenseListViewModel @Inject constructor(
     private fun fetchMonthsExpensesInternal(
         currentPageYear: Int,
         currentPageMonth: Int,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         val fromMonth =
             YearMonth.of(currentPageYear, currentPageMonth).minusMonths(MONTH_RANGE)
@@ -229,7 +229,7 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     /***************** サインイン後特別 ***************************/
-    fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun onSignedIn(callback: (FuncStatusInfo) -> Unit) {
         /* サインイン時には、ユーザーが変わっているので、カレンダーのページも元に戻す */
         if (expenseSharedViewModel.isFirstSignIn.value) {
             /* サインイン時にやることがある */

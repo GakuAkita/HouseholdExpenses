@@ -62,7 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.Category
@@ -173,7 +173,7 @@ fun RepeatAddSettingView(
                             /* 削除をする */
                             viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
                                 when (status.status) {
-                                    SuspendFuncStatus.SUCCESS -> {
+                                    FuncStatus.SUCCESS -> {
                                         scope.launch {
                                             snackBarHostState.showSnackbar(
                                                 "削除しました",
@@ -184,7 +184,7 @@ fun RepeatAddSettingView(
                                         viewModel.fetchAllRepeatAddSettings()
                                     }
 
-                                    SuspendFuncStatus.TIMEOUT -> {
+                                    FuncStatus.TIMEOUT -> {
                                         scope.launch {
                                             snackBarHostState.showSnackbar(
                                                 "削除できませんでした。タイムアウトしました",
@@ -193,7 +193,7 @@ fun RepeatAddSettingView(
                                         }
                                     }
 
-                                    SuspendFuncStatus.FAILED -> {
+                                    FuncStatus.FAILED -> {
                                         scope.launch {
                                             snackBarHostState.showSnackbar(
                                                 "削除に失敗しました",
@@ -235,14 +235,14 @@ fun RepeatAddSettingView(
                                     /* do nothing */
                                     Toast.makeText(
                                         context,
-                                        result.toSuspendFuncStatusInfo().errorMessage,
+                                        result.toFuncStatusInfo().errorMessage,
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             })
                         } else {/* 編集 */
                             viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
-                                if (status.status == SuspendFuncStatus.SUCCESS) {
+                                if (status.status == FuncStatus.SUCCESS) {
                                     viewModel.fetchAllRepeatAddSettings()
                                     showAddEditDialog = false
                                 } else {

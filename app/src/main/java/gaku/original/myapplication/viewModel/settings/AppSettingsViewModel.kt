@@ -3,7 +3,7 @@ package gaku.original.myapplication.viewModel.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +17,7 @@ class AppSettingsViewModel @Inject constructor(
     //設定する
     fun setUserTimeZone(
         timeZone: String,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         viewModelScope.launch {
             val ret = userPreferencesRepository.setUserTimeZone(timeZone)

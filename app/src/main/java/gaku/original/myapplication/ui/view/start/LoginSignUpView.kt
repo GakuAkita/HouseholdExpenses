@@ -43,7 +43,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.CredentialManagerHelper
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -103,7 +103,7 @@ fun LoginSignUpView(
             password = password,
             callback = { status ->
                 when (status.status) {
-                    SuspendFuncStatus.SUCCESS -> {
+                    FuncStatus.SUCCESS -> {
                         scope.launch {
                             snackBarHostState.showSnackbar(
                                 "ログインしました",
@@ -119,7 +119,7 @@ fun LoginSignUpView(
                         }
                     }
 
-                    SuspendFuncStatus.TIMEOUT -> {
+                    FuncStatus.TIMEOUT -> {
                         scope.launch {
                             snackBarHostState.showSnackbar(
                                 "ログインできずタイムアウトしました",
@@ -130,7 +130,7 @@ fun LoginSignUpView(
                         loading = false
                     }
 
-                    SuspendFuncStatus.FAILED -> {
+                    FuncStatus.FAILED -> {
                         val errorMsg =
                             getSignInErrorMsgFromCode(status.errorCode)
                         LogAkitaDebug(errorMsg)
@@ -154,7 +154,7 @@ fun LoginSignUpView(
             password,
             callback = { status ->
                 when (status.status) {
-                    SuspendFuncStatus.SUCCESS -> {
+                    FuncStatus.SUCCESS -> {
                         scope.launch {
                             snackBarHostState.showSnackbar(
                                 "アカウントを作成しました。メールアドレス認証をしてください。\n認証後、ログインボタンを押してください",
@@ -167,7 +167,7 @@ fun LoginSignUpView(
                         isLoginState = true
                     }
 
-                    SuspendFuncStatus.TIMEOUT -> {
+                    FuncStatus.TIMEOUT -> {
                         scope.launch {
                             snackBarHostState.showSnackbar(
                                 "タイムアウトしました。アカウント作成に失敗しました",
@@ -178,7 +178,7 @@ fun LoginSignUpView(
                         loading = false
                     }
 
-                    SuspendFuncStatus.FAILED -> {
+                    FuncStatus.FAILED -> {
                         scope.launch {
                             val errorMsg =
                                 getSignUpErrorMsgFromCode(status.errorCode)
@@ -249,7 +249,7 @@ fun LoginSignUpView(
                             authViewModel.viewModelScope.launch {
                                 val result = CredentialManagerHelper.getGoogleIdToken(context)
                                 if (result !is FuncResultWithData.Success) {
-                                    val errorMessage = result.toSuspendFuncStatusInfo().errorMessage
+                                    val errorMessage = result.toFuncStatusInfo().errorMessage
                                     snackBarHostState.currentSnackbarData?.dismiss()
                                     snackBarHostState.showSnackbar(
                                         "Googleログインに失敗しました: ${errorMessage}",

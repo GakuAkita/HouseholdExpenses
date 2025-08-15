@@ -4,9 +4,9 @@ import addDataWithIdToFirestore
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ class ExpenseFirestoreRepository @Inject constructor(
         val ref = getExpensesColRef()
         if (ref == null) {
             val statusInfo = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -47,11 +47,11 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun updateExpense(
         expense: Expense
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getExpensesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -63,11 +63,11 @@ class ExpenseFirestoreRepository @Inject constructor(
 
     suspend fun removeExpense(
         expense: Expense,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getExpensesColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
@@ -88,7 +88,7 @@ class ExpenseFirestoreRepository @Inject constructor(
         val expenseRef = getExpensesColRef()
         if (expenseRef == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
             return result
@@ -121,7 +121,7 @@ class ExpenseFirestoreRepository @Inject constructor(
             result
         } catch (e: Exception) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
             result
@@ -136,7 +136,7 @@ class ExpenseFirestoreRepository @Inject constructor(
 
         val expenseRef = getExpensesColRef()
             ?: return FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
 
@@ -160,7 +160,7 @@ class ExpenseFirestoreRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
         }
@@ -177,7 +177,7 @@ class ExpenseFirestoreRepository @Inject constructor(
 
         if (expenseRef == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Expensesコレクションが参照できませんでした"
             )
             return result
@@ -210,7 +210,7 @@ class ExpenseFirestoreRepository @Inject constructor(
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
             /* 戻り値 */

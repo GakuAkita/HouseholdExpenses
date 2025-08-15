@@ -3,10 +3,10 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //import android.util.Log
 //import com.google.firebase.firestore.DocumentReference
 //import gaku.original.myapplication.FirestoreReference
-//import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+//import gaku.original.myapplication.data.Constants.Status.FuncStatus
 //import gaku.original.myapplication.data.FuncResultWithData
 //import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
-//import gaku.original.myapplication.data.SuspendFuncStatusInfo
+//import gaku.original.myapplication.data.FuncStatusInfo
 //import gaku.original.myapplication.data.dataClass.MailboxExtractionCommon
 //import gaku.original.myapplication.data.dataClass.getMailboxExtractionInternalClass
 //import kotlinx.coroutines.tasks.await
@@ -35,12 +35,12 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //     */
 //    suspend fun setMailboxExtractionMailTypeSetting(
 //        instance: MailboxExtractionCommon,
-//        callback: (SuspendFuncStatusInfo) -> Unit
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit
+//    ): FuncStatusInfo {
 //        val internal = getMailboxExtractionInternalClass(instance)
 //        if (internal == null) {
-//            val statusInfo = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            val statusInfo = FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "MailboxExtractionのdata classに含まれていません\n開発者のミスです"
 //            )
 //            Log.d(className, statusInfo.errorMessage)
@@ -50,8 +50,8 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //
 //        val docRef = getMailboxExtractionMailTypeDocRef(instance)
 //        if (docRef == null) {
-//            val statusInfo = SuspendFuncStatusInfo(
-//                status = SuspendFuncStatus.FAILED,
+//            val statusInfo = FuncStatusInfo(
+//                status = FuncStatus.FAILED,
 //                errorMessage = "MailboxExtraction/${instance.nodeName}を参照できませんでした"
 //            )
 //            callback(statusInfo)
@@ -68,25 +68,25 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //    suspend fun fetchMailboxExtractionMailTypeSetting(
 //        instance: MailboxExtractionCommon,//インスタンス自体に何も入ってなくても良いから。nodeNameがほしい
 //        timeout: Long = 3000,
-//        callback: (SuspendFuncStatusInfo) -> Unit
+//        callback: (FuncStatusInfo) -> Unit
 //    ): FuncResultWithData<MailboxExtractionCommon> {
 //        val internal = getMailboxExtractionInternalClass(instance)
 //        if (internal == null) {
 //            val fetchResult = FuncResultWithData<MailboxExtractionCommon>(
-//                status = SuspendFuncStatus.FAILED,
+//                status = FuncStatus.FAILED,
 //                errorMessage = "MailboxExtractionのdata classに含まれていません \n開発者のミスです"
 //            )
-//            callback(fetchResult.toSuspendFuncStatusInfo())
+//            callback(fetchResult.toFuncStatusInfo())
 //            return fetchResult
 //        }
 //
 //        val docRef = getMailboxExtractionMailTypeDocRef(instance)
 //        if (docRef == null) {
 //            val fetchResult = FuncResultWithData<MailboxExtractionCommon>(
-//                status = SuspendFuncStatus.FAILED,
+//                status = FuncStatus.FAILED,
 //                errorMessage = "MailboxExtraction/${instance.nodeName}を参照できませんでした"
 //            )
-//            callback(fetchResult.toSuspendFuncStatusInfo())
+//            callback(fetchResult.toFuncStatusInfo())
 //            return fetchResult
 //        }
 //
@@ -99,13 +99,13 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //                    val typedInstance = snapshot.toObject(instance::class.java)
 //                    if (typedInstance != null) {
 //                        fetchResult = FuncResultWithData(
-//                            status = SuspendFuncStatus.SUCCESS,
+//                            status = FuncStatus.SUCCESS,
 //                            data = typedInstance,
 //                            errorMessage = ""
 //                        )
 //                    } else {
 //                        fetchResult = FuncResultWithData(
-//                            status = SuspendFuncStatus.FAILED,
+//                            status = FuncStatus.FAILED,
 //                            errorMessage = "変換に失敗しました"
 //                        )
 //                    }
@@ -115,7 +115,7 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //                        "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
 //                    )
 //                    fetchResult = FuncResultWithData(
-//                        status = SuspendFuncStatus.SUCCESS,
+//                        status = FuncStatus.SUCCESS,
 //                        data = null,
 //                        errorMessage = "MailboxExtraction/${instance.nodeName}が存在しません\nエラーではありません"
 //                    )
@@ -123,11 +123,11 @@ package gaku.original.myapplication.repository.FirestoreRepository
 //            }
 //        } catch (e: Exception) {
 //            fetchResult = FuncResultWithData(
-//                status = SuspendFuncStatus.FAILED,
+//                status = FuncStatus.FAILED,
 //                errorMessage = "データ取得中にエラーが発生しました。:${e.message}"
 //            )
 //        }
-//        callback(fetchResult.toSuspendFuncStatusInfo())
+//        callback(fetchResult.toFuncStatusInfo())
 //        return fetchResult
 //    }
 //}

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -50,10 +50,10 @@ class NotCategorizedViewModel @Inject constructor(
         return result
     }
 
-    fun fetchNotCategorizedExpenses(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun fetchNotCategorizedExpenses(callback: (FuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val result = fetchNotCategorizedExpensesInternal()
-            callback(result.toSuspendFuncStatusInfo())
+            callback(result.toFuncStatusInfo())
         }
     }
 

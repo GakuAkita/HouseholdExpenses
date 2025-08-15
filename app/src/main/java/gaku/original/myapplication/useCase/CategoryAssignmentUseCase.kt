@@ -3,10 +3,10 @@ package gaku.original.myapplication.useCase
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.dataClass.checkAssignment
@@ -31,7 +31,7 @@ class CategoryAssignmentUseCase @Inject constructor(
         } else {
             /* Noneの場合もこっちに来る */
             return FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "category assign name pattern is not accepted ${pattern.label}"
             )
         }
@@ -47,12 +47,12 @@ class CategoryAssignmentUseCase @Inject constructor(
     suspend fun addCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val refRet = getCategoryAssignmentRef(
             pattern = namePattern
         )
         if (refRet !is FuncResultWithData.Success) {
-            return refRet.toSuspendFuncStatusInfo()
+            return refRet.toFuncStatusInfo()
         }
         val reference = refRet.data
 
@@ -62,8 +62,8 @@ class CategoryAssignmentUseCase @Inject constructor(
          */
         val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
         if (dataRet !is FuncResultWithData.Success) {
-            val statusInfo = dataRet.toSuspendFuncStatusInfo()
-            return SuspendFuncStatusInfo(
+            val statusInfo = dataRet.toFuncStatusInfo()
+            return FuncStatusInfo(
                 status = statusInfo.status,
                 errorMessage = "ダブりチェックのための既存カテゴリー割当の取得に失敗しました:${statusInfo.errorMessage}"
             )
@@ -73,8 +73,8 @@ class CategoryAssignmentUseCase @Inject constructor(
         val checkRet: CheckResult = checkAssignment(categoryAssignment, data)
 
         if (checkRet.status != CheckStatus.OK) {
-            return SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
+            return FuncStatusInfo(
+                status = FuncStatus.FAILED,
                 errorMessage = checkRet.errorMessage
             )
         }
@@ -87,17 +87,17 @@ class CategoryAssignmentUseCase @Inject constructor(
     suspend fun updateCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
         pattern: CategoryAssignNamePattern
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val refRet = getCategoryAssignmentRef(pattern)
         if (refRet !is FuncResultWithData.Success) {
-            return refRet.toSuspendFuncStatusInfo()
+            return refRet.toFuncStatusInfo()
         }
         val reference = refRet.data
 
         val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
         if (dataRet !is FuncResultWithData.Success) {
-            val statusInfo = dataRet.toSuspendFuncStatusInfo()
-            return SuspendFuncStatusInfo(
+            val statusInfo = dataRet.toFuncStatusInfo()
+            return FuncStatusInfo(
                 status = statusInfo.status,
                 errorMessage = "ダブりチェックのための既存カテゴリー割当の取得に失敗しました:${statusInfo.errorMessage}"
             )
@@ -109,8 +109,8 @@ class CategoryAssignmentUseCase @Inject constructor(
          */
         val checkRet = checkAssignment(categoryAssignment, data)
         if (checkRet.status != CheckStatus.OK) {
-            return SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
+            return FuncStatusInfo(
+                status = FuncStatus.FAILED,
                 errorMessage = checkRet.errorMessage
             )
         }
@@ -124,10 +124,10 @@ class CategoryAssignmentUseCase @Inject constructor(
     suspend fun removeCategoryAssignment(
         categoryAssignment: CategoryAssignment,
         pattern: CategoryAssignNamePattern
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val refRet = getCategoryAssignmentRef(pattern)
         if (refRet !is FuncResultWithData.Success) {
-            return refRet.toSuspendFuncStatusInfo()
+            return refRet.toFuncStatusInfo()
         }
         val reference = refRet.data
         return categoryAssignmentRepository.removeCategoryAssignment(

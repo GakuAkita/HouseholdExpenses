@@ -1,10 +1,10 @@
 package gaku.original.myapplication.useCase
 
 import gaku.original.myapplication.data.Constants.RepeatFrequency
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.getDaysInMonthByFrequency
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
@@ -68,7 +68,7 @@ class RepeatAddUseCase @Inject constructor(
         if (validCheck) {
             val msg = checkNewRepeatAddValid(repeatAdd)
             if (msg.isNotEmpty()) return FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = msg
             )
         }
@@ -82,18 +82,18 @@ class RepeatAddUseCase @Inject constructor(
     suspend fun updateRepeatAdd(
         repeatAdd: RepeatAdd,
         validCheck: Boolean = true
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         if (validCheck) {
             val msg = checkNewRepeatAddValid(repeatAdd)
-            if (msg.isNotEmpty()) return SuspendFuncStatusInfo(
-                status = SuspendFuncStatus.FAILED,
+            if (msg.isNotEmpty()) return FuncStatusInfo(
+                status = FuncStatus.FAILED,
                 errorMessage = msg
             )
         }
         return repeatAddRepository.updateRepeatAdd(repeatAdd)
     }
 
-    suspend fun removeRepeatAdd(repeatAdd: RepeatAdd): SuspendFuncStatusInfo {
+    suspend fun removeRepeatAdd(repeatAdd: RepeatAdd): FuncStatusInfo {
         return repeatAddRepository.removeRepeatAdd(repeatAdd)
     }
 
@@ -101,12 +101,12 @@ class RepeatAddUseCase @Inject constructor(
      * UI側で何％完了したかをわかるように、Flowで実行
      * flowについてはよくわかっていない。
      */
-    fun addExpensesForRestOfDaysFlow(repeatAdd: RepeatAdd): Flow<Pair<Float, SuspendFuncStatusInfo?>> =
+    fun addExpensesForRestOfDaysFlow(repeatAdd: RepeatAdd): Flow<Pair<Float, FuncStatusInfo?>> =
         flow {
             val id = repeatAdd.id ?: run {
                 emit(
-                    1f to SuspendFuncStatusInfo(
-                        SuspendFuncStatus.FAILED,
+                    1f to FuncStatusInfo(
+                        FuncStatus.FAILED,
                         "繰り返し追加のidの取得に失敗しました"
                     )
                 )
@@ -136,17 +136,17 @@ class RepeatAddUseCase @Inject constructor(
                 val expenseToAdd = expenseTemplate.copy(datetime = isoStr)
 
                 val stat = expenseRepository.addExpense(expenseToAdd)
-                if (stat.toSuspendFuncStatusInfo().status == SuspendFuncStatus.SUCCESS) {
+                if (stat.toFuncStatusInfo().status == FuncStatus.SUCCESS) {
                     addedCnt++
                 }
                 emit((index + 1).toFloat() / addDays.size to null)
             }
 
             val finalStatus = if (addedCnt == addDays.size) {
-                SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "すべてを追加しました")
+                FuncStatusInfo(FuncStatus.SUCCESS, "すべてを追加しました")
             } else {
-                SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
+                FuncStatusInfo(
+                    FuncStatus.FAILED,
                     "一部費用追加に失敗しました"
                 )
             }

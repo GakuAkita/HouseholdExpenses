@@ -9,8 +9,8 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
-import gaku.original.myapplication.data.SuspendFuncStatusInfoWithCode
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncStatusInfoWithCode
 import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -43,8 +43,8 @@ class AuthManagerViewModel @Inject constructor(
         email: String,
         password: String,
         isEmailVerification: Boolean = true,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
-    ): SuspendFuncStatusInfoWithCode {
+        callback: (FuncStatusInfoWithCode) -> Unit
+    ): FuncStatusInfoWithCode {
         return try {
             withTimeout(10000) {
                 firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -52,8 +52,8 @@ class AuthManagerViewModel @Inject constructor(
                     firebaseAuth.currentUser?.uid.isNullOrEmpty()
                 ) {
                     /* まず起こり得ないが、uidが入っているかチェック */
-                    val statusInfo = SuspendFuncStatusInfoWithCode(
-                        status = SuspendFuncStatus.FAILED,
+                    val statusInfo = FuncStatusInfoWithCode(
+                        status = FuncStatus.FAILED,
                         errorMessage = "ユーザーIDが取得できませんでした"
                     )
                     signOut()//サインアウトしなくてもメイン画面にはいけないと思うが。念の為
@@ -65,8 +65,8 @@ class AuthManagerViewModel @Inject constructor(
                     firebaseAuth.currentUser?.isEmailVerified == false &&
                     isEmailVerification
                 ) {
-                    val statusInfo = SuspendFuncStatusInfoWithCode(
-                        status = SuspendFuncStatus.FAILED,
+                    val statusInfo = FuncStatusInfoWithCode(
+                        status = FuncStatus.FAILED,
                         errorCode = "_EMAIL_NOT_VERIFIED",
                         errorMessage = "Emailが認証されていません。認証メールを再送します。"
                     )
@@ -75,31 +75,31 @@ class AuthManagerViewModel @Inject constructor(
                     return@withTimeout statusInfo
                 }
 
-                val statusInfo = SuspendFuncStatusInfoWithCode(
-                    status = SuspendFuncStatus.SUCCESS,
+                val statusInfo = FuncStatusInfoWithCode(
+                    status = FuncStatus.SUCCESS,
                     errorMessage = ""
                 )
                 callback(statusInfo)
                 statusInfo
             }
         } catch (e: TimeoutCancellationException) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.TIMEOUT,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.TIMEOUT,
                 errorMessage = "タイムアウトしました"
             )
             callback(statusInfo)
             statusInfo
         } catch (e: FirebaseAuthException) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "予期せぬエラーが発生しました",
                 errorCode = e.errorCode
             )
             callback(statusInfo)
             statusInfo
         } catch (e: Exception) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "予期せぬエラーが発生しました"
             )
             callback(statusInfo)
@@ -111,8 +111,8 @@ class AuthManagerViewModel @Inject constructor(
         email: String,
         password: String,
         isSendEmailVerification: Boolean = true,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
-    ): SuspendFuncStatusInfoWithCode {
+        callback: (FuncStatusInfoWithCode) -> Unit
+    ): FuncStatusInfoWithCode {
         return try {
             withTimeout(10000) {
                 firebaseAuth.createUserWithEmailAndPassword(email, password).await()
@@ -120,8 +120,8 @@ class AuthManagerViewModel @Inject constructor(
                     firebaseAuth.currentUser?.uid.isNullOrEmpty()
                 ) {
                     /* まず起こり得ないが、uidが入っているかチェック */
-                    val statusInfo = SuspendFuncStatusInfoWithCode(
-                        status = SuspendFuncStatus.FAILED,
+                    val statusInfo = FuncStatusInfoWithCode(
+                        status = FuncStatus.FAILED,
                         errorMessage = "ユーザーIDが取得できませんでした"
                     )
                     signOut()//サインアウトしなくてもメイン画面にはいけないと思うが。念の為
@@ -133,31 +133,31 @@ class AuthManagerViewModel @Inject constructor(
                     firebaseAuth.currentUser?.sendEmailVerification()
                 }
 
-                val statusInfo = SuspendFuncStatusInfoWithCode(
-                    status = SuspendFuncStatus.SUCCESS,
+                val statusInfo = FuncStatusInfoWithCode(
+                    status = FuncStatus.SUCCESS,
                     errorMessage = ""
                 )
                 callback(statusInfo)
                 statusInfo
             }
         } catch (e: TimeoutCancellationException) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.TIMEOUT,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.TIMEOUT,
                 errorMessage = "タイムアウトしました"
             )
             callback(statusInfo)
             statusInfo
         } catch (e: FirebaseAuthException) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "予期せぬエラーが発生しました",
                 errorCode = e.errorCode
             )
             callback(statusInfo)
             statusInfo
         } catch (e: Exception) {
-            val statusInfo = SuspendFuncStatusInfoWithCode(
-                status = SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfoWithCode(
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "予期せぬエラーが発生しました"
             )
             callback(statusInfo)
@@ -198,7 +198,7 @@ class AuthManagerViewModel @Inject constructor(
         email: String,
         password: String,
         isEmailVerification: Boolean = true,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
+        callback: (FuncStatusInfoWithCode) -> Unit
     ) {
         viewModelScope.launch {
             signIn(email, password, isEmailVerification, callback = callback)
@@ -209,7 +209,7 @@ class AuthManagerViewModel @Inject constructor(
         email: String,
         password: String,
         isSendEmailVerification: Boolean = true,
-        callback: (SuspendFuncStatusInfoWithCode) -> Unit
+        callback: (FuncStatusInfoWithCode) -> Unit
     ) {
         viewModelScope.launch {
             val signUpStatus =
@@ -218,7 +218,7 @@ class AuthManagerViewModel @Inject constructor(
                     password,
                     isSendEmailVerification = isSendEmailVerification,
                     callback = {})
-            if (signUpStatus.status != SuspendFuncStatus.SUCCESS) {
+            if (signUpStatus.status != FuncStatus.SUCCESS) {
                 callback(signUpStatus)
                 return@launch
             }

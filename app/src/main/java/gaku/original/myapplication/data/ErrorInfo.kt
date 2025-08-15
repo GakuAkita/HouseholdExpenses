@@ -2,7 +2,7 @@ package gaku.original.myapplication.data
 
 import android.os.Parcelable
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import kotlinx.parcelize.Parcelize
 
 data class ErrorInfo(
@@ -11,8 +11,8 @@ data class ErrorInfo(
 )
 
 @Parcelize
-data class SuspendFuncStatusInfo(
-    val status: SuspendFuncStatus,
+data class FuncStatusInfo(
+    val status: FuncStatus,
     val errorMessage: String,
 ) : Parcelable
 
@@ -24,7 +24,7 @@ sealed class FuncResultWithData<out T> {
         open val errorCode: String? = null
 
         data class GenericFailure(
-            val status: SuspendFuncStatus,
+            val status: FuncStatus,
             override val errorMessage: String,
             override val errorCode: String? = null
         ) : Failure()
@@ -37,10 +37,10 @@ sealed class FuncResultWithData<out T> {
         // 必要に応じて他のケースを追加
     }
 
-    fun toSuspendFuncStatusInfo(): SuspendFuncStatusInfo = when (this) {
-        is Success -> SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
-        is Failure.GenericFailure -> SuspendFuncStatusInfo(status, errorMessage)
-        is Failure.Timeout -> SuspendFuncStatusInfo(SuspendFuncStatus.TIMEOUT, errorMessage)
+    fun toFuncStatusInfo(): FuncStatusInfo = when (this) {
+        is Success -> FuncStatusInfo(FuncStatus.SUCCESS, "")
+        is Failure.GenericFailure -> FuncStatusInfo(status, errorMessage)
+        is Failure.Timeout -> FuncStatusInfo(FuncStatus.TIMEOUT, errorMessage)
     }
 }
 
@@ -62,8 +62,8 @@ inline fun <T, reified T2> FuncResultWithData<T>.mapFailure(): FuncResultWithDat
         }
     }
 
-data class SuspendFuncStatusInfoWithCode(
-    val status: SuspendFuncStatus,
+data class FuncStatusInfoWithCode(
+    val status: FuncStatus,
     val errorMessage: String,
     val errorCode: String? = null
 )

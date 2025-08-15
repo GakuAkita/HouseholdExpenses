@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
@@ -83,17 +83,17 @@ class CategoryAssignmentEditViewModel @Inject constructor(
     }
 
     /* リモートの全データを取得してくる */
-    fun fetchCategoryAssignmentData(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun fetchCategoryAssignmentData(callback: (FuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val result = fetchCategoryAssignmentDataWithLocalUpdate()
-            callback(result.toSuspendFuncStatusInfo())
+            callback(result.toFuncStatusInfo())
         }
     }
 
     fun addCategoryAssignment(
         assignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             val currentData = _assignmentData.value
@@ -105,38 +105,38 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                  * UI上でnullのときは追加できないようにしておくから、ここに来ることはたぶんないがな。
                  */
                 callback(
-                    SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "CategoryAssignmentData is null. Please fetch data first."
                     )
                 )
                 return@launch
             }
 
-            val addRet: SuspendFuncStatusInfo =
+            val addRet: FuncStatusInfo =
                 categoryAssignmentUseCase.addCategoryAssignmentWithCheck(
                     assignment,
                     namePattern,
                 )
-            if (addRet.status == SuspendFuncStatus.SUCCESS) {
+            if (addRet.status == FuncStatus.SUCCESS) {
                 /**
                  *  本当はstoreNameかproductNameかを見て、片方だけ更新するだけでいいが、、
                  *  まあそんな頻繁に更新するものでもないから全部取ってしまおう。
                  *  */
                 val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate()
 
-                var ret: SuspendFuncStatusInfo
+                var ret: FuncStatusInfo
                 if (fetchRet is FuncResultWithData.Success) {
                     _assignmentData.value = fetchRet.data
-                    ret = fetchRet.toSuspendFuncStatusInfo()
+                    ret = fetchRet.toFuncStatusInfo()
                 } else {
                     Log.e(
                         className,
-                        "Failed to fetch updated category assignment data: ${fetchRet.toSuspendFuncStatusInfo().errorMessage}"
+                        "Failed to fetch updated category assignment data: ${fetchRet.toFuncStatusInfo().errorMessage}"
                     )
-                    ret = SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
-                        errorMessage = "データ追加には成功しましたが、その後のリモートデータ取得で失敗しました。 ${fetchRet.toSuspendFuncStatusInfo().errorMessage}"
+                    ret = FuncStatusInfo(
+                        status = FuncStatus.FAILED,
+                        errorMessage = "データ追加には成功しましたが、その後のリモートデータ取得で失敗しました。 ${fetchRet.toFuncStatusInfo().errorMessage}"
                     )
                 }
                 callback(ret)
@@ -149,35 +149,35 @@ class CategoryAssignmentEditViewModel @Inject constructor(
     fun updateCategoryAssignment(
         assignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             val currentData = _assignmentData.value
             if (currentData == null) {
                 callback(
-                    SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "CategoryAssignmentData is null. Please fetch data first."
                     )
                 )
                 return@launch
             }
 
-            val updateRet: SuspendFuncStatusInfo =
+            val updateRet: FuncStatusInfo =
                 categoryAssignmentUseCase.updateCategoryAssignmentWithCheck(
                     assignment,
                     namePattern,
                 )
 
-            var ret: SuspendFuncStatusInfo = updateRet
-            if (updateRet.status == SuspendFuncStatus.SUCCESS) {
+            var ret: FuncStatusInfo = updateRet
+            if (updateRet.status == FuncStatus.SUCCESS) {
                 /* ローカルについてはidを見つけて、そこだけ更新 */
                 val currentMap = _assignmentData.value?.copy()
                 val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
                 val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
                 if (targetMap == null) {
-                    ret = SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    ret = FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "名前パターンからカテゴリー割当を取得できません"
                     )
                 } else {
@@ -191,8 +191,8 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                         // StateFlow に反映
                         _assignmentData.value = updatedData
                     } else {
-                        ret = SuspendFuncStatusInfo(
-                            status = SuspendFuncStatus.FAILED,
+                        ret = FuncStatusInfo(
+                            status = FuncStatus.FAILED,
                             errorMessage = "更新には成功しましたが、UIへの反映に失敗しました"
                         )
                     }
@@ -205,36 +205,36 @@ class CategoryAssignmentEditViewModel @Inject constructor(
     fun removeCategoryAssignment(
         assignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,/* 店名か製品名かはこれで切り替える */
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             val currentData = _assignmentData.value
             if (currentData == null) {
                 callback(
-                    SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "CategoryAssignmentData is null. Please fetch data first."
                     )
                 )
                 return@launch
             }
 
-            val removeRet: SuspendFuncStatusInfo =
+            val removeRet: FuncStatusInfo =
                 categoryAssignmentUseCase.removeCategoryAssignment(
                     assignment,
                     namePattern,
                 )
 
-            var ret: SuspendFuncStatusInfo = removeRet
-            if (removeRet.status == SuspendFuncStatus.SUCCESS) {
+            var ret: FuncStatusInfo = removeRet
+            if (removeRet.status == FuncStatus.SUCCESS) {
                 /* ローカルについてはidを見つけて、そこだけ削除 */
                 val currentMap = _assignmentData.value?.copy()
                 val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
                 val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
                 if (targetMap == null) {
                     //ここに来ることはないはず、、
-                    ret = SuspendFuncStatusInfo(
-                        status = SuspendFuncStatus.FAILED,
+                    ret = FuncStatusInfo(
+                        status = FuncStatus.FAILED,
                         errorMessage = "名前パターンからカテゴリー割当を取得できません"
                     )
                 } else {
@@ -248,8 +248,8 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                         // StateFlow に反映
                         _assignmentData.value = updatedData
                     } else {
-                        ret = SuspendFuncStatusInfo(
-                            status = SuspendFuncStatus.FAILED,
+                        ret = FuncStatusInfo(
+                            status = FuncStatus.FAILED,
                             errorMessage = "削除には成功しましたが、UIへの反映に失敗しました"
                         )
                     }
@@ -259,13 +259,13 @@ class CategoryAssignmentEditViewModel @Inject constructor(
         }
     }
 
-    fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun fetchAllCategories(callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val result = categoryUseCase.fetchAllCategories()
             if (result is FuncResultWithData.Success) {
                 _allCategories.value = result.data
             }
-            callback(result.toSuspendFuncStatusInfo())
+            callback(result.toFuncStatusInfo())
         }
     }
 }

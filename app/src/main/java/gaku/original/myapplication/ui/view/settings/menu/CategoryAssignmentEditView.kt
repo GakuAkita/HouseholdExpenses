@@ -36,7 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryAssignmentDialog
@@ -109,7 +109,7 @@ fun CategoryAssignmentEditView(
                             assignment = assignment.copy(categoryId = category.id),
                             namePattern = namePattern
                         ) { result ->
-                            if (result.status != SuspendFuncStatus.SUCCESS) {
+                            if (result.status != FuncStatus.SUCCESS) {
                                 snackBarHostState.currentSnackbarData?.dismiss()
                                 scope.launch {
                                     snackBarHostState.showSnackbar(
@@ -248,7 +248,7 @@ fun CategoryAssignmentEditView(
                                 assignment = assignment,
                                 namePattern = namePattern,
                             ) {
-                                if (it.status == SuspendFuncStatus.SUCCESS) {
+                                if (it.status == FuncStatus.SUCCESS) {
                                     showAddEditDialog = false
                                     scope.launch {
                                         snackBarHostState.currentSnackbarData?.dismiss()
@@ -270,7 +270,7 @@ fun CategoryAssignmentEditView(
                                 assignment = assignment,
                                 namePattern = namePattern
                             ) { result ->
-                                if (result.status == SuspendFuncStatus.SUCCESS) {
+                                if (result.status == FuncStatus.SUCCESS) {
                                     showAddEditDialog = false
                                     scope.launch {
                                         snackBarHostState.currentSnackbarData?.dismiss()
@@ -302,7 +302,7 @@ fun CategoryAssignmentEditView(
                             assignment = assignmentEdited ?: return@ConfirmAlertDialog,
                             namePattern = initialNamePattern ?: return@ConfirmAlertDialog
                         ) { result ->
-                            if (result.status == SuspendFuncStatus.SUCCESS) {
+                            if (result.status == FuncStatus.SUCCESS) {
                                 showDeleteConfirmDialog = false
                                 scope.launch {
                                     snackBarHostState.currentSnackbarData?.dismiss()

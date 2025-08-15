@@ -5,9 +5,9 @@ import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.GenericTypeIndicator
 import gaku.original.myapplication.RealtimeDbReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.mapFailure
@@ -60,7 +60,7 @@ class CategoryAssignmentRepository @Inject constructor(
                     val data = snapshot.getValue(CategoryAssignmentData::class.java)
                     if (data == null) {
                         val result = FuncResultWithData.Failure.GenericFailure(
-                            status = SuspendFuncStatus.FAILED,
+                            status = FuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${CategoryAssignmentData::class.simpleName}"
                         )
                         return@withContext result
@@ -77,7 +77,7 @@ class CategoryAssignmentRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }
@@ -120,7 +120,7 @@ class CategoryAssignmentRepository @Inject constructor(
                     val data = snapshot.getValue(typeIndicator)
                     if (data == null) {
                         val result = FuncResultWithData.Failure.GenericFailure(
-                            status = SuspendFuncStatus.FAILED,
+                            status = FuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${CategoryAssignmentData::class.simpleName}"
                         )
                         return@withContext result
@@ -137,7 +137,7 @@ class CategoryAssignmentRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }
@@ -146,7 +146,7 @@ class CategoryAssignmentRepository @Inject constructor(
     suspend fun addCategoryAssignment(
         categoryAssignment: CategoryAssignment,
         reference: DatabaseReference
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         return addDataToRTDbWithId(
             data = categoryAssignment,
             reference = reference
@@ -156,7 +156,7 @@ class CategoryAssignmentRepository @Inject constructor(
     suspend fun updateCategoryAssignment(
         categoryAssignment: CategoryAssignment,
         reference: DatabaseReference//これは親を渡す
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         return updateDataToRTDb(
             data = categoryAssignment,
             reference = reference
@@ -166,7 +166,7 @@ class CategoryAssignmentRepository @Inject constructor(
     suspend fun removeCategoryAssignment(
         categoryAssignment: CategoryAssignment,
         reference: DatabaseReference
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         return removeDataFromRTDb(
             categoryAssignment,
             reference

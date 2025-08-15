@@ -1,9 +1,9 @@
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.Interface.HasId
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -19,7 +19,7 @@ suspend fun <T> addDataToRTDbSimple(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): SuspendFuncStatusInfo = withContext(Dispatchers.IO) {
+): FuncStatusInfo = withContext(Dispatchers.IO) {
     val funcName = "addDataToRTDbSimple"
     LogAkitaDebug("${funcName} called")
     try {
@@ -30,11 +30,11 @@ suspend fun <T> addDataToRTDbSimple(
                     .addOnCompleteListener { task ->
                         val statusInfo = if (task.isSuccessful) {
                             Log.d(funcName, "Data added successfully")
-                            SuspendFuncStatusInfo(SuspendFuncStatus.SUCCESS, "")
+                            FuncStatusInfo(FuncStatus.SUCCESS, "")
                         } else {
                             Log.e(funcName, "Failed to add data", task.exception)
-                            SuspendFuncStatusInfo(
-                                SuspendFuncStatus.FAILED,
+                            FuncStatusInfo(
+                                FuncStatus.FAILED,
                                 task.exception?.message ?: "Unknown error"
                             )
                         }
@@ -43,14 +43,14 @@ suspend fun <T> addDataToRTDbSimple(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        val statusInfo = SuspendFuncStatusInfo(
-            SuspendFuncStatus.TIMEOUT,
+        val statusInfo = FuncStatusInfo(
+            FuncStatus.TIMEOUT,
             "Timeout occurred"
         )
         statusInfo
     } catch (e: Exception) {
-        val statusInfo = SuspendFuncStatusInfo(
-            SuspendFuncStatus.FAILED,
+        val statusInfo = FuncStatusInfo(
+            FuncStatus.FAILED,
             e.message ?: "Unknown error"
         )
         statusInfo
@@ -65,7 +65,7 @@ suspend fun <T : HasId> addDataToRTDbWithId(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): SuspendFuncStatusInfo {
+): FuncStatusInfo {
     val newDataRef = reference.push()
     data.id = newDataRef.key
     return addDataToRTDbSimple(
@@ -79,7 +79,7 @@ suspend fun <T : CommonProperty> addDataToRTDbWithCommonProperty(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): SuspendFuncStatusInfo {
+): FuncStatusInfo {
 
     val newDataRef = reference.push()
 

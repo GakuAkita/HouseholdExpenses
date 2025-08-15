@@ -1,6 +1,6 @@
 package gaku.original.myapplication.data.Constants.Status
 
-enum class SuspendFuncStatus {
+enum class FuncStatus {
     SUCCESS,
     TIMEOUT,
     FAILED,

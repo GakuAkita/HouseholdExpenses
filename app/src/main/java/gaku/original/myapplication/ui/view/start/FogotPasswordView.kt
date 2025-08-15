@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.start.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
@@ -83,7 +83,7 @@ fun ForgotPasswordView(
                         callback = { statusInfo ->
                             snackBarHostState.currentSnackbarData?.dismiss()
                             when (statusInfo.status) {
-                                SuspendFuncStatus.SUCCESS -> {
+                                FuncStatus.SUCCESS -> {
                                     scope.launch {
                                         snackBarHostState.showSnackbar(
                                             "パスワード再設定メールを送信しました。",
@@ -93,7 +93,7 @@ fun ForgotPasswordView(
                                     }
                                 }
 
-                                SuspendFuncStatus.TIMEOUT -> {
+                                FuncStatus.TIMEOUT -> {
                                     scope.launch {
                                         snackBarHostState.showSnackbar(
                                             "タイムアウトしました。",
@@ -103,7 +103,7 @@ fun ForgotPasswordView(
                                     }
                                 }
 
-                                SuspendFuncStatus.FAILED -> {
+                                FuncStatus.FAILED -> {
                                     scope.launch {
                                         snackBarHostState.showSnackbar(
                                             getErrorMsgFromCode(statusInfo.errorCode),

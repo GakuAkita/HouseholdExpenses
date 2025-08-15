@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.useCase.RepeatAddUseCase
@@ -29,7 +29,7 @@ class RepeatAddViewModel @Inject constructor(
     val progress: StateFlow<Float> = _progress
 
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
-    fun fetchAllRepeatAddSettings(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun fetchAllRepeatAddSettings(callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val fetchResult = repeatAddUseCase.fetchAllRepeatAdd()
             if (fetchResult is FuncResultWithData.Success) {
@@ -37,7 +37,7 @@ class RepeatAddViewModel @Inject constructor(
             } else {
                 _repeatAddSettings.value = emptyList()
             }
-            callback(fetchResult.toSuspendFuncStatusInfo())
+            callback(fetchResult.toFuncStatusInfo())
         }
     }
 
@@ -56,14 +56,14 @@ class RepeatAddViewModel @Inject constructor(
         }
     }
 
-    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val ret = repeatAddUseCase.updateRepeatAdd(repeatAdd)
             callback(ret)
         }
     }
 
-    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val ret = repeatAddUseCase.removeRepeatAdd(repeatAdd)
             callback(ret)
@@ -79,7 +79,7 @@ class RepeatAddViewModel @Inject constructor(
      */
     fun addExpensesForRestOfDays(
         repeatAdd: RepeatAdd,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         /* RepeatAddのexpenseのgeneratedTypeは入っていないのでここで入れないとだめ */
         viewModelScope.launch {

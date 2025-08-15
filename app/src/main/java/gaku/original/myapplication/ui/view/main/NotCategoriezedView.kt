@@ -25,7 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.ui.common.BottomBarView
@@ -46,9 +46,9 @@ fun NotCategorizedView(
 
     LaunchedEffect(Unit) {
         viewModel.fetchNotCategorizedExpenses {
-            if (it.status == SuspendFuncStatus.SUCCESS) {
+            if (it.status == FuncStatus.SUCCESS) {
                 LogAkitaDebug("fetch success!!")
-            } else if (it.status == SuspendFuncStatus.TIMEOUT) {
+            } else if (it.status == FuncStatus.TIMEOUT) {
                 LogAkitaDebug("Timeout")
             } else {
                 LogAkitaDebug("Failed")

@@ -4,9 +4,9 @@ import addDataWithIdToFirestore
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +36,7 @@ class RepeatAddFirestoreRepository @Inject constructor(
         val ref = getRepeatAddColRef()
         if (ref == null) {
             val statusInfo = FuncResultWithData.Failure.GenericFailure(
-                SuspendFuncStatus.FAILED,
+                FuncStatus.FAILED,
                 "RepeatAddコレクションが参照できませんでした"
             )
             return statusInfo
@@ -48,11 +48,11 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
     suspend fun updateRepeatAdd(
         repeatAdd: RepeatAdd,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getRepeatAddColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "RepeatAddコレクションが参照できませんでした"
             )
             return statusInfo
@@ -64,11 +64,11 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
     suspend fun removeRepeatAdd(
         repeatAdd: RepeatAdd,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val ref = getRepeatAddColRef()
         if (ref == null) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "RepeatAddコレクションが参照できませんでした"
             )
             return statusInfo
@@ -88,7 +88,7 @@ class RepeatAddFirestoreRepository @Inject constructor(
 
         if (repeatAddRef == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "RepeatAddコレクションが参照できませんでした"
             )
             return result
@@ -121,7 +121,7 @@ class RepeatAddFirestoreRepository @Inject constructor(
         } catch (e: Exception) {
             Log.d(className, "$funcName failed. ${e.message}")
             val result = FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "不明なエラー"
             )
             result

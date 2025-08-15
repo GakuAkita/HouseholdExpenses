@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
@@ -73,7 +73,7 @@ fun AppSettingsView(
                     selectedOption = option
                     AppTimeZone.updateStrZoneId(option.id)  // 選択されたタイムゾーンIDを更新
                     viewModel.setUserTimeZone(option.id) { statusInfo ->
-                        if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+                        if (statusInfo.status != FuncStatus.SUCCESS) {
                             scope.launch {
                                 snackBarHostState.showSnackbar(
                                     "タイムゾーンの設定に失敗しました: ${statusInfo.errorMessage}\n再度選択してください"

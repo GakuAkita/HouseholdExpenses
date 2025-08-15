@@ -9,7 +9,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 
 /**
@@ -36,13 +36,13 @@ object CredentialManagerHelper {
                 val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 FuncResultWithData.Success(data = googleCredential.idToken)
             } else FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = "Unexpected credential type: ${credential?.type}"
             )
         } catch (e: GetCredentialException) {
             Log.e("CredentialManager", "Credential error: ${e.message}")
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }

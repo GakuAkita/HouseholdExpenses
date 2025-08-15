@@ -2,7 +2,7 @@ package gaku.original.myapplication//ここ抽象化してexpense用とcategory�
 //import com.google.firebase.database.ChildEventListener
 //import com.google.firebase.database.DatabaseReference
 //import com.google.firebase.database.Query
-//import gaku.original.myapplication.data.SuspendFuncStatusInfo
+//import gaku.original.myapplication.data.FuncStatusInfo
 //import javax.inject.Inject
 //
 //class RealtimeDbListenerManager @Inject constructor(
@@ -18,11 +18,11 @@ package gaku.original.myapplication//ここ抽象化してexpense用とcategory�
 //     * 上位でもRefを使ってもらうため、ここで定義
 //     * 別にここで定義してなくてもいいのか。
 //     */
-//    suspend fun getExpenseRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
+//    suspend fun getExpenseRef(callback: (FuncStatusInfo) -> Unit = {}): DatabaseReference? {
 //        return realtimeDbReference.getUserExpenseRef(callback)
 //    }
 //
-//    suspend fun getCategoryRef(callback: (SuspendFuncStatusInfo) -> Unit = {}): DatabaseReference? {
+//    suspend fun getCategoryRef(callback: (FuncStatusInfo) -> Unit = {}): DatabaseReference? {
 //        return realtimeDbReference.getUserCategoryRef(callback)
 //    }
 //

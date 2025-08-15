@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.BuildConfig
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
@@ -22,8 +22,8 @@ import javax.inject.Inject
 data class EmailTemplateSettingState(
     val type: EmailTemplateType,/* これは変えない */
     val setting: EmailTemplateType?,/* これが実際の値 */
-    var status: SuspendFuncStatusInfo = SuspendFuncStatusInfo(
-        SuspendFuncStatus.SUCCESS,
+    var status: FuncStatusInfo = FuncStatusInfo(
+        FuncStatus.SUCCESS,
         "Not loaded yet"
     )
 )
@@ -70,21 +70,21 @@ class MailboxExtractionViewModel @Inject constructor(
     /**
      * callback内で生成したOAuth URLを受け取り、WebViewやブラウザで開く
      */
-    fun getOAuthUrl(callback: (SuspendFuncStatusInfo, String) -> Unit) {
+    fun getOAuthUrl(callback: (FuncStatusInfo, String) -> Unit) {
         _loading.value = true
         viewModelScope.launch {
             val idTokenResult = firebaseAuthRepository.getIdToken()
             if (idTokenResult !is FuncResultWithData.Success) {
                 _loading.value = false
-                callback(idTokenResult.toSuspendFuncStatusInfo(), "")
+                callback(idTokenResult.toFuncStatusInfo(), "")
                 return@launch
             }
 
             val token: String = idTokenResult.data
             val oauthUrl = generateOAuthUrl(token)
 
-            val status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            val status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "OAuth URL generated successfully"
             )
             _loading.value = false
@@ -99,8 +99,8 @@ class MailboxExtractionViewModel @Inject constructor(
         EmailTemplateSettingState(
             type = EmailTemplateType.RakutenPay(),
             setting = null,
-            status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "Not loaded yet"
             )
         )
@@ -112,8 +112,8 @@ class MailboxExtractionViewModel @Inject constructor(
             EmailTemplateSettingState(
                 type = EmailTemplateType.ShikokuElectricPower(),
                 setting = null,
-                status = SuspendFuncStatusInfo(
-                    SuspendFuncStatus.SUCCESS,
+                status = FuncStatusInfo(
+                    FuncStatus.SUCCESS,
                     "Not loaded yet"
                 )
             )
@@ -124,8 +124,8 @@ class MailboxExtractionViewModel @Inject constructor(
         EmailTemplateSettingState(
             type = EmailTemplateType.AmazonKindle(),
             setting = null,
-            status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "Not loaded yet"
             )
         )
@@ -136,8 +136,8 @@ class MailboxExtractionViewModel @Inject constructor(
         EmailTemplateSettingState(
             type = EmailTemplateType.AmazonItem(),
             setting = null,
-            status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "Not loaded yet"
             )
         )
@@ -148,8 +148,8 @@ class MailboxExtractionViewModel @Inject constructor(
         EmailTemplateSettingState(
             type = EmailTemplateType.Udemy(),
             setting = null,
-            status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "Not loaded yet"
             )
         )
@@ -160,8 +160,8 @@ class MailboxExtractionViewModel @Inject constructor(
         EmailTemplateSettingState(
             type = EmailTemplateType.RakutenCardETC(),
             setting = null,
-            status = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "Not loaded yet"
             )
         )
@@ -241,7 +241,7 @@ class MailboxExtractionViewModel @Inject constructor(
         )
     }
 
-    private fun loadAllEmailTemplateTypeSetting(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    private fun loadAllEmailTemplateTypeSetting(callback: (FuncStatusInfo) -> Unit = {}) {
         var count = 0
         _loading.value = true
         viewModelScope.launch {
@@ -253,16 +253,16 @@ class MailboxExtractionViewModel @Inject constructor(
                         /* まだ未設定。明示的にデフォルト値をいれる */
                         settingState.value = settingState.value.copy(
                             setting = settingState.value.type.defaultInstance(),
-                            status = SuspendFuncStatusInfo(
-                                SuspendFuncStatus.SUCCESS,
+                            status = FuncStatusInfo(
+                                FuncStatus.SUCCESS,
                                 "Default value set for ${settingState.value.type.menuName}"
                             )
                         )
                     } else {
                         settingState.value = settingState.value.copy(
                             setting = fetchResult.data,
-                            status = SuspendFuncStatusInfo(
-                                SuspendFuncStatus.SUCCESS,
+                            status = FuncStatusInfo(
+                                FuncStatus.SUCCESS,
                                 "Loaded ${settingState.value.type.menuName} setting successfully."
                             )
                         )
@@ -271,13 +271,13 @@ class MailboxExtractionViewModel @Inject constructor(
                 } else {
                     /* ステータスだけ取得しておく */
                     settingState.value = settingState.value.copy(
-                        status = fetchResult.toSuspendFuncStatusInfo()
+                        status = fetchResult.toFuncStatusInfo()
                     )
                 }
             }
 
-            var statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.SUCCESS,
+            var statusInfo = FuncStatusInfo(
+                FuncStatus.SUCCESS,
                 "All email template settings loaded successfully."
             )
             if (count == allEmailTemplateStateFlowsList.size) {
@@ -286,8 +286,8 @@ class MailboxExtractionViewModel @Inject constructor(
             } else {
                 // 何かしらの設定がロードできなかった場合の処理
                 LogAkitaDebug("$className: Some email template settings failed to load.")
-                statusInfo = SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
+                statusInfo = FuncStatusInfo(
+                    FuncStatus.FAILED,
                     "Some email template settings failed to load."
                 )
             }
@@ -297,11 +297,11 @@ class MailboxExtractionViewModel @Inject constructor(
 
     suspend fun updateEmailTemplateSetting(
         settingState: EmailTemplateSettingState
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         if (settingState.setting == null) {
             /* そもそもnullだったらこの関数が実行されないようにUIになっているはずだが、、 */
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "Email template setting is null, cannot update."
             )
             return statusInfo
@@ -313,7 +313,7 @@ class MailboxExtractionViewModel @Inject constructor(
 
     fun updateEmailTemplateSettingWithLocalUpdate(
         settingState: EmailTemplateSettingState,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         var index: Int = -1
         for (i in allEmailTemplateStateFlowsList.indices) {
@@ -325,8 +325,8 @@ class MailboxExtractionViewModel @Inject constructor(
         if (index == -1) {
             /* まあここに来ることはほぼないが、、 */
             callback(
-                SuspendFuncStatusInfo(
-                    SuspendFuncStatus.FAILED,
+                FuncStatusInfo(
+                    FuncStatus.FAILED,
                     "Email template type not found in state flows."
                 )
             )
@@ -335,7 +335,7 @@ class MailboxExtractionViewModel @Inject constructor(
 
         viewModelScope.launch {
             val statusInfo = updateEmailTemplateSetting(settingState)
-            if (statusInfo.status != SuspendFuncStatus.SUCCESS) {
+            if (statusInfo.status != FuncStatus.SUCCESS) {
                 /* 失敗したときは、ステータスだけ更新しておく */
                 allEmailTemplateStateFlowsList[index].value =
                     allEmailTemplateStateFlowsList[index].value.copy(
@@ -364,10 +364,10 @@ class MailboxExtractionViewModel @Inject constructor(
         return fetchResult
     }
 
-    fun fetchAllCategories(callback: (SuspendFuncStatusInfo) -> Unit = {}) {
+    fun fetchAllCategories(callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
             val fetchResult = fetchAllCategoriesWithLocalUpdate()
-            callback(fetchResult.toSuspendFuncStatusInfo())
+            callback(fetchResult.toFuncStatusInfo())
         }
     }
 
@@ -377,20 +377,20 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     fun loadIsGmailTokenExistWithLocalUpdate(
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             val fetchResult = getIsGmailTokenExist()
             if (fetchResult is FuncResultWithData.Success) {
                 _isGmailTokenExist.value = fetchResult.data
                 callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.SUCCESS,
+                    FuncStatusInfo(
+                        FuncStatus.SUCCESS,
                         "Gmail token status loaded successfully."
                     )
                 )
             } else {
-                callback(fetchResult.toSuspendFuncStatusInfo())
+                callback(fetchResult.toFuncStatusInfo())
             }
         }
     }
@@ -415,7 +415,7 @@ class MailboxExtractionViewModel @Inject constructor(
     }
 
     fun loadAllMailTypeLastExec(
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
+        callback: (FuncStatusInfo) -> Unit = {}
     ) {
         viewModelScope.launch {
             var failedList = emptyList<String>()
@@ -427,15 +427,15 @@ class MailboxExtractionViewModel @Inject constructor(
             }
             if (failedList.isEmpty()) {
                 callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.SUCCESS,
+                    FuncStatusInfo(
+                        FuncStatus.SUCCESS,
                         "All last execution times loaded successfully."
                     )
                 )
             } else {
                 callback(
-                    SuspendFuncStatusInfo(
-                        SuspendFuncStatus.FAILED,
+                    FuncStatusInfo(
+                        FuncStatus.FAILED,
                         "Failed to load last execution for: ${failedList.joinToString(", ")}"
                     )
                 )

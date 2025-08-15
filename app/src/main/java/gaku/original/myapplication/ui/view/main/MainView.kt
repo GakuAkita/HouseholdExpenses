@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.CalendarDisplay
@@ -102,14 +102,14 @@ fun MainView(
                 currentPageMonth,
                 callback = { statusInfo ->
                     when (statusInfo.status) {
-                        SuspendFuncStatus.SUCCESS -> {
+                        FuncStatus.SUCCESS -> {
                         }
 
-                        SuspendFuncStatus.TIMEOUT -> {
+                        FuncStatus.TIMEOUT -> {
                             /* スナックバーを出したい */
                         }
 
-                        SuspendFuncStatus.FAILED -> {
+                        FuncStatus.FAILED -> {
                             /* スナックバーを出したい。 */
                         }
                     }
@@ -126,15 +126,15 @@ fun MainView(
         /* 内部で一回だけ実行するようにしている、、 */
         viewModel.onSignedIn(callback = { status ->
             when (status.status) {
-                SuspendFuncStatus.SUCCESS -> {
+                FuncStatus.SUCCESS -> {
                     Log.d(viewName, "サインイン直後にやる処理に成功")
                 }
 
-                SuspendFuncStatus.TIMEOUT -> {
+                FuncStatus.TIMEOUT -> {
                     Log.d(viewName, "サインイン直後にやる処理がタイムアウトしました")
                 }
 
-                SuspendFuncStatus.FAILED -> {
+                FuncStatus.FAILED -> {
                     Log.d(viewName, "サインイン直後に破る処理に失敗しました")
                 }
             }

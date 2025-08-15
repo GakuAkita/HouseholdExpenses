@@ -3,9 +3,9 @@ package gaku.original.myapplication.repository.RealtimeDBrepository
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
 import gaku.original.myapplication.data.mapFailure
@@ -30,10 +30,10 @@ class MailboxExtractionRTDbRepository @Inject constructor(
 
     suspend fun updateMailTypeSetting(
         setting: EmailTemplateType
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val refRet = getEmailTemplateSettingSingleRef(setting)
         if (refRet !is FuncResultWithData.Success) {
-            return refRet.toSuspendFuncStatusInfo()
+            return refRet.toFuncStatusInfo()
         }
 
         val ref = refRet.data
@@ -66,7 +66,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                     val data = snapshot.getValue(setting::class.java)
                     if (data == null) {
                         val result = FuncResultWithData.Failure.GenericFailure(
-                            status = SuspendFuncStatus.FAILED,
+                            status = FuncStatus.FAILED,
                             errorMessage = "Unable to convert data to ${setting::class.simpleName}"
                         )
                         return@withContext result
@@ -83,7 +83,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }
@@ -119,7 +119,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }
@@ -148,7 +148,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                     val data = snapshot.getValue(MailboxExtractionLastExec::class.java)
                     if (data == null) {
                         FuncResultWithData.Failure.GenericFailure(
-                            status = SuspendFuncStatus.FAILED,
+                            status = FuncStatus.FAILED,
                             errorMessage = "Unable to convert data to MailboxExtractionLastExec"
                         )
                     } else {
@@ -161,7 +161,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
             FuncResultWithData.Failure.Timeout()
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
-                status = SuspendFuncStatus.FAILED,
+                status = FuncStatus.FAILED,
                 errorMessage = e.message ?: "Unknown error"
             )
         }

@@ -1,9 +1,9 @@
 import android.util.Log
 import com.google.firebase.firestore.CollectionReference
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.RealtimeDBrepository.RepositoryUtil.setDataToFirestore
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 
 /**
  * ほぼsetDataと一緒。Collectionを渡してdataの中のidからDocumentReferenceを作るか、
@@ -13,13 +13,13 @@ suspend fun <T : CommonProperty> updateDataToFirestore(
     data: T,
     reference: CollectionReference, // データ参照を取得するための関数
     timeout: Long = 3000,
-): SuspendFuncStatusInfo {
+): FuncStatusInfo {
     val funcName = "updateDataToFirestore"
 
     val id = data.id
     if (id.isNullOrEmpty()) {
         Log.e(funcName, "id is null or empty")
-        val statusInfo = SuspendFuncStatusInfo(SuspendFuncStatus.FAILED, "id is null or empty")
+        val statusInfo = FuncStatusInfo(FuncStatus.FAILED, "id is null or empty")
         return statusInfo
     }
 

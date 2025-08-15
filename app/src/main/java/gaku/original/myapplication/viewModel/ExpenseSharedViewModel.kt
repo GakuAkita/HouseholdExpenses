@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.FirestoreListenerManager
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.SuspendFuncStatusInfo
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
@@ -127,7 +127,7 @@ class ExpenseSharedViewModel @Inject constructor(
         clearAllListeners()
     }
 
-    fun addInitialCategories(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun addInitialCategories(callback: (FuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             for (category in InitialCategories.categories) {
                 categoryUseCase.addCategory(category)
@@ -135,13 +135,13 @@ class ExpenseSharedViewModel @Inject constructor(
         }
     }
 
-    fun onSignedUp(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun onSignedUp(callback: (FuncStatusInfo) -> Unit) {
         setIsFirstSignIn(false)//これでonSignInを走らせないようにする
 
         addAllListeners()
     }
 
-    fun onSignedIn(callback: (SuspendFuncStatusInfo) -> Unit) {
+    fun onSignedIn(callback: (FuncStatusInfo) -> Unit) {
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
         clearPossession()
         _expensesLoadingStatus.value = LoadingStatus.LOADING
@@ -161,16 +161,16 @@ class ExpenseSharedViewModel @Inject constructor(
                 fromMonth = utcYearMonth.minusMonths(3),
                 toMonth = utcYearMonth.plusMonths(3),
             )
-            if (ret.status == SuspendFuncStatus.SUCCESS) {
+            if (ret.status == FuncStatus.SUCCESS) {
                 _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                 /* fetchしたあとにリスナーを追加しないとだめだわ。 */
-            } else if (ret.status == SuspendFuncStatus.TIMEOUT) {
+            } else if (ret.status == FuncStatus.TIMEOUT) {
                 _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
             } else {
                 _expensesLoadingStatus.value = LoadingStatus.ERROR
             }
 
-            if (ret.status != SuspendFuncStatus.SUCCESS) {
+            if (ret.status != FuncStatus.SUCCESS) {
                 addAllListeners()
                 callback(ret)
                 return@launch
@@ -178,7 +178,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
             /* ここ失敗したらなんか状態管理しておいたほうがいいな。 */
             ret = fetchAllCategories()
-            if (ret.status != SuspendFuncStatus.SUCCESS) {
+            if (ret.status != FuncStatus.SUCCESS) {
                 LogAkitaDebug("Unable to get categories!!")
                 callback(ret)
                 return@launch
@@ -193,7 +193,7 @@ class ExpenseSharedViewModel @Inject constructor(
             }
 
             /* 最後だから */
-            callback(tzRet.toSuspendFuncStatusInfo())
+            callback(tzRet.toFuncStatusInfo())
             /* 他にやることがあるのであればここへ、、 */
         }
     }
@@ -211,21 +211,21 @@ class ExpenseSharedViewModel @Inject constructor(
     fun fetchMonthsExpenses(
         fromMonth: YearMonth,
         toMonth: YearMonth,
-        callback: (SuspendFuncStatusInfo) -> Unit
+        callback: (FuncStatusInfo) -> Unit
     ) {
         _expensesLoadingStatus.value = LoadingStatus.LOADING
         viewModelScope.launch {
             val statusInfo = fetchMonthsExpensesInternal(fromMonth, toMonth)
             when (statusInfo.status) {
-                SuspendFuncStatus.SUCCESS -> {
+                FuncStatus.SUCCESS -> {
                     _expensesLoadingStatus.value = LoadingStatus.COMPLETED
                 }
 
-                SuspendFuncStatus.TIMEOUT -> {
+                FuncStatus.TIMEOUT -> {
                     _expensesLoadingStatus.value = LoadingStatus.TIMEOUT
                 }
 
-                SuspendFuncStatus.FAILED -> {
+                FuncStatus.FAILED -> {
                     _expensesLoadingStatus.value = LoadingStatus.ERROR
                 }
             }
@@ -236,7 +236,7 @@ class ExpenseSharedViewModel @Inject constructor(
     private suspend fun fetchMonthsExpensesInternal(
         fromMonth: YearMonth,
         toMonth: YearMonth,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         val fetchResult = expenseRepository.fetchMonthsExpenses(
             fromMonth,
             toMonth,
@@ -246,7 +246,7 @@ class ExpenseSharedViewModel @Inject constructor(
             _storedExpenses.value = fetchResult.data
             Log.d(className, "Expenses:${_storedExpenses.value}")
         }
-        return fetchResult.toSuspendFuncStatusInfo()
+        return fetchResult.toFuncStatusInfo()
     }
 
     /**
@@ -254,17 +254,17 @@ class ExpenseSharedViewModel @Inject constructor(
      */
 //    private suspend fun fetchAllExpensesInternal(
 //        onStart: () -> Unit = {},
-//        callback: (SuspendFuncStatusInfo) -> Unit = {}
-//    ): SuspendFuncStatusInfo {
+//        callback: (FuncStatusInfo) -> Unit = {}
+//    ): FuncStatusInfo {
 //        onStart()
 //        val fetchResult = expenseRepository.fetchAllExpenses(callback = callback)
 //        if (fetchResult !is FuncResultWithData.Success) {
-//            return fetchResult.toSuspendFuncStatusInfo()
+//            return fetchResult.toFuncStatusInfo()
 //        }
-//        val statusInfo = fetchStatusInf.toSuspendFuncStatusInfo()
+//        val statusInfo = fetchStatusInf.toFuncStatusInfo()
 //
 //        /* 成功したときだけ書き換える。 */
-//        if (statusInfo.status == SuspendFuncStatus.SUCCESS) {
+//        if (statusInfo.status == FuncStatus.SUCCESS) {
 //            _storedExpenses.value = fetchStatusInfo.data ?: emptyList()
 //        }
 //        Log.d(className, "Expenses:${_storedExpenses.value}")
@@ -289,7 +289,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun updateExpense(
         expense: Expense
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
 
         return expenseRepository.updateExpense(expense)
 
@@ -297,13 +297,13 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun removeExpense(
         expense: Expense,
-        callback: (SuspendFuncStatusInfo) -> Unit = {}
-    ): SuspendFuncStatusInfo {
+        callback: (FuncStatusInfo) -> Unit = {}
+    ): FuncStatusInfo {
         return expenseRepository.removeExpense(expense)
     }
 
     /*******************Category CRUD関連**************************/
-    suspend fun fetchAllCategories(): SuspendFuncStatusInfo {
+    suspend fun fetchAllCategories(): FuncStatusInfo {
 
         val fetchResult = categoryUseCase.fetchAllCategories()
 
@@ -311,7 +311,7 @@ class ExpenseSharedViewModel @Inject constructor(
             _allCategories.value = fetchResult.data
         }
         Log.d(className, "Categories:${_allCategories.value}")
-        return fetchResult.toSuspendFuncStatusInfo()
+        return fetchResult.toFuncStatusInfo()
     }
 
     /*
@@ -326,7 +326,7 @@ class ExpenseSharedViewModel @Inject constructor(
         val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
             val statusInfo = FuncResultWithData.Failure.GenericFailure(
-                SuspendFuncStatus.FAILED,
+                FuncStatus.FAILED,
                 "${category.name} はすでに存在しています。"
             )
             return statusInfo
@@ -339,12 +339,12 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun updateCategory(
         category: Category,
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         //@TODO すでに存在するかチェックは関数化したほうが良いかも
         val isNameAlreadyExists = _allCategories.value.any { it.name == category.name }
         if (isNameAlreadyExists) {
-            val statusInfo = SuspendFuncStatusInfo(
-                SuspendFuncStatus.FAILED,
+            val statusInfo = FuncStatusInfo(
+                FuncStatus.FAILED,
                 "${category.name}はすでに存在しています。"
             )
             return statusInfo
@@ -355,7 +355,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     suspend fun removeCategory(
         category: Category
-    ): SuspendFuncStatusInfo {
+    ): FuncStatusInfo {
         return categoryUseCase.removeCategory(category)
     }
 

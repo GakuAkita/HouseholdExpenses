@@ -49,7 +49,7 @@ fun OCRView(
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uriUpdatedTimestamp.value) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
-        viewModel.createExpenseByPayPayReceipt(context) {
+        viewModel.runOcr(context) {
             showExtractedExpenseDialog = true
         }
     }
@@ -73,7 +73,9 @@ fun OCRView(
         ) {
             Button(
                 onClick = {
-                    viewModel.createExpenseByPayPayReceipt(context)
+                    viewModel.runOcr(context) {
+                        showExtractedExpenseDialog = true
+                    }
                 }
             ) {
                 Text("再読み込み")

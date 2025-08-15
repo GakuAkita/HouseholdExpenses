@@ -66,7 +66,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.data.Constants.Status.SuspendFuncStatus
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.CategoryAssignFlag
 import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.AssignmentCondition
@@ -222,7 +222,7 @@ fun ExpenseAddEditView(
         if (viewModel.getHeadExpense().id == null) {
             viewModel.addTmpExpenseToDb(callback = {
                 /* 成功のときのみ */
-                if (it.status == SuspendFuncStatus.SUCCESS) {
+                if (it.status == FuncStatus.SUCCESS) {
                     scope.launch {
                         snackBarHostState.showSnackbar("追加しました")
                     }
@@ -231,7 +231,7 @@ fun ExpenseAddEditView(
             })
         } else {
             viewModel.updateTmpExpenseToDb(onStart = {}, callback = {
-                if (it.status == SuspendFuncStatus.SUCCESS) {
+                if (it.status == FuncStatus.SUCCESS) {
                     scope.launch {
                         snackBarHostState.showSnackbar("更新する")
                     }
@@ -753,7 +753,7 @@ fun ExpenseAddEditView(
                         assignment,
                         namePattern,
                         callback = {
-                            if (it.status == SuspendFuncStatus.SUCCESS) {
+                            if (it.status == FuncStatus.SUCCESS) {
                                 showCategoryAssignmentDialog = false
                                 scope.launch {
                                     snackBarHostState.currentSnackbarData?.dismiss()
@@ -799,7 +799,7 @@ fun ExpenseAddEditView(
                     viewModel.removeTmpExpenseToDb(
                         onStart = {},
                         callback = {
-                            if (it.status == SuspendFuncStatus.SUCCESS) {
+                            if (it.status == FuncStatus.SUCCESS) {
                                 viewModel.resetTmpExpenseList()
                                 navController.popBackStack()
                             } else {
