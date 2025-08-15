@@ -133,7 +133,7 @@ class PayPayReceiptParser(
         if (result.amount == null || result.storeName == null) {
             return FuncResultWithData.Warning(
                 data = result,
-                warningMessage = "取得できない項目がありました"
+                warningMessage = "取得できない項目がありました。\n費用:${result.amount} 店名:[${result.storeName}]"
             )
         }
 
@@ -143,36 +143,34 @@ class PayPayReceiptParser(
     }
 
     fun extractDate(text: String): String? {
-        val processedT =
-            text.replace("B時", "時").replace("\\s+".toRegex(), "")/* なぜかB時になってしまうパターンがあった */
+        // OCRのノイズ対策：B時を時に置換、全角スペースや複数スペースを削除
+        val processedT = text.replace("B時", "時").replace("\\s+".toRegex(), " ").trim()
 
+        // 日本語形式：yyyy年M月d日H時m分（スペース有無対応）
         val dateJaRegex = """(\d{4}年\d{1,2}月\d{1,2}日\s*\d{1,2}時\d{1,2}分)""".toRegex()
-        val dateEnRegex = """\d{4}/\d{1,2}/\d{1,2}\s*\d{1,2}:\d{2}""".toRegex()
-
-        dateJaRegex.find(processedT)?.let { jaDate ->
-            /* yyyy年mm月dd日 HH時MM分をLocalDateTimeに変換して、それをUTC文字列に変える */
+        dateJaRegex.find(processedT)?.value?.let { jaDate ->
+            val normalized = jaDate.replace("\\s+".toRegex(), "") // スペース削除
             val formatter = DateTimeFormatter.ofPattern("yyyy年M月d日H時m分")
-            val localDateTime = LocalDateTime.parse(jaDate.value, formatter)
-            val isoStr = AppTimeZone.localDateTimeToIsoString(localDateTime)
-
-            return isoStr
-        }
-
-        dateEnRegex.find(processedT)?.let { enDate ->
-            /**
-             * 2025/8/1514:56こういう文字列はparseできないから、
-             * 意図的に間にスペースをいれる
-             */
-            val normalized = enDate.value.replace(Regex("(\\d{1,2}):(\\d{2})"), " $1:$2")
-            val formatter = DateTimeFormatter.ofPattern("yyyy/M/d/ H:m")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            val isoStr = AppTimeZone.localDateTimeToIsoString(localDateTime)
-            return isoStr
+            return AppTimeZone.localDateTimeToIsoString(localDateTime)
         }
 
-        /* 検知できなかった */
+        // 英数字形式：yyyy/M/d H:m（スペース有無や時刻くっつき対応）
+        val dateEnRegex = """(\d{4}/\d{1,2}/\d{1,2}\s*\d{1,2}:\d{2})""".toRegex()
+        dateEnRegex.find(processedT)?.value?.let { enDate ->
+            // 時刻の前に必ずスペースを入れる
+            val normalized = enDate.replace(Regex("(\\d{1,2}):(\\d{2})"), " $1:$2")
+                .replace("\\s+".toRegex(), " ") // 複数スペースを1つに
+                .trim()
+            val formatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m")
+            val localDateTime = LocalDateTime.parse(normalized, formatter)
+            return AppTimeZone.localDateTimeToIsoString(localDateTime)
+        }
+
+        // どちらにもマッチしなかった場合
         return null
     }
+
 
     fun extractAmount(text: String): Long? {
         /* 日本語 */
@@ -182,11 +180,11 @@ class PayPayReceiptParser(
         val amountEnRegex = """\d{1,3}(,\d{3})*\s*yen""".toRegex()
 
         amountJaRegex.find(text)?.let {
-            return it.value.replace(",", "").replace("円", "").toLong()
+            return it.value.replace(",", "").replace("円", "").trim().toLongOrNull()
         }
 
         amountEnRegex.find(text)?.let {
-            return it.value.replace(",", "").replace("yen", "").toLong()
+            return it.value.replace(",", "").replace("yen", "").trim().toLongOrNull()
         }
 
         return null
