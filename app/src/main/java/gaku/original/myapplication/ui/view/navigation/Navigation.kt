@@ -18,9 +18,9 @@ import gaku.original.myapplication.ui.view.main.NotCategorizedView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
+import gaku.original.myapplication.ui.view.settings.menu.MailboxExtractionView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
-import gaku.original.myapplication.ui.view.settings.menu.mailboxExtraction.MailboxExtractionView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView

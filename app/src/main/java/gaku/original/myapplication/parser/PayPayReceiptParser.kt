@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.min
 
-class PayPayReceiptParser(
+class PayPayReceiptOCRParser(
     val textOcr: Text?
 ) {
 
@@ -128,7 +128,7 @@ class PayPayReceiptParser(
         result.amount = amount
         result.storeName = storeName
 
-        Log.d("PayPayReceiptParser", "dateISo:${dateIso} amount:${amount} storeName: $storeName")
+        Log.d("PayPayReceiptOCRParser", "dateISo:${dateIso} amount:${amount} storeName: $storeName")
 
         if (result.amount == null || result.storeName == null) {
             return FuncResultWithData.Warning(

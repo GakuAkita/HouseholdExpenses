@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu.mailboxExtraction
+package gaku.original.myapplication.ui.view.settings.menu
 
 import android.content.Context
 import android.content.Intent

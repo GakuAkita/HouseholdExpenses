@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ShareReceiver
+package gaku.original.myapplication.shareReceiver
 
 import android.content.Intent
 import android.net.Uri
@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import gaku.original.myapplication.MainActivity
+import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.utility.copyUriToCache
 import gaku.original.myapplication.utility.getParcelableExtraCompat
@@ -35,7 +36,7 @@ class ShareReceiverActivity : ComponentActivity() {
         }
 
         val allowedPackages = listOf(
-            "jp.ne.paypay.android.app",
+            AppPackageNames.PAYPAY,
         )
 
         if (senderPackage in allowedPackages) {

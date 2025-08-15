@@ -17,7 +17,7 @@ import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
-import gaku.original.myapplication.parser.PayPayReceiptParser
+import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,7 +84,7 @@ class OCRViewModel @Inject constructor(
                 _ocrResult.value = result.data
 
                 /* ここでPayPayの読み込み行うか */
-                val paypayParser = PayPayReceiptParser(result.data)
+                val paypayParser = PayPayReceiptOCRParser(result.data)
                 val paypayResult = paypayParser.parse()
                 if (paypayResult is FuncResultWithData.Success) {
                     _extractedExpense.value = paypayResult.data

@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.ui.common.BottomBarView
@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsView(
     viewModel: AuthManagerViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -55,48 +55,41 @@ fun SettingsView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            SettingRow(
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.UserInfo.route)
-                }
-            ) {
-                Text("ユーザー情報", modifier = Modifier.padding(start = 10.dp))
-            }
+            SettingRowWithNavigation(
+                label = "ユーザー情報",
+                navController = navController,
+                route = Screen.SettingScreen.UserInfo.route
+            )
 
-            SettingRow(
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.AppSettings.route)
-                }
-            ) {
-                //タイムゾーンはアラートでいいか。
-                Text(text = "タイムゾーン設定", modifier = Modifier.padding(start = 10.dp))
-            }
+            SettingRowWithNavigation(
+                label = "タイムゾーン設定",
+                navController = navController,
+                route = Screen.SettingScreen.AppSettings.route
+            )
 
-            SettingRow(
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.RepeatAdd.route)
-                }
-            ) {
-                Text("繰り返し自動追加", modifier = Modifier.padding(start = 10.dp))
-            }
+            SettingRowWithNavigation(
+                label = "カテゴリー一覧",
+                navController = navController,
+                route = Screen.GlobalScreen.CategoryAddEdit.route
+            )
 
-            SettingRow(
-                onClick = {
-                    navController.navigate(Screen.SettingScreen.MailboxExtraction.Main.route)
-                }
-            ) {
-                //タイムゾーンはアラートでいいか。
-                Text(text = "メールボックス自動抽出", modifier = Modifier.padding(start = 10.dp))
-            }
+            SettingRowWithNavigation(
+                label = "繰り返し自動追加",
+                navController = navController,
+                route = Screen.SettingScreen.RepeatAdd.route
+            )
 
-            SettingRow(
-                onClick = {
-                    navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
-                }
-            ) {
-                //
-                Text(text = "カテゴリー一覧", modifier = Modifier.padding(start = 10.dp))
-            }
+            SettingRowWithNavigation(
+                label = "メールボックス自動抽出",
+                navController = navController,
+                route = Screen.SettingScreen.MailboxExtraction.Main.route
+            )
+
+            SettingRowWithNavigation(
+                label = "プッシュ通知から費用抽出",
+                navController = navController,
+                route = ""
+            )
 
             Button(
                 modifier = Modifier
@@ -130,6 +123,23 @@ fun SettingsView(
 }
 
 @Composable
+fun SettingRowWithNavigation(
+    label: String,
+    navController: NavHostController,
+    route: String,
+) {
+    SettingRow(
+        onClick = {
+            navController.navigate(route) {
+                launchSingleTop = true
+            }
+        }
+    ) {
+        Text(text = label, modifier = Modifier.padding(start = 10.dp))
+    }
+}
+
+@Composable
 fun SettingRow(
     modifier: Modifier = Modifier, // カスタム Modifier を適用できる
     borderColor: Color = MaterialTheme.colorScheme.onBackground,
@@ -142,7 +152,7 @@ fun SettingRow(
             .padding(horizontal = 10.dp)
             .border(
                 1.dp,
-                MaterialTheme.colorScheme.onBackground, // Composable 関数内ならOK
+                borderColor, // Composable 関数内ならOK
                 shape = RoundedCornerShape(8.dp)
             )
             .fillMaxWidth()
