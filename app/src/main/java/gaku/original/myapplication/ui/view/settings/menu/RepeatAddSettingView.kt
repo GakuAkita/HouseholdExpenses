@@ -201,6 +201,10 @@ fun RepeatAddSettingView(
                                             )
                                         }
                                     }
+
+                                    FuncStatus.WARNING -> {
+
+                                    }
                                 }
                             })
                         })

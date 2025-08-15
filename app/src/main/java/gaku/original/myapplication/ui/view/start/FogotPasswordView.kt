@@ -112,6 +112,10 @@ fun ForgotPasswordView(
                                         )
                                     }
                                 }
+
+                                FuncStatus.WARNING -> {
+
+                                }
                             }
 
                         }

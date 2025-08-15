@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.Navigation
+package gaku.original.myapplication.ui.view.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable

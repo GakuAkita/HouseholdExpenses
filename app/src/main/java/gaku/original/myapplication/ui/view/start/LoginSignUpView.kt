@@ -143,6 +143,10 @@ fun LoginSignUpView(
                         }
                         loading = false
                     }
+
+                    FuncStatus.WARNING -> {
+
+                    }
                 }
             }
         )
@@ -190,6 +194,10 @@ fun LoginSignUpView(
                             )
                         }
                         loading = false
+                    }
+
+                    FuncStatus.WARNING -> {
+
                     }
                 }
             }

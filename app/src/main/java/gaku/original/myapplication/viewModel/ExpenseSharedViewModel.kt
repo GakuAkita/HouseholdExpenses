@@ -228,6 +228,10 @@ class ExpenseSharedViewModel @Inject constructor(
                 FuncStatus.FAILED -> {
                     _expensesLoadingStatus.value = LoadingStatus.ERROR
                 }
+
+                FuncStatus.WARNING -> {
+
+                }
             }
             callback(statusInfo)
         }

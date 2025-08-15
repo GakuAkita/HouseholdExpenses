@@ -1,5 +1,6 @@
 package gaku.original.myapplication.parser
 
+import android.util.Log
 import com.google.mlkit.vision.text.Text
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
@@ -74,6 +75,14 @@ class PayPayReceiptParser(
             }
         }
 
+        if (dateIso == null) {
+            return FuncResultWithData.Failure.GenericFailure(
+                status = FuncStatus.FAILED,
+                errorMessage = "日付が見つかりませんでした"
+            )
+        }
+
+
         // --- 4) テキストを二分：基準Yより上(左10%除外), 下(全幅) ---
         val aboveFiltered = StringBuilder()
         val belowAll = StringBuilder()
@@ -119,10 +128,12 @@ class PayPayReceiptParser(
         result.amount = amount
         result.storeName = storeName
 
-        if (result.datetime == null || result.amount == null || result.storeName == null) {
-            return FuncResultWithData.Failure.GenericFailure(
-                status = FuncStatus.WARNING,
-                errorMessage = "取得できない項目がありました"
+        Log.d("PayPayReceiptParser", "dateISo:${dateIso} amount:${amount} storeName: $storeName")
+
+        if (result.amount == null || result.storeName == null) {
+            return FuncResultWithData.Warning(
+                data = result,
+                warningMessage = "取得できない項目がありました"
             )
         }
 
@@ -132,23 +143,29 @@ class PayPayReceiptParser(
     }
 
     fun extractDate(text: String): String? {
-        val processedT = text.replace("B時", "時").replace(" ", "")/* なぜかB時になってしまうパターンがあった */
+        val processedT =
+            text.replace("B時", "時").replace("\\s+".toRegex(), "")/* なぜかB時になってしまうパターンがあった */
 
         val dateJaRegex = """(\d{4}年\d{1,2}月\d{1,2}日\s*\d{1,2}時\d{1,2}分)""".toRegex()
-        val dateEnRegex = """\d{4}/\d{1,2}/\d{1,2}\s+\d{1,2}:\d{2}""".toRegex()
+        val dateEnRegex = """\d{4}/\d{1,2}/\d{1,2}\s*\d{1,2}:\d{2}""".toRegex()
 
-        dateJaRegex.find(processedT)?.let {
+        dateJaRegex.find(processedT)?.let { jaDate ->
             /* yyyy年mm月dd日 HH時MM分をLocalDateTimeに変換して、それをUTC文字列に変える */
             val formatter = DateTimeFormatter.ofPattern("yyyy年M月d日H時m分")
-            val localDateTime = LocalDateTime.parse(it.value, formatter)
+            val localDateTime = LocalDateTime.parse(jaDate.value, formatter)
             val isoStr = AppTimeZone.localDateTimeToIsoString(localDateTime)
 
             return isoStr
         }
 
-        dateEnRegex.find(processedT)?.let {
-            val formatter = DateTimeFormatter.ofPattern("yyyy/M/d/H:m")
-            val localDateTime = LocalDateTime.parse(it.value, formatter)
+        dateEnRegex.find(processedT)?.let { enDate ->
+            /**
+             * 2025/8/1514:56こういう文字列はparseできないから、
+             * 意図的に間にスペースをいれる
+             */
+            val normalized = enDate.value.replace(Regex("(\\d{1,2}):(\\d{2})"), " $1:$2")
+            val formatter = DateTimeFormatter.ofPattern("yyyy/M/d/ H:m")
+            val localDateTime = LocalDateTime.parse(normalized, formatter)
             val isoStr = AppTimeZone.localDateTimeToIsoString(localDateTime)
             return isoStr
         }

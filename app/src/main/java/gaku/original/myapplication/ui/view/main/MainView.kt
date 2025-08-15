@@ -38,8 +38,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
-import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.CalendarDisplay
@@ -112,6 +112,8 @@ fun MainView(
                         FuncStatus.FAILED -> {
                             /* スナックバーを出したい。 */
                         }
+
+                        else -> {}
                     }
                 }
             )
@@ -137,6 +139,8 @@ fun MainView(
                 FuncStatus.FAILED -> {
                     Log.d(viewName, "サインイン直後に破る処理に失敗しました")
                 }
+
+                FuncStatus.WARNING -> {}
             }
         })
     }

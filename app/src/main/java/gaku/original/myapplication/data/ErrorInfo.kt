@@ -18,6 +18,7 @@ data class FuncStatusInfo(
 
 sealed class FuncResultWithData<out T> {
     data class Success<out T>(val data: T, val isEmpty: Boolean = false) : FuncResultWithData<T>()
+    data class Warning<out T>(val data: T, val warningMessage: String) : FuncResultWithData<T>()
 
     sealed class Failure : FuncResultWithData<Nothing>() {
         abstract val errorMessage: String
@@ -41,13 +42,16 @@ sealed class FuncResultWithData<out T> {
         is Success -> FuncStatusInfo(FuncStatus.SUCCESS, "")
         is Failure.GenericFailure -> FuncStatusInfo(status, errorMessage)
         is Failure.Timeout -> FuncStatusInfo(FuncStatus.TIMEOUT, errorMessage)
+        is Warning -> FuncStatusInfo(FuncStatus.WARNING, warningMessage)
     }
 }
 
 /* 戻り値で変換したい場合は、.mapFailureだけで十分。わざわざ変数にあてなくても。 */
 inline fun <T, reified T2> FuncResultWithData<T>.mapFailure(): FuncResultWithData<T2> =
     when (this) {
-        is FuncResultWithData.Success -> throw IllegalStateException("Success cannot be converted using mapFailure")
+        is FuncResultWithData.Success,
+        is FuncResultWithData.Warning -> throw IllegalStateException("Success cannot be converted using mapFailure")
+
         is FuncResultWithData.Failure -> when (this) {
             is FuncResultWithData.Failure.GenericFailure -> FuncResultWithData.Failure.GenericFailure(
                 status = this.status,

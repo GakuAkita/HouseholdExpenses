@@ -145,6 +145,8 @@ fun CategoryAddEditView(
                                             ).show()
                                             showDialog = false
                                         }
+
+                                        else -> {}
                                     }
 
                                 }
@@ -182,8 +184,9 @@ fun CategoryAddEditView(
                                             ).show()
                                             showDialog = false
                                         }
-                                    }
 
+                                        else -> {}
+                                    }
                                 }
                             )
                         }

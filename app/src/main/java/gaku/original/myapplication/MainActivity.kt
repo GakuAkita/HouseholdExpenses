@@ -18,8 +18,8 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
-import gaku.original.myapplication.ui.view.Navigation.Navigation
 import gaku.original.myapplication.ui.view.navigateToOCRView
+import gaku.original.myapplication.ui.view.navigation.Navigation
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.viewModel.SharedImageViewModel

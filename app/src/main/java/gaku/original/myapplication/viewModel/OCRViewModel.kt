@@ -18,6 +18,8 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.parser.PayPayReceiptParser
+import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +29,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OCRViewModel @Inject constructor(
-    private val sharedImageViewModel: SharedImageViewModel
+    private val sharedImageViewModel: SharedImageViewModel,
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
 ) : ViewModel() {
     val className: String = this::class.java.simpleName
 
@@ -69,7 +72,10 @@ class OCRViewModel @Inject constructor(
         return sharedImageViewModel.sharedImageUri.value
     }
 
-    fun runOcr(context: Context, callback: (FuncStatusInfo) -> Unit = {}) {
+    fun runOcr(
+        context: Context,
+        callback: (FuncStatusInfo) -> Unit = {}
+    ) {
         _ocrReading.value = true
         val imageUri = getImageUri()
         viewModelScope.launch {
@@ -82,10 +88,13 @@ class OCRViewModel @Inject constructor(
                 val paypayResult = paypayParser.parse()
                 if (paypayResult is FuncResultWithData.Success) {
                     _extractedExpense.value = paypayResult.data
-                    _ocrReading.value = false
                 }
+                LogAkitaDebug("Created Expense: ${_extractedExpense.value}")
+                callback(paypayResult.toFuncStatusInfo())
+            } else {
+                callback(result.toFuncStatusInfo())
             }
-            callback(result.toFuncStatusInfo())
+            _ocrReading.value = false
         }
     }
 
@@ -127,6 +136,11 @@ class OCRViewModel @Inject constructor(
             e.printStackTrace()
             null
         }
+    }
+
+    fun copyReadExpenseToTmpExpense() {
+        tmpExpenseViewModel.resetTmpExpenseList()
+        tmpExpenseViewModel.updateTmpExpense(_extractedExpense.value)
     }
 }
 
