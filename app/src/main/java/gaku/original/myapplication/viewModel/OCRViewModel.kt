@@ -75,6 +75,10 @@ class OCRViewModel @Inject constructor(
 
                 /* ここでPayPayの読み込み行うか */
                 val paypayParser = PayPayReceiptParser(result.data)
+                val paypayResult = paypayParser.parse()
+                if (paypayResult is FuncResultWithData.Success) {
+                    _extractedExpense.value = paypayResult.data
+                }
             }
             callback(result.toFuncStatusInfo())
         }
