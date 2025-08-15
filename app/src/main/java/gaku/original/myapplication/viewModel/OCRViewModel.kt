@@ -37,6 +37,9 @@ class OCRViewModel @Inject constructor(
         sharedImageViewModel.clearSharedImageUri()
     }
 
+    private val _ocrReading = MutableStateFlow(false)
+    val ocrReading: StateFlow<Boolean> = _ocrReading
+
     private val _ocrResult = MutableStateFlow<Text?>(null)
     val ocrResult: StateFlow<Text?> get() = _ocrResult
 
@@ -67,6 +70,7 @@ class OCRViewModel @Inject constructor(
     }
 
     fun runOcr(context: Context, callback: (FuncStatusInfo) -> Unit = {}) {
+        _ocrReading.value = true
         val imageUri = getImageUri()
         viewModelScope.launch {
             val result = getOcrResult(context, imageUri)
@@ -78,6 +82,7 @@ class OCRViewModel @Inject constructor(
                 val paypayResult = paypayParser.parse()
                 if (paypayResult is FuncResultWithData.Success) {
                     _extractedExpense.value = paypayResult.data
+                    _ocrReading.value = false
                 }
             }
             callback(result.toFuncStatusInfo())

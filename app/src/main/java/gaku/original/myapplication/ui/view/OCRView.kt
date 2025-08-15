@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -43,8 +44,8 @@ fun OCRView(
     val context = LocalContext.current
     val ocrResult = viewModel.ocrResult.collectAsState()
     val uriUpdatedTimestamp = viewModel.uriUpdatedTimestamp.collectAsState()
-
     val extractedExpense = viewModel.extractedExpense.collectAsState()
+    val ocrReading = viewModel.ocrReading.collectAsState()
 
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -71,24 +72,31 @@ fun OCRView(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            Button(
-                onClick = {
-                    viewModel.runOcr(context) {
-                        showExtractedExpenseDialog = true
+            if (ocrReading.value) {
+                CircularProgressIndicator()
+            } else {
+                Column {
+                    Button(
+                        onClick = {
+                            viewModel.runOcr(context) {
+                                showExtractedExpenseDialog = true
+                            }
+                        }
+                    ) {
+                        Text("再読み込み")
                     }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 3.dp)
+                    )
+                    Text(ocrResult.value?.text ?: "")
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
+                    AsyncImage(
+                        model = viewModel.getImageUri()
+                            .toString() + "?ts=${uriUpdatedTimestamp.value}",
+                        contentDescription = null
+                    )
                 }
-            ) {
-                Text("再読み込み")
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 3.dp)
-            )
-            Text(ocrResult.value?.text ?: "")
-            HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
-            AsyncImage(
-                model = viewModel.getImageUri(),
-                contentDescription = null
-            )
         }
     }
 
