@@ -88,7 +88,7 @@ fun SettingsView(
             SettingRowWithNavigation(
                 label = "プッシュ通知から費用抽出",
                 navController = navController,
-                route = ""
+                route = Screen.SettingScreen.NotificationListenerSetting.route
             )
 
             Button(

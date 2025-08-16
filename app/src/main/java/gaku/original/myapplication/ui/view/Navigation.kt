@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.navigation
+package gaku.original.myapplication.ui.view
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import gaku.original.myapplication.Screen
-import gaku.original.myapplication.ui.view.OCRView
 import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.GraphView
@@ -19,6 +18,7 @@ import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
 import gaku.original.myapplication.ui.view.settings.menu.MailboxExtractionView
+import gaku.original.myapplication.ui.view.settings.menu.NotificationListenerSettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
@@ -107,6 +107,9 @@ fun Navigation(
         }
         composable(Screen.GlobalScreen.CategoryAssignmentEdit.route) {
             CategoryAssignmentEditView(navController = navController)
+        }
+        composable(Screen.SettingScreen.NotificationListenerSetting.route) {
+            NotificationListenerSettingView(navController = navController)
         }
 
         //OCR用のスクリーン

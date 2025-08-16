@@ -47,6 +47,9 @@ sealed class Screen(val route: String) {
 
             object Main : MailboxExtraction("$BASE_ROUTE/main")
         }
+
+        object NotificationListenerSetting :
+            SettingScreen("$BASE_ROUTE/notification_listener_setting")
     }
 
     //グローバルな画面

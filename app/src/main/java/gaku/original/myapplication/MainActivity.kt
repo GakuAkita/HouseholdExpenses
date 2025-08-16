@@ -16,12 +16,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
+import gaku.original.myapplication.data.Constants.IntentKey
+import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
+import gaku.original.myapplication.ui.view.Navigation
 import gaku.original.myapplication.ui.view.navigateToOCRView
-import gaku.original.myapplication.ui.view.navigation.Navigation
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
+import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.SharedImageViewModel
 
 @AndroidEntryPoint
@@ -59,22 +62,40 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent?) {
         LogAkitaDebug("onNewIntent() called.")
         super.onNewIntent(intent)
-        setIntent(intent)
+        if (intent == null) return
+
         setArgsToSharedImageViewModel()
         LogAkitaDebug("In onNewIntent isFromShareReceiver=${sharedImageViewModel.isFromShareReceiver} isMovedToOCR=${sharedImageViewModel.isMovedToOCR}")
 
+        val intentSourceKey = intent.getStringExtra(IntentKey)
         val firebaseUser = FirebaseAuth.getInstance().currentUser
-        if (firebaseUser == null) {
-            navController.navigate(Screen.StartScreen.Login.route) {
-                launchSingleTop = true // 既に最上位にあれば再作成しない
-                popUpTo(Screen.StartScreen.Login.route) {
-                    inclusive = false // Login 自体は残す
+
+        Log.d("onNewIntent", "source key:${intentSourceKey}")
+        when {
+            intentSourceKey == IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
+                /**
+                 * 画面共有から起動された
+                 */
+                if (firebaseUser == null) {
+                    navigateToSingle(navController, Screen.StartScreen.Login.route)
+                } else {
+                    Log.d("onNewIntent", "pile OCRRead on the stack")
+                    sharedImageViewModel.setIsMovedToOCR(true)
+                    navigateToOCRView(navController)
                 }
             }
-        } else {
-            Log.d("onNewIntent", "pile OCRRead on the stack")
-            sharedImageViewModel.setIsMovedToOCR(true)
-            navigateToOCRView(navController)
+
+            intentSourceKey == IntentSourceKeys.NOTIFICATION_LISTENER -> {
+                /**
+                 * 通知検知から来たIntent
+                 * 画面作成用のViewを用意してそこでExpenseを作成するか
+                 */
+                if (firebaseUser == null) {
+                    navigateToSingle(navController, Screen.StartScreen.Login.route)
+                } else {
+                    navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route)
+                }
+            }
         }
     }
 

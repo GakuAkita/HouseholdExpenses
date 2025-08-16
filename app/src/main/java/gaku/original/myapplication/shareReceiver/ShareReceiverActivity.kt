@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.AppPackageNames
+import gaku.original.myapplication.data.Constants.IntentKey
+import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.utility.copyUriToCache
 import gaku.original.myapplication.utility.getParcelableExtraCompat
@@ -66,6 +68,11 @@ class ShareReceiverActivity : ComponentActivity() {
                     ShareReceiverKeys.IS_FROM_SHARE_RECEIVER,
                     true
                 )/* Share ReceiverからMainActivityが起動されたとわかるように */
+
+                /* onNewIntentで処理を区別するためのキー */
+                putExtra(
+                    IntentKey, IntentSourceKeys.SHARE_IMAGE_FOR_OCR
+                )
                 flags =
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_GRANT_READ_URI_PERMISSION//or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
