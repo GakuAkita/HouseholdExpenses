@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.dataClass.NotificationData
 import javax.inject.Inject
 
-class SharedNotificationListenerViewModel @Inject constructor(
-
-) : ViewModel() {
+class SharedNotificationListenerViewModel @Inject constructor() : ViewModel() {
     /**
      * NotificationListenerの値を格納しておく
      */

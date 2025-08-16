@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 if (firebaseUser == null) {
                     navigateToSingle(navController, Screen.StartScreen.Login.route)
                 } else {
-                    navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route)
+                    navController.navigate(Screen.GlobalScreen.NotificationListenerProcess.route)
                 }
             }
 

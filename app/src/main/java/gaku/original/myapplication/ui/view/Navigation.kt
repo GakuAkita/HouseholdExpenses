@@ -118,5 +118,8 @@ fun Navigation(
         }
 
         //NotificationListener用のスクリーン
+        composable(Screen.GlobalScreen.NotificationListenerProcess.route) {
+            NotificationListenerProcessView(navController = navController)
+        }
     }
 }
