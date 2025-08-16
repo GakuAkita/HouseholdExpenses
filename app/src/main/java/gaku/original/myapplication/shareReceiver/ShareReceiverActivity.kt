@@ -10,7 +10,7 @@ import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
-import gaku.original.myapplication.data.Constants.ShareReceiverKeys
+import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.utility.copyUriToCache
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 
@@ -62,17 +62,27 @@ class ShareReceiverActivity : ComponentActivity() {
         if (imageUri != null) {
             /* mainActivityに遷移してUriを渡す */
             val copiedUri = copyUriToCache(this, imageUri)
-            val mainIntent = Intent(this, MainActivity::class.java).apply {
-                putExtra(ShareReceiverKeys.SHARED_IMAGE_URI, copiedUri)
-                putExtra(
-                    ShareReceiverKeys.IS_FROM_SHARE_RECEIVER,
-                    true
-                )/* Share ReceiverからMainActivityが起動されたとわかるように */
+            if (copiedUri == null) {
+                Toast.makeText(
+                    this,
+                    "受け取った画像をキャッシュにコピーできませんでした",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return
+            }
 
-                /* onNewIntentで処理を区別するためのキー */
+            val data = SharedImageData(
+                senderPackage,
+                copiedUri
+            )
+
+            val mainIntent = Intent(this, MainActivity::class.java).apply {
+                /* onNewIntent側で処理を区別するためのキー */
                 putExtra(
                     IntentKey, IntentSourceKeys.SHARE_IMAGE_FOR_OCR
                 )
+                putExtra(SharedImageData.EXTRA_KEY, data)
                 flags =
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_GRANT_READ_URI_PERMISSION//or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }

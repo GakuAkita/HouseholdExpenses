@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.dataClass.NotificationData
 import javax.inject.Inject
 
-class SharedNotificationViewModel @Inject constructor(
+class SharedNotificationListenerViewModel @Inject constructor(
 
 ) : ViewModel() {
     /**
@@ -12,11 +12,15 @@ class SharedNotificationViewModel @Inject constructor(
      */
     private var notificationData: NotificationData? = null
 
-    fun setNotificationData(data: NotificationData) {
+    fun setNotificationData(data: NotificationData?) {
         notificationData = data
     }
 
     fun getNotificationData(): NotificationData? {
         return notificationData
+    }
+
+    fun clearNotificationData() {
+        notificationData = null
     }
 }

@@ -154,6 +154,8 @@ fun MainView(
             viewModel.setIsMovedToOCR()
             navigateToOCRView(navController)
         }
+
+        /* Notificationから来たときはここでNavigateする */
     }
 
 

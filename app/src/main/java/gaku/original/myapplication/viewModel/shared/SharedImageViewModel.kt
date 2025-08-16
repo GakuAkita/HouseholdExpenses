@@ -1,8 +1,8 @@
 package gaku.original.myapplication.viewModel.shared
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.dataClass.SharedImageData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -10,13 +10,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedImageViewModel @Inject constructor() : ViewModel() {
 
-    private val _sharedImageUri = MutableStateFlow<Uri?>(null)
-    val sharedImageUri: StateFlow<Uri?> = _sharedImageUri
-
-    var isFromShareReceiver: Boolean = false
-
-    private val _updatedTimeStamp = MutableStateFlow<Long>(0)/* uriを更新したときのタイムスタンプ*/
-    val updatedTimeStamp: StateFlow<Long> = _updatedTimeStamp
+    private val _sharedImageData = MutableStateFlow<SharedImageData?>(null)
+    val sharedImageData: StateFlow<SharedImageData?> = _sharedImageData
 
     /**
      * このフラグを扱わないと
@@ -24,13 +19,8 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
      */
     var isMovedToOCR: Boolean = false
 
-    fun updateSharedImageUri(uri: Uri?) {
-        _sharedImageUri.value = uri
-        _updatedTimeStamp.value = System.currentTimeMillis()
-    }
-
-    fun setIsFromShareReceiver(value: Boolean) {
-        isFromShareReceiver = value
+    fun updateSharedImageData(data: SharedImageData?) {
+        _sharedImageData.value = data
     }
 
     fun setIsMovedToOCR(value: Boolean) {
@@ -38,7 +28,6 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
     }
 
     fun clearSharedImageUri() {
-        _sharedImageUri.value = null
-        isFromShareReceiver = false
+        _sharedImageData.value = null
     }
 }

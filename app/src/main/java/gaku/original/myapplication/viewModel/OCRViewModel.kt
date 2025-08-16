@@ -62,15 +62,14 @@ class OCRViewModel @Inject constructor(
              *  sharedViewModelのuriに更新があったときに検知できるように画面が生きている間は監視しておく
              *  sharedImageは名前が全部一緒なのでcollectされない？？
              *  */
-            sharedImageViewModel.updatedTimeStamp.collect { t ->
-                _ocrUri.value = sharedImageViewModel.sharedImageUri.value
-                _uriUpdatedTimestamp.value = t/* uriはいつも同じ名前なので検知されない。したがって、フラグを見る */
+            sharedImageViewModel.sharedImageData.collect { t ->
+                _ocrUri.value = sharedImageViewModel.sharedImageData.value?.imageUri
             }
         }
     }
 
     fun getImageUri(): Uri? {
-        return sharedImageViewModel.sharedImageUri.value
+        return sharedImageViewModel.sharedImageData.value?.imageUri
     }
 
     fun runOcr(

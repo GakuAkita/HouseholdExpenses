@@ -18,7 +18,7 @@ import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.useCase.RepeatAddUseCase
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
-import gaku.original.myapplication.viewModel.shared.SharedNotificationViewModel
+import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 
 @Module
@@ -169,7 +169,7 @@ object AppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideSharedNotificationViewModel(): SharedNotificationViewModel {
-        return SharedNotificationViewModel()
+    fun provideSharedNotificationListenerViewModel(): SharedNotificationListenerViewModel {
+        return SharedNotificationListenerViewModel()
     }
 }

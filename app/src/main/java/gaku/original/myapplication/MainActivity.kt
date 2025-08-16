@@ -1,7 +1,6 @@
 package gaku.original.myapplication
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -18,8 +17,8 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
-import gaku.original.myapplication.data.Constants.ShareReceiverKeys
 import gaku.original.myapplication.data.dataClass.NotificationData
+import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation
 import gaku.original.myapplication.ui.view.navigateToOCRView
@@ -27,13 +26,13 @@ import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
-import gaku.original.myapplication.viewModel.shared.SharedNotificationViewModel
+import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val sharedImageViewModel: SharedImageViewModel by viewModels()
-    private val sharedNotificationViewModel: SharedNotificationViewModel by viewModels()
+    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,18 +67,17 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return
         setIntent(intent)
 
-        LogAkitaDebug("In onNewIntent isFromShareReceiver=${sharedImageViewModel.isFromShareReceiver} isMovedToOCR=${sharedImageViewModel.isMovedToOCR}")
-
+        /**
+         * ソースキーで共有画像なのか通知から起動されたのか区別する
+         */
         val intentSourceKey = intent.getStringExtra(IntentKey)
+
         val firebaseUser = FirebaseAuth.getInstance().currentUser
 
         Log.d("onNewIntent", "source key:${intentSourceKey}")
         when (intentSourceKey) {
             IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
                 setArgsToSharedImageViewModel()
-                /**
-                 * 画面共有から起動された
-                 */
                 /**
                  * 画面共有から起動された
                  */
@@ -93,10 +91,9 @@ class MainActivity : ComponentActivity() {
             }
 
             IntentSourceKeys.NOTIFICATION_LISTENER -> {
-                /**
-                 * 通知検知から来たIntent
-                 * 画面作成用のViewを用意してそこでExpenseを作成するか
-                 */
+                /* sharedViewModelに格納して、画面遷移 */
+                /* データの抽出とかは遷移先で行う */
+                setArgsToSharedNotificationListenerViewModel()
                 /**
                  * 通知検知から来たIntent
                  * 画面作成用のViewを用意してそこでExpenseを作成するか
@@ -153,11 +150,10 @@ class MainActivity : ComponentActivity() {
      * 必ずShareReceiverを
      */
     private fun setArgsToSharedImageViewModel() {
-        val imageUri: Uri? =
-            intent.getParcelableExtraCompat(ShareReceiverKeys.SHARED_IMAGE_URI)
+        val passedData = intent.getParcelableExtraCompat<SharedImageData>(SharedImageData.EXTRA_KEY)
+
+        val imageUri = passedData?.imageUri
         LogAkitaDebug("OCRDebug: URI to load:${imageUri}")
-        val isFromSharedReceiver =
-            intent?.getBooleanExtra(ShareReceiverKeys.IS_FROM_SHARE_RECEIVER, false) ?: false
 
         if (imageUri != null) {
             try {
@@ -170,20 +166,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        sharedImageViewModel.updateSharedImageUri(imageUri)
-        sharedImageViewModel.setIsFromShareReceiver(isFromSharedReceiver)
+        sharedImageViewModel.updateSharedImageData(passedData)
         sharedImageViewModel.setIsMovedToOCR(false)
     }
 
     /**
-     *
+     * 通知検知から来た場合
      */
-    private fun setArgsToSharedNotificationViewModel() {
+    private fun setArgsToSharedNotificationListenerViewModel() {
         val notificationData =
             intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
-        if (notificationData != null) {
 
-        }
+        sharedNotificationListenerViewModel.setNotificationData(notificationData)
     }
 
     private fun decideDestination(): String {
