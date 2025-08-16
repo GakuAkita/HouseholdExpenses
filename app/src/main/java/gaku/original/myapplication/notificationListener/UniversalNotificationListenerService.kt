@@ -8,20 +8,12 @@ import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.NotificationListenerKey
+import gaku.original.myapplication.data.Constants.NotificationValidTitles
 
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
 
-    /* アプリごとの有効タイトルをセット */
-    private val appValidTitlesMap: Map<String, Set<String>> = mapOf(
-        AppPackageNames.PAYPAY to setOf("支払い完了"),
-        AppPackageNames.THIS_APP to setOf("テスト通知")
-    )
-
-    private val targetApps = setOf(
-        AppPackageNames.PAYPAY,
-        AppPackageNames.THIS_APP
-    )
+    private val targetApps = NotificationValidTitles.appValidTitlesMap.keys
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
@@ -41,7 +33,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             /**
              * titleでもフィルターをする
              */
-            val validTitles = appValidTitlesMap[pkgName] ?: emptySet()
+            val validTitles = NotificationValidTitles.appValidTitlesMap[pkgName] ?: emptySet()
             if (title !in validTitles) {
                 return
             }
@@ -55,6 +47,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                      */
                     val intent = Intent(this, MainActivity::class.java).apply {
                         putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
+                        putExtra(NotificationListenerKey.PACKAGE_NAME, pkgName)
                         putExtra(NotificationListenerKey.TEXT, text)
                         putExtra(NotificationListenerKey.TITLE, title)
                         putExtra(NotificationListenerKey.UNIX_MILLIS, postTimeMillis)
