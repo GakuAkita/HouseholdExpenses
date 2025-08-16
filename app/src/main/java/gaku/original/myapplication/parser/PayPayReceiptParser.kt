@@ -15,7 +15,7 @@ import kotlin.math.min
 class PayPayReceiptOCRParser(
     val textOcr: Text?
 ) {
-
+    val className = PayPayReceiptOCRParser::class.java.simpleName
     fun parse(text: Text? = textOcr): FuncResultWithData<Expense> {
         val result = getDefaultExpense()
         val t = text
@@ -128,7 +128,7 @@ class PayPayReceiptOCRParser(
         result.amount = amount
         result.storeName = storeName
 
-        Log.d("PayPayReceiptOCRParser", "dateISo:${dateIso} amount:${amount} storeName: $storeName")
+        Log.d(className, "dateISo:${dateIso} amount:${amount} storeName: $storeName")
 
         if (result.amount == null || result.storeName == null) {
             return FuncResultWithData.Warning(
@@ -200,6 +200,8 @@ class PayPayReceiptOCRParser(
         val textSplitted = text.split("\n")
         val name = textSplitted.getOrNull(0)
         val storeName = textSplitted.getOrNull(1)
+
+        Log.d(className, "name: $name storeName: $storeName")
 
         if (name == null && storeName == null) {
             return null
