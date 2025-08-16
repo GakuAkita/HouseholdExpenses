@@ -63,8 +63,8 @@ class MainActivity : ComponentActivity() {
         LogAkitaDebug("onNewIntent() called.")
         super.onNewIntent(intent)
         if (intent == null) return
+        setIntent(intent)
 
-        setArgsToSharedImageViewModel()
         LogAkitaDebug("In onNewIntent isFromShareReceiver=${sharedImageViewModel.isFromShareReceiver} isMovedToOCR=${sharedImageViewModel.isMovedToOCR}")
 
         val intentSourceKey = intent.getStringExtra(IntentKey)
@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
         Log.d("onNewIntent", "source key:${intentSourceKey}")
         when {
             intentSourceKey == IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
+                setArgsToSharedImageViewModel()
                 /**
                  * 画面共有から起動された
                  */

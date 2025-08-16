@@ -55,7 +55,7 @@ fun CategoryDropDown(
             enabled = false,
             colors = enabledTextFiledColorSet().copy(
                 disabledTextColor = if (selectedCategory == null) MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.5f
+                    alpha = 0.8f
                 )
                 else MaterialTheme.colorScheme.onSurface
             ),

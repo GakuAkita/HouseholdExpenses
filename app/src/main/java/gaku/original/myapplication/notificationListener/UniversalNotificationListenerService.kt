@@ -7,9 +7,16 @@ import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
+import gaku.original.myapplication.data.Constants.NotificationListenerKey
 
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
+
+    /* アプリごとの有効タイトルをセット */
+    private val appValidTitlesMap: Map<String, Set<String>> = mapOf(
+        AppPackageNames.PAYPAY to setOf("支払い完了"),
+        AppPackageNames.THIS_APP to setOf("テスト通知")
+    )
 
     private val targetApps = setOf(
         AppPackageNames.PAYPAY,
@@ -19,13 +26,25 @@ class UniversalNotificationListenerService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
             val pkgName = it.packageName
-            if (pkgName !in targetApps) return
+            if (pkgName !in targetApps || pkgName == null) return
 
             val notification = it.notification
             val extras = notification.extras
 
             val title = extras.getString("android.title")
-            val text = extras.getCharSequence("android.text").toString()
+            val text = extras.getCharSequence("android.text")
+            val postTimeMillis: Long = sbn.postTime
+            if (title == null || text == null) {
+                return
+            }
+
+            /**
+             * titleでもフィルターをする
+             */
+            val validTitles = appValidTitlesMap[pkgName] ?: emptySet()
+            if (title !in validTitles) {
+                return
+            }
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,
@@ -36,9 +55,11 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                      */
                     val intent = Intent(this, MainActivity::class.java).apply {
                         putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
+                        putExtra(NotificationListenerKey.TEXT, text)
+                        putExtra(NotificationListenerKey.TITLE, title)
+                        putExtra(NotificationListenerKey.UNIX_MILLIS, postTimeMillis)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     }
-
                     startActivity(intent)
                 }
 
