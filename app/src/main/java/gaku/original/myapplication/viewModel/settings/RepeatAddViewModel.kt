@@ -8,7 +8,7 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.useCase.RepeatAddUseCase
-import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

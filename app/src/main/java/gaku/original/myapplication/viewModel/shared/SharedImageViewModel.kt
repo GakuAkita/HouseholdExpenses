@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.shared
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel

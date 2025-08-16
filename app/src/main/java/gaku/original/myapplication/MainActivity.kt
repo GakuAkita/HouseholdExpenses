@@ -19,18 +19,21 @@ import dagger.hilt.android.AndroidEntryPoint
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.ShareReceiverKeys
+import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation
 import gaku.original.myapplication.ui.view.navigateToOCRView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.utility.navigateToSingle
-import gaku.original.myapplication.viewModel.SharedImageViewModel
+import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
+import gaku.original.myapplication.viewModel.shared.SharedNotificationViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val sharedImageViewModel: SharedImageViewModel by viewModels()
+    private val sharedNotificationViewModel: SharedNotificationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,9 +74,12 @@ class MainActivity : ComponentActivity() {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
 
         Log.d("onNewIntent", "source key:${intentSourceKey}")
-        when {
-            intentSourceKey == IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
+        when (intentSourceKey) {
+            IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
                 setArgsToSharedImageViewModel()
+                /**
+                 * 画面共有から起動された
+                 */
                 /**
                  * 画面共有から起動された
                  */
@@ -86,7 +92,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            intentSourceKey == IntentSourceKeys.NOTIFICATION_LISTENER -> {
+            IntentSourceKeys.NOTIFICATION_LISTENER -> {
+                /**
+                 * 通知検知から来たIntent
+                 * 画面作成用のViewを用意してそこでExpenseを作成するか
+                 */
                 /**
                  * 通知検知から来たIntent
                  * 画面作成用のViewを用意してそこでExpenseを作成するか
@@ -96,6 +106,10 @@ class MainActivity : ComponentActivity() {
                 } else {
                     navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route)
                 }
+            }
+
+            else -> {
+
             }
         }
     }
@@ -159,6 +173,17 @@ class MainActivity : ComponentActivity() {
         sharedImageViewModel.updateSharedImageUri(imageUri)
         sharedImageViewModel.setIsFromShareReceiver(isFromSharedReceiver)
         sharedImageViewModel.setIsMovedToOCR(false)
+    }
+
+    /**
+     *
+     */
+    private fun setArgsToSharedNotificationViewModel() {
+        val notificationData =
+            intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
+        if (notificationData != null) {
+
+        }
     }
 
     private fun decideDestination(): String {

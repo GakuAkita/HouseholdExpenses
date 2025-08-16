@@ -8,10 +8,10 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.data.FuncStatusInfoWithCode
-import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow

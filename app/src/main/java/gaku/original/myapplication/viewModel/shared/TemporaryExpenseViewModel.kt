@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel.main
+package gaku.original.myapplication.viewModel.shared
 
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.dataClass.Expense

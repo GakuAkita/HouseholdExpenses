@@ -1,12 +1,12 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.shared
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.FirestoreListenerManager
 import gaku.original.myapplication.data.Constants.MONTH_RANGE
-import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo

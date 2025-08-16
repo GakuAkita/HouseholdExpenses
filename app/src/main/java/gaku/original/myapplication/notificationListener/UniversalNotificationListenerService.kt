@@ -7,8 +7,8 @@ import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
-import gaku.original.myapplication.data.Constants.NotificationListenerKey
 import gaku.original.myapplication.data.Constants.NotificationValidTitles
+import gaku.original.myapplication.data.dataClass.NotificationData
 
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
@@ -46,11 +46,9 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                      * なければ通知でタップで起動できるようにする
                      */
                     val intent = Intent(this, MainActivity::class.java).apply {
+                        val data = NotificationData(pkgName, title, text, postTimeMillis)
                         putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
-                        putExtra(NotificationListenerKey.PACKAGE_NAME, pkgName)
-                        putExtra(NotificationListenerKey.TEXT, text)
-                        putExtra(NotificationListenerKey.TITLE, title)
-                        putExtra(NotificationListenerKey.UNIX_MILLIS, postTimeMillis)
+                        putExtra(NotificationData.EXTRA_KEY, data)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     }
                     startActivity(intent)

@@ -19,7 +19,8 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
+import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
+import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

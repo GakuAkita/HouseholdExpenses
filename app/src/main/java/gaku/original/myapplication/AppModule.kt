@@ -16,9 +16,10 @@ import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtrac
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.useCase.RepeatAddUseCase
-import gaku.original.myapplication.viewModel.ExpenseSharedViewModel
-import gaku.original.myapplication.viewModel.SharedImageViewModel
-import gaku.original.myapplication.viewModel.main.TemporaryExpenseViewModel
+import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
+import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
+import gaku.original.myapplication.viewModel.shared.SharedNotificationViewModel
+import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -164,5 +165,11 @@ object AppModule {
     @ActivityRetainedScoped
     fun provideSharedImageViewModel(): SharedImageViewModel {
         return SharedImageViewModel()
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideSharedNotificationViewModel(): SharedNotificationViewModel {
+        return SharedNotificationViewModel()
     }
 }
