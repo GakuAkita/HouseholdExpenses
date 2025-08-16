@@ -1,9 +1,13 @@
 package gaku.original.myapplication.notificationListener
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import gaku.original.myapplication.MainActivity
+import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
@@ -49,9 +53,26 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                         val data = NotificationData(pkgName, title, text, postTimeMillis)
                         putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
                         putExtra(NotificationData.EXTRA_KEY, data)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
-                    startActivity(intent)
+
+                    val pendingIntent = PendingIntent.getActivity(
+                        this,
+                        System.currentTimeMillis().toInt(),
+                        intent,
+                        PendingIntent.FLAG_IMMUTABLE/* これを少なくともつけないとエラーになるらしい */
+                    )
+
+                    val notification = NotificationCompat.Builder(this, "家計簿")
+                        .setSmallIcon(R.drawable.money_icon_foreground)
+                        .setContentText("PayPayの支払いを検知しました")
+                        .setContentText("タップして費用として追加する")
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true)
+                        .build()
+
+                    NotificationManagerCompat.from(this)
+                        .notify(System.currentTimeMillis().toInt(), notification)
                 }
 
 //                AppPackageNames.THIS_APP -> {
@@ -65,3 +86,4 @@ class UniversalNotificationListenerService : NotificationListenerService() {
         }
     }
 }
+

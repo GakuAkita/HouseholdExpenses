@@ -36,7 +36,7 @@ fun NotificationListenerProcessView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text("取得したデータ")
+            Text("取得したデータ:${notificationData.value.toString()}")
             Text("タイトル:${notificationData.value?.title}")
             Text("テキスト:${notificationData.value?.text}")
         }
