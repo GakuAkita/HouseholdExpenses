@@ -118,6 +118,5 @@ fun Navigation(
         }
 
         //NotificationListener用のスクリーン
-
     }
 }

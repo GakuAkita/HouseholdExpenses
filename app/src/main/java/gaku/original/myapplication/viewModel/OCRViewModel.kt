@@ -16,6 +16,7 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -23,7 +24,6 @@ import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -38,7 +38,7 @@ class OCRViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         Log.d(className, "OCRViewModel Cleared!!")
-        sharedImageViewModel.clearSharedImageUri()
+        sharedImageViewModel.clearSharedImageData()
     }
 
     private val _ocrReading = MutableStateFlow(false)
@@ -47,11 +47,8 @@ class OCRViewModel @Inject constructor(
     private val _ocrResult = MutableStateFlow<Text?>(null)
     val ocrResult: StateFlow<Text?> get() = _ocrResult
 
-    private val _ocrUri = MutableStateFlow<Uri?>(null)
-    val ocrUri: StateFlow<Uri?> = _ocrUri.asStateFlow()
-
-    private val _uriUpdatedTimestamp = MutableStateFlow(0L)
-    val uriUpdatedTimestamp: StateFlow<Long> = _uriUpdatedTimestamp
+    private val _sharedImageData = MutableStateFlow(sharedImageViewModel.sharedImageData.value)
+    val sharedImageData: StateFlow<SharedImageData?> get() = _sharedImageData
 
     private val _extractedExpense = MutableStateFlow(getDefaultExpense())
     val extractedExpense: StateFlow<Expense> = _extractedExpense
@@ -63,7 +60,7 @@ class OCRViewModel @Inject constructor(
              *  sharedImageは名前が全部一緒なのでcollectされない？？
              *  */
             sharedImageViewModel.sharedImageData.collect { t ->
-                _ocrUri.value = sharedImageViewModel.sharedImageData.value?.imageUri
+                _sharedImageData.value = sharedImageViewModel.sharedImageData.value
             }
         }
     }
@@ -141,6 +138,10 @@ class OCRViewModel @Inject constructor(
     fun copyReadExpenseToTmpExpense() {
         tmpExpenseViewModel.resetTmpExpenseList()
         tmpExpenseViewModel.updateTmpExpense(_extractedExpense.value)
+    }
+
+    fun clearSharedImageData() {
+        sharedImageViewModel.clearSharedImageData()
     }
 }
 

@@ -10,7 +10,6 @@ import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
@@ -244,8 +243,8 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     fun isShouldMoveToOCR(): Boolean {
-        LogAkitaDebug("isFromShareReceiver:${sharedImageViewModel.isFromShareReceiver} isMovedToOCR:${sharedImageViewModel.isMovedToOCR}")
-        return sharedImageViewModel.isFromShareReceiver && !sharedImageViewModel.isMovedToOCR
+        /* OCR画面に移動したらDataをnullに設定する */
+        return !sharedImageViewModel.isMovedToOCR && sharedImageViewModel.sharedImageData.value != null
     }
 
     fun setIsMovedToOCR(value: Boolean = true) {

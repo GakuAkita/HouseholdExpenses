@@ -52,9 +52,9 @@ fun OCRView(
     val viewName = "OCRView"
     val context = LocalContext.current
     val ocrResult = viewModel.ocrResult.collectAsState()
-    val uriUpdatedTimestamp = viewModel.uriUpdatedTimestamp.collectAsState()
     val extractedExpense = viewModel.extractedExpense.collectAsState()
     val ocrReading = viewModel.ocrReading.collectAsState()
+    val sharedImageData = viewModel.sharedImageData.collectAsState()
 
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -63,7 +63,7 @@ fun OCRView(
         SnackbarHostState()
     }
 
-    LaunchedEffect(uriUpdatedTimestamp.value) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
+    LaunchedEffect(sharedImageData.value) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
         viewModel.runOcr(context) {
             if (it.status == FuncStatus.SUCCESS) {
                 /**
@@ -71,6 +71,7 @@ fun OCRView(
                  */
                 Toast.makeText(context, "OCR読み取りに成功しました", Toast.LENGTH_SHORT).show()
                 viewModel.copyReadExpenseToTmpExpense()
+                viewModel.clearSharedImageData()
                 navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
                     popUpTo(Screen.GlobalScreen.OcrRead.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
                         inclusive = true // OCRView を含めて削除
@@ -133,7 +134,7 @@ fun OCRView(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
                     AsyncImage(
                         model = viewModel.getImageUri()
-                            .toString() + "?ts=${uriUpdatedTimestamp.value}",
+                            .toString() + "?ts=${sharedImageData.value?.receivedTime}",
                         contentDescription = null
                     )
                 }

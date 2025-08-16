@@ -27,7 +27,7 @@ class SharedImageViewModel @Inject constructor() : ViewModel() {
         isMovedToOCR = value
     }
 
-    fun clearSharedImageUri() {
+    fun clearSharedImageData() {
         _sharedImageData.value = null
     }
 }
