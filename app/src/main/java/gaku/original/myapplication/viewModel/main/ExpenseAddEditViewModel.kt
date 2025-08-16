@@ -11,6 +11,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
+import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -35,9 +36,11 @@ class ExpenseAddEditViewModel @Inject constructor(
         LogAkitaDebug("ExpenseAddEditViewModel cleared")
     }
 
+    private val _initialExpenseList = tmpExpenseViewModel.tmpExpenseList
+
     /* 初期値だけTempExpenseから受け取ってあとはこっちで保持 */
     private val _expenseList = MutableStateFlow(
-        tmpExpenseViewModel.tmpExpenseList
+        _initialExpenseList
     )
     val expenseList: StateFlow<List<Expense>> = _expenseList
 
@@ -74,7 +77,7 @@ class ExpenseAddEditViewModel @Inject constructor(
             _totalAmount.value = getHeadExpense().amount ?: 0L
 
             /* 先頭費用は0にしておいた方が良い */
-            updateTmpExpenseAmountAt(index = 0, 0L)
+            updateExpenseAmountAt(index = 0, 0L)
         }
 
         if (_splitInputEnabled.value) {
@@ -84,7 +87,7 @@ class ExpenseAddEditViewModel @Inject constructor(
              * */
             tmpExpenseViewModel.removeTmpExpenseExceptHead()
             /* totalAmountを先頭にコピーしたほうがいいか */
-            updateTmpExpenseAmountAt(0, _totalAmount.value)
+            updateExpenseAmountAt(0, _totalAmount.value)
         }
         _splitInputEnabled.value = !_splitInputEnabled.value
     }
@@ -134,7 +137,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         return expenseList.value.first()
     }
 
-    fun addExpenseToList(newExpense: Expense) {
+    fun addExpenseToList(newExpense: Expense = getDefaultExpense()) {
         _expenseList.value = _expenseList.value + newExpense
     }
 
@@ -230,7 +233,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         )
     }
 
-    fun updateTmpExpenseItemNameAt(index: Int = 0, itemName: String) {
+    fun updateExpenseItemNameAt(index: Int = 0, itemName: String) {
         updateExpenseAt(
             index,
             _expenseList.value[index].copy(
@@ -243,7 +246,7 @@ class ExpenseAddEditViewModel @Inject constructor(
      * こいつらは共通なのでheadだけ変更して、追加するときに
      * すべて代入する
      */
-    fun updateTmpExpenseStoreName(storeName: String) {
+    fun updateExpenseStoreName(storeName: String) {
         updateExpense(
             getHeadExpense().copy(
                 storeName = storeName
@@ -252,12 +255,12 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun resetExpenseList() {
-        _expenseList.value = tmpExpenseViewModel.tmpExpenseList
+        _expenseList.value = _initialExpenseList
     }
 
     fun copyCommonPropertyToList() {
         val head = getHeadExpense()
-        val updatedList = expenseList.value.mapIndexed { index, expense ->
+        val updatedList = _expenseList.value.mapIndexed { index, expense ->
             if (index == 0) {
                 expense // 先頭はそのまま
             } else {
@@ -268,10 +271,10 @@ class ExpenseAddEditViewModel @Inject constructor(
                 )
             }
         }
-        tmpExpenseViewModel.updateTmpExpenseList(updatedList)
+        _expenseList.value = updatedList
     }
 
-    fun addTmpExpenseToDb(callback: (FuncStatusInfo) -> Unit) {
+    fun addExpenseToDb(callback: (FuncStatusInfo) -> Unit) {
         setLoadingState(true)
         /**
          * ここで中身チェックを行った方が良い。
@@ -280,7 +283,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         copyCommonPropertyToList()
         var cnt = 0
         viewModelScope.launch {
-            for (ex in expenseList.value) {
+            for (ex in _expenseList.value) {
                 val ret = expenseSharedViewModel.addExpense(
                     ex
                 )
@@ -290,7 +293,7 @@ class ExpenseAddEditViewModel @Inject constructor(
             }
 
             setLoadingState(false)
-            if (expenseList.value.size == cnt) {
+            if (_expenseList.value.size == cnt) {
                 callback(
                     FuncStatusInfo(
                         FuncStatus.SUCCESS,
@@ -307,13 +310,13 @@ class ExpenseAddEditViewModel @Inject constructor(
         }
     }
 
-    fun updateTmpExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
+    fun updateExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
         setLoadingState(true)
         onStart()
         var cnt: Int = 0
         copyCommonPropertyToList()
         viewModelScope.launch {
-            for (ex in expenseList.value) {
+            for (ex in _expenseList.value) {
                 if (ex.id == null) {
                     /* 新規作成 */
                     val addRet = expenseSharedViewModel.addExpense(ex)
@@ -331,7 +334,7 @@ class ExpenseAddEditViewModel @Inject constructor(
 
             setLoadingState(false)
 
-            if (cnt == expenseList.value.size) {
+            if (cnt == _expenseList.value.size) {
                 callback(
                     FuncStatusInfo(
                         FuncStatus.SUCCESS,
@@ -348,7 +351,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         }
     }
 
-    fun removeTmpExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
+    fun removeExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
         /**
          * 分割入力のときは、
          * それをオフにしてからにする
@@ -390,18 +393,13 @@ class ExpenseAddEditViewModel @Inject constructor(
     /*******************************/
     /* 費用を追加/削除する */
     /*******************************/
-    fun addExpenseToList() {
-        tmpExpenseViewModel.addTmpExpense()
-        calcLastExpenseAmount()
-    }
-
     fun removeExpenseFromListAtSelectedIndex() {
         val index = selectedIndex ?: return
         removeExpenseFromListAt(index)
     }
 
     fun removeExpenseFromListAt(index: Int) {
-        tmpExpenseViewModel.removeTmpExpenseAt(index)
+        removeExpenseAt(index)
         calcLastExpenseAmount()
     }
 }

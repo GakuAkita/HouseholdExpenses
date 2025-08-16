@@ -207,7 +207,7 @@ fun ExpenseAddEditView(
         }
 //        LogAkitaDebug("converted String ${isoStr}")
         /* isoStrがnullであることはない。上でチェックしている。 */
-        viewModel.updateTmpExpenseDatetime(isoStr!!)
+        viewModel.updateExpenseDatetime(isoStr!!)
 
         /* カテゴリーをリモートから取得できなかったとき保存も更新もできなくなる。したがって、カテゴリーのチェックはやめる */
         /* あるいは、allCategoriesがemptyList()のときだけこのチェックをバイパスするとかでもいいな */
@@ -220,7 +220,7 @@ fun ExpenseAddEditView(
 //        }
 
         if (viewModel.getHeadExpense().id == null) {
-            viewModel.addTmpExpenseToDb(callback = {
+            viewModel.addExpenseToDb(callback = {
                 /* 成功のときのみ */
                 if (it.status == FuncStatus.SUCCESS) {
                     scope.launch {
@@ -230,7 +230,7 @@ fun ExpenseAddEditView(
                 }
             })
         } else {
-            viewModel.updateTmpExpenseToDb(onStart = {}, callback = {
+            viewModel.updateExpenseToDb(onStart = {}, callback = {
                 if (it.status == FuncStatus.SUCCESS) {
                     scope.launch {
                         snackBarHostState.showSnackbar("更新する")
@@ -474,7 +474,7 @@ fun ExpenseAddEditView(
                                         } else {
                                             Log.d(viewName, "selected index:${index}")
                                             showCalculator = false
-                                            viewModel.updateTmpExpenseAmountAtSelectedIndex(
+                                            viewModel.updateExpenseAmountAtSelectedIndex(
                                                 convertedVal
                                             )
                                         }
@@ -493,7 +493,7 @@ fun ExpenseAddEditView(
                             initialCategoryId = expense.category?.id,
                             categories = allCategories,
                             onCategorySelected = {
-                                viewModel.updateTmpExpenseCategoryAt(index, it)
+                                viewModel.updateExpenseCategoryAt(index, it)
                             },
                             modifier = basicModifier,
                         )
@@ -535,7 +535,7 @@ fun ExpenseAddEditView(
                         TextField(
                             value = expense.note ?: "",
                             onValueChange = {
-                                viewModel.updateTmpExpenseNoteAt(index, it)
+                                viewModel.updateExpenseNoteAt(index, it)
                             },
                             modifier = basicModifier,
                             label = { Text(text = "Note(空欄可)") },
@@ -554,7 +554,7 @@ fun ExpenseAddEditView(
                         TextField(
                             value = expense.itemName ?: "",
                             onValueChange = {
-                                viewModel.updateTmpExpenseItemNameAt(index, it)
+                                viewModel.updateExpenseItemNameAt(index, it)
                             },
                             label = { Text(text = "商品名(空欄可)") },
                             modifier = basicModifier
@@ -617,7 +617,7 @@ fun ExpenseAddEditView(
                 TextField(
                     value = viewModel.getHeadExpense().storeName ?: "",
                     onValueChange = {
-                        viewModel.updateTmpExpenseStoreName(it)
+                        viewModel.updateExpenseStoreName(it)
                     },
                     label = { Text(text = "店名(空欄可)") },
                     modifier = basicModifier
@@ -707,7 +707,7 @@ fun ExpenseAddEditView(
                     if (viewModel.getHeadExpense().id == null) {
                         Button(
                             onClick = {
-                                viewModel.resetTmpExpenseList()
+                                viewModel.resetExpenseList()
                             },
                             modifier = Modifier
                                 .width(140.dp)
@@ -796,11 +796,11 @@ fun ExpenseAddEditView(
                     )
                 },
                 onClick = {
-                    viewModel.removeTmpExpenseToDb(
+                    viewModel.removeExpenseToDb(
                         onStart = {},
                         callback = {
                             if (it.status == FuncStatus.SUCCESS) {
-                                viewModel.resetTmpExpenseList()
+                                viewModel.resetExpenseList()
                                 navController.popBackStack()
                             } else {
                                 Toast.makeText(

@@ -72,10 +72,9 @@ fun OCRView(
                 Toast.makeText(context, "OCR読み取りに成功しました", Toast.LENGTH_SHORT).show()
                 viewModel.copyReadExpenseToTmpExpense()
                 navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                    // OCR画面をスタックから消す
-                    popUpTo(Screen.GlobalScreen.OcrRead.route) { inclusive = true }
-                    // 遷移先がすでにあったら新しく生成
-                    launchSingleTop = true
+                    popUpTo(Screen.GlobalScreen.OcrRead.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
+                        inclusive = true // OCRView を含めて削除
+                    }
                 }
             } else if (it.status == FuncStatus.WARNING) {
                 Toast.makeText(context, "OCR読み取り部分的に失敗しました", Toast.LENGTH_SHORT)
