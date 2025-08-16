@@ -1,37 +1,38 @@
 package gaku.original.myapplication.viewModel.main
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import javax.inject.Inject
 
+/**
+ * OCRやNotificationから来るときに、AddEdit画面を複数作りたいので、
+ * このViewModelは画面間の受け渡しのみに集中する
+ */
 class TemporaryExpenseViewModel @Inject constructor(
 
 ) : ViewModel() {
 
     /** AddEditとMainView間でのデータ受け渡し用 **/
     // 内部状態: 常に1件以上のExpenseを保持
-    private val _tmpExpenseList = mutableStateOf(
-        listOf(getDefaultExpense())
-    )
+    /* 基本的にExpenseは一個だけだと思うが、一応リストでも渡せるようにしておく */
+    private var _tmpExpenseList: List<Expense> = listOf(getDefaultExpense())
 
     // 外部公開用（読み取り専用）
-    val tmpExpenseList: State<List<Expense>> get() = _tmpExpenseList
+    val tmpExpenseList: List<Expense> get() = _tmpExpenseList
 
     /** 現在編集中のExpense（とりあえず最初の要素を返す） **/
     val currentTmpExpense: Expense
-        get() = _tmpExpenseList.value.first()
+        get() = _tmpExpenseList.first()
 
     /** Expenseを追加 **/
     fun addTmpExpense(newExpense: Expense = getDefaultExpense()) {
-        _tmpExpenseList.value = _tmpExpenseList.value + newExpense
+        _tmpExpenseList = _tmpExpenseList + newExpense
     }
 
     /** 特定インデックスのExpenseを更新 **/
     fun updateTmpExpenseAt(index: Int, newExpense: Expense) {
-        _tmpExpenseList.value = _tmpExpenseList.value.toMutableList().apply {
+        _tmpExpenseList = _tmpExpenseList.toMutableList().apply {
             if (index in indices) {
                 this[index] = newExpense
             }
@@ -44,13 +45,13 @@ class TemporaryExpenseViewModel @Inject constructor(
     }
 
     fun removeTmpExpenseExceptHead() {
-        _tmpExpenseList.value = _tmpExpenseList.value.take(1)
+        _tmpExpenseList = _tmpExpenseList.take(1)
     }
 
     /** 特定インデックスのExpenseを削除 **/
     fun removeTmpExpenseAt(index: Int) {
-        if (_tmpExpenseList.value.size > 1) { // 最低1件は残す
-            _tmpExpenseList.value = _tmpExpenseList.value.toMutableList().apply {
+        if (_tmpExpenseList.size > 1) { // 最低1件は残す
+            _tmpExpenseList = _tmpExpenseList.toMutableList().apply {
                 if (index in indices) {
                     removeAt(index)
                 }
@@ -60,10 +61,10 @@ class TemporaryExpenseViewModel @Inject constructor(
 
     /** 全てリセット（1件のデフォルト状態に戻す） **/
     fun resetTmpExpenseList() {
-        _tmpExpenseList.value = listOf(getDefaultExpense())
+        _tmpExpenseList = listOf(getDefaultExpense())
     }
 
     fun updateTmpExpenseList(list: List<Expense>) {
-        _tmpExpenseList.value = list
+        _tmpExpenseList = list
     }
 }

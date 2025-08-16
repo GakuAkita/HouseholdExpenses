@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.FuncStatusInfo
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
@@ -35,7 +35,11 @@ class ExpenseAddEditViewModel @Inject constructor(
         LogAkitaDebug("ExpenseAddEditViewModel cleared")
     }
 
-    val expenseList get() = tmpExpenseViewModel.tmpExpenseList
+    /* 初期値だけTempExpenseから受け取ってあとはこっちで保持 */
+    private val _expenseList = MutableStateFlow(
+        tmpExpenseViewModel.tmpExpenseList
+    )
+    val expenseList: StateFlow<List<Expense>> = _expenseList
 
     //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
@@ -130,19 +134,50 @@ class ExpenseAddEditViewModel @Inject constructor(
         return expenseList.value.first()
     }
 
-    fun updateTmpExpenseDatetime(datetimeStr: String) {
-        tmpExpenseViewModel.updateTmpExpense(
+    fun addExpenseToList(newExpense: Expense) {
+        _expenseList.value = _expenseList.value + newExpense
+    }
+
+    fun updateExpense(newExpense: Expense) {
+        updateExpenseAt(0, newExpense)
+    }
+
+    fun updateExpenseAt(index: Int, newExpense: Expense) {
+        _expenseList.value = _expenseList.value.toMutableList().apply {
+            if (index in indices) {
+                this[index] = newExpense
+            }
+        }
+    }
+
+    fun removeExpenseExceptHead() {
+        _expenseList.value.take(1)
+    }
+
+    fun removeExpenseAt(index: Int) {
+        if (_expenseList.value.size > 1) {
+            _expenseList.value = _expenseList.value.toMutableList().apply {
+                if (index in indices) {
+                    removeAt(index)
+                }
+            }
+        }
+    }
+
+    fun updateExpenseDatetime(datetimeStr: String) {
+        /* 先頭のdatetimeを更新して保存するときに全部コピーするので更新するのは先頭だけで良い */
+        updateExpense(
             getHeadExpense().copy(datetime = datetimeStr)
         )
     }
 
     fun calcLastExpenseAmount() {
-        val arr = expenseList.value
+        val arr = _expenseList.value
         val size = arr.size
         if (size > 1) {
             val sumBeforeLast = arr.dropLast(1).sumOf { it.amount ?: 0L }
             val remaining = (_totalAmount.value ?: 0L) - sumBeforeLast
-            tmpExpenseViewModel.updateTmpExpenseAt(
+            updateExpenseAt(
                 size - 1,
                 arr[size - 1].copy(
                     amount = remaining
@@ -158,16 +193,16 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     /* selectedIndexを使って更新 */
-    fun updateTmpExpenseAmountAtSelectedIndex(newAmount: Long?) {
+    fun updateExpenseAmountAtSelectedIndex(newAmount: Long?) {
         val index = selectedIndex ?: return
-        updateTmpExpenseAmountAt(index, newAmount)
+        updateExpenseAmountAt(index, newAmount)
     }
 
     // 各項目を個別に更新するメソッド
-    fun updateTmpExpenseAmountAt(index: Int = 0, newAmount: Long?) {
-        tmpExpenseViewModel.updateTmpExpenseAt(
+    fun updateExpenseAmountAt(index: Int = 0, newAmount: Long?) {
+        updateExpenseAt(
             index,
-            expenseList.value[index].copy(
+            _expenseList.value[index].copy(
                 amount = newAmount
             )
         )
@@ -177,28 +212,28 @@ class ExpenseAddEditViewModel @Inject constructor(
         calcLastExpenseAmount()
     }
 
-    fun updateTmpExpenseCategoryAt(index: Int = 0, newCategory: Category?) {
-        tmpExpenseViewModel.updateTmpExpenseAt(
+    fun updateExpenseCategoryAt(index: Int = 0, newCategory: Category?) {
+        updateExpenseAt(
             index,
-            expenseList.value[index].copy(
+            _expenseList.value[index].copy(
                 category = newCategory
             )
         )
     }
 
-    fun updateTmpExpenseNoteAt(index: Int = 0, newNote: String) {
-        tmpExpenseViewModel.updateTmpExpenseAt(
+    fun updateExpenseNoteAt(index: Int = 0, newNote: String) {
+        updateExpenseAt(
             index,
-            expenseList.value[index].copy(
+            _expenseList.value[index].copy(
                 note = newNote
             )
         )
     }
 
     fun updateTmpExpenseItemNameAt(index: Int = 0, itemName: String) {
-        tmpExpenseViewModel.updateTmpExpenseAt(
+        updateExpenseAt(
             index,
-            expenseList.value[index].copy(
+            _expenseList.value[index].copy(
                 itemName = itemName
             )
         )
@@ -209,15 +244,15 @@ class ExpenseAddEditViewModel @Inject constructor(
      * すべて代入する
      */
     fun updateTmpExpenseStoreName(storeName: String) {
-        tmpExpenseViewModel.updateTmpExpense(
+        updateExpense(
             getHeadExpense().copy(
                 storeName = storeName
             )
         )
     }
 
-    fun resetTmpExpenseList() {
-        tmpExpenseViewModel.resetTmpExpenseList()
+    fun resetExpenseList() {
+        _expenseList.value = tmpExpenseViewModel.tmpExpenseList
     }
 
     fun copyCommonPropertyToList() {
