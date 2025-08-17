@@ -35,9 +35,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.OCRViewModel
 import kotlinx.coroutines.launch
@@ -130,7 +130,7 @@ fun OCRView(
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 3.dp)
                     )
-                    Text(ocrResult.value?.text ?: "")
+                    Text(ocrResult.value?.text?.text ?: "")
                     HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
                     AsyncImage(
                         model = viewModel.getImageUri()

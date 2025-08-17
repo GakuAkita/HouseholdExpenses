@@ -1,6 +1,7 @@
-package gaku.original.myapplication.utility
+package gaku.original.myapplication.data
 
 import gaku.original.myapplication.data.Constants.TimeZoneOption
+import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -84,7 +85,7 @@ object AppTimeZone {
 
     /* UNIXのタイムスタンプをUTC instantに変換する */
     fun convertUnixTimestampToInstant(unixTimestamp: Long): Instant {
-        val funcName = ::convertUnixTimestampToCurrentTimeInZoneIsoStr.name
+        val funcName = AppTimeZone::convertUnixTimestampToCurrentTimeInZoneIsoStr.name
 
         //instantで持てばUTCだろうがcurrentZoneIdだろうがいつでも変換できる
         val instant = Instant.ofEpochMilli(unixTimestamp)
@@ -92,7 +93,7 @@ object AppTimeZone {
     }
 
     fun convertUnixTimestampToCurrentTimeInZoneIsoStr(unixTimestamp: Long): String? {
-        val funcName = ::convertUnixTimestampToCurrentTimeInZoneIsoStr.name
+        val funcName = AppTimeZone::convertUnixTimestampToCurrentTimeInZoneIsoStr.name
         val unixInstant = convertUnixTimestampToInstant(unixTimestamp)
         return fromInstantUTCToTimezoneIsoStr(unixInstant)
     }

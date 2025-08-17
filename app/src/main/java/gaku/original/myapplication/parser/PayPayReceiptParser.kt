@@ -2,22 +2,24 @@ package gaku.original.myapplication.parser
 
 import android.util.Log
 import com.google.mlkit.vision.text.Text
+import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
-import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.LogAkitaDebug
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.max
-import kotlin.math.min
 
 class PayPayReceiptOCRParser(
-    val textOcr: Text?
+    val textOcr: Text?,
 ) {
     val className = PayPayReceiptOCRParser::class.java.simpleName
-    fun parse(text: Text? = textOcr): FuncResultWithData<Expense> {
+    fun parse(
+        text: Text? = textOcr,
+        exclusionRatioFromScreenLeft: Float = 0.22f,
+        imageWidth: Int = 0,
+    ): FuncResultWithData<Expense> {
         val result = getDefaultExpense()
         val t = text
         if (t == null) {
@@ -36,24 +38,27 @@ class PayPayReceiptOCRParser(
 
         /* 見かけの幅を算出 */
         // --- 1) 全体の左右範囲（見かけの幅）を算出 ---
-        var minX = Int.MAX_VALUE
-        var maxX = Int.MIN_VALUE
-        for (b in text.textBlocks) {
-            b.boundingBox?.let { bb ->
-                minX = min(minX, bb.left)
-                maxX = max(maxX, bb.right)
-            }
-        }
+        val minX = 0
+        val maxX = imageWidth
+//        for (b in text.textBlocks) {
+//            b.boundingBox?.let { bb ->
+//                minX = min(minX, bb.left)
+//                maxX = max(maxX, bb.right)
+//            }
+//        }
         if (minX == Int.MAX_VALUE || maxX == Int.MIN_VALUE) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
                 errorMessage = "OCR:画面幅を取得できませんでした"
             )
         }
-        val ratioFromLeft = 0.27f/* ここは携帯の画面によるのか？？ */
-        Log.d(className, "minX:$minX maxX:$maxX ratioFromLeft:$ratioFromLeft")
+        val ratioFromLeft = exclusionRatioFromScreenLeft/* ここは携帯の画面によるのか。ユーザーに調整してもらうしかないな？？ */
         val leftExclusionX = minX + ((maxX - minX) * ratioFromLeft) // 左数十%
-        LogAkitaDebug("leftExclusionX:$leftExclusionX")
+        Log.d(
+            className,
+            "minX:$minX maxX:$maxX ratioFromLeft:$ratioFromLeft leftExclusionX:$leftExclusionX"
+        )
+        LogAkitaDebug("leftExclusionX=${leftExclusionX}")
 
         // --- 2) ブロックを上→下（左→右）でソート ---
         /* OCRは必ずしも上から順番に呼んでくれているわけではないらしい */
@@ -96,9 +101,17 @@ class PayPayReceiptOCRParser(
 
             if (bbBottom <= dateTopY) {
                 // 上側：Element単位で左数十%を除外
+                /**
+                 * これもう基本的には、elementsは2つか3つ以上にはならないから、
+                 * それで区別するしかないな。
+                 * つまり、ロゴの部分、大文字の部分、小文字の部分みていな感じで。
+                 * で、万が一ロゴの部分と店舗名が同じelementになってしまったら、読むのやめるとかにするしかない。
+                 */
                 for (line in b.lines) {
                     val lineBuf = StringBuilder()
+                    LogAkitaDebug("---------line-------------")
                     for (el in line.elements) {
+                        LogAkitaDebug("------------elements---------")
                         for (symbol in el.symbols) {
                             val eb = symbol.boundingBox
                             LogAkitaDebug("This is debug.. symbol:${symbol.text} left=${eb?.left} right=${eb?.right}")

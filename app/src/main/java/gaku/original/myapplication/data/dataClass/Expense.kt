@@ -1,8 +1,8 @@
 package gaku.original.myapplication.data.dataClass
 
 import androidx.compose.runtime.mutableStateListOf
+import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
-import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.utility.separateStringByBars
 
 data class Expense(

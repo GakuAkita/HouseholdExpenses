@@ -27,10 +27,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+/**
+ * 場合によっては別の場所に移動
+ */
+data class OcrResultData(
+    val text: Text,
+    val imageWidth: Int,
+    val imageHeight: Int
+)
+
 @HiltViewModel
 class OCRViewModel @Inject constructor(
     private val sharedImageViewModel: SharedImageViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+    private val pref: PreferenceStorage
 ) : ViewModel() {
     val className: String = this::class.java.simpleName
 
@@ -43,8 +53,8 @@ class OCRViewModel @Inject constructor(
     private val _ocrReading = MutableStateFlow(false)
     val ocrReading: StateFlow<Boolean> = _ocrReading
 
-    private val _ocrResult = MutableStateFlow<Text?>(null)
-    val ocrResult: StateFlow<Text?> get() = _ocrResult
+    private val _ocrResult = MutableStateFlow<OcrResultData?>(null)
+    val ocrResult: StateFlow<OcrResultData?> get() = _ocrResult
 
     private val _sharedImageData = MutableStateFlow(sharedImageViewModel.sharedImageData.value)
     val sharedImageData: StateFlow<SharedImageData?> get() = _sharedImageData
@@ -79,9 +89,18 @@ class OCRViewModel @Inject constructor(
             if (result is FuncResultWithData.Success) {
                 _ocrResult.value = result.data
 
+//                val exclusionRatio = pref.getFloat(
+//                    PrefKeys.EXCLUSION_RATIO_FROM_SCREEN_LEFT_FOR_PAYPAY_RECEIPT_OCR,
+//                    0.22f
+//                )
+                val exclusionRatio = 0.28f
                 /* ここでPayPayの読み込み行うか */
-                val paypayParser = PayPayReceiptOCRParser(result.data)
-                val paypayResult = paypayParser.parse()
+                val paypayParser = PayPayReceiptOCRParser(result.data?.text)
+                val imageWidth = result.data?.imageWidth ?: 0
+                val paypayResult = paypayParser.parse(
+                    exclusionRatioFromScreenLeft = exclusionRatio,
+                    imageWidth = imageWidth
+                )
                 if (paypayResult is FuncResultWithData.Success) {
                     _extractedExpense.value = paypayResult.data
                 } else if (paypayResult is FuncResultWithData.Warning) {
@@ -99,7 +118,7 @@ class OCRViewModel @Inject constructor(
         }
     }
 
-    suspend fun getOcrResult(context: Context, imageUri: Uri?): FuncResultWithData<Text?> {
+    suspend fun getOcrResult(context: Context, imageUri: Uri?): FuncResultWithData<OcrResultData?> {
         if (imageUri == null) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
@@ -111,7 +130,10 @@ class OCRViewModel @Inject constructor(
                 status = FuncStatus.FAILED,
                 "bitmap is null"
             )
+        val imageWidth = bitmap.width
+        val imageHeight = bitmap.height
         val image = InputImage.fromBitmap(bitmap, 0)
+        Log.d(className, "Image width=${imageWidth}　height=${imageHeight}")
 
         val recognizer =
             TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
@@ -119,7 +141,13 @@ class OCRViewModel @Inject constructor(
         /* タイムアウト作った法が良いかな */
         return try {
             val visionText = recognizer.process(image).await()
-            FuncResultWithData.Success(data = visionText)
+            FuncResultWithData.Success(
+                data = OcrResultData(
+                    text = visionText,
+                    imageWidth = imageWidth,
+                    imageHeight = imageHeight
+                )
+            )
         } catch (e: Exception) {
             FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,

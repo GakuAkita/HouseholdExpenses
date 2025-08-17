@@ -1,7 +1,7 @@
 package gaku.original.myapplication.data.Constants
 
+import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Frequency
-import gaku.original.myapplication.utility.AppTimeZone
 import java.time.LocalDateTime
 
 object RepeatFrequency {
