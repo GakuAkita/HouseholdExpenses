@@ -4,13 +4,15 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
+import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class NotificationListenerProcessViewModel @Inject constructor(
-    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel
+    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel,
+    private val tmpExpenseViewModel: TemporaryExpenseViewModel
 ) : ViewModel() {
 
     override fun onCleared() {
@@ -24,5 +26,6 @@ class NotificationListenerProcessViewModel @Inject constructor(
 
     fun clearNotificationData() {
         sharedNotificationListenerViewModel.clearNotificationData()
+        //sharedNotificationListenerViewModel.setIsMovedToNLProcess(false)/* 念の為つけていてもいいかも */
     }
 }

@@ -49,7 +49,12 @@ class MainActivity : ComponentActivity() {
             HouseholdExpensesTheme(
                 darkTheme = true/*システム設定によらずずっとダーク*/
             ) {
+                /**
+                 * onCreateされていないとonNewIntentは走らない
+                 * したがって、ここでもsetArgsをしておかないとだめ。
+                 */
                 setArgsToSharedImageViewModel()
+                setArgsToSharedNotificationListenerViewModel()
                 // 一番最初にデフォルで存在するScaffold
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -105,6 +110,7 @@ class MainActivity : ComponentActivity() {
                 if (firebaseUser == null) {
                     navigateToSingle(navController, Screen.StartScreen.Login.route)
                 } else {
+                    sharedNotificationListenerViewModel.setIsMovedToNLProcess(true)
                     navController.navigate(Screen.GlobalScreen.NotificationListenerProcess.route)
                 }
             }
@@ -181,6 +187,7 @@ class MainActivity : ComponentActivity() {
         val notificationData =
             intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
         LogAkitaDebug("Received notification data:${notificationData}")
+        sharedNotificationListenerViewModel.setIsMovedToNLProcess(false)
         sharedNotificationListenerViewModel.setNotificationData(notificationData)
     }
 

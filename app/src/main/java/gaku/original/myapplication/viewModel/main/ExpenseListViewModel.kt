@@ -12,6 +12,7 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.utility.AppTimeZone
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
+import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +39,8 @@ rememberとViewModelは違う。
 class ExpenseListViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val sharedImageViewModel: SharedImageViewModel
+    private val sharedImageViewModel: SharedImageViewModel,
+    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel
 ) : ViewModel() {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
@@ -249,5 +251,13 @@ class ExpenseListViewModel @Inject constructor(
 
     fun setIsMovedToOCR(value: Boolean = true) {
         sharedImageViewModel.isMovedToOCR = value
+    }
+
+    fun isShouldMoveToNLProcess(): Boolean {
+        return !sharedNotificationListenerViewModel.isMovedToNLProcess && sharedNotificationListenerViewModel.getNotificationData() != null
+    }
+
+    fun setIsMovedToNLProcess(value: Boolean = true) {
+        sharedNotificationListenerViewModel.isMovedToNLProcess = value
     }
 }

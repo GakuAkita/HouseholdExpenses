@@ -17,6 +17,12 @@ class SharedNotificationListenerViewModel @Inject constructor() : ViewModel() {
      */
     private var notificationData: NotificationData? = null
 
+    var isMovedToNLProcess: Boolean = false
+
+    fun setIsMovedToNLProcess(value: Boolean = true) {
+        isMovedToNLProcess = value
+    }
+
     fun setNotificationData(data: NotificationData?) {
         notificationData = data
     }

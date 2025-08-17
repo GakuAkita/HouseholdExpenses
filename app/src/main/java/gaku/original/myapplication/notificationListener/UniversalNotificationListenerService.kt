@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.AppPackageNames
@@ -42,6 +43,8 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             if (title !in validTitles) {
                 return
             }
+
+            Log.d("UniversalNLS", "title:$title text:$text")
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,
@@ -82,7 +85,7 @@ fun sendNotificationFromNLSForPayPay(
 ) {
     val pendingIntent = PendingIntent.getActivity(
         context,
-        0,
+        System.currentTimeMillis().toInt(),/* ここが固定だと、通知が近くても同じIntentが送られてしまう？ */
         intent,
         PendingIntent.FLAG_IMMUTABLE/* これを少なくともつけないとエラーになるらしい */
     )

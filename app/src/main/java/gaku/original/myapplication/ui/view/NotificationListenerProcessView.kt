@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,7 +11,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.NotificationListenerProcessViewModel
 
 @Composable
@@ -36,9 +39,16 @@ fun NotificationListenerProcessView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text("取得したデータ:${notificationData.value.toString()}")
             Text("タイトル:${notificationData.value?.title}")
             Text("テキスト:${notificationData.value?.text}")
+
+            Text("ここから解析する")
         }
     }
+}
+
+fun navigateToNLProcess(navController: NavHostController) {
+    val funcName = "navigateToNLProcess"
+    Log.d(funcName, "${funcName} was called.")
+    navigateToSingle(navController, Screen.GlobalScreen.NotificationListenerProcess.route)
 }
