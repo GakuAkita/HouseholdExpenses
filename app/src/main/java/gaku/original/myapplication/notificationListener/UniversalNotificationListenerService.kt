@@ -5,15 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
+import gaku.original.myapplication.data.Constants.NotificationChannels
 import gaku.original.myapplication.data.Constants.NotificationValidTitles
 import gaku.original.myapplication.data.dataClass.NotificationData
+import gaku.original.myapplication.utility.sendNotification
 
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
@@ -30,7 +30,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             val title = extras.getString("android.title")
             val text = extras.getCharSequence("android.text")
-            val postTimeMillis: Long = sbn.postTime
+            val timestamp: Long = System.currentTimeMillis()
             if (title == null || text == null) {
                 return
             }
@@ -45,33 +45,23 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,
-                AppPackageNames.THIS_APP -> {
+                AppPackageNames.THIS_APP,
+                AppPackageNames.NOTIFICATION_TESTER -> {
                     /**
                      * PayPayの通知を検知して、適切なものだったら
                      * このアプリの通知を出してタップでExpense生成まで行けるようにする
                      */
                     val intent = Intent(this, MainActivity::class.java).apply {
-                        val data = NotificationData(pkgName, title, text, postTimeMillis)
+                        val data = NotificationData(pkgName, title, text, timestamp)
                         putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
                         putExtra(NotificationData.EXTRA_KEY, data)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }
 
-                    val pendingIntent = PendingIntent.getActivity(
+                    sendNotificationFromNLSForPayPay(
                         this,
-                        System.currentTimeMillis().toInt(),
-                        intent,
-                        PendingIntent.FLAG_IMMUTABLE/* これを少なくともつけないとエラーになるらしい */
+                        intent
                     )
-
-                    val notification = NotificationCompat.Builder(this, "家計簿")
-                        .setSmallIcon(R.drawable.money_icon_foreground)
-                        .setContentText("PayPayの支払いを検知しました")
-                        .setContentText("タップして費用として追加する")
-                        .setContentIntent(pendingIntent)
-                        .setAutoCancel(true)
-                        .build()
-
                 }
 
 //                AppPackageNames.THIS_APP -> {
@@ -86,9 +76,25 @@ class UniversalNotificationListenerService : NotificationListenerService() {
     }
 }
 
-fun sendNotificationFromListener(
-    context: Context
+fun sendNotificationFromNLSForPayPay(
+    context: Context,
+    intent: Intent
 ) {
+    val pendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_IMMUTABLE/* これを少なくともつけないとエラーになるらしい */
+    )
 
+    sendNotification(
+        context,
+        channelId = NotificationChannels.PayPayDetection.id,
+        icon = R.drawable.money_icon_foreground,
+        title = "PayPayの支払いを検知しました",
+        text = "タップして費用として追加する",
+        notifyId = System.currentTimeMillis().toInt(),
+        pendingIntent = pendingIntent
+    )
 }
 

@@ -180,6 +180,7 @@ class MainActivity : ComponentActivity() {
     private fun setArgsToSharedNotificationListenerViewModel() {
         val notificationData =
             intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
+        LogAkitaDebug("Received notification data:${notificationData}")
         sharedNotificationListenerViewModel.setNotificationData(notificationData)
     }
 

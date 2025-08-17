@@ -8,7 +8,7 @@ data class NotificationData(
     val packageName: String,
     val title: String?,
     val text: CharSequence?,
-    val postTime: Long
+    val timestamp: Long
 ) : Parcelable {
     companion object {
         const val EXTRA_KEY = "notification_data"

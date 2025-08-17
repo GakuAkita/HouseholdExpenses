@@ -41,6 +41,10 @@ fun NotificationListenerSettingView(
         ) {
             Text("プッシュ通知が来たときにその中身から費用を作成する機能です")
             Text("PayPayのみ有効")
+            Text("手順")
+            Text("1.通知アクセス権限をこのアプリに与える")
+            Text("2.PayPayのpush通知をONにし、支払い通知が届くようにする。PayPayの言語設定が英語だと支払い通知は届かないようです、、、そんなクソなことあるのか！")
+            Text("3.このアプリのプッシュ通知をONにする")
 
             NotificationTestButton()
 
