@@ -17,8 +17,11 @@ data class FuncStatusInfo(
 ) : Parcelable
 
 sealed class FuncResultWithData<out T> {
-    data class Success<out T>(val data: T, val isEmpty: Boolean = false) : FuncResultWithData<T>()
-    data class Warning<out T>(val data: T, val warningMessage: String) : FuncResultWithData<T>()
+    data class Success<out T>(val data: T, val isEmpty: Boolean = false) :
+        FuncResultWithData<T>()
+
+    data class Warning<out T>(val data: T, val warningMessage: String) :
+        FuncResultWithData<T>()
 
     sealed class Failure : FuncResultWithData<Nothing>() {
         abstract val errorMessage: String

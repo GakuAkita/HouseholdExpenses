@@ -19,7 +19,6 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,8 +84,13 @@ class OCRViewModel @Inject constructor(
                 val paypayResult = paypayParser.parse()
                 if (paypayResult is FuncResultWithData.Success) {
                     _extractedExpense.value = paypayResult.data
+                } else if (paypayResult is FuncResultWithData.Warning) {
+                    _extractedExpense.value = paypayResult.data
                 }
-                LogAkitaDebug("Created Expense: ${_extractedExpense.value}")
+                Log.d(
+                    className,
+                    "Created Expense: ${_extractedExpense.value}　paypayParse result:${paypayResult.toFuncStatusInfo()}"
+                )
                 callback(paypayResult.toFuncStatusInfo())
             } else {
                 callback(result.toFuncStatusInfo())

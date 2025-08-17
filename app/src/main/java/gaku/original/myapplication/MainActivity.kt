@@ -22,6 +22,7 @@ import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation
+import gaku.original.myapplication.ui.view.navigateToNLProcess
 import gaku.original.myapplication.ui.view.navigateToOCRView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
@@ -111,7 +112,13 @@ class MainActivity : ComponentActivity() {
                     navigateToSingle(navController, Screen.StartScreen.Login.route)
                 } else {
                     sharedNotificationListenerViewModel.setIsMovedToNLProcess(true)
-                    navController.navigate(Screen.GlobalScreen.NotificationListenerProcess.route)
+                    /**
+                     * NotificationListenerProcessViewが存在しているときにnavigateしたら
+                     * 前の情報は消して新しく更新することにする。
+                     * ここを普通のnavControllerにすれば、複数画面立ち上げられる。
+                     *
+                     */
+                    navigateToNLProcess(navController)
                 }
             }
 

@@ -3,6 +3,8 @@ package gaku.original.myapplication.viewModel.shared
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.dataClass.NotificationData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 /**
@@ -15,7 +17,8 @@ class SharedNotificationListenerViewModel @Inject constructor() : ViewModel() {
     /**
      * NotificationListenerの値を格納しておく
      */
-    private var notificationData: NotificationData? = null
+    private val _notificationData = MutableStateFlow<NotificationData?>(null)
+    val notificationData: StateFlow<NotificationData?> get() = _notificationData
 
     var isMovedToNLProcess: Boolean = false
 
@@ -24,14 +27,14 @@ class SharedNotificationListenerViewModel @Inject constructor() : ViewModel() {
     }
 
     fun setNotificationData(data: NotificationData?) {
-        notificationData = data
+        _notificationData.value = data
     }
 
     fun getNotificationData(): NotificationData? {
-        return notificationData
+        return _notificationData.value
     }
 
     fun clearNotificationData() {
-        notificationData = null
+        _notificationData.value = null
     }
 }

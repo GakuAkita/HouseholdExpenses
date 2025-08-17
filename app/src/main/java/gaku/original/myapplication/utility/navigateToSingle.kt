@@ -4,10 +4,10 @@ import androidx.navigation.NavHostController
 
 fun navigateToSingle(navController: NavHostController, route: String) {
     navController.navigate(route) {
-        // すでにスタックにある OcrRead まで戻す
+        // すでにスタックにある route まで戻す
         popUpTo(route) {
-            inclusive = false // OcrRead 自体は消さない
+            inclusive = false // route 自体は消さない
         }
-        launchSingleTop = true // 再生成せず、既存の OcrRead を利用
+        launchSingleTop = true // 再生成せず、既存の route を利用
     }
 }

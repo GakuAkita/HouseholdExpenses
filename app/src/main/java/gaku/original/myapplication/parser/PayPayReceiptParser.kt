@@ -7,6 +7,7 @@ import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.utility.AppTimeZone
+import gaku.original.myapplication.utility.LogAkitaDebug
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
@@ -49,7 +50,10 @@ class PayPayReceiptOCRParser(
                 errorMessage = "OCR:画面幅を取得できませんでした"
             )
         }
-        val leftExclusionX = minX + ((maxX - minX) * 0.21f) // 左10%
+        val ratioFromLeft = 0.27f/* ここは携帯の画面によるのか？？ */
+        Log.d(className, "minX:$minX maxX:$maxX ratioFromLeft:$ratioFromLeft")
+        val leftExclusionX = minX + ((maxX - minX) * ratioFromLeft) // 左数十%
+        LogAkitaDebug("leftExclusionX:$leftExclusionX")
 
         // --- 2) ブロックを上→下（左→右）でソート ---
         /* OCRは必ずしも上から順番に呼んでくれているわけではないらしい */
@@ -91,16 +95,18 @@ class PayPayReceiptOCRParser(
             val bbBottom = b.boundingBox?.bottom ?: Int.MAX_VALUE
 
             if (bbBottom <= dateTopY) {
-                // 上側：Element単位で左10%を除外
+                // 上側：Element単位で左数十%を除外
                 for (line in b.lines) {
                     val lineBuf = StringBuilder()
                     for (el in line.elements) {
-                        val eb = el.boundingBox
-                        val centerX = eb?.let { (it.left + it.right) / 2f } ?: Float.MAX_VALUE
-                        /* 呼んだ文字の中心があるx座標より右だったら、lineBufに加える。そうでなければ無視 */
-                        if (centerX >= leftExclusionX) {
-                            if (lineBuf.isNotEmpty()) lineBuf.append(' ')
-                            lineBuf.append(el.text)
+                        for (symbol in el.symbols) {
+                            val eb = symbol.boundingBox
+                            LogAkitaDebug("This is debug.. symbol:${symbol.text} left=${eb?.left} right=${eb?.right}")
+                            val centerX = eb?.let { (it.left + it.right) / 2f } ?: Float.MAX_VALUE
+                            if (centerX >= leftExclusionX) {
+                                if (lineBuf.isNotEmpty()) lineBuf.append(' ')
+                                lineBuf.append(symbol.text)
+                            }
                         }
                     }
                     if (lineBuf.isNotEmpty()) {
@@ -197,6 +203,9 @@ class PayPayReceiptOCRParser(
          * ハローズ\nハローズ 東予店
          * という感じで2行目に店舗名しか入らないパターンと店名も含むパターンがある
          */
+        if (text == "") {
+            return null
+        }
         val textSplitted = text.split("\n")
         val name = textSplitted.getOrNull(0)
         val storeName = textSplitted.getOrNull(1)
