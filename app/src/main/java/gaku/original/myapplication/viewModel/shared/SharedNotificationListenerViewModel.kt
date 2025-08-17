@@ -5,6 +5,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.dataClass.NotificationData
 import javax.inject.Inject
 
+/**
+ * @HiltViewModelをつけたら、どうやらアクティビティ内で単一になった気がする。
+ * つけなくても動くは動くが、どうやら複数インスタンスが作られる形になっていそう。
+ * まじでどういう仕組なのかわからん。
+ */
 @HiltViewModel
 class SharedNotificationListenerViewModel @Inject constructor() : ViewModel() {
     /**
