@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
+import gaku.original.myapplication.data.Constants.createAllNotificationChannelsWithRemove
 import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
@@ -39,6 +40,9 @@ class MainActivity : ComponentActivity() {
 //        val splashScreen = installSplashScreen()
 //        splashScreen.setKeepOnScreenCondition { true }
         //https://www.youtube.com/watch?v=_Jslt5sMuKc
+
+        /* 通知チャンネルをリセットする。いらないのを消して必要なのを生成 */
+        createAllNotificationChannelsWithRemove(this)
 
         setContent {
             navController = rememberNavController()

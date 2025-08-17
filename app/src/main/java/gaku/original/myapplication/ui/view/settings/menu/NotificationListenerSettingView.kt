@@ -1,11 +1,7 @@
 package gaku.original.myapplication.ui.view.settings.menu
 
-import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,11 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.R
+import gaku.original.myapplication.data.Constants.NotificationChannels
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.sendNotification
 
 @Composable
 fun NotificationListenerSettingView(
@@ -82,43 +78,13 @@ fun NotificationTestButton() {
     }
 }
 
-private fun createNotificationChannel(context: Context) {
-    val channel = NotificationChannel(
-        "test_channel_id", // Builder で使うIDと同じ
-        "Test Notifications", // 設定画面に表示される名前
-        NotificationManager.IMPORTANCE_DEFAULT
-    ).apply {
-        description = "Channel for test notifications"
-    }
-    val notificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    notificationManager.createNotificationChannel(channel)
-}
-
 fun sendTestNotification(context: Context) {
-    createNotificationChannel(context)
-
-    val builder = NotificationCompat.Builder(context, "test_channel_id")
-        .setSmallIcon(android.R.drawable.ic_dialog_info)
-        .setContentTitle("テスト通知")
-        .setContentText("これはローカル通知のテストです")
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-    with(NotificationManagerCompat.from(context)) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
-        }
-        notify(1, builder.build()) // IDが同じだと上書きされる
-    }
+    sendNotification(
+        context = context,
+        channelId = NotificationChannels.Test.id,
+        icon = R.drawable.money_icon_foreground,
+        title = "テスト通知",
+        text = "テスト通知です",
+        notifyId = 1
+    )
 }

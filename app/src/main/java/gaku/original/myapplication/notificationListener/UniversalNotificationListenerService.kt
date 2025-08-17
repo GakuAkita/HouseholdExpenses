@@ -1,6 +1,7 @@
 package gaku.original.myapplication.notificationListener
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -46,8 +47,8 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                 AppPackageNames.PAYPAY,
                 AppPackageNames.THIS_APP -> {
                     /**
-                     * すでにアプリが開いていれば、画面を起動
-                     * なければ通知でタップで起動できるようにする
+                     * PayPayの通知を検知して、適切なものだったら
+                     * このアプリの通知を出してタップでExpense生成まで行けるようにする
                      */
                     val intent = Intent(this, MainActivity::class.java).apply {
                         val data = NotificationData(pkgName, title, text, postTimeMillis)
@@ -71,8 +72,6 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                         .setAutoCancel(true)
                         .build()
 
-                    NotificationManagerCompat.from(this)
-                        .notify(System.currentTimeMillis().toInt(), notification)
                 }
 
 //                AppPackageNames.THIS_APP -> {
@@ -85,5 +84,11 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             }
         }
     }
+}
+
+fun sendNotificationFromListener(
+    context: Context
+) {
+
 }
 
