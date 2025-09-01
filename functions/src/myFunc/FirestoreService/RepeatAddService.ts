@@ -14,7 +14,7 @@ export class RepeatAddService {
   }
 
   private getUserRepeatAddColRef(userId: string) {
-    return this.db.collection("users").doc(userId).collection("repeatAdd");
+    return this.db.collection("users").doc(userId).collection("repeat_add");
   }
 
   async updateRepeatAdd(

@@ -211,6 +211,8 @@ export class RepeatAddProcessor {
       };
     }
 
+    logger.log(`Found ${Object.keys(repeatAdds).length} repeat adds.`);
+
     /* 設定のタイムゾーンを取得してくる */
     const userTimeZoneStatus = await this.settingsService.getUserTimeZone(
       userId
@@ -222,6 +224,7 @@ export class RepeatAddProcessor {
       };
     }
     const userTimeZone = userTimeZoneStatus.data;
+    logger.log(`User time zone: ${userTimeZone}`);
 
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。

@@ -40,7 +40,17 @@ const schedule_repeatAdd = async () => {
   }
   logger.log(`Found ${userIds.length} users.`);
   for (const uid of userIds) {
-    repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
+    /* awaitつけないとスルーされる？ */
+    const addResult = await repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
+    if (addResult.status !== FuncStatus.SUCCESS) {
+      logger.error(
+        `Failed to add expenses from repeat adds for user ${uid}: ${addResult.message}`
+      );
+    } else {
+      logger.log(
+        `Successfully added expenses from repeat adds for user ${uid}.`
+      );
+    }
   }
   return;
 };
@@ -56,7 +66,6 @@ exports.monthly_repeatAddJob = onSchedule(
     await schedule_repeatAdd();
   }
 );
-
 /**
  * ユーザーが作成されたときに走らせる
  * 注意：Gen1はnode18以前でないとdeployに失敗する。package.jsonの"engines"の"node"をアップデートしてはいけない！
