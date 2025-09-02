@@ -339,9 +339,6 @@ class ExpenseAddEditViewModel @Inject constructor(
                     }
                 }
             }
-
-            setLoadingState(false)
-
             if (cnt == _expenseList.value.size) {
                 callback(
                     FuncStatusInfo(

@@ -228,6 +228,11 @@ fun ExpenseAddEditView(
                         snackBarHostState.showSnackbar("追加しました")
                     }
                     navController.popBackStack()
+                } else {
+                    viewModel.setLoadingState(false)
+                    scope.launch {
+                        snackBarHostState.showSnackbar("更新に失敗しました:${it.errorMessage}")
+                    }
                 }
             })
         } else {
@@ -237,6 +242,11 @@ fun ExpenseAddEditView(
                         snackBarHostState.showSnackbar("更新する")
                     }
                     navController.popBackStack()
+                } else {
+                    viewModel.setLoadingState(false)
+                    scope.launch {
+                        snackBarHostState.showSnackbar("更新に失敗しました:${it.errorMessage}")
+                    }
                 }
             })
         }
@@ -277,6 +287,13 @@ fun ExpenseAddEditView(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.Center
         ) {
+            if (loadingState) {
+                CircularProgressIndicator()
+                /**
+                 * できれば早期returnではなくて、elseで囲んだほうが良いらしい。
+                 */
+                return@Scaffold
+            }
             val dateFormat = DateTimeFormatter.ofPattern("yyyy/MM/dd")
             val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
             val basicModifier = Modifier.width(260.dp)
@@ -684,62 +701,57 @@ fun ExpenseAddEditView(
             /*************************************************/
             /* 保存ボタンの実装 */
             /*************************************************/
-            if (loadingState) {
-                RowSpace()
-                CircularProgressIndicator()
-            } else {
-                Button(
-                    onClick = {
-                        handleSaveClick()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text("Save")
-                }
+            Button(
+                onClick = {
+                    handleSaveClick()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text("Save")
+            }
 
-                // 新規作成時：リセット、更新時：削除
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    if (viewModel.getHeadExpense().id == null) {
-                        Button(
-                            onClick = {
-                                viewModel.resetExpenseList()
-                            },
-                            modifier = Modifier
-                                .width(140.dp)
-                                .padding(4.dp),
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
-                            )
-                        ) {
-                            Text("Reset")
-                        }
-                    } else {
-                        Button(
-                            onClick = {
-                                showDeleteResetConfirmDialog = true
-                            },
-                            modifier = Modifier
-                                .width(140.dp)
-                                .padding(4.dp),
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            )
-                        ) {
-                            Text("Delete")
-                        }
+            // 新規作成時：リセット、更新時：削除
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                if (viewModel.getHeadExpense().id == null) {
+                    Button(
+                        onClick = {
+                            viewModel.resetExpenseList()
+                        },
+                        modifier = Modifier
+                            .width(140.dp)
+                            .padding(4.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Text("Reset")
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            showDeleteResetConfirmDialog = true
+                        },
+                        modifier = Modifier
+                            .width(140.dp)
+                            .padding(4.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("Delete")
                     }
                 }
             }
@@ -803,7 +815,10 @@ fun ExpenseAddEditView(
                 },
                 onClick = {
                     viewModel.removeExpenseToDb(
-                        onStart = {},
+                        onStart = {
+                            viewModel.setLoadingState(true)
+                            showDeleteResetConfirmDialog = false
+                        },
                         callback = {
                             if (it.status == FuncStatus.SUCCESS) {
                                 viewModel.resetExpenseList()
