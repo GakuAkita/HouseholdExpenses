@@ -133,6 +133,7 @@ fun ExpenseAddEditView(
 
     /* StateFlowあたりよくわかっていない、、ちゃんと勉強しないと */
     val allCategories by viewModel.allCategories.collectAsState(initial = emptyList())
+    val expenseList by viewModel.expenseList.collectAsState()
 
     var categoryOptionsExpanded by remember { mutableStateOf(false) }
 
@@ -387,7 +388,10 @@ fun ExpenseAddEditView(
             }
 
             /* expenseListをぶん回す */
-            viewModel.expenseList.value.forEachIndexed { index, expense ->
+            expenseList.forEachIndexed { index, expense ->
+                /* 最後の要素は自動で入力できないようにする */
+                val isLastElement =
+                    index == expenseList.size - 1 && splitInputState && index != 0
                 Column(
                     modifier = if (splitInputState) Modifier.border(
                         width = 1.dp,
@@ -402,9 +406,6 @@ fun ExpenseAddEditView(
                     Row(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        /* 最後の要素は自動で入力できないようにする */
-                        val isLastElement =
-                            index == viewModel.expenseList.value.size - 1 && splitInputState && index != 0
                         TextField(
                             //数値だけ受け付ける感じにしたい
                             value = expense.amount?.toString() ?: "",
@@ -414,6 +415,10 @@ fun ExpenseAddEditView(
                             label = { Text(text = "Amount") },
                             modifier = basicModifier
                                 .clickable {
+                                    if (isLastElement) {
+                                        /* 分割入力の最後の値は入力させない */
+                                        return@clickable
+                                    }
                                     showCalculator = true
                                     viewModel.setSelectedIndex(index)
                                     Log.d(viewName, "Amount was tapped!!!")
@@ -463,7 +468,7 @@ fun ExpenseAddEditView(
                             sheetState = bottomSheetState
                         ) {
                             CalculatorUI(
-                                initialValue = expense.amount ?: 0L,
+                                initialValue = viewModel.getExpenseAmountAtSelectedIndex(),
                                 onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
                                     if (true/* 日本円。設定から制御できるように、、 */) {
                                         val convertedVal = it.roundToLongOrNull()/* 自作 */
@@ -592,6 +597,7 @@ fun ExpenseAddEditView(
                         IconButton(
                             onClick = {
                                 viewModel.addExpenseToList()
+                                viewModel.calcLastExpenseAmount()/* これを実行しておかないと初期値が空になる。 */
                             }
                         ) {
                             Icon(

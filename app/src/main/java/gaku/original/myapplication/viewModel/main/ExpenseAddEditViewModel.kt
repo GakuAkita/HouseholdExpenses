@@ -80,17 +80,24 @@ class ExpenseAddEditViewModel @Inject constructor(
             /* 先頭費用は0にしておいた方が良い */
             updateExpenseAmountAt(index = 0, 0L)
         }
+        _splitInputEnabled.value = !_splitInputEnabled.value
 
+        /**
+         * スイッチしたあと、ONにしたときはExpenseを自動で加えてもいいかもな。
+         */
         if (_splitInputEnabled.value) {
+            /* 分割代入をONにした場合、Expenseを足しておく。 */
+            addExpenseToList()
+            calcLastExpenseAmount()
+        } else {
             /**
              *  ボタンをオフに戻した時
              *  リストの先頭以外を消す
              * */
-            tmpExpenseViewModel.removeTmpExpenseExceptHead()
+            removeExpenseExceptHead()
             /* totalAmountを先頭にコピーしたほうがいいか */
             updateExpenseAmountAt(0, _totalAmount.value)
         }
-        _splitInputEnabled.value = !_splitInputEnabled.value
     }
 
     fun setLoadingState(state: Boolean) {
@@ -139,7 +146,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun addExpenseToList(newExpense: Expense = getDefaultExpense()) {
-        _expenseList.value = _expenseList.value + newExpense
+        _expenseList.value += newExpense
     }
 
     fun updateExpense(newExpense: Expense) {
@@ -155,7 +162,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun removeExpenseExceptHead() {
-        _expenseList.value.take(1)
+        _expenseList.value = _expenseList.value.take(1)
     }
 
     fun removeExpenseAt(index: Int) {
@@ -402,5 +409,10 @@ class ExpenseAddEditViewModel @Inject constructor(
     fun removeExpenseFromListAt(index: Int) {
         removeExpenseAt(index)
         calcLastExpenseAmount()
+    }
+
+    fun getExpenseAmountAtSelectedIndex(): Long {
+        val index = selectedIndex ?: return 0L
+        return _expenseList.value[index].amount ?: 0L
     }
 }
