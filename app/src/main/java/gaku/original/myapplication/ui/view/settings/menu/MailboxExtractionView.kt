@@ -193,6 +193,9 @@ fun MailboxExtractionView(
                         initialCategoryId = settingState.setting.categoryId,
                         categories = allCategories,
                         onCategorySelected = { category ->
+                            /**
+                             * firestoreでsetならいけるけど、updateだったらnullは無理？
+                             */
                             val updatedSetting = settingState.setting.copyWith(
                                 categoryId = category.id
                             )
@@ -214,6 +217,7 @@ fun MailboxExtractionView(
                                 }
                             )
                         },
+                        nullOption = true
                     )
                 } else {
                     TextButton(

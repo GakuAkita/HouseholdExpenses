@@ -120,6 +120,7 @@ fun CategoryAssignmentEditView(
                             }
                         }
                     },
+                    nullOption = true
                 )
             }
             Row(

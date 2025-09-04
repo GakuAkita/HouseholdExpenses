@@ -36,6 +36,7 @@ fun CategoryDropDown(
     initialCategoryId: String?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
+    nullOption: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -69,6 +70,17 @@ fun CategoryDropDown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
+            if (nullOption) {
+                DropdownMenuItem(
+                    text = { Text(text = "未選択") },
+                    onClick = {
+                        selectedCategory = null
+                        expanded = false
+                        onCategorySelected(Category(id = null, name = null))
+                    }
+                )
+            }
+
             categories.forEach { category ->
                 DropdownMenuItem(
                     text = { Text(text = category.name ?: "") },

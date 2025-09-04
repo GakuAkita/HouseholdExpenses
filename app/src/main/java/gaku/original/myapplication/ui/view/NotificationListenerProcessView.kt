@@ -5,16 +5,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.NotificationListenerProcessViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun NotificationListenerProcessView(
@@ -22,6 +28,30 @@ fun NotificationListenerProcessView(
     navController: NavHostController
 ) {
     val notificationData = viewModel.notificationData.collectAsState()
+
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
+
+    LaunchedEffect(notificationData.value) {
+        if (notificationData.value == null) {
+            /* データがないなら戻る */
+            navController.popBackStack()
+            return@LaunchedEffect
+        }
+
+        LogAkitaDebug("kokonikita")
+//        Toast.makeText(
+//            navController.context,
+//            "通知内容取り込み",
+//            Toast.LENGTH_SHORT
+//        ).show()
+        scope.launch {
+            snackBarHostState.currentSnackbarData?.dismiss()
+            snackBarHostState.showSnackbar("通知内容取り込みました")
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -32,6 +62,9 @@ fun NotificationListenerProcessView(
                     navController.popBackStack()
                 }
             )
+        },
+        snackbarHost = {
+            androidx.compose.material3.SnackbarHost(hostState = snackBarHostState)
         }
     ) { innerPadding ->
         Column(
@@ -43,6 +76,15 @@ fun NotificationListenerProcessView(
             Text("テキスト:${notificationData.value?.text}")
 
             Text("ここから解析する")
+
+            /**
+             * 取引が完了しました。
+             * 金額：3,186円
+             * 取引番号：......
+             * 店舗名：ハローズ
+             * オートチャージ金額：10,000円
+             * という感じになる。オートチャージしたから通知が来たのか？？
+             */
         }
     }
 }
