@@ -119,7 +119,7 @@ const init_add = async () => {
     timestamp: Date.now(),
     expense: sampleExpense,
     frequencyInfo: {
-      frequency: RepeatFrequency.EVERY_YEAR, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
+      frequency: RepeatFrequency.WEEKDAYS, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
       month: 6,
       day: 2,
       hour: 9,
@@ -254,7 +254,7 @@ const schedule_func = async () => {
     console.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
-// schedule_func();
+schedule_func();
 
 /**
  * 引数にrefresh_tokenを受取、
@@ -391,4 +391,4 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-processMailTest();
+// processMailTest();

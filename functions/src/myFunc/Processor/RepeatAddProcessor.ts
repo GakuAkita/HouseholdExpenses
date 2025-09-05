@@ -2,7 +2,7 @@
 import { logger } from "firebase-functions";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
-import { TriggerTimeZone } from "../../constants/TimeZone";
+import { TimeZone, TriggerTimeZone } from "../../constants/TimeZone";
 import {
   FuncResult,
   FuncResultWithData,
@@ -12,7 +12,7 @@ import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
 import { SettingsService } from "../FirestoreService/SettingsService";
-import { convertToUtcIsoString } from "../utility/dateConverter";
+import { reinterpretAsZone } from "../utility/dateConverter";
 import {
   getEverydayOfMonth,
   getSingleDayOfMonth,
@@ -131,6 +131,13 @@ export class RepeatAddProcessor {
         };
     }
 
+    /**
+     * こいつはUTCの時間になっている。
+     * ここで一度タイムゾーンに変換したほうが良いのか？
+     * yyyy年-mm月-dd日00:00:00(UTC)になっている。
+     */
+    logger.log(`datesArr: ${datesArr}`);
+
     const retDates = setTimeToDates(datesArr, hour, minute);
     if (filter_datetime != null) {
       /* filter_datetimeが指定されている場合は、filter_datetime以降のものだけを返す */
@@ -140,6 +147,12 @@ export class RepeatAddProcessor {
         data: filteredDates,
       };
     }
+
+    /**
+     * yyyy年-mm月-dd日HH:MM:00(UTC)になっている。
+     * HHとMMはrepeatAddで指定された時間。
+     */
+    logger.log(`target dates: ${retDates}`);
 
     return {
       status: FuncStatus.SUCCESS,
@@ -165,8 +178,8 @@ export class RepeatAddProcessor {
     expense.generatedType = `${GeneratedType.REPEAT_ADD}___${repeatAdd.id}`; /* ___(アンダーバー3つ)を区切りサインとする */
     expense.timestamp = Date.now();
 
-    /* targetDate自体は扱い的には、自分のタイムゾーン。だから、それを変える */
-    expense.datetime = convertToUtcIsoString(targetDate, timeZone);
+    /* targetDateで渡すときにすでにUTCに変換したときに設定のタイムゾーンで設定の時間になるようにしておく */
+    expense.datetime = targetDate.toUTCString();
 
     const addExpenseStatus = await this.expenseService.addExpenseWithId(
       userId,
@@ -223,7 +236,8 @@ export class RepeatAddProcessor {
         message: `Failed to retrieve user time zone for ${userId}: ${userTimeZoneStatus.message}`,
       };
     }
-    const userTimeZone = userTimeZoneStatus.data;
+    const userTimeZone =
+      userTimeZoneStatus.data ?? TimeZone.JST; /* nullなら日本で */
     logger.log(`User time zone: ${userTimeZone}`);
 
     /* 次で使うので現在の年と月を取得 */
@@ -232,6 +246,10 @@ export class RepeatAddProcessor {
       DateTime.now().setZone(TriggerTimeZone); /* トリガーに合わせる */
     const currentYear = triggerRegionTime.year;
     const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1
+    logger.log(
+      `Current year: ${currentYear}, month: ${currentMonth}`,
+      triggerRegionTime
+    );
 
     /* 取得したrepeatAddを回して */
     let addedExpenseCount = 0;
@@ -248,11 +266,23 @@ export class RepeatAddProcessor {
         );
         continue;
       }
-      const targetDates = targetResult.data;
-      if (targetDates == null) {
+
+      /**
+       * yyyy年-mm月-dd日HH:MM:00(UTC)になっている。
+       * HHとMMはrepeatAddで指定された時間。
+       */
+      const _targetDates = targetResult.data;
+      if (_targetDates == null) {
         logger.error(`No target dates found for repeat add ${repeatAdd.id}.`);
         continue;
       }
+
+      /**
+       * UTCの時間になっているので、ユーザーのタイムゾーンに変換する
+       */
+      const targetDates = _targetDates.map((date) => {
+        return reinterpretAsZone(date, userTimeZone);
+      });
 
       /* targetDatesをループして、expenseに加えていく */
       for (const targetDate of targetDates) {

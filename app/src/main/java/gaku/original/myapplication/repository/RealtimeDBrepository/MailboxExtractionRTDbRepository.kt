@@ -14,6 +14,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import setAnyDataToRTDb
 import updateAnyDataToRTDb
 import javax.inject.Inject
 
@@ -29,7 +30,8 @@ class MailboxExtractionRTDbRepository @Inject constructor(
     }
 
     suspend fun updateMailTypeSetting(
-        setting: EmailTemplateType
+        setting: EmailTemplateType,
+        force: Boolean = false
     ): FuncStatusInfo {
         val refRet = getEmailTemplateSettingSingleRef(setting)
         if (refRet !is FuncResultWithData.Success) {
@@ -37,7 +39,10 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         }
 
         val ref = refRet.data
-        val ret = updateAnyDataToRTDb(setting, reference = ref)
+        val ret = if (force) setAnyDataToRTDb(setting, reference = ref) else updateAnyDataToRTDb(
+            setting,
+            reference = ref
+        )
         return ret
     }
 

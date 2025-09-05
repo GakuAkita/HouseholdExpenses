@@ -9,11 +9,12 @@ import { TimeZone } from "../../constants/TimeZone";
  */
 const { DateTime } = require("luxon");
 export function convertToUtcIsoString(date: Date, timeZone: string): string {
-  const dt = DateTime.fromJSDate(date, { zone: timeZone });
+  let dt = DateTime.fromJSDate(date, { zone: timeZone });
 
   if (!dt.isValid) {
     logger.error(`Invalid time zone: ${timeZone} — ${dt.invalidExplanation}`);
     timeZone = TimeZone.JST; //事故っていたら日本時間に設定
+    dt = DateTime.fromJSDate(date, { zone: TimeZone.JST }); // JSTで作り直す
   }
 
   return dt.toUTC().toISO();
@@ -34,4 +35,16 @@ export function convertyyyymmddToUTCIsoString(
   const date = new Date(year, month - 1, day);
 
   return convertToUtcIsoString(date, timeZone);
+}
+
+export function reinterpretAsZone(dateUtc: Date, zone: string): Date {
+  // UTC日時を文字列化
+  const iso = DateTime.fromJSDate(dateUtc, { zone: "utc" }).toFormat(
+    "yyyy-MM-dd HH:mm:ss"
+  );
+
+  // その文字列を zone 基準で「数字をそのまま」読み直す
+  const dt = DateTime.fromFormat(iso, "yyyy-MM-dd HH:mm:ss", { zone });
+
+  return dt.toJSDate();
 }

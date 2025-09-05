@@ -72,9 +72,9 @@ fun CategoryDropDown(
         ) {
             if (nullOption) {
                 DropdownMenuItem(
-                    text = { Text(text = "未選択") },
+                    text = { Text(text = "(未選択)") },
                     onClick = {
-                        selectedCategory = null
+                        selectedCategory = Category(id = null, name = null)
                         expanded = false
                         onCategorySelected(Category(id = null, name = null))
                     }

@@ -7,6 +7,7 @@ import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
+import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
@@ -298,6 +299,7 @@ class MailboxExtractionViewModel @Inject constructor(
     suspend fun updateEmailTemplateSetting(
         settingState: EmailTemplateSettingState
     ): FuncStatusInfo {
+        val setting = settingState.setting
         if (settingState.setting == null) {
             /* そもそもnullだったらこの関数が実行されないようにUIになっているはずだが、、 */
             val statusInfo = FuncStatusInfo(
@@ -307,7 +309,12 @@ class MailboxExtractionViewModel @Inject constructor(
             return statusInfo
         }
 
-        return mailboxExtractionRepository.updateMailTypeSetting(settingState.setting)
+        return if (setting is HasCategoryId && setting.categoryId == null) {
+            /* forceをtrueにすると、まるごと設定をsetする */
+            mailboxExtractionRepository.updateMailTypeSetting(settingState.setting, force = true)
+        } else {
+            mailboxExtractionRepository.updateMailTypeSetting(settingState.setting)
+        }
 
     }
 
@@ -348,6 +355,7 @@ class MailboxExtractionViewModel @Inject constructor(
                         status = statusInfo
                     )
             }
+            LogAkitaDebug("$className: Updated email template setting for ${settingState.type.menuName} with status: ${statusInfo.status}")
             callback(statusInfo)
         }
     }

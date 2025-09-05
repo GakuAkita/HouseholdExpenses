@@ -66,6 +66,14 @@ exports.monthly_repeatAddJob = onSchedule(
     await schedule_repeatAdd();
   }
 );
+
+exports.repeatAddTest = functions.https.onRequest(async (req, res) => {
+  logger.log("Starting repeatAdd test...");
+  const addResult = await repeatAddProcessor.addExpensesFromAllRepeatAdd(
+    "mJrkPOf5AthGokZEG3uufSpqn9E3"
+  );
+  res.send("repeatAdd test completed.");
+});
 /**
  * ユーザーが作成されたときに走らせる
  * 注意：Gen1はnode18以前でないとdeployに失敗する。package.jsonの"engines"の"node"をアップデートしてはいけない！
