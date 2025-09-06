@@ -17,7 +17,9 @@ export function convertToUtcIsoString(date: Date, timeZone: string): string {
     dt = DateTime.fromJSDate(date, { zone: TimeZone.JST }); // JSTで作り直す
   }
 
-  return dt.toUTC().toISO();
+  return dt
+    .toUTC()
+    .toISO({ suppressMilliseconds: false, suppressSeconds: false });
 }
 
 /**
