@@ -163,8 +163,7 @@ export class RepeatAddProcessor {
   async addExpenseFromRepeatAdd(
     userId: string,
     repeatAdd: RepeatAdd,
-    targetDate: Date,
-    timeZone: string = "Asia/Tokyo" /* タイムゾーン。デフォルトは東京時間 */
+    targetDate: Date
   ): Promise<FuncResult> {
     const expense = repeatAdd.expense;
     if (expense == null) {
@@ -179,7 +178,7 @@ export class RepeatAddProcessor {
     expense.timestamp = Date.now();
 
     /* targetDateで渡すときにすでにUTCに変換したときに設定のタイムゾーンで設定の時間になるようにしておく */
-    expense.datetime = targetDate.toUTCString();
+    expense.datetime = targetDate.toISOString();
 
     const addExpenseStatus = await this.expenseService.addExpenseWithId(
       userId,
@@ -290,8 +289,7 @@ export class RepeatAddProcessor {
         const addExpenseStatus = await this.addExpenseFromRepeatAdd(
           userId,
           repeatAdd,
-          targetDate,
-          userTimeZone /* ユーザーの設定をみる！！！ */
+          targetDate
         );
         if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
           logger.error(
