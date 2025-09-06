@@ -10,6 +10,7 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
@@ -167,6 +168,57 @@ class ExpenseListViewModel @Inject constructor(
     private val _monthTotalExpense = MutableStateFlow(0L)
     val monthTotalExpense: StateFlow<Long> = _monthTotalExpense
 
+    fun calcMonthTotalExpense() {
+        _monthTotalExpense.value =
+            _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
+    }
+
+    private val _monthlyEstimatedExpense = MutableStateFlow(0L)
+    val monthlyEstimatedExpense: StateFlow<Long> = _monthlyEstimatedExpense
+    fun calcMonthlyEstimatedExpense() {
+        /**
+         * 1.月の初日から今日までの支出の合計[A]を計算する
+         * 2.月の初日から今日までの中から繰り返し追加のものだけを省いた合計[B]を計算。
+         * この[B]が普通にかかる通常かかる費用
+         * 3.明日以降はすでに追加されている費用(繰り返し追加含む)に通常費用([B]/今日までの日付)がかかるとして、月の予想合計を出す
+         */
+        val today = AppTimeZone.getCurrentTimeInZone().toLocalDate()
+        val startOfMonth = AppTimeZone.getCurrentTimeInZone().withDayOfMonth(1).toLocalDate()
+        val endOfMonth = YearMonth.of(today.year, today.monthValue).atEndOfMonth()
+
+        val expensesByToday = _filteredExpenses.value
+            .filter { expense ->
+                AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.toLocalDate()
+                    ?.let { date -> !date.isBefore(startOfMonth) && !date.isAfter(today) }
+                    ?: false
+            }
+        val expensesFromTodayToEnd = _filteredExpenses.value
+            .filter { expense ->
+                AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.toLocalDate()
+                    ?.let { date -> !date.isBefore(today) && !date.isAfter(endOfMonth) }
+                    ?: false
+            }
+        val sumByToday = expensesByToday.sumOf { it.amount ?: 0L }
+
+        val sumByTodayExcludingRepeatAddAndTooBig =
+            expensesByToday.filterNot { expense ->
+                expense.generatedType?.startsWith(GeneratedType.REPEAT_ADD) ?: false
+            }.filter { expense ->
+                /* あまりにでかい金額はなにか高いものを買ったせいなので、省いていおく */
+                (expense.amount ?: 0L) < 10000L /* 10000円のものを毎週買うことはないだろう。 */
+            }.sumOf { it.amount ?: 0L }
+
+        val daysFromStartToToday = (today.dayOfMonth) // 1日から今日までの日数
+        /* 一日にどれだけ金を使うか。(繰り返し追加は抜き) */
+        val everydayAmount = sumByTodayExcludingRepeatAddAndTooBig / daysFromStartToToday
+
+        /* 明日以降の金額の合計 */
+        val sumFromTodayToEndAlready = expensesFromTodayToEnd.sumOf { it.amount ?: 0L }
+
+        val estimatedTotal = sumByToday + sumFromTodayToEndAlready +
+                (everydayAmount * (endOfMonth.dayOfMonth - today.dayOfMonth))
+        _monthlyEstimatedExpense.value = estimatedTotal
+    }
 
     fun filterExpensesByMonth() {
         viewModelScope.launch {
@@ -191,8 +243,8 @@ class ExpenseListViewModel @Inject constructor(
             Log.d("ExpenseListViewModel", "filterExpensesByMonth was executed.↓")
             Log.d("ExpenseListViewModel", "${_filteredExpenses.value}")
 
-            _monthTotalExpense.value =
-                _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
+            calcMonthTotalExpense()
+            calcMonthlyEstimatedExpense()
         }
     }
 

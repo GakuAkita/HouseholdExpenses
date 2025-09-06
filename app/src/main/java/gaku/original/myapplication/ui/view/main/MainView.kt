@@ -78,6 +78,7 @@ fun MainView(
     //StateFlowの状態を監視しないとページを変えたときにカレンダーの年や月が変わらない
     val monthOffset by viewModel.monthOffset.collectAsState()//monthOffset StateFlowを監視
     val monthTotalExpense by viewModel.monthTotalExpense.collectAsState()
+    val monthlyEstimatedExpense by viewModel.monthlyEstimatedExpense.collectAsState()
 
     var currentPageMonth = viewModel.getCalendarMonth()
     var currentPageYear = viewModel.getCalendarYear()
@@ -205,7 +206,7 @@ fun MainView(
             ) {
                 Text("${currentPageYear}-${currentPageMonth}")
                 Spacer(modifier = Modifier.padding(10.dp))
-                Text("Monthly Total:${monthTotalExpense}")
+                Text("Monthly Total:${monthTotalExpense}\n Estimated:${monthlyEstimatedExpense}")
             }
 
             Row(
@@ -340,6 +341,7 @@ fun MainView(
                         items(monthExpenses) { expense ->
                             ExpenseItem(
                                 expense = expense,
+                                isToday = AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.dayOfMonth == AppTimeZone.getCurrentTimeInZone().dayOfMonth,
                                 onEdit = {
                                     print("onEdit was tapped...")
                                     viewModel.resetTmpExpense()
@@ -361,12 +363,18 @@ fun MainView(
 }
 
 @Composable
-fun ExpenseItem(expense: Expense, onEdit: () -> Unit) {
+fun ExpenseItem(expense: Expense, isToday: Boolean = false, onEdit: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+            .then(
+                if (isToday) {
+                    Modifier.border(width = 1.dp, color = MaterialTheme.colorScheme.tertiary)
+                } else {
+                    Modifier.border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+                }
+            )
             .clickable {
                 onEdit()
             },
