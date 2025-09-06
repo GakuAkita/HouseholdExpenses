@@ -300,7 +300,6 @@ class ExpenseAddEditViewModel @Inject constructor(
                 }
             }
 
-            setLoadingState(false)
             if (_expenseList.value.size == cnt) {
                 callback(
                     FuncStatusInfo(
@@ -309,6 +308,7 @@ class ExpenseAddEditViewModel @Inject constructor(
                     )
                 )
             } else {
+                setLoadingState(false)
                 callback(
                     FuncStatusInfo(
                         status = FuncStatus.FAILED, errorMessage = "追加に失敗しました"

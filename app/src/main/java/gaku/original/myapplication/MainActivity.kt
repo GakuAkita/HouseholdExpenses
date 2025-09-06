@@ -104,6 +104,7 @@ class MainActivity : ComponentActivity() {
                 /* sharedViewModelに格納して、画面遷移 */
                 /* データの抽出とかは遷移先で行う */
                 setArgsToSharedNotificationListenerViewModel()
+
                 /**
                  * 通知検知から来たIntent
                  * 画面作成用のViewを用意してそこでExpenseを作成するか

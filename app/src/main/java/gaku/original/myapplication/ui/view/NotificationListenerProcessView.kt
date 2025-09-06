@@ -17,7 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.NotificationListenerProcessViewModel
 import kotlinx.coroutines.launch
@@ -41,7 +40,6 @@ fun NotificationListenerProcessView(
             return@LaunchedEffect
         }
 
-        LogAkitaDebug("kokonikita")
 //        Toast.makeText(
 //            navController.context,
 //            "通知内容取り込み",
