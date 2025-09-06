@@ -13,7 +13,7 @@ import gaku.original.myapplication.ui.view.main.CategoryAddEditView
 import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.GraphView
 import gaku.original.myapplication.ui.view.main.MainView
-import gaku.original.myapplication.ui.view.main.NotCategorizedView
+import gaku.original.myapplication.ui.view.main.SearchView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
@@ -85,8 +85,8 @@ fun Navigation(
         }
 
         //NotCategorizedスクリーン
-        composable(Screen.NotCategorizedScreen.route) {
-            NotCategorizedView(navController = navController)
+        composable(Screen.SearchScreen.route) {
+            SearchView(navController = navController)
         }
 
         //Settingsスクリーン

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NotCategorizedViewModel @Inject constructor(
+class SearchViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseFirestoreRepository,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
 ) : ViewModel() {

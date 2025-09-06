@@ -111,7 +111,7 @@ fun ExpenseAddEditView(
     from: String/* 遷移元のスクリーン */
 ) {
     val fromScreen = when (from) {
-        Screen.NotCategorizedScreen.route -> FromScreen.NOT_CATEGORIZED
+        Screen.SearchScreen.route -> FromScreen.NOT_CATEGORIZED
         Screen.MainScreen.Content.route -> FromScreen.MAIN_CONTENT
         else -> FromScreen.UNKNOWN
     }

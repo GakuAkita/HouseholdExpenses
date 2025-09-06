@@ -32,12 +32,12 @@ import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayN
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.main.NotCategorizedViewModel
+import gaku.original.myapplication.viewModel.main.SearchViewModel
 import java.time.LocalDateTime
 
 @Composable
-fun NotCategorizedView(
-    viewModel: NotCategorizedViewModel = hiltViewModel(),
+fun SearchView(
+    viewModel: SearchViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val expenses = viewModel.notCategorizedExpenses.collectAsState()
@@ -58,7 +58,7 @@ fun NotCategorizedView(
 
     Scaffold(
         topBar = {
-            TopBarView("カテゴリー未割り当て")
+            TopBarView("検索")
         },
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
@@ -102,6 +102,7 @@ fun NotCategorizedView(
                     Text("カテゴリー未割り当てはありません")
                 }
             } else {
+                Text("現状Categoryが未選択のものだけ表示になっているが、今後は検索条件をしていできるようにする")
                 Row(modifier = Modifier.fillMaxWidth()) {
                     LazyColumn(
                         state = listState,
@@ -110,11 +111,11 @@ fun NotCategorizedView(
                         userScrollEnabled = true
                     ) {
                         items(expenses.value) { expense ->
-                            NotCategorizedExpenseItem(expense) {
+                            SearchedExpenseItem(expense) {
                                 viewModel.setToTmpExpense(it)
                                 navController.navigate(
                                     Screen.GlobalScreen.ExpenseAddEdit.createRoute(
-                                        Screen.NotCategorizedScreen//遷移元
+                                        Screen.SearchScreen//遷移元
                                     )
                                 )
                             }
@@ -127,7 +128,7 @@ fun NotCategorizedView(
 }
 
 @Composable
-fun NotCategorizedExpenseItem(
+fun SearchedExpenseItem(
     expense: Expense,
     onClick: (Expense) -> Unit = {}
 ) {

@@ -24,7 +24,7 @@ sealed class Screen(val route: String) {
     }
 
     //Not Categorized画面
-    object NotCategorizedScreen : Screen("not_categorized_screen")
+    object SearchScreen : Screen("search_screen")
 
     // Graph関連
     object GraphScreen : Screen("graph_screen")

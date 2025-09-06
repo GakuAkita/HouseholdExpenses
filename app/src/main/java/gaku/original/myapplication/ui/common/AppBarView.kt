@@ -71,9 +71,9 @@ fun BottomBarView(
             route = Screen.MainScreen.Content.route
         ),
         BottomNavigationItem(
-            title = "Not-Categorized",
-            icon = painterResource(id = R.drawable.baseline_category_24),
-            route = Screen.NotCategorizedScreen.route
+            title = "Search",
+            icon = painterResource(id = R.drawable.baseline_search_24),
+            route = Screen.SearchScreen.route
         ),
         BottomNavigationItem(
             title = "Graph",
