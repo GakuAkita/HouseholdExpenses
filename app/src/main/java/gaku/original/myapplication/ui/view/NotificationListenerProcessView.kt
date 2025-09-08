@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,9 +14,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.NotificationListenerProcessViewModel
@@ -27,6 +30,7 @@ fun NotificationListenerProcessView(
     navController: NavHostController
 ) {
     val notificationData = viewModel.notificationData.collectAsState()
+    val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember {
@@ -47,13 +51,29 @@ fun NotificationListenerProcessView(
 //        ).show()
         viewModel.passExpenseFromNotificationData(
             callback = { statusInfo ->
-
+                if (statusInfo.status == FuncStatus.SUCCESS) {
+                    /* すでにTmpExpenseにexpenseは移動しているのであとはnavigateだけ */
+                    Toast.makeText(
+                        context,
+                        "通知内容取り込みに成功しました",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
+                        popUpTo(Screen.GlobalScreen.NotificationListenerProcess.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
+                            inclusive = true // OCRView を含めて削除
+                        }
+                    }
+                } else {
+                    scope.launch {
+                        snackBarHostState.currentSnackbarData?.dismiss()
+                        snackBarHostState.showSnackbar(
+                            "通知内容取り込みに失敗しました",
+                            actionLabel = "OK"
+                        )
+                    }
+                }
             }
         )
-        scope.launch {
-            snackBarHostState.currentSnackbarData?.dismiss()
-            snackBarHostState.showSnackbar("通知内容取り込みました")
-        }
     }
 
     Scaffold(

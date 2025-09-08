@@ -87,8 +87,10 @@ fun sendTestNotification(context: Context) {
         context = context,
         channelId = NotificationChannels.Test.id,
         icon = R.drawable.money_icon_foreground,
-        title = "テスト通知",
-        text = "テスト通知です",
+//        title = "テスト通知",
+//        text = "テスト通知です",
+        title = "PayPay",
+        text = "取引が完了しました。\n金額: 1,234円\n残高: 5,678円\n取引番号:",
         notifyId = 1
     )
 }

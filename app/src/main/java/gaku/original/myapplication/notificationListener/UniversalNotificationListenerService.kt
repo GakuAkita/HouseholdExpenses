@@ -14,6 +14,7 @@ import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.NotificationChannels
 import gaku.original.myapplication.data.Constants.NotificationValidTitles
 import gaku.original.myapplication.data.dataClass.NotificationData
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.sendNotification
 
 class UniversalNotificationListenerService : NotificationListenerService() {
@@ -52,7 +53,12 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                     )
 
                     /* 条件を満たしていない場合は弾く */
-                    if (!isCreateNotification) return
+                    if (isCreateNotification) {
+                        LogAkitaDebug("This is paypay payment notification")
+                    } else {
+                        LogAkitaDebug("This is NOT paypay payment notification")
+                        return
+                    }
 
                     /**
                      * PayPayの通知を検知して、適切なものだったら
@@ -98,18 +104,22 @@ fun sendNotificationFromNLSForPayPay(
         PendingIntent.FLAG_IMMUTABLE/* これを少なくともつけないとエラーになるらしい */
     )
 
+    /**
+     * これがPayPayの支払い後に通知として現れる
+     */
     sendNotification(
         context,
         channelId = NotificationChannels.PayPayDetection.id,
         icon = R.drawable.money_icon_foreground,
-        title = title,
-        text = text.toString(),
+        title = "PayPayの支払いを検知しました",
+        text = "タップして費用として追加する",
         notifyId = System.currentTimeMillis().toInt(),
         pendingIntent = pendingIntent
     )
 }
 
 fun checkPayPayNotification(title: String, text: CharSequence): Boolean {
+    //LogAkitaDebug("title:${title} text:${text}")
     if (title != "PayPay") return false
 
     if (!text.startsWith("取引が完了しました")) {
