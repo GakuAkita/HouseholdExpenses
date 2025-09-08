@@ -73,9 +73,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
                     sendNotificationFromNLSForPayPay(
                         this,
-                        intent,
-                        title,
-                        text
+                        intent
                     )
                 }
 
@@ -94,8 +92,6 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 fun sendNotificationFromNLSForPayPay(
     context: Context,
     intent: Intent,
-    title: String,
-    text: CharSequence
 ) {
     val pendingIntent = PendingIntent.getActivity(
         context,

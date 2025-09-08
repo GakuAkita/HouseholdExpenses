@@ -49,6 +49,12 @@ class NotificationListenerProcessViewModel @Inject constructor(
      */
     fun passExpenseFromNotificationData(callback: (FuncStatusInfo) -> Unit) {
         if (_notificationData.value == null) {
+            callback(
+                FuncStatusInfo(
+                    status = FuncStatus.FAILED,
+                    errorMessage = "No notification data available"
+                )
+            )
             return
         }
 
@@ -65,7 +71,8 @@ class NotificationListenerProcessViewModel @Inject constructor(
         val packageName = data.packageName
 
         when (packageName) {
-            AppPackageNames.PAYPAY -> {
+            AppPackageNames.PAYPAY,
+            AppPackageNames.THIS_APP -> {//テストのためにTHIS_APPも入れている
                 val transactionInfo = extractPayPayTransactionInfo(data.text?.toString() ?: "")
                 if (transactionInfo.amount != null) {
                     val expense = Expense(

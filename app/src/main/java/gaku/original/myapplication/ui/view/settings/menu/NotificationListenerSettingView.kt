@@ -90,7 +90,7 @@ fun sendTestNotification(context: Context) {
 //        title = "テスト通知",
 //        text = "テスト通知です",
         title = "PayPay",
-        text = "取引が完了しました。\n金額: 1,234円\n残高: 5,678円\n取引番号:",
+        text = "取引が完了しました。\n金額：1,234円\n店舗名：ハローズ\n取引番号:",
         notifyId = 1
     )
 }

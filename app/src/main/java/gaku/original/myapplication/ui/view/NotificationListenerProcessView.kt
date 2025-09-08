@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +68,7 @@ fun NotificationListenerProcessView(
                     scope.launch {
                         snackBarHostState.currentSnackbarData?.dismiss()
                         snackBarHostState.showSnackbar(
-                            "通知内容取り込みに失敗しました",
+                            "通知内容取り込みに失敗しました。${statusInfo.errorMessage}",
                             actionLabel = "OK"
                         )
                     }
@@ -87,7 +88,7 @@ fun NotificationListenerProcessView(
             )
         },
         snackbarHost = {
-            androidx.compose.material3.SnackbarHost(hostState = snackBarHostState)
+            SnackbarHost(hostState = snackBarHostState)
         }
     ) { innerPadding ->
         Column(
