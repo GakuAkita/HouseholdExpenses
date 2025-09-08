@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view.main
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -368,11 +370,18 @@ fun ExpenseItem(expense: Expense, isToday: Boolean = false, onEdit: () -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
+            .border(
+                width = 1.dp,
+                color = if (isToday) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSecondary
+            )
             .then(
                 if (isToday) {
-                    Modifier.border(width = 1.dp, color = MaterialTheme.colorScheme.tertiary)
+                    Modifier.background(
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        shape = RectangleShape
+                    )
                 } else {
-                    Modifier.border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+                    Modifier // ← ここを追加
                 }
             )
             .clickable {
