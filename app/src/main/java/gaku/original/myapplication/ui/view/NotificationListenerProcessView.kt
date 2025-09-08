@@ -45,6 +45,11 @@ fun NotificationListenerProcessView(
 //            "通知内容取り込み",
 //            Toast.LENGTH_SHORT
 //        ).show()
+        viewModel.passExpenseFromNotificationData(
+            callback = { statusInfo ->
+
+            }
+        )
         scope.launch {
             snackBarHostState.currentSnackbarData?.dismiss()
             snackBarHostState.showSnackbar("通知内容取り込みました")

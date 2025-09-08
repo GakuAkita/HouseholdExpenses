@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
@@ -41,6 +42,23 @@ class NotificationListenerProcessViewModel @Inject constructor(
                 _notificationData.value = it
             }
         }
+    }
+
+    /**
+     * UIからはこいつが呼ばれる
+     */
+    fun passExpenseFromNotificationData(callback: (FuncStatusInfo) -> Unit) {
+        if (_notificationData.value == null) {
+            return
+        }
+
+        val data = _notificationData.value
+        val createResult = createExpenseFromNotificationData(data!!)
+        if (createResult is FuncResultWithData.Success) {
+            val expense = createResult.data
+            copyReadExpenseToTmpExpense(expense)
+        }
+        callback(createResult.toFuncStatusInfo())
     }
 
     fun createExpenseFromNotificationData(data: NotificationData): FuncResultWithData<Expense> {
@@ -87,6 +105,10 @@ class NotificationListenerProcessViewModel @Inject constructor(
         return TransactionInfo(amount, storeName)
     }
 
+    fun copyReadExpenseToTmpExpense(expense: Expense) {
+        tmpExpenseViewModel.resetTmpExpenseList()
+        tmpExpenseViewModel.updateTmpExpense(expense)
+    }
 
     fun clearNotificationData() {
         sharedNotificationListenerViewModel.clearNotificationData()
