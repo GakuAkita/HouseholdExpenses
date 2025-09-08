@@ -60,8 +60,8 @@ fun NotificationListenerProcessView(
                         Toast.LENGTH_SHORT
                     ).show()
                     navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                        popUpTo(Screen.GlobalScreen.NotificationListenerProcess.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
-                            inclusive = true // OCRView を含めて削除
+                        popUpTo(Screen.GlobalScreen.NotificationListenerProcess.route) {
+                            inclusive = true // NLを削除
                         }
                     }
                 } else {

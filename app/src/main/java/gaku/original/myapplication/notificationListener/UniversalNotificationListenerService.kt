@@ -32,12 +32,12 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             val title = extras.getString("android.title")
             val text = extras.getCharSequence("android.text")
-            val timestamp: Long = System.currentTimeMillis()
+            val timestamp: Long = it.postTime
             if (title == null || text == null) {
                 return
             }
 
-            Log.d("UniversalNLS", "title:$title text:$text")
+            Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,

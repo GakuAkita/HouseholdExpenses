@@ -3,6 +3,7 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
@@ -18,7 +19,7 @@ import javax.inject.Inject
 
 data class TransactionInfo(
     val amount: Long?,
-    val storeName: String?
+    val storeName: String?,
 )
 
 @HiltViewModel
@@ -29,7 +30,6 @@ class NotificationListenerProcessViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        clearNotificationData()
     }
 
     private val _notificationData =
@@ -47,7 +47,9 @@ class NotificationListenerProcessViewModel @Inject constructor(
     /**
      * UIからはこいつが呼ばれる
      */
-    fun passExpenseFromNotificationData(callback: (FuncStatusInfo) -> Unit) {
+    fun passExpenseFromNotificationData(
+        callback: (FuncStatusInfo) -> Unit
+    ) {
         if (_notificationData.value == null) {
             callback(
                 FuncStatusInfo(
@@ -74,18 +76,33 @@ class NotificationListenerProcessViewModel @Inject constructor(
             AppPackageNames.PAYPAY,
             AppPackageNames.THIS_APP -> {//テストのためにTHIS_APPも入れている
                 val transactionInfo = extractPayPayTransactionInfo(data.text?.toString() ?: "")
-                if (transactionInfo.amount != null) {
-                    val expense = Expense(
-                        amount = transactionInfo.amount,
-                        storeName = transactionInfo.storeName
-                    )
-                    return FuncResultWithData.Success(expense)
-                } else {
+                if (transactionInfo.amount == null) {
                     return FuncResultWithData.Failure.GenericFailure(
                         status = FuncStatus.FAILED,
                         errorMessage = "Failed to extract amount from PayPay notification"
                     )
                 }
+                /**
+                 * Notificationのtimestampを時刻に変換する
+                 */
+                val timestamp = data.timestamp
+                val datetimeStr =
+                    AppTimeZone.convertUnixTimestampToCurrentTimeInZoneIsoStr(timestamp)
+                if (datetimeStr == null) {
+                    return FuncResultWithData.Failure.GenericFailure(
+                        status = FuncStatus.FAILED,
+                        errorMessage = "Failed to convert timestamp to datetime"
+                    )
+                }
+                /**
+                 * ここまでくれば最低限のexpenseは作れる
+                 */
+                val expense = Expense(
+                    datetime = datetimeStr,
+                    amount = transactionInfo.amount,
+                    storeName = transactionInfo.storeName
+                )
+                return FuncResultWithData.Success(expense)
             }
 
             else -> {
