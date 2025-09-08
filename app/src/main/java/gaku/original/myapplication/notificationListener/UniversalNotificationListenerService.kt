@@ -36,20 +36,24 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                 return
             }
 
-            /**
-             * titleでもフィルターをする
-             */
-            val validTitles = NotificationValidTitles.appValidTitlesMap[pkgName] ?: emptySet()
-            if (title !in validTitles) {
-                return
-            }
-
             Log.d("UniversalNLS", "title:$title text:$text")
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,
                 AppPackageNames.THIS_APP,
                 AppPackageNames.NOTIFICATION_TESTER -> {
+                    /**
+                     * intentすべき通知のタイプか判断
+                     * 送金の場合とかも通知が来るので。支払いのみに限る
+                     */
+                    val isCreateNotification = checkPayPayNotification(
+                        title,
+                        text
+                    )
+
+                    /* 条件を満たしていない場合は弾く */
+                    if (!isCreateNotification) return
+
                     /**
                      * PayPayの通知を検知して、適切なものだったら
                      * このアプリの通知を出してタップでExpense生成まで行けるようにする
@@ -63,7 +67,9 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
                     sendNotificationFromNLSForPayPay(
                         this,
-                        intent
+                        intent,
+                        title,
+                        text
                     )
                 }
 
@@ -81,7 +87,9 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
 fun sendNotificationFromNLSForPayPay(
     context: Context,
-    intent: Intent
+    intent: Intent,
+    title: String,
+    text: CharSequence
 ) {
     val pendingIntent = PendingIntent.getActivity(
         context,
@@ -94,10 +102,25 @@ fun sendNotificationFromNLSForPayPay(
         context,
         channelId = NotificationChannels.PayPayDetection.id,
         icon = R.drawable.money_icon_foreground,
-        title = "PayPayの支払いを検知しました",
-        text = "タップして費用として追加する",
+        title = title,
+        text = text.toString(),
         notifyId = System.currentTimeMillis().toInt(),
         pendingIntent = pendingIntent
     )
+}
+
+fun checkPayPayNotification(title: String, text: CharSequence): Boolean {
+    if (title != "PayPay") return false
+
+    if (!text.startsWith("取引が完了しました")) {
+        return false
+    }
+
+    if (!text.contains("金額")) {
+        return false
+    }
+
+    /* ここまで来たら、支払いの通知である */
+    return true
 }
 
