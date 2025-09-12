@@ -116,15 +116,15 @@ fun sendNotificationFromNLSForPayPay(
 
 fun checkPayPayNotification(title: String, text: CharSequence): Boolean {
     //LogAkitaDebug("title:${title} text:${text}")
-    if (title != "PayPay") return false
-
+//    if (title != "PayPay") return false
+//
     if (!text.startsWith("取引が完了しました")) {
         return false
     }
-
-    if (!text.contains("金額")) {
-        return false
-    }
+//
+//    if (!text.contains("金額")) {
+//        return false
+//    }
 
     /* ここまで来たら、支払いの通知である */
     return true
