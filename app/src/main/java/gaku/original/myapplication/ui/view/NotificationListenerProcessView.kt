@@ -96,6 +96,7 @@ fun NotificationListenerProcessView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            Text("パッケージ名：${notificationData.value?.packageName}")
             Text("タイトル:${notificationData.value?.title}")
             Text("テキスト:${notificationData.value?.text}")
 
