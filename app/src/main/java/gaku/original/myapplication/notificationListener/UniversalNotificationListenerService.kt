@@ -39,6 +39,19 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
 
+            val allIntent = Intent(this, MainActivity::class.java).apply {
+                val data = NotificationData(pkgName, title, text, timestamp)
+                putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
+                putExtra(NotificationData.EXTRA_KEY, data)
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
+            sendNotificationFromNLSForPayPay(
+                this,
+                allIntent
+            )
+            return
+
             when (pkgName) {
                 AppPackageNames.PAYPAY,
                 AppPackageNames.THIS_APP,
