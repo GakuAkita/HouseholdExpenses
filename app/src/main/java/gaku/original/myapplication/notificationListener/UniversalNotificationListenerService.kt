@@ -1,5 +1,6 @@
 package gaku.original.myapplication.notificationListener
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -33,9 +34,12 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             val title = extras.getString("android.title")
             val text = extras.getCharSequence("android.text")
             val timestamp: Long = it.postTime
-            if (title == null || text == null) {
-                return
-            }
+//            if (title == null || text == null) {
+//                return
+//            }
+            val titleE = extras.getString(Notification.EXTRA_TITLE)
+            val textE = extras.getString(Notification.EXTRA_TEXT)
+            Log.d("PayPay", "title=$titleE, text=$textE")
 
             Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
 
@@ -49,7 +53,12 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             }
 
             val allIntent = Intent(this, MainActivity::class.java).apply {
-                val data = NotificationData(pkgName, title, text, timestamp)
+                val data = NotificationData(
+                    pkgName,
+                    title ?: "title empty",
+                    text ?: "text empty",
+                    timestamp
+                )
                 putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
                 putExtra(NotificationData.EXTRA_KEY, data)
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -69,8 +78,8 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                      * 送金の場合とかも通知が来るので。支払いのみに限る
                      */
                     val isCreateNotification = checkPayPayNotification(
-                        title,
-                        text
+                        title ?: "no title",
+                        text ?: "no text"
                     )
 
                     /* 条件を満たしていない場合は弾く */

@@ -195,7 +195,7 @@ class ExpenseListViewModel @Inject constructor(
         val expensesFromTodayToEnd = _filteredExpenses.value
             .filter { expense ->
                 AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.toLocalDate()
-                    ?.let { date -> !date.isBefore(today) && !date.isAfter(endOfMonth) }
+                    ?.let { date -> date.isAfter(today) && !date.isAfter(endOfMonth) }
                     ?: false
             }
         val sumByToday = expensesByToday.sumOf { it.amount ?: 0L }
