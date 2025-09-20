@@ -59,11 +59,12 @@ fun NotificationListenerProcessView(
                         "通知内容取り込みに成功しました",
                         Toast.LENGTH_SHORT
                     ).show()
-                    navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                        popUpTo(Screen.GlobalScreen.NotificationListenerProcess.route) {
-                            inclusive = true // NLを削除
-                        }
-                    }
+                    /* PayPayでどうなるか見るために画面遷移はしない */
+//                    navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
+//                        popUpTo(Screen.GlobalScreen.NotificationListenerProcess.route) {
+//                            inclusive = true // NLを削除
+//                        }
+//                    }
                 } else {
                     scope.launch {
                         snackBarHostState.currentSnackbarData?.dismiss()

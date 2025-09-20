@@ -25,7 +25,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
             val pkgName = it.packageName
-            if (pkgName !in targetApps || pkgName == null) return
+//            if (pkgName !in targetApps || pkgName == null) return
 
             val notification = it.notification
             val extras = notification.extras
@@ -38,6 +38,13 @@ class UniversalNotificationListenerService : NotificationListenerService() {
             }
 
             Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
+
+            if (pkgName == AppPackageNames.THIS_APP) {
+                /**
+                 * このアプリ自身の通知は無視する
+                 */
+                return
+            }
 
             val allIntent = Intent(this, MainActivity::class.java).apply {
                 val data = NotificationData(pkgName, title, text, timestamp)
@@ -54,7 +61,6 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             when (pkgName) {
                 AppPackageNames.PAYPAY,
-                AppPackageNames.THIS_APP,
                 AppPackageNames.NOTIFICATION_TESTER -> {
                     /**
                      * intentすべき通知のタイプか判断
