@@ -4,4 +4,5 @@ object AppPackageNames {
     const val PAYPAY = "jp.ne.paypay.android.app"
     const val THIS_APP = "gaku.original.myapplication"
     const val NOTIFICATION_TESTER = "gaku.original.notificationtester"
+    const val FELICA_NETWORKS = "com.felicanetworks.mfc"
 }

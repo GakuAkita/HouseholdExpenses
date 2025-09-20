@@ -39,7 +39,9 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
             Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
 
-            if (pkgName == AppPackageNames.THIS_APP) {
+            if (pkgName == AppPackageNames.THIS_APP ||
+                pkgName == AppPackageNames.FELICA_NETWORKS
+            ) {
                 /**
                  * このアプリ自身の通知は無視する
                  */
