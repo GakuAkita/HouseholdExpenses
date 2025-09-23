@@ -13,7 +13,6 @@ import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.NotificationChannels
-import gaku.original.myapplication.data.Constants.NotificationValidTitles
 import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.sendNotification
@@ -21,10 +20,10 @@ import gaku.original.myapplication.utility.sendNotification
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
 
-    private val targetApps = NotificationValidTitles.appValidTitlesMap.keys
-
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
+            /* paypayには全く反応しないからこの方式は無理だ、、 */
+
             val pkgName = it.packageName
 //            if (pkgName !in targetApps || pkgName == null) return
 
@@ -51,25 +50,7 @@ class UniversalNotificationListenerService : NotificationListenerService() {
                  */
                 return
             }
-
-            val allIntent = Intent(this, MainActivity::class.java).apply {
-                val data = NotificationData(
-                    pkgName,
-                    title ?: "title empty",
-                    text ?: "text empty",
-                    timestamp
-                )
-                putExtra(IntentKey, IntentSourceKeys.NOTIFICATION_LISTENER)
-                putExtra(NotificationData.EXTRA_KEY, data)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-
-            sendNotificationFromNLSForPayPay(
-                this,
-                allIntent
-            )
-            return
-
+            
             when (pkgName) {
                 AppPackageNames.PAYPAY,
                 AppPackageNames.NOTIFICATION_TESTER -> {
