@@ -46,7 +46,7 @@ class PayPayReceiptOCRParser(
 //                maxX = max(maxX, bb.right)
 //            }
 //        }
-        if (minX == Int.MAX_VALUE || maxX == Int.MIN_VALUE) {
+        if (maxX == Int.MIN_VALUE) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
                 errorMessage = "OCR:画面幅を取得できませんでした"
@@ -91,14 +91,17 @@ class PayPayReceiptOCRParser(
             )
         }
 
+        /* 日付より上のblockと下のblockに分ける */
 
-        // --- 4) テキストを二分：基準Yより上(左10%除外), 下(全幅) ---
+
+        // 店舗名を取ってくる
         val aboveFiltered = StringBuilder()
         val belowAll = StringBuilder()
         for (b in blocks) {
             val bbTop = b.boundingBox?.top ?: Int.MAX_VALUE
             val bbBottom = b.boundingBox?.bottom ?: Int.MAX_VALUE
 
+            /* 日付より上のブロック  */
             if (bbBottom <= dateTopY) {
                 // 上側：Element単位で左数十%を除外
                 /**
@@ -107,6 +110,21 @@ class PayPayReceiptOCRParser(
                  * つまり、ロゴの部分、大文字の部分、小文字の部分みたいな感じで。
                  * で、万が一ロゴの部分と店舗名が同じelementになってしまったら、読むのやめるとかにするしかない。
                  */
+                /**
+                 * まず、lineが2つ以上になるのはおかしい。
+                 * 例えば、店名(->ハローズ)とサブ名(-> ハローズ　東予店)で2lineで、
+                 *
+                 * ロゴの中の文字を読んでしまった場合,
+                 * ロゴ内文字が店名とサブ名の間にあればlineの最初と最後を取れば排除できる
+                 *
+                 */
+                val lineElementsCntList: List<Int> = b.lines.map { it.elements.size }
+                LogAkitaDebug("lineの個数:${lineElementsCntList.size}")
+                lineElementsCntList.forEach {
+                    LogAkitaDebug("elementの要素数:${it}")
+                }
+
+
                 for (line in b.lines) {
                     val lineBuf = StringBuilder()
                     LogAkitaDebug("---------line-------------")
@@ -115,7 +133,8 @@ class PayPayReceiptOCRParser(
                         for (symbol in el.symbols) {
                             val eb = symbol.boundingBox
                             LogAkitaDebug("This is debug.. symbol:${symbol.text} left=${eb?.left} right=${eb?.right}")
-                            val centerX = eb?.let { (it.left + it.right) / 2f } ?: Float.MAX_VALUE
+                            val centerX =
+                                eb?.let { (it.left + it.right) / 2f } ?: Float.MAX_VALUE
                             if (centerX >= leftExclusionX) {
                                 if (lineBuf.isNotEmpty()) lineBuf.append(' ')
                                 lineBuf.append(symbol.text)
@@ -135,7 +154,7 @@ class PayPayReceiptOCRParser(
         }
 
         /* 金額抽出 金額は日付の下にあるので、belowAllから探せば良い */
-        val amount = extractAmount(belowAll.toString())/* 一番最初に見つけたやつが変えてくる？ */
+        val amount = extractAmount(belowAll.toString())/* 一番最初に見つけたやつが返ってくる？ */
 
         /* 日付より上の部分でstoreNameを探す */
         val storeName = extractStoreName(aboveFiltered.toString())
