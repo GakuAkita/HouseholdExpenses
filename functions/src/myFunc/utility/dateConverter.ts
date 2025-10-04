@@ -2,6 +2,7 @@ import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 
 /**
+ * !!使われない!!
  * 任意のタイムゾーンでのDateを、UTCのISO文字列に変換
  * @param date - 対象の Date インスタンス
  * @param timeZone - 例: 'Asia/Tokyo', 'America/New_York'
@@ -10,7 +11,6 @@ import { TimeZone } from "../../constants/TimeZone";
 const { DateTime } = require("luxon");
 export function convertToUtcIsoString(date: Date, timeZone: string): string {
   let dt = DateTime.fromJSDate(date, { zone: timeZone });
-
   if (!dt.isValid) {
     logger.error(`Invalid time zone: ${timeZone} — ${dt.invalidExplanation}`);
     timeZone = TimeZone.JST; //事故っていたら日本時間に設定

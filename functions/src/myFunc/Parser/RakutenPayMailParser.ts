@@ -1,8 +1,8 @@
 import { logger } from "firebase-functions";
+import { DateTime } from "luxon";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { convertToUtcIsoString } from "../utility/dateConverter";
 
 export class RakutenPayMailParser {
   constructor(private rawText: string) {}
@@ -19,12 +19,19 @@ export class RakutenPayMailParser {
     }
 
     const cleaned = dateStr.replace(/\([^\)]*\)/g, ""); // "(曜日)" を削除
-    const isoLike = cleaned.trim().replace(/\//g, "-"); // "2023-04-20 19:14"
+    const r10TimeStr = cleaned.trim().replace(/\//g, "-"); // "2023-04-20 19:14"
 
-    const date = new Date(isoLike);
+    /**
+     * 日本時間として捉えて、それのUTCを取る
+     */
+    const date = DateTime.fromFormat(r10TimeStr, "yyyy-MM-dd HH:mm", {
+      zone: TimeZone.JST,
+    });
+    //logger.log("This is before conversion ->", date);
 
-    /* 日本時間なので、UTCに直さないといけない */
-    const iso = convertToUtcIsoString(date, TimeZone.JST);
+    const iso = date.toUTC().toISO();
+
+    //logger.log("This is after conversion ->", iso);
 
     /* 一度Dateに変換して、それからUTCにconvertする */
     return iso;

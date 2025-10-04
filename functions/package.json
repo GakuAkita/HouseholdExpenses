@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/html-to-text": "^9.0.4",
+    "@types/luxon": "^3.7.1",
     "firebase-functions-test": "^3.1.0",
     "typescript": "^5.8.3"
   },

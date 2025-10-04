@@ -87,6 +87,7 @@
 
 - done:::GmailAPIを有効化しないと設定画面を表示させない。
 - 定期お得便の対応(配達中のメールを検知)
+- AccessibilityServiceでPayPay通知の取得を試みる
 - 自動テスト
 - 商品名をつけるときに検索候補をつけたい
 - ViewModel のライフサイクルについて深く勉強 →SharedViewModel 再構成
