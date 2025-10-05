@@ -19,6 +19,7 @@ import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
 import gaku.original.myapplication.ui.view.settings.menu.MailboxExtractionView
 import gaku.original.myapplication.ui.view.settings.menu.NotificationListenerSettingView
+import gaku.original.myapplication.ui.view.settings.menu.PayPayReceiptOCRSettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
@@ -110,6 +111,10 @@ fun Navigation(
         }
         composable(Screen.SettingScreen.NotificationListenerSetting.route) {
             NotificationListenerSettingView(navController = navController)
+        }
+
+        composable(Screen.SettingScreen.PayPayReceiptOCRSetting.route) {
+            PayPayReceiptOCRSettingView(navController = navController)
         }
 
         //OCR用のスクリーン

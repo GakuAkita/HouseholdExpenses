@@ -48,6 +48,9 @@ sealed class Screen(val route: String) {
             object Main : MailboxExtraction("$BASE_ROUTE/main")
         }
 
+        object PayPayReceiptOCRSetting :
+            SettingScreen("$BASE_ROUTE/pay_pay_receipt_ocr_setting")
+
         object NotificationListenerSetting :
             SettingScreen("$BASE_ROUTE/notification_listener_setting")
     }

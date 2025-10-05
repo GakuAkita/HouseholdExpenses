@@ -90,11 +90,11 @@ fun SettingsView(
 //                navController = navController,
 //                route = Screen.SettingScreen.NotificationListenerSetting.route
 //            )
-//            SettingRowWithNavigation(
-//                label = "PayPayレシートマスク設定",
-//                navController=navController,
-//                route = Screen.SettingScreen.
-//            )
+            SettingRowWithNavigation(
+                label = "PayPayレシートOCR設定",
+                navController = navController,
+                route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
+            )
 
             Button(
                 modifier = Modifier
