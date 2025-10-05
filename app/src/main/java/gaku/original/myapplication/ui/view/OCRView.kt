@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.view
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,11 +30,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
@@ -55,6 +56,7 @@ fun OCRView(
     val extractedExpense = viewModel.extractedExpense.collectAsState()
     val ocrReading = viewModel.ocrReading.collectAsState()
     val sharedImageData = viewModel.sharedImageData.collectAsState()
+    val maskedBitmap = viewModel.maskedBitmap.collectAsState()
 
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -132,11 +134,19 @@ fun OCRView(
                     )
                     Text(ocrResult.value?.text?.text ?: "")
                     HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
-                    AsyncImage(
-                        model = viewModel.getImageUri()
-                            .toString() + "?ts=${sharedImageData.value?.receivedTime}",
-                        contentDescription = null
-                    )
+                    if (maskedBitmap.value != null) {
+                        /* maskedBitmapがnullでないときのみ表示 */
+                        Image(
+                            bitmap = maskedBitmap.value!!.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+//                    AsyncImage(
+//                        model = viewModel.getImageUri()
+//                            .toString() + "?ts=${sharedImageData.value?.receivedTime}",
+//                        contentDescription = null
+//                    )
                 }
             }
         }

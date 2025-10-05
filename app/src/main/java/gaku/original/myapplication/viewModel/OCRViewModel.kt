@@ -3,6 +3,10 @@ package gaku.original.myapplication.viewModel
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -61,6 +65,9 @@ class OCRViewModel @Inject constructor(
 
     private val _extractedExpense = MutableStateFlow(getDefaultExpense())
     val extractedExpense: StateFlow<Expense> = _extractedExpense
+
+    private val _maskedBitmap = MutableStateFlow<Bitmap?>(null)
+    val maskedBitmap: StateFlow<Bitmap?> = _maskedBitmap
 
     init {
         viewModelScope.launch {
@@ -130,9 +137,15 @@ class OCRViewModel @Inject constructor(
                 status = FuncStatus.FAILED,
                 "bitmap is null"
             )
-        val imageWidth = bitmap.width
-        val imageHeight = bitmap.height
-        val image = InputImage.fromBitmap(bitmap, 0)
+
+        /* あらかじめロゴの部分を削っておく */
+        val masked = maskBitmapTopLeftArea(bitmap, widthPercent = 0.21f, heightPercent = 0.17f)
+        /* マスクしたbitmapをUI上に表示する */
+        _maskedBitmap.value = masked
+
+        val imageWidth = masked.width
+        val imageHeight = masked.height
+        val image = InputImage.fromBitmap(masked, 0)
         Log.d(className, "Image width=${imageWidth}　height=${imageHeight}")
 
         val recognizer =
@@ -156,6 +169,9 @@ class OCRViewModel @Inject constructor(
         }
     }
 
+    /**
+     * おもったけど、このbitmapに対して、ロゴの部分を消してしまえばいいのでは？？
+     */
     private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         return try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
@@ -175,6 +191,36 @@ class OCRViewModel @Inject constructor(
     fun clearSharedImageData() {
         sharedImageViewModel.clearSharedImageData()
     }
+
+
+    private fun maskBitmapTopLeftArea(
+        source: Bitmap,
+        widthPercent: Float,
+        heightPercent: Float,
+        leftPercent: Float = 0f,/* 基本一番左上 */
+        topPercent: Float = 0f
+    ): Bitmap {
+        val mutable = source.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(mutable)
+        val paint = Paint().apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+
+        val width = source.width
+        val height = source.height
+
+        val left = (width * leftPercent).toInt()
+        val top = (height * topPercent).toInt()
+        val rectWidth = (width * widthPercent).toInt()
+        val rectHeight = (height * heightPercent).toInt()
+
+        val rect = Rect(left, top, left + rectWidth, top + rectHeight)
+        canvas.drawRect(rect, paint)
+
+        return mutable
+    }
+
 }
 
 

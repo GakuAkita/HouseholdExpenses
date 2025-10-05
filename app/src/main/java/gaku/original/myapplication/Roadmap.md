@@ -85,6 +85,7 @@
 //optional
 
 - done:::GmailAPIを有効化しないと設定画面を表示させない。
+- PayPayレシートOCRのマスク位置のキャリブレーション機能
 - 定期お得便の対応(配達中のメールを検知)
 - AccessibilityServiceでPayPay通知の取得を試みる
 - 自動テスト
