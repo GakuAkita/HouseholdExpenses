@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.viewModel.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -23,6 +23,8 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
+import gaku.original.myapplication.repository.PrefKeys
+import gaku.original.myapplication.repository.SharedPreferencesRepository
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +46,7 @@ data class OcrResultData(
 class OCRViewModel @Inject constructor(
     private val sharedImageViewModel: SharedImageViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val pref: PreferenceStorage
+    private val prefRepository: SharedPreferencesRepository
 ) : ViewModel() {
     val className: String = this::class.java.simpleName
 
@@ -68,6 +70,19 @@ class OCRViewModel @Inject constructor(
 
     private val _maskedBitmap = MutableStateFlow<Bitmap?>(null)
     val maskedBitmap: StateFlow<Bitmap?> = _maskedBitmap
+
+    private val _isLeftRatioSet = MutableStateFlow(false)
+    val isLeftRatioSet: StateFlow<Boolean> = _isLeftRatioSet
+    private val _isTopRatioSet = MutableStateFlow(false)
+    val isTopRatioSet: StateFlow<Boolean> = _isTopRatioSet
+
+    /* レシートの左端から何%マスキングするか */
+    private val _leftRatio = MutableStateFlow<Float?>(null)
+    val leftRatio: StateFlow<Float?> = _leftRatio
+
+    /* レシートの上端から何%マスキングするか */
+    private val _topRatio = MutableStateFlow<Float?>(null)
+    val topRatio: StateFlow<Float?> = _topRatio
 
     init {
         viewModelScope.launch {
@@ -221,6 +236,16 @@ class OCRViewModel @Inject constructor(
         return mutable
     }
 
+    /**************bitmapのマスキング関連の設定*******************/
+    fun loadIsMaskRatioSet() {
+        _isLeftRatioSet.value = prefRepository.hasKey(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
+        _isTopRatioSet.value = prefRepository.hasKey(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
+    }
+
+    fun loadMaskRatio() {
+        _leftRatio.value = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
+        _topRatio.value = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
+    }
 }
 
 

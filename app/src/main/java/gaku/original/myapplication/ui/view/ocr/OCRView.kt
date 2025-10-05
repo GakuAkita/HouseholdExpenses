@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.view.ocr
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -39,8 +39,9 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.navigateToSingle
-import gaku.original.myapplication.viewModel.OCRViewModel
+import gaku.original.myapplication.viewModel.ocr.OCRViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
@@ -52,11 +53,15 @@ fun OCRView(
 ) {
     val viewName = "OCRView"
     val context = LocalContext.current
-    val ocrResult = viewModel.ocrResult.collectAsState()
-    val extractedExpense = viewModel.extractedExpense.collectAsState()
-    val ocrReading = viewModel.ocrReading.collectAsState()
-    val sharedImageData = viewModel.sharedImageData.collectAsState()
-    val maskedBitmap = viewModel.maskedBitmap.collectAsState()
+    val ocrResult by viewModel.ocrResult.collectAsState()
+    val extractedExpense by viewModel.extractedExpense.collectAsState()
+    val ocrReading by viewModel.ocrReading.collectAsState()
+    val sharedImageData by viewModel.sharedImageData.collectAsState()
+    val maskedBitmap by viewModel.maskedBitmap.collectAsState()
+
+    /* これ初期値だけでいいか、、 */
+    val isLeftRatioSet by viewModel.isLeftRatioSet.collectAsState()
+    val isTopRatioSet by viewModel.isTopRatioSet.collectAsState()
 
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -65,7 +70,7 @@ fun OCRView(
         SnackbarHostState()
     }
 
-    LaunchedEffect(sharedImageData.value) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
+    LaunchedEffect(sharedImageData) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
         viewModel.runOcr(context) {
             if (it.status == FuncStatus.SUCCESS) {
                 /**
@@ -113,7 +118,15 @@ fun OCRView(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (ocrReading.value) {
+            if (false) {
+                LogAkitaDebug("aaa")
+            }
+            /**
+             * 初回読み取り時、または、SharedPreferencesに設定値が残っていないとき
+             * ここで調整して設定できるようにする
+             */
+
+            if (ocrReading) {
                 CircularProgressIndicator()
             } else {
                 Column {
@@ -132,12 +145,12 @@ fun OCRView(
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 3.dp)
                     )
-                    Text(ocrResult.value?.text?.text ?: "")
+                    Text(ocrResult?.text?.text ?: "")
                     HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
-                    if (maskedBitmap.value != null) {
+                    if (maskedBitmap != null) {
                         /* maskedBitmapがnullでないときのみ表示 */
                         Image(
-                            bitmap = maskedBitmap.value!!.asImageBitmap(),
+                            bitmap = maskedBitmap!!.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -166,10 +179,10 @@ fun OCRView(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val timeZone = AppTimeZone.isoStringToLocalDateTime(extractedExpense.value.datetime)
+                val timeZone = AppTimeZone.isoStringToLocalDateTime(extractedExpense.datetime)
                 Text("日付: ${timeZone?.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))}")
-                Text("金額: ${extractedExpense.value.amount}")
-                Text("店名: ${extractedExpense.value.storeName}")
+                Text("金額: ${extractedExpense.amount}")
+                Text("店名: ${extractedExpense.storeName}")
 
                 Row(
                     modifier = Modifier.fillMaxWidth()

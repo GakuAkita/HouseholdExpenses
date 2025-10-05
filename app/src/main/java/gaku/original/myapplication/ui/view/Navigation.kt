@@ -14,6 +14,7 @@ import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
 import gaku.original.myapplication.ui.view.main.GraphView
 import gaku.original.myapplication.ui.view.main.MainView
 import gaku.original.myapplication.ui.view.main.SearchView
+import gaku.original.myapplication.ui.view.ocr.OCRView
 import gaku.original.myapplication.ui.view.settings.SettingsView
 import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
 import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
@@ -25,6 +26,7 @@ import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
 import gaku.original.myapplication.ui.view.start.StartView
+import gaku.original.myapplication.viewModel.ocr.OCRMaskRatioAdjustView
 
 
 @Composable
@@ -118,6 +120,9 @@ fun Navigation(
         }
 
         //OCR用のスクリーン
+        composable(Screen.GlobalScreen.OcrRatioAdjust.route) {
+            OCRMaskRatioAdjustView
+        }
         composable(Screen.GlobalScreen.OcrRead.route) {
             OCRView(navController = navController)
         }

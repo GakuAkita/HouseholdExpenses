@@ -49,7 +49,7 @@ import gaku.original.myapplication.ui.common.CalendarDisplay
 import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.view.navigateToNLProcess
-import gaku.original.myapplication.ui.view.navigateToOCRView
+import gaku.original.myapplication.ui.view.ocr.navigateToOCRView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged

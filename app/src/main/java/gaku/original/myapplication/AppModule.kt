@@ -1,10 +1,12 @@
 package gaku.original.myapplication
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import gaku.original.myapplication.repository.FirebaseAuthRepository
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
@@ -13,6 +15,7 @@ import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFires
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.repository.SharedPreferencesRepository
 import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
 import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.useCase.RepeatAddUseCase
@@ -101,6 +104,14 @@ object AppModule {
         firebaseAuth: FirebaseAuth
     ): FirebaseAuthRepository {
         return FirebaseAuthRepository(firebaseAuth)
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideSharedPreferencesRepository(
+        @ApplicationContext context: Context
+    ): SharedPreferencesRepository {
+        return SharedPreferencesRepository(context)
     }
 
     /* --------------------------UseCase関連---------------------------------- */
