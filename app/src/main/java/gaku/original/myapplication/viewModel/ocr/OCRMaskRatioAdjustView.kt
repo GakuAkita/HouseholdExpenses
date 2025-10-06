@@ -6,7 +6,7 @@ import gaku.original.myapplication.repository.SharedPreferencesRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class OCRMaskRatioAdjustView @Inject constructor(
+class OCRMaskRatioAdjustViewModel @Inject constructor(
     private val prefRepository: SharedPreferencesRepository
 ) : ViewModel() {
 

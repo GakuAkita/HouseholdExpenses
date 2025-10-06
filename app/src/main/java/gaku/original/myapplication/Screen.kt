@@ -62,7 +62,6 @@ sealed class Screen(val route: String) {
             const val EXPENSE_ADD_EDIT_BASE = "expense_add_edit"
             const val CATEGORY_ADD_EDIT_BASE = "category_add_edit"
             const val CATEGORY_ASSIGNMENT_EDIT_BASE = "category_assignment_edit"
-            const val OCR_MASK_RATIO_ADJUST_BASE = "ocr_mask_ratio_adjust"
             const val OCR_BASE = "ocr"
             const val NLS_BASE = "notification_listener_process"
         }
@@ -75,8 +74,16 @@ sealed class Screen(val route: String) {
 
         object CategoryAssignmentEdit : GlobalScreen(CATEGORY_ASSIGNMENT_EDIT_BASE)
 
-        object OcrRatioAdjust : GlobalScreen(OCR_MASK_RATIO_ADJUST_BASE)
-        object OcrRead : GlobalScreen(OCR_BASE)
+        // ---OCR 関連をまとめた -----
+        sealed class OCR(route: String) : GlobalScreen(route) {
+            companion object {
+                const val BASE_ROUTE = GlobalScreen.OCR_BASE
+            }
+
+            object Entry : OCR("$BASE_ROUTE/entry")
+            object Read : OCR("$BASE_ROUTE/read")
+            object MaskRatioAdjust : OCR("$BASE_ROUTE/mask_ratio_adjust")
+        }
 
         object NotificationListenerProcess : GlobalScreen(NLS_BASE)
     }

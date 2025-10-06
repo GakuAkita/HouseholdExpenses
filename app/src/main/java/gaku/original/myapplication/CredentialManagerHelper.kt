@@ -37,7 +37,7 @@ object CredentialManagerHelper {
                 FuncResultWithData.Success(data = googleCredential.idToken)
             } else FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "Unexpected credential type: ${credential?.type}"
+                errorMessage = "Unexpected credential type: ${credential.type}"
             )
         } catch (e: GetCredentialException) {
             Log.e("CredentialManager", "Credential error: ${e.message}")

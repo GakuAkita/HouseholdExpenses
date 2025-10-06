@@ -23,7 +23,7 @@ import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation
 import gaku.original.myapplication.ui.view.navigateToNLProcess
-import gaku.original.myapplication.ui.view.ocr.navigateToOCRView
+import gaku.original.myapplication.ui.view.ocr.navigateToOCREntryView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import gaku.original.myapplication.utility.navigateToSingle
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     Log.d("onNewIntent", "pile OCRRead on the stack")
                     sharedImageViewModel.setIsMovedToOCR(true)
-                    navigateToOCRView(navController)
+                    navigateToOCREntryView(navController)
                 }
             }
 

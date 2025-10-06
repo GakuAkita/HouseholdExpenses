@@ -40,7 +40,6 @@ import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.ocr.OCRViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -80,7 +79,7 @@ fun OCRView(
                 viewModel.copyReadExpenseToTmpExpense()
                 viewModel.clearSharedImageData()
                 navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                    popUpTo(Screen.GlobalScreen.OcrRead.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
+                    popUpTo(Screen.GlobalScreen.OCR.Read.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
                         inclusive = true // OCRView を含めて削除
                     }
                 }
@@ -198,10 +197,5 @@ fun OCRView(
             }
         }
     }
-}
-
-/* OCR画面は基本的に単一画面。すでに存在する場合は強制的に上書きする */
-fun navigateToOCRView(navController: NavHostController) {
-    navigateToSingle(navController, Screen.GlobalScreen.OcrRead.route)
 }
 
