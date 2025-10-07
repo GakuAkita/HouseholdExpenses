@@ -8,18 +8,42 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncResultWithData
 
 /**
  * 渡されたuriからbitmapを読み込む
  */
-fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+fun loadBitmapFromUri(context: Context, uri: Uri): FuncResultWithData<Bitmap> {
     return try {
         context.contentResolver.openInputStream(uri)?.use { stream ->
-            BitmapFactory.decodeStream(stream)
-        }
+            val bitmap = BitmapFactory.decodeStream(stream)
+            if (bitmap != null) {
+                FuncResultWithData.Success(
+                    data = bitmap,
+                )
+            } else {
+                FuncResultWithData.Failure.GenericFailure(
+                    status = FuncStatus.FAILED,
+                    errorMessage = "Failed to decode bitmap"
+                )
+            }
+        } ?: FuncResultWithData.Failure.GenericFailure(
+            status = FuncStatus.FAILED,
+            errorMessage = "Failed to open input stream"
+        )
     } catch (e: SecurityException) {
         e.printStackTrace()
-        null
+        FuncResultWithData.Failure.GenericFailure(
+            status = FuncStatus.FAILED,
+            errorMessage = "SecurityException:${e.message}"
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        FuncResultWithData.Failure.GenericFailure(
+            status = FuncStatus.FAILED,
+            errorMessage = "Exception:${e.message}"
+        )
     }
 }
 
@@ -61,7 +85,7 @@ fun maskBitmapArea(
 /**
  * ラップしただけ、
  */
-private fun maskBitmapTopLeftArea(
+fun maskBitmapTopLeftArea(
     source: Bitmap,
     widthPercent: Float,
     heightPercent: Float,

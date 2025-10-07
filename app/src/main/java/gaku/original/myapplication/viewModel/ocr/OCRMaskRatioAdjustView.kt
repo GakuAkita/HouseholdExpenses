@@ -1,13 +1,18 @@
 package gaku.original.myapplication.viewModel.ocr
 
-import android.net.Uri
+import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.repository.SharedPreferencesRepository
+import gaku.original.myapplication.utility.loadBitmapFromUri
+import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,14 +32,17 @@ class OCRMaskRatioAdjustViewModel @Inject constructor(
      * この画面に来た時点で設定がされていない。
      * デフォルト値を割合にあてておく
      */
-    private val _leftRatio = mutableStateOf(0.2f)
-    val leftRatio: State<Float?> = _leftRatio
+    private val _leftRatio = mutableStateOf(0.21f)
+    val leftRatio: State<Float> = _leftRatio
 
-    private val _topRatio = mutableStateOf(0.2f)
-    val topRatio: State<Float?> = _topRatio
+    private val _topRatio = mutableStateOf(0.17f)
+    val topRatio: State<Float> = _topRatio
 
     private val _sharedImageData = MutableStateFlow(sharedImageViewModel.sharedImageData.value)
     val sharedImageData: StateFlow<SharedImageData?> get() = _sharedImageData
+
+    private val _bitmapShown = MutableStateFlow<Bitmap?>(null)
+    val bitmapShown: StateFlow<Bitmap?> get() = _bitmapShown
 
     init {
         viewModelScope.launch {
@@ -48,8 +56,43 @@ class OCRMaskRatioAdjustViewModel @Inject constructor(
         }
     }
 
-    fun getImageUri(): Uri? {
-        return sharedImageViewModel.sharedImageData.value?.imageUri
+    private fun createMaskedImage(context: Context): FuncResultWithData<Bitmap> {
+        val uri = _sharedImageData.value?.imageUri
+            ?: return FuncResultWithData.Failure.GenericFailure(FuncStatus.FAILED, "")
+
+        val bitmapRet = loadBitmapFromUri(context, uri)
+        if (bitmapRet !is FuncResultWithData.Success) {
+            return bitmapRet
+        }
+        val bitmap = bitmapRet.data
+
+        /**
+         * ここでマスクをする
+         */
+        val maskedBitmap = maskBitmapTopLeftArea(
+            source = bitmap,
+            widthPercent = _leftRatio.value,
+            heightPercent = _topRatio.value,
+        )
+
+        return FuncResultWithData.Success(
+            data = maskedBitmap
+        )
+    }
+
+    fun setBitmapShown(context: Context) {
+        val createRet = createMaskedImage(context)
+        if (createRet is FuncResultWithData.Success) {
+            _bitmapShown.value = createRet.data
+        }
+    }
+
+    fun updateLeftRatio(ratio: Float) {
+        _leftRatio.value = ratio
+    }
+
+    fun updateTopRatio(ratio: Float) {
+        _topRatio.value = ratio
     }
 
 }

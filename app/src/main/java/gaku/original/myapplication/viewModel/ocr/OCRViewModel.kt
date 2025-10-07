@@ -17,9 +17,12 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
+import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.repository.PrefKeys
 import gaku.original.myapplication.repository.SharedPreferencesRepository
+import gaku.original.myapplication.utility.loadBitmapFromUri
+import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -142,12 +145,11 @@ class OCRViewModel @Inject constructor(
                 "imageUriが入っていません"
             )
         }
-        val bitmap = loadBitmapFromUri(context, imageUri)
-            ?: return FuncResultWithData.Failure.GenericFailure(
-                status = FuncStatus.FAILED,
-                "bitmap is null"
-            )
-
+        val bitmapRet = loadBitmapFromUri(context, imageUri)
+        if (bitmapRet !is FuncResultWithData.Success) {
+            return bitmapRet.mapFailure()
+        }
+        val bitmap = bitmapRet.data
         /* あらかじめロゴの部分を削っておく */
         val masked = maskBitmapTopLeftArea(bitmap, widthPercent = 0.21f, heightPercent = 0.17f)
         /* マスクしたbitmapをUI上に表示する */
