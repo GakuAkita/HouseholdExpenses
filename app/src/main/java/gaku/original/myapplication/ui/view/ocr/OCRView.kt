@@ -78,6 +78,9 @@ fun OCRView(
                 Toast.makeText(context, "OCR読み取りに成功しました", Toast.LENGTH_SHORT).show()
                 viewModel.copyReadExpenseToTmpExpense()
                 viewModel.clearSharedImageData()
+                /**
+                 * ↓これも仮数で置き換える？
+                 */
                 navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
                     popUpTo(Screen.GlobalScreen.OCR.Read.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
                         inclusive = true // OCRView を含めて削除

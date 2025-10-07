@@ -31,6 +31,10 @@ fun OCRMaskRatioAdjustView(
             modifier = Modifier.padding(innerPadding)
         ) {
             Text("マスキングの割合を調整します")
+            Text("左マスキング割合:${viewModel.leftRatio}")
+            Text("上マスキング割合:${viewModel.topRatio}")
+
+            
         }
     }
 }

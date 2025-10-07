@@ -2,11 +2,6 @@ package gaku.original.myapplication.viewModel.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -184,19 +179,6 @@ class OCRViewModel @Inject constructor(
         }
     }
 
-    /**
-     * おもったけど、このbitmapに対して、ロゴの部分を消してしまえばいいのでは？？
-     */
-    private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
-        return try {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream)
-            }
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-            null
-        }
-    }
 
     fun copyReadExpenseToTmpExpense() {
         tmpExpenseViewModel.resetTmpExpenseList()
@@ -205,35 +187,6 @@ class OCRViewModel @Inject constructor(
 
     fun clearSharedImageData() {
         sharedImageViewModel.clearSharedImageData()
-    }
-
-
-    private fun maskBitmapTopLeftArea(
-        source: Bitmap,
-        widthPercent: Float,
-        heightPercent: Float,
-        leftPercent: Float = 0f,/* 基本一番左上 */
-        topPercent: Float = 0f
-    ): Bitmap {
-        val mutable = source.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(mutable)
-        val paint = Paint().apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-        }
-
-        val width = source.width
-        val height = source.height
-
-        val left = (width * leftPercent).toInt()
-        val top = (height * topPercent).toInt()
-        val rectWidth = (width * widthPercent).toInt()
-        val rectHeight = (height * heightPercent).toInt()
-
-        val rect = Rect(left, top, left + rectWidth, top + rectHeight)
-        canvas.drawRect(rect, paint)
-
-        return mutable
     }
 
     /**************bitmapのマスキング関連の設定*******************/

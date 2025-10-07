@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.utility.navigateAndRemoveCurrent
 import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.ocr.OCREntryViewModel
 
@@ -34,7 +35,10 @@ fun OCREntryView(
                 /**
                  * Ratio設定画面へ
                  */
-                navigateToSingle(navController, Screen.GlobalScreen.OCR.MaskRatioAdjust.route)
+                navigateAndRemoveCurrent(
+                    navController,
+                    Screen.GlobalScreen.OCR.MaskRatioAdjust.route
+                )
             }
         } else {
             /**
