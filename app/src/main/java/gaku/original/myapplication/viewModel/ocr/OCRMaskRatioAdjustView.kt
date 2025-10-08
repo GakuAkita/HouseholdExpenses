@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.SharedImageData
+import gaku.original.myapplication.repository.PrefKeys
 import gaku.original.myapplication.repository.SharedPreferencesRepository
 import gaku.original.myapplication.utility.loadBitmapFromUri
 import gaku.original.myapplication.utility.maskBitmapTopLeftArea
@@ -85,6 +86,15 @@ class OCRMaskRatioAdjustViewModel @Inject constructor(
         if (createRet is FuncResultWithData.Success) {
             _bitmapShown.value = createRet.data
         }
+    }
+
+    fun saveAdjustedRatioSetting() {
+        saveRatioSetting(_leftRatio.value, _topRatio.value)
+    }
+
+    private fun saveRatioSetting(leftRatio: Float, topRatio: Float) {
+        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO, leftRatio)
+        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO, topRatio)
     }
 
     fun updateLeftRatio(ratio: Float) {

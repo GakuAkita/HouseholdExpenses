@@ -31,6 +31,7 @@ fun OCREntryView(
                 /**
                  * 両方すでにセットされているのでOCR読み取りへ直行
                  */
+                navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
             } else {
                 /**
                  * Ratio設定画面へ

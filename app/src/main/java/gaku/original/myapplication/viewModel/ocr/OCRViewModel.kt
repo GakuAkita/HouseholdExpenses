@@ -151,7 +151,13 @@ class OCRViewModel @Inject constructor(
         }
         val bitmap = bitmapRet.data
         /* あらかじめロゴの部分を削っておく */
-        val masked = maskBitmapTopLeftArea(bitmap, widthPercent = 0.21f, heightPercent = 0.17f)
+        val leftRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
+        val topRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
+        val masked = maskBitmapTopLeftArea(
+            bitmap,
+            widthPercent = leftRatio,
+            heightPercent = topRatio
+        )
         /* マスクしたbitmapをUI上に表示する */
         _maskedBitmap.value = masked
 
