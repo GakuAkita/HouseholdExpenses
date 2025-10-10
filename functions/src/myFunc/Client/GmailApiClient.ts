@@ -95,7 +95,8 @@ export class GmailApiClient {
         data: msgIds,
       };
     } catch (e: any) {
-      logger.error(e.response?.data);
+      /* ここでエラーが出ていた。 */
+      logger.error("searchMessages error:", e.response?.data ?? e.message ?? e);
       return {
         status: FuncStatus.ERROR,
         message: `Failed to search mails:${e.message}`,
