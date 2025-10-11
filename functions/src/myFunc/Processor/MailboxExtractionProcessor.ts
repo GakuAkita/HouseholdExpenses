@@ -331,6 +331,48 @@ export class MailboxExtractionProcessor {
     return funcResult;
   }
 
+  async getAmazonSubscribeNewRegsterMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "no-reply@amazon.co.jp";
+    const subject = "新しい定期おトク便のご登録";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+    return {
+      status: FuncStatus.ERROR,
+    };
+  }
+
+  async getAmazonSubscribeCancelRegisterMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "no-reply@amazon.co.jp";
+    const subject = "定期購入はキャンセルされました";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+    return {
+      status: FuncStatus.ERROR,
+    };
+  }
+
+  async getAmazonCurrentlyShippedMailIds(
+    gmailClient: GmailApiClient,
+    startTime: number,
+    endTime: number
+  ): Promise<FuncResultWithData<string[]>> {
+    const mailFrom = "shipment-tracking@amazon.co.jp";
+    const subject = "配達中:";
+    const endTimeAdded = endTime + 1;
+    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+    return {
+      status: FuncStatus.ERROR,
+    };
+  }
+
   async getShikokuElectricMailIds(
     gmailClient: GmailApiClient,
     startTime: number,
