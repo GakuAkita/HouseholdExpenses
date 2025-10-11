@@ -142,6 +142,10 @@ class RealtimeDbReference @Inject constructor(
 //    }
 
     /* カテゴリー割当て */
+    /**
+     * カテゴリー割当てはメール抽出だけではなくて
+     * PayPayOCRの場合とかも使うからReferenceもuserId直下にある
+     */
     suspend fun getCategoryAssignmentDataRef(): FuncResultWithData<DatabaseReference> {
         val funcName = ::getCategoryAssignmentDataRef.name
         val childrenPath = listOf("category_assignment_data")

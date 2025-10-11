@@ -85,6 +85,7 @@ sealed class EmailTemplateType : CategorizationMode {
         override val menuName = "Amazon定期便"
         override fun defaultInstance() = AmazonSubscribe()
         override val categoryAssignFlag = CategoryAssignFlag.NONE.value
+        val initialized = false /* initしていない場合は、定期便の登録をリフレッシュする */
     }
 
     data class Udemy(
