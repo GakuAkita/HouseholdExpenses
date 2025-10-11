@@ -47,6 +47,14 @@ import {
 import { extractTextBody } from "../utility/gmail/extractHtmlBody";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { getInternalDateMillisFromMessage } from "../utility/gmail/getInternalDate";
+import {
+  getAmazonItemMailIds,
+  getAmazonKindleMailIds,
+  getRakutenCardETCMailIds,
+  getRakutenPayMailIds,
+  getShikokuElectricMailIds,
+  getUdemyMailIds,
+} from "../utility/gmail/mailQueries";
 /**
  * 各ユーザーに対してインスタンスを生成することにする！
  */
@@ -143,9 +151,6 @@ export class MailboxExtractionProcessor {
     };
   }
 
-  /* ************************GmailApiClientの生成***************************** */
-  /* ---> utilityに移動しました */
-
   /* *****************************Gmailのクエリ関係************************************ */
   async getMailIdsByQuery(
     type: AllMailType,
@@ -169,40 +174,28 @@ export class MailboxExtractionProcessor {
        * この関数内でqueryしてもいいかもな。
        */
       case rakutenPaySamp.nodeName:
-        ret = await this.getRakutenPayMailIds(gmailClient, startTime, endTime);
+        ret = await getRakutenPayMailIds(gmailClient, startTime, endTime);
         break;
 
       case amazonKindleSamp.nodeName:
         /* 特に何もやらない */
-        ret = await this.getAmazonKindleMailIds(
-          gmailClient,
-          startTime,
-          endTime
-        );
+        ret = await getAmazonKindleMailIds(gmailClient, startTime, endTime);
         break;
 
       case shikokuElectricSamp.nodeName:
-        ret = await this.getShikokuElectricMailIds(
-          gmailClient,
-          startTime,
-          endTime
-        );
+        ret = await getShikokuElectricMailIds(gmailClient, startTime, endTime);
         break;
 
       case amazonItemSamp.nodeName:
-        ret = await this.getAmazonItemMailIds(gmailClient, startTime, endTime);
+        ret = await getAmazonItemMailIds(gmailClient, startTime, endTime);
         break;
 
       case udemySetting.nodeName:
-        ret = await this.getUdemyMailIds(gmailClient, startTime, endTime);
+        ret = await getUdemyMailIds(gmailClient, startTime, endTime);
         break;
 
       case rakutenETCSamp.nodeName:
-        ret = await this.getRakutenCardETCMailIds(
-          gmailClient,
-          startTime,
-          endTime
-        );
+        ret = await getRakutenCardETCMailIds(gmailClient, startTime, endTime);
         break;
 
       default:
@@ -213,138 +206,6 @@ export class MailboxExtractionProcessor {
         break;
     }
     return ret;
-  }
-
-  async getRakutenPayMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
-    endTime: number /* 時間で絞るための終了時刻(秒:整数) */
-  ): Promise<FuncResultWithData<string[]>> {
-    /* まずはクエリをして楽天Payを抽出する */
-    const subjectIncluded = "楽天ペイアプリご利用内容確認メール";
-    const mailFrom = "no-reply@pay.rakuten.co.jp";
-
-    /**
-     * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
-     * したがって、endTimeに+1をしてendTimeも含めるようにする
-     * ちょっとここらへんが怖いな、
-     */
-    const endTimeAdded = endTime + 1;
-    const query = `subject:${subjectIncluded} from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
-  }
-
-  async getAmazonKindleMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "digital-no-reply@amazon.co.jp";
-    const wordIncluded =
-      "Kindle"; /* まあこれなくてもいいけど、、一応つけておく。本文または件名に含まれる */
-
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} ${wordIncluded} after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
-  }
-
-  async getAmazonSubscribeNewRegsterMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "no-reply@amazon.co.jp";
-    const subject = "新しい定期おトク便のご登録";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
-    return {
-      status: FuncStatus.ERROR,
-    };
-  }
-
-  async getAmazonSubscribeCancelRegisterMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "no-reply@amazon.co.jp";
-    const subject = "定期購入はキャンセルされました";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
-    return {
-      status: FuncStatus.ERROR,
-    };
-  }
-
-  async getAmazonCurrentlyShippedMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "shipment-tracking@amazon.co.jp";
-    const subject = "配達中:";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
-    return {
-      status: FuncStatus.ERROR,
-    };
-  }
-
-  async getShikokuElectricMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "yonden-con@yonden.co.jp";
-    const wordIncluded = "【四国電力】電気料金等のお知らせ";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} ${wordIncluded} after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
-  }
-
-  async getAmazonItemMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "auto-confirm@amazon.co.jp";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
-  }
-
-  async getUdemyMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "hello@alerts.udemy.com";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
-  }
-
-  async getRakutenCardETCMailIds(
-    gmailClient: GmailApiClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const mailFrom = "info@mail.rakuten-card.co.jp";
-    const endTimeAdded = endTime + 1;
-    const query = `from:${mailFrom} ETCカード売上 after:${startTime} before:${endTimeAdded}`;
-    logger.debug(`Query:${query}`);
-    const funcResult = await gmailClient.queryMessages(query);
-    return funcResult;
   }
 
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
