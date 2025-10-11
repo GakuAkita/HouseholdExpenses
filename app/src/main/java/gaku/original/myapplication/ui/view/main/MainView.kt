@@ -208,7 +208,12 @@ fun MainView(
             ) {
                 Text("${currentPageYear}-${currentPageMonth}")
                 Spacer(modifier = Modifier.padding(10.dp))
-                Text("Monthly Total:${monthTotalExpense}\n Estimated:${monthlyEstimatedExpense}")
+                Column {
+                    Text("Monthly Total:${monthTotalExpense}")
+                    if (monthOffset == 0) {/* monthOffset=0とは今日の日付ってこと */
+                        Text("Estimated:${monthlyEstimatedExpense}")
+                    }
+                }
             }
 
             Row(
@@ -343,7 +348,11 @@ fun MainView(
                         items(monthExpenses) { expense ->
                             ExpenseItem(
                                 expense = expense,
-                                isToday = AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.dayOfMonth == AppTimeZone.getCurrentTimeInZone().dayOfMonth,
+                                isToday = AppTimeZone.isoStringToLocalDateTime(expense.datetime)
+                                    ?.let { expenseDate ->
+                                        val current = AppTimeZone.getCurrentTimeInZone()
+                                        expenseDate.year == current.year && expenseDate.month == current.month && expenseDate.dayOfMonth == current.dayOfMonth
+                                    } == true,
                                 onEdit = {
                                     print("onEdit was tapped...")
                                     viewModel.resetTmpExpense()
