@@ -52,6 +52,14 @@ export type AmazonItemSetting = {
   readonly menuName: "Amazon 物";
   readonly categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME;
 };
+export type AmazonSubscribeSetting = {
+  enabled: Boolean;
+  emailProvider: string;
+  initialized: Boolean;
+  readonly nodeName: "amazon_subscribe";
+  readonly menuName: "Amazon定期便";
+  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
+};
 
 export type UdemySetting = {
   enabled: boolean;
@@ -80,6 +88,7 @@ export type RakutenCardETCSetting = {
 export type AllMailType =
   | RakutenPaySetting
   | AmazonKindleSetting
+  | AmazonSubscribeSetting
   | ShikokuElectricPowerSetting
   | AmazonItemSetting
   | UdemySetting
