@@ -2,6 +2,8 @@ package gaku.original.myapplication.ui.view.settings.menu
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +40,20 @@ fun PayPayReceiptOCRSettingView(
         ) {
             Text("PayPayレシートのマスキング設定を変えたいときは、ここで設定をリセットする。")
             Text("次にPayPayレシート読み取り機能を使ったときに再設定する")
+            HorizontalDivider()
+            if (viewModel.checkBothRatioSet()) {
+                /* 両方セットされているならリセットボタンを押せるように */
+                Text("leftRatio:${viewModel.leftRatio.value}")
+                Text("topRatio:${viewModel.topRatio.value}")
+                Button(onClick = {
+                    viewModel.resetRatio()
+                    navController.popBackStack()
+                }) {
+                    Text("リセット")
+                }
+            } else {
+                Text("まだマスキング設定を変えていないのでPayPayレシート読み取り機能を使用したときにマスキング設定画面が開きます")
+            }
         }
     }
 }
