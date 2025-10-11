@@ -85,10 +85,15 @@ fun SettingsView(
                 route = Screen.SettingScreen.MailboxExtraction.Main.route
             )
 
+//            SettingRowWithNavigation(
+//                label = "プッシュ通知から費用抽出",
+//                navController = navController,
+//                route = Screen.SettingScreen.NotificationListenerSetting.route
+//            )
             SettingRowWithNavigation(
-                label = "プッシュ通知から費用抽出",
+                label = "PayPayレシートOCR設定",
                 navController = navController,
-                route = Screen.SettingScreen.NotificationListenerSetting.route
+                route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
             )
 
             Button(

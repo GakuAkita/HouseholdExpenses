@@ -48,6 +48,9 @@ sealed class Screen(val route: String) {
             object Main : MailboxExtraction("$BASE_ROUTE/main")
         }
 
+        object PayPayReceiptOCRSetting :
+            SettingScreen("$BASE_ROUTE/pay_pay_receipt_ocr_setting")
+
         object NotificationListenerSetting :
             SettingScreen("$BASE_ROUTE/notification_listener_setting")
     }
@@ -71,7 +74,16 @@ sealed class Screen(val route: String) {
 
         object CategoryAssignmentEdit : GlobalScreen(CATEGORY_ASSIGNMENT_EDIT_BASE)
 
-        object OcrRead : GlobalScreen(OCR_BASE)
+        // ---OCR 関連をまとめた -----
+        sealed class OCR(route: String) : GlobalScreen(route) {
+            companion object {
+                const val BASE_ROUTE = GlobalScreen.OCR_BASE
+            }
+
+            object Entry : OCR("$BASE_ROUTE/entry")
+            object Read : OCR("$BASE_ROUTE/read")
+            object MaskRatioAdjust : OCR("$BASE_ROUTE/mask_ratio_adjust")
+        }
 
         object NotificationListenerProcess : GlobalScreen(NLS_BASE)
     }

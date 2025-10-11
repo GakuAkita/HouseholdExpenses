@@ -49,7 +49,7 @@ import gaku.original.myapplication.ui.common.CalendarDisplay
 import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.view.navigateToNLProcess
-import gaku.original.myapplication.ui.view.navigateToOCRView
+import gaku.original.myapplication.ui.view.ocr.navigateToOCREntryView
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -156,7 +156,7 @@ fun MainView(
          */
         if (viewModel.isShouldMoveToOCR()) {
             viewModel.setIsMovedToOCR()
-            navigateToOCRView(navController)
+            navigateToOCREntryView(navController)
         }
 
         /* Notificationから来たときはここでNavigateする */
@@ -208,7 +208,12 @@ fun MainView(
             ) {
                 Text("${currentPageYear}-${currentPageMonth}")
                 Spacer(modifier = Modifier.padding(10.dp))
-                Text("Monthly Total:${monthTotalExpense}\n Estimated:${monthlyEstimatedExpense}")
+                Column {
+                    Text("Monthly Total:${monthTotalExpense}")
+                    if (monthOffset == 0) {/* monthOffset=0とは今日の日付ってこと */
+                        Text("Estimated:${monthlyEstimatedExpense}")
+                    }
+                }
             }
 
             Row(
@@ -343,7 +348,11 @@ fun MainView(
                         items(monthExpenses) { expense ->
                             ExpenseItem(
                                 expense = expense,
-                                isToday = AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.dayOfMonth == AppTimeZone.getCurrentTimeInZone().dayOfMonth,
+                                isToday = AppTimeZone.isoStringToLocalDateTime(expense.datetime)
+                                    ?.let { expenseDate ->
+                                        val current = AppTimeZone.getCurrentTimeInZone()
+                                        expenseDate.year == current.year && expenseDate.month == current.month && expenseDate.dayOfMonth == current.dayOfMonth
+                                    } == true,
                                 onEdit = {
                                     print("onEdit was tapped...")
                                     viewModel.resetTmpExpense()

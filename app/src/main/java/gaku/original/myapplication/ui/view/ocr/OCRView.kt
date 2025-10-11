@@ -1,6 +1,7 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.view.ocr
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,17 +30,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.utility.navigateToSingle
-import gaku.original.myapplication.viewModel.OCRViewModel
+import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.viewModel.ocr.OCRViewModel
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
@@ -51,10 +52,15 @@ fun OCRView(
 ) {
     val viewName = "OCRView"
     val context = LocalContext.current
-    val ocrResult = viewModel.ocrResult.collectAsState()
-    val extractedExpense = viewModel.extractedExpense.collectAsState()
-    val ocrReading = viewModel.ocrReading.collectAsState()
-    val sharedImageData = viewModel.sharedImageData.collectAsState()
+    val ocrResult by viewModel.ocrResult.collectAsState()
+    val extractedExpense by viewModel.extractedExpense.collectAsState()
+    val ocrReading by viewModel.ocrReading.collectAsState()
+    val sharedImageData by viewModel.sharedImageData.collectAsState()
+    val maskedBitmap by viewModel.maskedBitmap.collectAsState()
+
+    /* これ初期値だけでいいか、、 */
+    val isLeftRatioSet by viewModel.isLeftRatioSet.collectAsState()
+    val isTopRatioSet by viewModel.isTopRatioSet.collectAsState()
 
     var showExtractedExpenseDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -63,7 +69,7 @@ fun OCRView(
         SnackbarHostState()
     }
 
-    LaunchedEffect(sharedImageData.value) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
+    LaunchedEffect(sharedImageData) {/* .valueつけてなかった、、、道理で更新されないわけだわ */
         viewModel.runOcr(context) {
             if (it.status == FuncStatus.SUCCESS) {
                 /**
@@ -72,8 +78,11 @@ fun OCRView(
                 Toast.makeText(context, "OCR読み取りに成功しました", Toast.LENGTH_SHORT).show()
                 viewModel.copyReadExpenseToTmpExpense()
                 viewModel.clearSharedImageData()
+                /**
+                 * ↓これも仮数で置き換える？
+                 */
                 navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                    popUpTo(Screen.GlobalScreen.OcrRead.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
+                    popUpTo(Screen.GlobalScreen.OCR.Read.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
                         inclusive = true // OCRView を含めて削除
                     }
                 }
@@ -111,7 +120,15 @@ fun OCRView(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (ocrReading.value) {
+            if (false) {
+                LogAkitaDebug("aaa")
+            }
+            /**
+             * 初回読み取り時、または、SharedPreferencesに設定値が残っていないとき
+             * ここで調整して設定できるようにする
+             */
+
+            if (ocrReading) {
                 CircularProgressIndicator()
             } else {
                 Column {
@@ -130,13 +147,21 @@ fun OCRView(
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 3.dp)
                     )
-                    Text(ocrResult.value?.text?.text ?: "")
+                    Text(ocrResult?.text?.text ?: "")
                     HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
-                    AsyncImage(
-                        model = viewModel.getImageUri()
-                            .toString() + "?ts=${sharedImageData.value?.receivedTime}",
-                        contentDescription = null
-                    )
+                    if (maskedBitmap != null) {
+                        /* maskedBitmapがnullでないときのみ表示 */
+                        Image(
+                            bitmap = maskedBitmap!!.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+//                    AsyncImage(
+//                        model = viewModel.getImageUri()
+//                            .toString() + "?ts=${sharedImageData.value?.receivedTime}",
+//                        contentDescription = null
+//                    )
                 }
             }
         }
@@ -156,10 +181,10 @@ fun OCRView(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val timeZone = AppTimeZone.isoStringToLocalDateTime(extractedExpense.value.datetime)
+                val timeZone = AppTimeZone.isoStringToLocalDateTime(extractedExpense.datetime)
                 Text("日付: ${timeZone?.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))}")
-                Text("金額: ${extractedExpense.value.amount}")
-                Text("店名: ${extractedExpense.value.storeName}")
+                Text("金額: ${extractedExpense.amount}")
+                Text("店名: ${extractedExpense.storeName}")
 
                 Row(
                     modifier = Modifier.fillMaxWidth()
@@ -175,10 +200,5 @@ fun OCRView(
             }
         }
     }
-}
-
-/* OCR画面は基本的に単一画面。すでに存在する場合は強制的に上書きする */
-fun navigateToOCRView(navController: NavHostController) {
-    navigateToSingle(navController, Screen.GlobalScreen.OcrRead.route)
 }
 

@@ -173,9 +173,14 @@ class ExpenseListViewModel @Inject constructor(
             _filteredExpenses.value.sumOf { expense -> (expense.amount ?: 0).toLong() }
     }
 
-    private val _monthlyEstimatedExpense = MutableStateFlow(0L)
-    val monthlyEstimatedExpense: StateFlow<Long> = _monthlyEstimatedExpense
+    private val _monthlyEstimatedExpense = MutableStateFlow<Long?>(0L)
+    val monthlyEstimatedExpense: StateFlow<Long?> = _monthlyEstimatedExpense
     fun calcMonthlyEstimatedExpense() {
+        /**
+         * monthOffsetが0以外のときも計算されるが、
+         * estimatedが基本0に入る。UI上には表示しないから問題ない。
+         */
+
         /**
          * 1.月の初日から今日までの支出の合計[A]を計算する
          * 2.月の初日から今日までの中から繰り返し追加のものだけを省いた合計[B]を計算。
@@ -183,6 +188,7 @@ class ExpenseListViewModel @Inject constructor(
          * 3.明日以降はすでに追加されている費用(繰り返し追加含む)に通常費用([B]/今日までの日付)がかかるとして、月の予想合計を出す
          */
         val today = AppTimeZone.getCurrentTimeInZone().toLocalDate()
+
         val startOfMonth = AppTimeZone.getCurrentTimeInZone().withDayOfMonth(1).toLocalDate()
         val endOfMonth = YearMonth.of(today.year, today.monthValue).atEndOfMonth()
 

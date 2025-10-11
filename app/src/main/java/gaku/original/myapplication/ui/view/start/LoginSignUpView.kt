@@ -273,7 +273,7 @@ fun LoginSignUpView(
                     ) {
                         /* 広げないとめっちゃ小さくなる */
                         Image(
-                            painter = painterResource(id = R.drawable.android_light_rd),
+                            painter = painterResource(id = R.drawable.android_light_sq_si_4x),
                             contentDescription = "Google Sign In",
                         )
                     }
