@@ -1016,6 +1016,13 @@ export class MailboxExtractionProcessor {
         filteredMessages[id] = message;
       }
 
+      /**
+       * Amazon定期便の場合は"配達中:"のメールを検知している。
+       * 配達された商品がAmazon定期便のものかどうかをチェックし、
+       * 定期便でないものは通常購入なので、スルーする。
+       * 配達中でもExpense登録してしまうとAmazonItemと二重登録になってしまう。
+       * */
+
       /* filterdMessagesに対してすべてExpense保存まで行う */
       for (const [_, message] of Object.entries(filteredMessages)) {
         const rawText = extractTextBody(message.payload);
@@ -1063,4 +1070,8 @@ export class MailboxExtractionProcessor {
       await this.processSingleMailType(type);
     }
   }
+
+  /**
+   * Amazon定期便登録リストのモニター関数
+   */
 }
