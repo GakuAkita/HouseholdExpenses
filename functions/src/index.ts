@@ -252,6 +252,7 @@ const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
 };
 
 for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
+  /* この関数はあくまでスケジュールをdeployしているだけ */
   exports[`mailboxExtractionJob_${schedule.id}`] = onSchedule(
     {
       schedule: schedule.cron,
