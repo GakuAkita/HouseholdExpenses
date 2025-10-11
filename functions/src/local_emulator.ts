@@ -233,7 +233,7 @@ const init_add = async () => {
   console.log("Data written to emulator.");
 };
 
-// init_add();
+init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -254,7 +254,7 @@ const schedule_func = async () => {
     console.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
-schedule_func();
+//schedule_func();
 
 /**
  * 引数にrefresh_tokenを受取、
@@ -368,11 +368,11 @@ const processMailTest = async () => {
 
   const testTypes = [
     // createRakutenPaySettingInstance(),
-    // createAmazonItemSettingInstance(),
+    createAmazonItemSettingInstance(),
     // createAmazonKindleSettingInstance(),
     // createShikokuElectricPowerSettingInstance(),
     // createUdemySettingInstance(),
-    createRakutenCardETCSettingInstance(),
+    //createRakutenCardETCSettingInstance(),
   ];
 
   for (const type of testTypes) {
@@ -384,11 +384,11 @@ const processMailTest = async () => {
       userId,
       type,
       {
-        timestamp: 2,
+        timestamp: 1760102703,
       }
     );
   }
   logger.debug("process Done");
 };
 
-// processMailTest();
+processMailTest();

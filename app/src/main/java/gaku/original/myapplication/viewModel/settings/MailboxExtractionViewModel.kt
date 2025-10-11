@@ -145,6 +145,18 @@ class MailboxExtractionViewModel @Inject constructor(
     )
     val amazonItemSettingState: StateFlow<EmailTemplateSettingState> get() = _amazonItemSettingState
 
+    private val _amazonSubscribeState = MutableStateFlow(
+        EmailTemplateSettingState(
+            type = EmailTemplateType.AmazonSubscribe(),
+            setting = null,
+            status = FuncStatusInfo(
+                FuncStatus.SUCCESS,
+                "Not loaded yet"
+            )
+        )
+    )
+    val amazonSubscribeState: StateFlow<EmailTemplateSettingState> = _amazonSubscribeState
+
     private val _udemySettingState = MutableStateFlow(
         EmailTemplateSettingState(
             type = EmailTemplateType.Udemy(),
@@ -186,6 +198,7 @@ class MailboxExtractionViewModel @Inject constructor(
             _shikokuElectricPowerSettingState,
             _amazonKindleSettingState,
             _amazonItemSettingState,
+            _amazonSubscribeState,
             _udemySettingState,
             _rakutenCardETCSettingState
         )

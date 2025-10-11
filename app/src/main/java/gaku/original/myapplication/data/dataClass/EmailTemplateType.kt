@@ -74,6 +74,19 @@ sealed class EmailTemplateType : CategorizationMode {
         override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME.value
     }
 
+    data class AmazonSubscribe(
+        override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL
+    ) : EmailTemplateType() {
+        /**
+         * Amazon定期便をリストに登録しておかないと検知できない!!
+         */
+        override val nodeName = "amazon_subscribe"
+        override val menuName = "Amazon定期便"
+        override fun defaultInstance() = AmazonSubscribe()
+        override val categoryAssignFlag = CategoryAssignFlag.NONE.value
+    }
+
     data class Udemy(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
@@ -118,6 +131,11 @@ fun EmailTemplateType.copyWith(
             enabled = enabled,
             emailProvider = emailProvider,
             categoryId = categoryId
+        )
+
+        is EmailTemplateType.AmazonSubscribe -> this.copy(
+            enabled = enabled,
+            emailProvider = emailProvider
         )
 
         is EmailTemplateType.ShikokuElectricPower -> this.copy(

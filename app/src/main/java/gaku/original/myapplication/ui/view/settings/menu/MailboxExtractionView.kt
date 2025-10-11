@@ -45,6 +45,7 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId
+import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.copyWith
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
@@ -66,6 +67,7 @@ fun MailboxExtractionView(
     val rakutenPaySettingState by viewModel.rakutenPaySettingState.collectAsState()
     val amazonKindleSettingState by viewModel.amazonKindleSettingState.collectAsState()
     val amazonItemSettingState by viewModel.amazonItemSettingState.collectAsState()
+    val amazonSubscribeState by viewModel.amazonSubscribeState.collectAsState()
     val shikokuElectricSettingState by viewModel.shikokuElectricPowerSettingState.collectAsState()
     val udemySettingState by viewModel.udemySettingState.collectAsState()
     val rakutenCardETCSettingState by viewModel.rakutenCardETCSettingState.collectAsState()
@@ -168,7 +170,7 @@ fun MailboxExtractionView(
                         }
                     } else {
                         /* 再ロードボタンを用意したほうがいいか？ */
-                        Text("初期化に失敗しています。。")
+                        Text("初期化に失敗しています。。またはバグです。")
                     }
                 }
             }
@@ -236,6 +238,14 @@ fun MailboxExtractionView(
                         )
                     }
                 }
+            }
+
+            if (settingState.setting?.nodeName == EmailTemplateType.AmazonSubscribe().nodeName) {
+                /**
+                 *  AmazonSubscribeの場合は有効化&定期便の名前がヒットしないと検知できないようになっている。
+                 *  現状、メールの履歴だけで定期便かどうかを判断するのは難しいから。
+                 *  */
+
             }
 
             Row {
@@ -332,6 +342,10 @@ fun MailboxExtractionView(
 
                     MailboxExtractionMenu(
                         amazonItemSettingState,
+                    )
+
+                    MailboxExtractionMenu(
+                        amazonSubscribeState,
                     )
 
                     MailboxExtractionMenu(

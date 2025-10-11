@@ -64,14 +64,14 @@
 - done:::PayPay で使ったときに取得して自動転記 ← 無理そう。PayPay
 - done:::の電子レシートを手動で共有することで転機していた(マネーフォワードの場合)
 - done:::今日の日付のところに色をつける
+- done:::OCR読み取りの改善
+- done:::GmailAPIを有効化しないと設定画面を表示させない。
 
-- OCR読み取りの改善
-- verticalScrollの導入。なんかうまくいかない、、
-- カレンダー以外の表示方法
-- category=null以外の検索機能もつける
-- デザインを整える
 - オフライン対応。Category は少なくともローカルに保存しておきたい。カテゴリーは RoomDB
   にも保存しておいて、Remote と同期させるのがいいのかなあ？
+- カレンダー以外の表示方法
+- category=null以外の検索機能もつける(Search)
+- デザインを整える
 - カレンダーのスクロールを無限にできるようにしたい(無理だったら前後 1 年分スクロール可能にする)
   とりあえず一旦諦める。
 - カレンダータップしたときにその日の費用だけDialogで表示?いらないか。
@@ -82,16 +82,17 @@
 - done:::削除ボタンを押したあとにDialogが少し残ってたまにバグる？
 - done:::繰り返し自動追加の時間設定がおかしい!
 - done::カテゴリー割当てにnullを選択肢として加えておく
-- estimatedが違うつきでも表示されている
-- 他の月のときに日付が同じだと背景青になっている
+- done:::estimatedが違うつきでも表示されている
+- done:::他の月のときに日付が同じだと背景青になっている
+- amazon物のやつの書式チェック(新しい書式か？Parserをいじらないとかも)
 
 //optional
 
-- done:::GmailAPIを有効化しないと設定画面を表示させない。
 - functionsで失敗していたときに端末に通知
 - 定期お得便の対応(配達中のメールを検知)
 - AccessibilityServiceでPayPay通知の取得を試みる
 - 自動テスト
+- ローカルテストで保存できるように。Firebase emulator
 - 商品名をつけるときに検索候補をつけたい
 - ViewModel のライフサイクルについて深く勉強 →SharedViewModel 再構成
 - DatePicker と TimePicker は Experimental なので、Material Dialogs for Compose を使う
@@ -101,6 +102,7 @@
 - 計算機、カッコの対応、BasicTextField を使ってカーソル移動を実
 - 全額を分けてカテゴリーとして入力できるようにする
 - OCRをpythonで作ってJetpack Composeで実行する
+- verticalScrollの導入。なんかうまくいかない、、
 - 割合調整を自動化。PayPayレシートOCRのマスク位置のキャリブレーション機能
 - 英語対応
 

@@ -9,6 +9,9 @@ interface CategorizationMode {
     val categoryAssignFlag: Int /* 将来的にstoreとproduct両方持つやつとか出てきそう。 */
 }
 
+/**
+ * Amazon定期便は少し特殊なのでNone扱いにしておく
+ */
 object CategoryAssignFlag {
     data class Flag(val value: Int, val label: String)
 
