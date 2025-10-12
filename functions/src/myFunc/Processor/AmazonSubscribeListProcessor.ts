@@ -3,6 +3,7 @@ import { FuncResult, FuncStatus } from "../../type/FuncStatus";
 import {
   AmazonSubscribeSetting,
   createAmazonSubscribeSettingInstance,
+  LastMailboxExtractionExec,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
@@ -27,7 +28,9 @@ class AmazonSubscribeListProcessor {
     this.userId = userId;
   }
 
-  async handleAmazonSubscribeList(): Promise<FuncResult> {
+  async updateAmazonSubscribeList(): Promise<FuncResult> {
+    const funcName = "updateAmazonSubscribeList";
+
     const type = createAmazonSubscribeSettingInstance();
     let ret =
       await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(
@@ -47,15 +50,10 @@ class AmazonSubscribeListProcessor {
         `${type.nodeName} went wrong when getting setting.: ${ret.message}`
       );
       return ret;
-    } else if (ret.data?.enabled == false) {
-      /**
-       * 設定は存在するがOFFになっている
-       */
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `This was no error, but user ${this.userId} doesn't turn on`,
-      };
     } else {
+      /**
+       * GmailAPIが有効になっている限りは定期便の更新は行っておく
+       */
       /* 特に問題ないので次へ */
     }
 
@@ -96,11 +94,35 @@ class AmazonSubscribeListProcessor {
 
     const queryAfter = isEmulator ? 1 : convertUnixMillisecToSec(startTime);
     const queryBefore = convertUnixMillisecToSec(endTime);
-    const queryRet = getAmazonNextShipNotifyMailIds(
+    const queryRet = await getAmazonNextShipNotifyMailIds(
       gmailClient,
       queryAfter,
       queryBefore
     );
+
+    if (!queryRet.data || queryRet.data.length === 0) {
+      /* クエリがヒットしなかった。メールが来ていない */
+      logger.info(`${funcName}:Nothing was found After query.`);
+      const newLastExec: LastMailboxExtractionExec = {
+        ...lastExecRet.data,
+        timestamp: endTime /* UNIXミリ秒で保存 */,
+      };
+      const ret =
+        await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(
+          this.userId,
+          newLastExec
+        );
+      if (ret.status != FuncStatus.SUCCESS) {
+        logger.error(`${ret.message}`);
+      } else {
+        logger.log(`AmazonSubscribe Updated:${JSON.stringify(newLastExec)}`);
+      }
+    } else {
+      /**
+       * メールがあったので処理をする
+       * */
+    }
+
     return {
       status: FuncStatus.SUCCESS,
     };

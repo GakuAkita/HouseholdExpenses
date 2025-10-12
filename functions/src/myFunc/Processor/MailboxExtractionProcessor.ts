@@ -46,7 +46,7 @@ import {
 } from "../utility/getCurrentUnixSec";
 import { extractTextBody } from "../utility/gmail/extractHtmlBody";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
-import { getInternalDateMillisFromMessage } from "../utility/gmail/getInternalDate";
+import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import {
   getAmazonItemMailIds,
   getAmazonKindleMailIds,
@@ -711,7 +711,7 @@ export class MailboxExtractionProcessor {
       logger.info(`${gmailClientRet.message}`);
       return;
     }
-    const gmailCliet: GmailApiClient = gmailClientRet.data;
+    const gmailClient: GmailApiClient = gmailClientRet.data;
 
     /**
      * クエリをして、msgIdを取得
@@ -725,7 +725,7 @@ export class MailboxExtractionProcessor {
     const queryBefore = convertUnixMillisecToSec(endTime);
     const queryRet = await this.getMailIdsByQuery(
       type,
-      gmailCliet,
+      gmailClient,
       queryAfter,
       queryBefore
     );
@@ -755,41 +755,19 @@ export class MailboxExtractionProcessor {
        * クエリでなにかしらヒットした
        * まずはヒットしたすべてのIDを格納して、mapとして持っておく
        */
-      const messageMap: Record<string, gmail_v1.Schema$Message> = {};
       const hitMsgIds = queryRet.data;
       logger.info(`Found mails ${queryRet.data.length}`);
-
-      for (const id of hitMsgIds) {
-        const res = await gmailCliet.getMessageDetail(id);
-        if (res.status != FuncStatus.SUCCESS || !res.data) {
-          logger.error(`getMessageDetail failed: id=${id} msg=${res.message}`);
-          continue;
-        }
-        messageMap[id] = res.data;
+      const sortRet = await getMessageDetailsSortedList(gmailClient, hitMsgIds);
+      if (sortRet.status != FuncStatus.SUCCESS || !sortRet.data) {
+        logger.error(sortRet.message);
+        return;
       }
-      /**
-       * internalDate順(新しい順)に並び替えて
-       * msgIdがlastMsgIdと一致したらそれより後ろの古いmsgIdは無視する
-       */
-      const sortedEntries = Object.entries(messageMap).sort((a, b) => {
-        /**
-         * 新しいinternalDateのメッセージを前に並べる
-         * nullがあればそれは一番うしろに回す
-         */
-        const dateA = getInternalDateMillisFromMessage(a[1]);
-        const dateB = getInternalDateMillisFromMessage(b[1]);
 
-        // null 安全性を確保：null は最も古いとみなす（＝最後に来る）
-        if (dateA === null && dateB === null) return 0;
-        if (dateA === null) return 1;
-        if (dateB === null) return -1;
-
-        return dateB - dateA; // 降順（新しい順）
-      });
+      const sortedList = sortRet.data;
       const filteredMessages: Record<string, gmail_v1.Schema$Message> = {};
       let mostRecentMsgId: string | null =
         null; /* 最後にLastExecを更新するときに使う */
-      for (const [id, message] of sortedEntries) {
+      for (const [id, message] of sortedList) {
         if (id === lastMsgId) {
           logger.info(`Found lastMsgId again.${id}`);
           break; // これより古いメッセージは無視
