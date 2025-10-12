@@ -1,7 +1,13 @@
 import { logger } from "firebase-functions";
 import { FuncResult, FuncStatus } from "../../type/FuncStatus";
-import { createAmazonSubscribeSettingInstance } from "../../type/Mailbox";
+import {
+  AmazonSubscribeSetting,
+  createAmazonSubscribeSettingInstance,
+} from "../../type/Mailbox";
+import { GmailApiClient } from "../Client/GmailApiClient";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
+import { getCurrentUnixMillisec } from "../utility/getCurrentUnixSec";
+import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 
 /**
  * Gmailをモニターし、
@@ -49,7 +55,36 @@ class AmazonSubscribeListProcessor {
       /* 特に問題ないので次へ */
     }
 
-    const setting = ret.data;
+    const setting = ret.data as AmazonSubscribeSetting;
+
+    const lastExecRet =
+      await this.mailboxExtractionService.getAmazonSubscribeMonitorLastExec(
+        this.userId
+      );
+    if (lastExecRet.status != FuncStatus.SUCCESS) {
+      logger.error(`${lastExecRet.message}`);
+      return lastExecRet;
+    }
+
+    const endTime = getCurrentUnixMillisec();
+    const lastMsgId = lastExecRet.data?.lastMsgId;
+    let startTime: number = 0;
+    if (!lastExecRet.data?.timestamp) {
+      startTime = endTime - 60 * 5 * 1000;
+    } else {
+      startTime =
+        lastExecRet.data.timestamp; /* タイムスタンプがあるならそれを使う */
+    }
+
+    const gmailClientRet = await generateGmailApiInstance(
+      this.userId,
+      this.mailboxExtractionService
+    );
+    if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
+      logger.error(`${gmailClientRet.message}`);
+      return gmailClientRet;
+    }
+    const gmailClient: GmailApiClient = gmailClientRet.data;
 
     return {
       status: FuncStatus.SUCCESS,

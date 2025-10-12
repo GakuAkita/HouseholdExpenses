@@ -294,7 +294,7 @@ export class MailboxExtractionService {
     lastExec: LastMailboxExtractionExec
   ): Promise<FuncResult> {
     const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
-    return this.setMailboxExtractionLastExecSub(ref, lastExec);
+    return await this.setMailboxExtractionLastExecSub(ref, lastExec);
   }
 
   async getMailboxExtractionLastExec(
@@ -302,7 +302,7 @@ export class MailboxExtractionService {
     type: AllMailType
   ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
     const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
-    return this.getMailboxExtractionLastExecSub(ref);
+    return await this.getMailboxExtractionLastExecSub(ref);
   }
 
   async getMailboxExtractionLastExecSub(
@@ -431,5 +431,16 @@ export class MailboxExtractionService {
    */
   async getAmazonSubscribeMonitorLastExec(
     userId: string
-  ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {}
+  ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
+    const ref = this.getUserAmazonSubscribeMonitorLastExecRef(userId);
+    return await this.getMailboxExtractionLastExecSub(ref);
+  }
+
+  async setAmazonSubscribeMonitorLastExec(
+    userId: string,
+    lastExec: LastMailboxExtractionExec
+  ): Promise<FuncResult> {
+    const ref = this.getUserAmazonSubscribeMonitorLastExecRef(userId);
+    return await this.setMailboxExtractionLastExecSub(ref, lastExec);
+  }
 }
