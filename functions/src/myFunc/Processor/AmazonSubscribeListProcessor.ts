@@ -6,8 +6,12 @@ import {
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
-import { getCurrentUnixMillisec } from "../utility/getCurrentUnixSec";
+import {
+  convertUnixMillisecToSec,
+  getCurrentUnixMillisec,
+} from "../utility/getCurrentUnixSec";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
+import { getAmazonNextShipNotifyMailIds } from "../utility/gmail/mailQueries";
 
 /**
  * Gmailをモニターし、
@@ -85,7 +89,18 @@ class AmazonSubscribeListProcessor {
       return gmailClientRet;
     }
     const gmailClient: GmailApiClient = gmailClientRet.data;
+    /**
+     * クエリをして、msgIdを取得
+     */
+    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
 
+    const queryAfter = isEmulator ? 1 : convertUnixMillisecToSec(startTime);
+    const queryBefore = convertUnixMillisecToSec(endTime);
+    const queryRet = getAmazonNextShipNotifyMailIds(
+      gmailClient,
+      queryAfter,
+      queryBefore
+    );
     return {
       status: FuncStatus.SUCCESS,
     };

@@ -68,7 +68,7 @@ export async function getAmazonSubscribeCancelRegisterMailIds(
 }
 
 export async function getAmazonNextShipNotifyMailIds(
-  gmailApiClient: GmailApiClient,
+  gmailClient: GmailApiClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -76,9 +76,9 @@ export async function getAmazonNextShipNotifyMailIds(
   const subject = "次回の配送を確認する";
   const endTimeAdded = endTime + 1;
   const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
-  return {
-    status: FuncStatus.ERROR,
-  };
+  logger.log(`Query:${query}`);
+  const funcResult = await gmailClient.queryMessages(query);
+  return funcResult;
 }
 
 export async function getAmazonCurrentlyShippedMailIds(
