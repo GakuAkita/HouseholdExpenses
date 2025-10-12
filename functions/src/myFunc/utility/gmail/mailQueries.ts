@@ -67,6 +67,20 @@ export async function getAmazonSubscribeCancelRegisterMailIds(
   };
 }
 
+export async function getAmazonNextShipNotifyMailIds(
+  gmailApiClient: GmailApiClient,
+  startTime: number,
+  endTime: number
+): Promise<FuncResultWithData<string[]>> {
+  const mailFrom = "no-reply@amazon.co.jp";
+  const subject = "次回の配送を確認する";
+  const endTimeAdded = endTime + 1;
+  const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+  return {
+    status: FuncStatus.ERROR,
+  };
+}
+
 export async function getAmazonCurrentlyShippedMailIds(
   gmailClient: GmailApiClient,
   startTime: number,

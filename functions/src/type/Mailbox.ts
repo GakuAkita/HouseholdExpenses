@@ -206,6 +206,24 @@ export function createAmazonItemSettingInstance(
 }
 
 /**
+ * Amazon定期便の設定を生成する
+ */
+export function createAmazonSubscribeSettingInstance(
+  params: {
+    enabled: boolean;
+    emailProvider: EmailProvider;
+    initialized: boolean;
+  } = { enabled: true, emailProvider: EmailProvider.GMAIL, initialized: false }
+): AmazonSubscribeSetting {
+  return {
+    nodeName: "amazon_subscribe",
+    menuName: "Amazon定期便",
+    categoryAssignFlag: CategoryAssignFlags.NONE,
+    ...params,
+  };
+}
+
+/**
  * Udemyの設定を生成する
  */
 export function createUdemySettingInstance(

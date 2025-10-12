@@ -51,6 +51,22 @@ export class MailboxExtractionService {
     );
   }
 
+  private getUserAmazonSubscribeMonitorRef(userId: string): Reference {
+    return this.getUserMailboxExtractionRef(userId).child(
+      "amazon_subscribe_monitor"
+    );
+  }
+
+  private getUserAmazonSubscribeMonitorLastExecRef(userId: string): Reference {
+    return this.getUserAmazonSubscribeMonitorRef(userId).child("last_exec");
+  }
+
+  private getUserAmazonSubscribeMonitorItemListRef(userId: string): Reference {
+    return this.getUserAmazonSubscribeMonitorRef(userId).child(
+      "subscribe_item_list"
+    );
+  }
+
   private getUserMailboxExtractionLastExecRef(userId: string): Reference {
     return this.getUserMailboxExtractionRef(userId).child("last_exec");
   }
@@ -253,16 +269,13 @@ export class MailboxExtractionService {
   /**
    * 各メールタイプの最終実行情報を取得
    */
-  async setMailboxExtractionLastExec(
-    userId: string,
-    type: AllMailType /* 空のインスタンスでも良い */,
+  async setMailboxExtractionLastExecSub(
+    reference: Reference,
     lastExec: LastMailboxExtractionExec
   ): Promise<FuncResult> {
     try {
       /* typeに定義してあるnodeNameを用いてrefを決定 */
-      const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
-
-      await ref.set(lastExec);
+      await reference.set(lastExec);
       return {
         status: FuncStatus.SUCCESS,
         message: "Successfully set last exec",
@@ -275,20 +288,35 @@ export class MailboxExtractionService {
     }
   }
 
+  async setMailboxExtractionLastExec(
+    userId: string,
+    type: AllMailType,
+    lastExec: LastMailboxExtractionExec
+  ): Promise<FuncResult> {
+    const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
+    return this.setMailboxExtractionLastExecSub(ref, lastExec);
+  }
+
   async getMailboxExtractionLastExec(
     userId: string,
     type: AllMailType
   ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
+    const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
+    return this.getMailboxExtractionLastExecSub(ref);
+  }
+
+  async getMailboxExtractionLastExecSub(
+    reference: Reference
+  ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {
     try {
-      const ref = this.getUserMailboxExtractionLastExecSingleRef(userId, type);
-      const snapshot = await ref.get();
+      const snapshot = await reference.get();
       const data: LastMailboxExtractionExec | null =
         snapshot.val(); /* nullなのか型変換ミスなのか見分けづらいかも。 */
 
       if (data == null) {
         return {
           status: FuncStatus.SUCCESS,
-          message: `${type.nodeName} is not executed yet.`,
+          message: `${reference} is not executed yet.`,
         };
       }
 
@@ -397,4 +425,11 @@ export class MailboxExtractionService {
       };
     }
   }
+
+  /**
+   * 定期便リストモニターの最終実行時間
+   */
+  async getAmazonSubscribeMonitorLastExec(
+    userId: string
+  ): Promise<FuncResultWithData<LastMailboxExtractionExec>> {}
 }
