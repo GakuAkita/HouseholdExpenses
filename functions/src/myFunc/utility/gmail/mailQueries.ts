@@ -81,7 +81,7 @@ export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
   ];
   const endTimeAdded = endTime + 1;
 
-  const subjectQuery = subjects.map((s) => `subject:"${s}"`).join(" OR ");
+  const subjectQuery = subjects.map((s) => `"${s}"`).join(" OR ");
   const query = `from:${mailFrom} subject:${subjectQuery} after:${startTime} before:${endTimeAdded}`;
   logger.log(`Query:${query}`);
   const funcResult = await gmailClient.queryMessages(query, maxResult);

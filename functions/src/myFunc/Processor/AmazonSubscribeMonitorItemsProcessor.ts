@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
 import { FuncResult, FuncStatus } from "../../type/FuncStatus";
 import {
   createAmazonSubscribeSettingInstance,
@@ -10,6 +11,7 @@ import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
+import { getSubjectFromMessage } from "../utility/gmail/extractHtmlBody";
 import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { sortGmailMessagesByDate } from "../utility/gmail/getInternalDate";
@@ -40,7 +42,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
         type
       );
     if (ret.status == FuncStatus.EMPTY) {
-      logger.info(`${this.userId} doesn't allow Gmail Extraction`);
+      logger.info(`${this.userId} has never activated amazon monitor`);
       return {
         status: FuncStatus.SUCCESS,
       };
@@ -176,7 +178,21 @@ export class AmazonSubscribeMonitorItemsProcessor {
       const filteredList = sortGmailMessagesByDate(filteredMessages, "asc");
 
       for (const [_, gmail] of filteredList) {
-        console.log(`${gmail.payload?.body?.data}`);
+        console.log("-------------------");
+        console.log(`${getSubjectFromMessage(gmail)}`);
+        //console.log(`${extractTextBody(gmail.payload)}`);
+        const subject = getSubjectFromMessage(gmail);
+        if (subject?.includes(AmazonMailSubjects.NEXT_SHIPMENT)) {
+          logger.log(`This is next shipment`);
+        } else if (
+          subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)
+        ) {
+          logger.log(`This is cancel mail`);
+        } else {
+          logger.log(`This is unknown subject:${subject}`);
+          continue;
+        }
+
         /* Parseする */
         /**
          * if(subject=="次回、、"){

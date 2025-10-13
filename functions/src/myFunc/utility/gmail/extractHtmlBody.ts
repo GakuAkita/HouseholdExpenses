@@ -55,3 +55,15 @@ export function extractTextBody(
 
   return findPart(payload);
 }
+
+export function getSubjectFromMessage(
+  message: gmail_v1.Schema$Message
+): string | undefined | null {
+  const headers = message.payload?.headers;
+  if (!headers) return undefined;
+
+  const subjectHeader = headers.find(
+    (h) => h.name?.toLowerCase() === "subject"
+  );
+  return subjectHeader?.value;
+}
