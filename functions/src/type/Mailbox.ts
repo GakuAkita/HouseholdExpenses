@@ -55,7 +55,6 @@ export type AmazonItemSetting = {
 export type AmazonSubscribeSetting = {
   enabled: Boolean;
   emailProvider: string;
-  initialized: Boolean;
   readonly nodeName: "amazon_subscribe";
   readonly menuName: "Amazon定期便";
   readonly categoryAssignFlag: CategoryAssignFlags.NONE;
@@ -212,8 +211,7 @@ export function createAmazonSubscribeSettingInstance(
   params: {
     enabled: boolean;
     emailProvider: EmailProvider;
-    initialized: boolean;
-  } = { enabled: true, emailProvider: EmailProvider.GMAIL, initialized: false }
+  } = { enabled: true, emailProvider: EmailProvider.GMAIL }
 ): AmazonSubscribeSetting {
   return {
     nodeName: "amazon_subscribe",

@@ -20,7 +20,7 @@ import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../utility/gma
  * Gmailをモニターし、
  * Amazon定期便のリストを更新
  */
-class AmazonSubscribeListProcessor {
+export class AmazonSubscribeMonitorItemsProcessor {
   private userId: string;
 
   constructor(
@@ -30,7 +30,7 @@ class AmazonSubscribeListProcessor {
     this.userId = userId;
   }
 
-  async updateAmazonSubscribeList(): Promise<FuncResult> {
+  async updateAmazonSubscribeItems(): Promise<FuncResult> {
     const funcName = "updateAmazonSubscribeList";
 
     const type = createAmazonSubscribeSettingInstance();
@@ -157,6 +157,16 @@ class AmazonSubscribeListProcessor {
       /**
        * 定期便リストを取得
        */
+      const itemsRet =
+        await this.mailboxExtractionService.getAmazonSubscribeMonitorItems(
+          this.userId
+        );
+      if (itemsRet.status == FuncStatus.ERROR) {
+        return itemsRet;
+      }
+
+      /* EMPTYの場合は{}が返って来る */
+      const subscribeItems = itemsRet.data;
 
       /**
        * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
@@ -164,7 +174,18 @@ class AmazonSubscribeListProcessor {
        * ここで一旦さらにsortしておく。一度mapにしてしまったので
        */
       const filteredList = sortGmailMessagesByDate(filteredMessages, "asc");
+
       for (const [_, gmail] of filteredList) {
+        console.log(`${gmail.payload?.body?.data}`);
+        /* Parseする */
+        /**
+         * if(subject=="次回、、"){
+         * subscribeItemsの中に同じのがないかチェックして、なければadd、あればupdate
+         * }
+         * "定期購入をキャンセル"
+         * subscribeItemsの中になければスルー、あればremove
+         */
+        /* subscribeItemsにすでに存在するかチェックする */
       }
     }
 

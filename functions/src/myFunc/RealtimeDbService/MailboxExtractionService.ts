@@ -459,6 +459,7 @@ export class MailboxExtractionService {
         return {
           status: FuncStatus.EMPTY,
           message: `No Amazon Subscribe items found for user ${userId}`,
+          data: {},
         };
       }
 
@@ -559,7 +560,7 @@ export class MailboxExtractionService {
       await itemRef.remove();
       return {
         status: FuncStatus.SUCCESS,
-        message: `${funcName} : Successfully removed ${subscribeItem.id}`,
+        message: `${funcName} : Successfully removed ${subscribeItem.id} ${subscribeItem.productName}`,
       };
     } catch (e: any) {
       return {

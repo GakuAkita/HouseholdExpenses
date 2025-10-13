@@ -10,6 +10,7 @@ import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
 import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
 import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
 import { UserService } from "./myFunc/FirestoreService/UserService";
+import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeListProcessor";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
 import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
@@ -28,6 +29,7 @@ import {
 import {
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
+  createAmazonSubscribeSettingInstance,
   createRakutenCardETCSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
@@ -189,6 +191,15 @@ const init_add = async () => {
     amazonItemSetting
   );
 
+  const amazonSubscribe = createAmazonSubscribeSettingInstance({
+    enabled: true,
+    emailProvider: EmailProvider.GMAIL,
+  });
+  await mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    userId,
+    amazonSubscribe
+  );
+
   const udemySetting = createUdemySettingInstance({
     enabled: true,
     emailProvider: EmailProvider.GMAIL,
@@ -232,7 +243,7 @@ const init_add = async () => {
 
   console.log("Data written to emulator.");
 };
-init_add();
+//init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -389,4 +400,14 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-processMailTest();
+//processMailTest();
+
+const execAmazonSubscribe = async () => {
+  const amazonSubscribeMointorProcessor =
+    new AmazonSubscribeMonitorItemsProcessor(userId, mailboxExtractionService);
+
+  const ret =
+    await amazonSubscribeMointorProcessor.updateAmazonSubscribeItems();
+};
+
+execAmazonSubscribe();
