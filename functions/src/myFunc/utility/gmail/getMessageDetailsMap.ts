@@ -1,7 +1,7 @@
 import { gmail_v1 } from "googleapis";
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
 import { GmailApiClient } from "../../Client/GmailApiClient";
-import { getInternalDateMillisFromMessage } from "./getInternalDate";
+import { sortGmailMessagesByDate } from "./getInternalDate";
 
 /**
  * MsgIdの配列を引数に渡して、
@@ -32,17 +32,7 @@ export async function getMessageDetailsSortedList(
   /**
    * internalDate順(新しい順)に並び替え
    */
-  const sortedEntries = Object.entries(messageMap).sort((a, b) => {
-    const dateA = getInternalDateMillisFromMessage(a[1]);
-    const dateB = getInternalDateMillisFromMessage(b[1]);
-
-    // null 安全性を確保：null は最も古いとみなす（＝最後に来る）
-    if (dateA === null && dateB === null) return 0;
-    if (dateA === null) return 1;
-    if (dateB === null) return -1;
-
-    return dateB - dateA; // 降順（新しい順）
-  });
+  const sortedEntries = sortGmailMessagesByDate(messageMap, "desc");
 
   return {
     status: FuncStatus.SUCCESS,

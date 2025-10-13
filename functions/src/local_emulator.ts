@@ -377,13 +377,14 @@ const processMailTest = async () => {
   for (const type of testTypes) {
     await processInstance.processSingleMailType(type);
 
-    // const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
-    //   userId,
-    //   type,
-    //   {
-    //     timestamp: 1760102703,
-    //   }
-    // );
+    /* lastMsgIdを消しておく */
+    const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
+      userId,
+      type,
+      {
+        timestamp: 1760102703,
+      }
+    );
   }
   logger.debug("process Done");
 };

@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { AmazonMailSubjects } from "../../../type/AmazonMailSubjects";
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
 import { GmailApiClient } from "../../Client/GmailApiClient";
 
@@ -67,17 +68,23 @@ export async function getAmazonSubscribeCancelRegisterMailIds(
   };
 }
 
-export async function getAmazonNextShipNotifyMailIds(
+export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
   gmailClient: GmailApiClient,
   startTime: number,
-  endTime: number
+  endTime: number,
+  maxResult: number = 10
 ): Promise<FuncResultWithData<string[]>> {
   const mailFrom = "no-reply@amazon.co.jp";
-  const subject = "次回の配送を確認する";
+  const subjects = [
+    AmazonMailSubjects.NEXT_SHIPMENT,
+    AmazonMailSubjects.CANCELED_SUBSCRIPTION,
+  ];
   const endTimeAdded = endTime + 1;
-  const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+
+  const subjectQuery = subjects.map((s) => `subject:"${s}"`).join(" OR ");
+  const query = `from:${mailFrom} subject:${subjectQuery} after:${startTime} before:${endTimeAdded}`;
   logger.log(`Query:${query}`);
-  const funcResult = await gmailClient.queryMessages(query);
+  const funcResult = await gmailClient.queryMessages(query, maxResult);
   return funcResult;
 }
 

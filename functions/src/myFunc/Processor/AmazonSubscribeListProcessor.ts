@@ -1,7 +1,6 @@
 import { logger } from "firebase-functions";
 import { FuncResult, FuncStatus } from "../../type/FuncStatus";
 import {
-  AmazonSubscribeSetting,
   createAmazonSubscribeSettingInstance,
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
@@ -11,8 +10,10 @@ import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
+import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
-import { getAmazonNextShipNotifyMailIds } from "../utility/gmail/mailQueries";
+import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
+import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../utility/gmail/mailQueries";
 
 /**
  * Gmailをモニターし、
@@ -57,8 +58,6 @@ class AmazonSubscribeListProcessor {
       /* 特に問題ないので次へ */
     }
 
-    const setting = ret.data as AmazonSubscribeSetting;
-
     const lastExecRet =
       await this.mailboxExtractionService.getAmazonSubscribeMonitorLastExec(
         this.userId
@@ -92,12 +91,17 @@ class AmazonSubscribeListProcessor {
      */
     const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
 
+    /**
+     * こっちは次回配送の連絡
+     */
     const queryAfter = isEmulator ? 1 : convertUnixMillisecToSec(startTime);
     const queryBefore = convertUnixMillisecToSec(endTime);
-    const queryRet = await getAmazonNextShipNotifyMailIds(
+    /* キャンセルも次回の配達通知も両方一気に取得する */
+    const queryRet = await getAmazonSubscribeNextShipNotifyAndCancelMailIds(
       gmailClient,
       queryAfter,
-      queryBefore
+      queryBefore,
+      20
     );
 
     if (!queryRet.data || queryRet.data.length === 0) {
@@ -121,6 +125,38 @@ class AmazonSubscribeListProcessor {
       /**
        * メールがあったので処理をする
        * */
+      const hitMsgIds = queryRet.data;
+      logger.info(`Found ${hitMsgIds.length} msg ids`);
+      const sortRet = await getMessageDetailsSortedList(gmailClient, hitMsgIds);
+      if (sortRet.status != FuncStatus.SUCCESS || !sortRet.data) {
+        logger.error(`${sortRet.message}`);
+        return sortRet;
+      }
+
+      const sortedList = sortRet.data;
+      const filterRet = filterMessages(sortedList, lastMsgId);
+      if (filterRet.status != FuncStatus.SUCCESS) {
+        if (filterRet.status == FuncStatus.EMPTY) {
+          logger.warn(`${funcName}: Probably this is not error.`);
+        }
+        logger.error(`${funcName}:${filterRet.message}`);
+        return filterRet;
+      }
+
+      const filteredMessages = filterRet.data?.filteredMessages;
+      const mostRecentMsgId = filterRet.data?.mostRecentMsgId;
+      if (!filteredMessages) {
+        logger.warn(`${funcName}:filteredMessages is null...`);
+        return {
+          status: FuncStatus.ERROR,
+          message: `${funcName}:filteredMessages is null...`,
+        };
+      }
+
+      /**
+       * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
+       * 含まれている
+       */
     }
 
     return {
