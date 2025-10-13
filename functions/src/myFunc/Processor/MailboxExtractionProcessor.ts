@@ -1,5 +1,4 @@
 import { logger } from "firebase-functions";
-import { gmail_v1 } from "googleapis";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { Category } from "../../type/Category";
 import { CategoryAssignmentData } from "../../type/CategoryAssignment";
@@ -45,9 +44,11 @@ import {
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
 import { extractTextBody } from "../utility/gmail/extractHtmlBody";
+import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import {
+import { filterMessages } from './../utility/gmail/filterMessages';
   getAmazonItemMailIds,
   getAmazonKindleMailIds,
   getRakutenCardETCMailIds,
@@ -639,6 +640,7 @@ export class MailboxExtractionProcessor {
    * 一応、各メールテンプレートのdata classになんのメールで登録しているか持たせている。(今は全部Gmailだが)
    */
   async processSingleMailType(type: AllMailType) {
+    const funcName="processSingleMailType";
     const nodeName = type.nodeName;
     let ret =
       await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(
@@ -759,24 +761,22 @@ export class MailboxExtractionProcessor {
       logger.info(`Found mails ${queryRet.data.length}`);
       const sortRet = await getMessageDetailsSortedList(gmailClient, hitMsgIds);
       if (sortRet.status != FuncStatus.SUCCESS || !sortRet.data) {
-        logger.error(sortRet.message);
+        logger.error(`${sortRet.message}`);
         return;
       }
 
       const sortedList = sortRet.data;
-      const filteredMessages: Record<string, gmail_v1.Schema$Message> = {};
-      let mostRecentMsgId: string | null =
-        null; /* 最後にLastExecを更新するときに使う */
-      for (const [id, message] of sortedList) {
-        if (id === lastMsgId) {
-          logger.info(`Found lastMsgId again.${id}`);
-          break; // これより古いメッセージは無視
-        }
+      const filterRet = filterMessages(sortedList, lastMsgId);
+      if (filterRet.status != FuncStatus.SUCCESS) {
+        logger.error(`${funcName}:${filterRet.message}`);
+        return;
+      }
 
-        if (!mostRecentMsgId) {
-          mostRecentMsgId = id; /* 最後にいれたメッセージが一番新しい */
-        }
-        filteredMessages[id] = message;
+      const filteredMessages = filterRet.data?.filteredMessages;
+      const mostRecentMsgId = filterRet.data?.mostRecentMsgId;
+      if(!filteredMessages){
+        logger.warn(`${funcName}:filteredMessages is null...`);
+        return;
       }
 
       /**

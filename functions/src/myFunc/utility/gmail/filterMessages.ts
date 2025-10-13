@@ -12,7 +12,7 @@ import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
  */
 export function filterMessages(
   sortedList: [string, gmail_v1.Schema$Message][],
-  lastMsgId: string | null
+  lastMsgId?: string | null
 ): FuncResultWithData<{
   filteredMessages: Record<string, gmail_v1.Schema$Message>;
   mostRecentMsgId: string | null;
@@ -23,7 +23,11 @@ export function filterMessages(
 
     for (const [id, message] of sortedList) {
       // lastMsgId に達したら、それ以降（古い）は無視
-      if (lastMsgId && id === lastMsgId) {
+      if (lastMsgId != null && id === lastMsgId) {
+        /**
+         * lastMsgIdがundefinedの場合でも
+         * lastMsgId!=nullはtrueが返る
+         */
         logger.info(`Found lastMsgId again. ${id}`);
         break;
       }
