@@ -48,7 +48,6 @@ import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import {
-import { filterMessages } from './../utility/gmail/filterMessages';
   getAmazonItemMailIds,
   getAmazonKindleMailIds,
   getRakutenCardETCMailIds,
@@ -56,6 +55,7 @@ import { filterMessages } from './../utility/gmail/filterMessages';
   getShikokuElectricMailIds,
   getUdemyMailIds,
 } from "../utility/gmail/mailQueries";
+
 /**
  * 各ユーザーに対してインスタンスを生成することにする！
  */
@@ -640,7 +640,7 @@ export class MailboxExtractionProcessor {
    * 一応、各メールテンプレートのdata classになんのメールで登録しているか持たせている。(今は全部Gmailだが)
    */
   async processSingleMailType(type: AllMailType) {
-    const funcName="processSingleMailType";
+    const funcName = "processSingleMailType";
     const nodeName = type.nodeName;
     let ret =
       await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(
@@ -768,13 +768,16 @@ export class MailboxExtractionProcessor {
       const sortedList = sortRet.data;
       const filterRet = filterMessages(sortedList, lastMsgId);
       if (filterRet.status != FuncStatus.SUCCESS) {
+        if (filterRet.status == FuncStatus.EMPTY) {
+          logger.warn(`${funcName}: Probably this is not error.`);
+        }
         logger.error(`${funcName}:${filterRet.message}`);
         return;
       }
 
       const filteredMessages = filterRet.data?.filteredMessages;
       const mostRecentMsgId = filterRet.data?.mostRecentMsgId;
-      if(!filteredMessages){
+      if (!filteredMessages) {
         logger.warn(`${funcName}:filteredMessages is null...`);
         return;
       }
@@ -822,6 +825,8 @@ export class MailboxExtractionProcessor {
       if (ret.status != FuncStatus.SUCCESS) {
         logger.error(`${ret.message}`);
       }
+
+      return;
     }
   }
 

@@ -115,7 +115,7 @@ class AmazonSubscribeListProcessor {
       if (ret.status != FuncStatus.SUCCESS) {
         logger.error(`${ret.message}`);
       } else {
-        logger.log(`AmazonSubscribe Updated:${JSON.stringify(newLastExec)}`);
+        logger.log(`${funcName} : Updated:${JSON.stringify(newLastExec)}`);
       }
     } else {
       /**

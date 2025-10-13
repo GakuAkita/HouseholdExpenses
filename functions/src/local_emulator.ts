@@ -232,7 +232,6 @@ const init_add = async () => {
 
   console.log("Data written to emulator.");
 };
-
 init_add();
 
 const schedule_func = async () => {
@@ -376,17 +375,15 @@ const processMailTest = async () => {
   ];
 
   for (const type of testTypes) {
-    const ret = await processInstance.processSingleMailType(type);
+    await processInstance.processSingleMailType(type);
 
-    logger.debug(`processSingleMailType result: ${ret}`);
-
-    const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
-      userId,
-      type,
-      {
-        timestamp: 1760102703,
-      }
-    );
+    // const delRet = await mailboxExtractionService.setMailboxExtractionLastExec(
+    //   userId,
+    //   type,
+    //   {
+    //     timestamp: 1760102703,
+    //   }
+    // );
   }
   logger.debug("process Done");
 };
