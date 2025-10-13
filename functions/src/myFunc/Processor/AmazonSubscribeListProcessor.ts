@@ -12,6 +12,7 @@ import {
 } from "../utility/getCurrentUnixSec";
 import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
+import { sortGmailMessagesByDate } from "../utility/gmail/getInternalDate";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../utility/gmail/mailQueries";
 
@@ -154,9 +155,17 @@ class AmazonSubscribeListProcessor {
       }
 
       /**
+       * 定期便リストを取得
+       */
+
+      /**
        * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
        * 含まれている
+       * ここで一旦さらにsortしておく。一度mapにしてしまったので
        */
+      const filteredList = sortGmailMessagesByDate(filteredMessages, "asc");
+      for (const [_, gmail] of filteredList) {
+      }
     }
 
     return {

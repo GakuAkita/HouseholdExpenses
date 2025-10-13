@@ -272,3 +272,11 @@ export interface LastMailboxExtractionExec {
   timestamp: number;
   lastMsgId?: string | null;
 }
+
+export interface AmazonSubscribeItem {
+  id?: string;
+  productName?: string;
+  quantity?: number;
+  price?: number;
+  timestamp: number;
+}

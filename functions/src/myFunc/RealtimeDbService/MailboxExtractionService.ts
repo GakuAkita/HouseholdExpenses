@@ -7,6 +7,7 @@ import {
 } from "../../type/FuncStatus";
 import {
   AllMailType,
+  AmazonSubscribeItem,
   createRakutenPaySettingInstance,
   LastMailboxExtractionExec,
   MailboxGmailTokenType,
@@ -57,13 +58,17 @@ export class MailboxExtractionService {
     );
   }
 
+  /**
+   * 定期便キャンセルのlastExecと次回配送のlastExec分けたほうがいいのかな、、
+   * 一旦一緒でいいか
+   */
   private getUserAmazonSubscribeMonitorLastExecRef(userId: string): Reference {
     return this.getUserAmazonSubscribeMonitorRef(userId).child("last_exec");
   }
 
-  private getUserAmazonSubscribeMonitorItemListRef(userId: string): Reference {
+  private getUserAmazonSubscribeMonitorItemsRef(userId: string): Reference {
     return this.getUserAmazonSubscribeMonitorRef(userId).child(
-      "subscribe_item_list"
+      "subscribe_items"
     );
   }
 
@@ -442,5 +447,125 @@ export class MailboxExtractionService {
   ): Promise<FuncResult> {
     const ref = this.getUserAmazonSubscribeMonitorLastExecRef(userId);
     return await this.setMailboxExtractionLastExecSub(ref, lastExec);
+  }
+
+  async getAmazonSubscribeMonitorItems(
+    userId: string
+  ): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>> {
+    try {
+      const ref = this.getUserAmazonSubscribeMonitorItemsRef(userId);
+      const snapshot = await ref.get();
+      if (!snapshot.exists()) {
+        return {
+          status: FuncStatus.EMPTY,
+          message: `No Amazon Subscribe items found for user ${userId}`,
+        };
+      }
+
+      const data = snapshot.val() as Record<string, AmazonSubscribeItem>;
+
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `Successfully retrieved Amazon Subscribe items`,
+        data: data,
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to get AmazonSubscribeItems:${e.message}`,
+      };
+    }
+  }
+
+  async addAmazonSubscribeMonitorItem(
+    userId: string,
+    subscribeItem: AmazonSubscribeItem
+  ): Promise<FuncResult> {
+    try {
+      const ref = this.getUserAmazonSubscribeMonitorItemsRef(userId);
+      const newRef = ref.push();
+
+      const id = newRef.key;
+      const timestamp = Date.now();
+
+      if (!id) {
+        return {
+          status: FuncStatus.ERROR,
+          message: `Failed to generate new key for subscribe item.`,
+        };
+      }
+
+      const itemWithId: AmazonSubscribeItem = {
+        ...subscribeItem,
+        id: id,
+        timestamp: timestamp,
+      };
+
+      await newRef.set(itemWithId);
+
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `Successfully added subscribe item with id:${id}`,
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `${e.message}`,
+      };
+    }
+  }
+
+  async updateAmazonSubscribeMonitorItem(
+    userId: string,
+    subscribeItem: AmazonSubscribeItem
+  ): Promise<FuncResult> {
+    try {
+      if (!subscribeItem.id) {
+        return {
+          status: FuncStatus.ERROR,
+          message: `There is no id in subscribeItem`,
+        };
+      }
+      const ref = this.getUserAmazonSubscribeMonitorItemsRef(userId);
+      const itemRef = ref.child(subscribeItem.id);
+
+      await itemRef.update(subscribeItem);
+      return {
+        status: FuncStatus.SUCCESS,
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `${e.message}`,
+      };
+    }
+  }
+
+  async removeAmazonSubscribeMonitorItem(
+    userId: string,
+    subscribeItem: AmazonSubscribeItem
+  ): Promise<FuncResult> {
+    const funcName = "removeAmazonSubscribeMonitorItem";
+    try {
+      if (!subscribeItem.id) {
+        return {
+          status: FuncStatus.ERROR,
+          message: `${funcName}:There is no id in subscribeItem`,
+        };
+      }
+      const ref = this.getUserAmazonSubscribeMonitorItemsRef(userId);
+      const itemRef = ref.child(subscribeItem.id);
+
+      await itemRef.remove();
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `${funcName} : Successfully removed ${subscribeItem.id}`,
+      };
+    } catch (e: any) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `${e.message}`,
+      };
+    }
   }
 }
