@@ -276,5 +276,5 @@ export interface AmazonSubscribeItem {
   productName?: string;
   quantity?: number;
   price?: number;
-  timestamp: number;
+  timestamp?: number;
 }

@@ -77,7 +77,6 @@ sealed class EmailTemplateType : CategorizationMode {
     data class AmazonSubscribe(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
-        var initialized: Boolean = false /* 定期便のリストが初期化されていないときは一度定期便のリストを削除して作成し直す */
     ) : EmailTemplateType() {
         override val nodeName = "amazon_subscribe"
         override val menuName = "Amazon定期便"
