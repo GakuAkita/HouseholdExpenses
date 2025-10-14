@@ -6,12 +6,16 @@ import {
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
+import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeParsre";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
-import { getSubjectFromMessage } from "../utility/gmail/extractHtmlBody";
+import {
+  extractTextBody,
+  getSubjectFromMessage,
+} from "../utility/gmail/extractHtmlBody";
 import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { sortGmailMessagesByDate } from "../utility/gmail/getInternalDate";
@@ -104,7 +108,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
       gmailClient,
       queryAfter,
       queryBefore,
-      20
+      5
     );
 
     if (!queryRet.data || queryRet.data.length === 0) {
@@ -173,17 +177,33 @@ export class AmazonSubscribeMonitorItemsProcessor {
       /**
        * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
        * 含まれている
-       * ここで一旦さらにsortしておく。一度mapにしてしまったので
+       * ここで一旦さらにsortしておく。一度mapにしてしまったので。
+       * 古い順に並べてあるので順番にキャンセルなり保存を繰り返していけば常に最新になる
        */
       const filteredList = sortGmailMessagesByDate(filteredMessages, "asc");
 
       for (const [_, gmail] of filteredList) {
-        console.log("-------------------");
-        console.log(`${getSubjectFromMessage(gmail)}`);
-        //console.log(`${extractTextBody(gmail.payload)}`);
+        // logger.log("-------------------");
+        // logger.log(`${getSubjectFromMessage(gmail)}`);
+        // logger.log("***************************");
+        // logger.log(`${extractTextBody(gmail.payload)}`);
+
+        const rawText = extractTextBody(gmail.payload);
+        if (!rawText) {
+          logger.error("Unable to extract Text from the mail");
+          continue;
+        }
+
         const subject = getSubjectFromMessage(gmail);
-        if (subject?.includes(AmazonMailSubjects.NEXT_SHIPMENT)) {
-          logger.log(`This is next shipment`);
+        if (
+          subject == AmazonMailSubjects.NEXT_SHIPMENT ||
+          subject ==
+            AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
+        ) {
+          const parser = new AmazonSubscribeNextShipmentMailParser(rawText);
+          logger.debug(`${parser.extractProductName()}`);
+        } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
+          logger.log(`This is item runout mail`);
         } else if (
           subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)
         ) {
