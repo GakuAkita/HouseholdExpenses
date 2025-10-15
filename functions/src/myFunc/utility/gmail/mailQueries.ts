@@ -77,6 +77,8 @@ export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
   const mailFrom = "no-reply@amazon.co.jp";
   const subjects = [
     AmazonMailSubjects.NEXT_SHIPMENT,
+    AmazonMailSubjects.PRICE_CHANGED,
+    AmazonMailSubjects.ITEM_RUNOUT,
     AmazonMailSubjects.CANCELED_SUBSCRIPTION,
   ];
   const endTimeAdded = endTime + 1;

@@ -1,4 +1,4 @@
-import { logger } from "firebase-functions";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { AmazonSubscribeItem } from "../../type/Mailbox";
 
 export class AmazonSubscribeNextShipmentMailParser {
@@ -9,7 +9,6 @@ export class AmazonSubscribeNextShipmentMailParser {
     const matches = [...this.rawText.matchAll(regex)].map((m) => m[1]);
     // 末尾の「...」だけ削除（全角省略記号「…」にも対応）
     const product = matches[0].replace(/(?:\.{3}|…)\s*$/, "").trim();
-    logger.debug(product);
     return product;
   }
 
@@ -28,15 +27,26 @@ export class AmazonSubscribeNextShipmentMailParser {
     return quantity;
   }
 
-  toSubscribeItem(): AmazonSubscribeItem {
+  toSubscribeItem(): FuncResultWithData<AmazonSubscribeItem> {
     const productName = this.extractProductName();
     const price = this.extractPrice();
     const quantity = this.extractQuantity();
 
-    return {
-      productName: "aa",
-      quantity: 1 /* たぶん使わない */,
-      price: 0,
-    };
+    if (!productName || !price || !quantity) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `ProductName${productName} , Price:${price}, Quantity:${quantity} are invalid.`,
+      };
+    } else {
+      const item: AmazonSubscribeItem = {
+        productName: productName,
+        price: price,
+        quantity: quantity,
+      };
+      return {
+        status: FuncStatus.SUCCESS,
+        data: item,
+      };
+    }
   }
 }

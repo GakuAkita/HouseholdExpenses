@@ -2,6 +2,7 @@ import { logger } from "firebase-functions";
 import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
 import { FuncResult, FuncStatus } from "../../type/FuncStatus";
 import {
+  AmazonSubscribeItem,
   createAmazonSubscribeSettingInstance,
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
@@ -21,6 +22,7 @@ import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInsta
 import { sortGmailMessagesByDate } from "../utility/gmail/getInternalDate";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../utility/gmail/mailQueries";
+import { isAmazonSubscribeProductExist } from "../utility/isAmazonSubscribeProductExist";
 
 /**
  * Gmailをモニターし、
@@ -36,7 +38,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
     this.userId = userId;
   }
 
-  async updateAmazonSubscribeItems(): Promise<FuncResult> {
+  async handleAmazonSubscribeItems(): Promise<FuncResult> {
     const funcName = "updateAmazonSubscribeList";
 
     const type = createAmazonSubscribeSettingInstance();
@@ -172,7 +174,8 @@ export class AmazonSubscribeMonitorItemsProcessor {
       }
 
       /* EMPTYの場合は{}が返って来る */
-      const subscribeItems = itemsRet.data;
+      const subscribeItems =
+        itemsRet.status == FuncStatus.EMPTY ? {} : itemsRet.data!;
 
       /**
        * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
@@ -201,9 +204,22 @@ export class AmazonSubscribeMonitorItemsProcessor {
             AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
         ) {
           const parser = new AmazonSubscribeNextShipmentMailParser(rawText);
-          logger.debug(`${parser.extractProductName()}`);
+          const ret = parser.toSubscribeItem();
+          if (ret.status != FuncStatus.ERROR) {
+            logger.error(`${ret.message}`);
+            continue;
+          }
+
+          const item: AmazonSubscribeItem = ret.data!;
+          /**
+           * アイテムの中に製品名があるかチェックする
+           * 価格、個数
+           */
         } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
-          logger.log(`This is item runout mail`);
+          logger.log(`-------This is item runout mail--------`);
+          logger.log(
+            `I might handle this type of email in the future, but I ignore this so far.`
+          );
         } else if (
           subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)
         ) {
@@ -228,5 +244,52 @@ export class AmazonSubscribeMonitorItemsProcessor {
     return {
       status: FuncStatus.SUCCESS,
     };
+  }
+
+  async updateAmazonSubscribeItems(
+    item: AmazonSubscribeItem,
+    itemMap: Record<string, AmazonSubscribeItem>
+  ): Promise<FuncResult> {
+    let ret: FuncResult;
+    const existRet = isAmazonSubscribeProductExist(item, itemMap);
+    if (existRet.status == FuncStatus.ERROR) {
+      ret = existRet;
+    } else if (existRet.status == FuncStatus.EMPTY) {
+      ret = await this.mailboxExtractionService.addAmazonSubscribeMonitorItem(
+        this.userId,
+        item
+      );
+    } else if (existRet.status == FuncStatus.SUCCESS) {
+      const id = existRet.data!;
+      const existingItem = itemMap[id];
+      if (
+        existingItem.price !== item.price ||
+        existingItem.quantity !== item.quantity
+      ) {
+        const updatedItem: AmazonSubscribeItem = {
+          ...existingItem,
+          price: item.price,
+          quantity: item.quantity,
+        };
+
+        ret =
+          await this.mailboxExtractionService.updateAmazonSubscribeMonitorItem(
+            this.userId,
+            updatedItem
+          );
+      } else {
+        ret = {
+          status: FuncStatus.SUCCESS,
+          message: "No need to update AmazonSubscribeItem",
+        };
+      }
+    } else {
+      ret = {
+        status: FuncStatus.ERROR,
+        message: `This is the bug in editAmazonSubscribeItemData`,
+      };
+    }
+
+    return ret;
   }
 }
