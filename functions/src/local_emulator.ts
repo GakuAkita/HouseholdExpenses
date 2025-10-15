@@ -243,7 +243,7 @@ const init_add = async () => {
 
   console.log("Data written to emulator.");
 };
-//init_add();
+// init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -407,7 +407,7 @@ const execAmazonSubscribe = async () => {
     new AmazonSubscribeMonitorItemsProcessor(userId, mailboxExtractionService);
 
   const ret =
-    await amazonSubscribeMointorProcessor.updateAmazonSubscribeItems();
+    await amazonSubscribeMointorProcessor.handleAmazonSubscribeItems();
 };
 
 execAmazonSubscribe();

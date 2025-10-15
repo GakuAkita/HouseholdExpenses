@@ -7,7 +7,7 @@ import {
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
-import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeParsre";
+import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeNextShipmentMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import {
   convertUnixMillisecToSec,
@@ -61,10 +61,8 @@ export class AmazonSubscribeMonitorItemsProcessor {
       );
       return ret;
     } else {
-      /**
-       * GmailAPIが有効になっている限りは定期便の更新は行っておく
-       */
       /* 特に問題ないので次へ */
+      logger.debug(`The user has Amazon Subscribe setting`);
     }
 
     const lastExecRet =
@@ -146,6 +144,8 @@ export class AmazonSubscribeMonitorItemsProcessor {
       const filterRet = filterMessages(sortedList, lastMsgId);
       if (filterRet.status != FuncStatus.SUCCESS) {
         if (filterRet.status == FuncStatus.EMPTY) {
+          /* 検索をしていくつかヒットしたけどlastMsgIdでフィルターしたときに何も残らなかった */
+          /* めったに起きないはず */
           logger.warn(`${funcName}: Probably this is not error.`);
         }
         logger.error(`${funcName}:${filterRet.message}`);
@@ -205,7 +205,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
         ) {
           const parser = new AmazonSubscribeNextShipmentMailParser(rawText);
           const ret = parser.toSubscribeItem();
-          if (ret.status != FuncStatus.ERROR) {
+          if (ret.status != FuncStatus.SUCCESS) {
             logger.error(`${ret.message}`);
             continue;
           }
@@ -215,6 +215,10 @@ export class AmazonSubscribeMonitorItemsProcessor {
            * アイテムの中に製品名があるかチェックする
            * 価格、個数
            */
+          const updateRet = await this.updateAmazonSubscribeItems(
+            item,
+            subscribeItems
+          );
         } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
           logger.log(`-------This is item runout mail--------`);
           logger.log(
@@ -246,6 +250,10 @@ export class AmazonSubscribeMonitorItemsProcessor {
     };
   }
 
+  /**
+   * 既存のitemMapで被っているのがないか確認し、
+   * 場合によっては追加する
+   */
   async updateAmazonSubscribeItems(
     item: AmazonSubscribeItem,
     itemMap: Record<string, AmazonSubscribeItem>
@@ -287,6 +295,37 @@ export class AmazonSubscribeMonitorItemsProcessor {
       ret = {
         status: FuncStatus.ERROR,
         message: `This is the bug in editAmazonSubscribeItemData`,
+      };
+    }
+
+    return ret;
+  }
+
+  async removeFromAmazonSubscribeItems(
+    item: AmazonSubscribeItem,
+    itemMap: Record<string, AmazonSubscribeItem>
+  ): Promise<FuncResult> {
+    let ret: FuncResult;
+    const existRet = isAmazonSubscribeProductExist(item, itemMap);
+    if (existRet.status == FuncStatus.ERROR) {
+      ret = existRet;
+    } else if (existRet.status == FuncStatus.EMPTY) {
+      ret = {
+        status: FuncStatus.SUCCESS,
+        message: `Attempted to remove from Subscribe items, but not exist. ${item.productName}`,
+      };
+    } else if (existRet.status == FuncStatus.SUCCESS) {
+      const id = existRet.data!;
+      const removedItem = itemMap[id];
+      ret =
+        await this.mailboxExtractionService.removeAmazonSubscribeMonitorItem(
+          this.userId,
+          removedItem
+        );
+    } else {
+      ret = {
+        status: FuncStatus.ERROR,
+        message: `This is the bug. ${item.productName}`,
       };
     }
 
