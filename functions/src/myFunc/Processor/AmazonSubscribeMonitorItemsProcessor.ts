@@ -179,7 +179,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
       }
 
       /* EMPTYの場合は{}が返って来る */
-      const subscribeItems =
+      let subscribeItems =
         itemsRet.status == FuncStatus.EMPTY ? {} : itemsRet.data!;
 
       /**
@@ -224,6 +224,11 @@ export class AmazonSubscribeMonitorItemsProcessor {
             item,
             subscribeItems
           );
+
+          if (updateRet.status == FuncStatus.SUCCESS) {
+            /* 成功の場合のみここでmapを更新 */
+            subscribeItems = updateRet.data!;
+          }
         } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
           logger.log(`-------This is item runout mail--------`);
           logger.log(
