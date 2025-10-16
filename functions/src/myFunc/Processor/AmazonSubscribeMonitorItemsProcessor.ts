@@ -12,6 +12,7 @@ import {
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
 import { GmailApiClient } from "../Client/GmailApiClient";
+import { AmazonSubscribeCancelParser } from "../Parser/AmazonSubscribeCancelParser";
 import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeNextShipmentMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import {
@@ -113,7 +114,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
       gmailClient,
       queryAfter,
       queryBefore,
-      5
+      10
     );
 
     if (!queryRet.data || queryRet.data.length === 0) {
@@ -194,7 +195,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
         // logger.log("-------------------");
         // logger.log(`${getSubjectFromMessage(gmail)}`);
         // logger.log("***************************");
-        // logger.log(`${extractTextBody(gmail.payload)}`);
+        //console.log(`${extractTextBody(gmail.payload)}`);
 
         const rawText = extractTextBody(gmail.payload);
         if (!rawText) {
@@ -241,11 +242,68 @@ export class AmazonSubscribeMonitorItemsProcessor {
         } else if (
           subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)
         ) {
-          logger.log(`This is cancel mail`);
+          //logger.log(`${extractTextBody(gmail.payload)}`);
+          const rawText = extractTextBody(gmail.payload);
+          if (!rawText) {
+            logger.error("Unable to extract Text from the mail");
+            continue;
+          }
+          logger.log(`!!!!!!!!!!!!This is cancel mail!!!!!!!!!!!!!!!`);
+          const parser = new AmazonSubscribeCancelParser(rawText);
+          const productName = parser.extractProductName();
+          if (!productName) {
+            logger.error(`Unable to parser from Cancel Subscription Mail!!`);
+            continue;
+          }
+          const item: AmazonSubscribeItem = {
+            productName: productName,
+          };
+          const removeRet = await this.removeFromAmazonSubscribeItems(
+            item,
+            subscribeItems
+          );
+          if (removeRet.status == FuncStatus.SUCCESS) {
+            logger.debug(
+              `Removed ${item.productName} ${
+                removeRet?.message ? removeRet.message : "No message"
+              }`
+            );
+            subscribeItems = removeRet.data!;
+          } else if (removeRet.status == FuncStatus.EMPTY) {
+            logger.warn(
+              `${removeRet.message ? removeRet.message : "No message"}`
+            );
+            /**
+             * 名前が若干変わっている可能性がある。
+             * その場合、リストから消せないので手動で消すしかない。
+             * 端末に通知を行いたい、
+             */
+          } else {
+            logger.log(
+              `Something went wrong: ${
+                removeRet.message ? removeRet.message : "No message"
+              }`
+            );
+          }
         } else {
           logger.log(`This is unknown subject:${subject}`);
           continue;
         }
+      }
+
+      /* 最後にlastIdを保存する */
+      /* 最後にlastExecを更新する */
+      const lastExec: LastMailboxExtractionExec = {
+        timestamp: endTime,
+        lastMsgId: mostRecentMsgId,
+      };
+      const ret =
+        await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(
+          this.userId,
+          lastExec
+        );
+      if (ret.status != FuncStatus.SUCCESS) {
+        logger.error(`${ret.message}`);
       }
     }
 
@@ -341,24 +399,40 @@ export class AmazonSubscribeMonitorItemsProcessor {
   async removeFromAmazonSubscribeItems(
     item: AmazonSubscribeItem,
     itemMap: Record<string, AmazonSubscribeItem>
-  ): Promise<FuncResult> {
-    let ret: FuncResult;
+  ): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>> {
+    let ret: FuncResultWithData<Record<string, AmazonSubscribeItem>>;
     const existRet = isAmazonSubscribeProductExist(item, itemMap);
     if (existRet.status == FuncStatus.ERROR) {
-      ret = existRet;
+      ret = toFuncResult(existRet);
     } else if (existRet.status == FuncStatus.EMPTY) {
       ret = {
-        status: FuncStatus.SUCCESS,
+        status: FuncStatus.EMPTY,
         message: `Attempted to remove from Subscribe items, but not exist. ${item.productName}`,
+        data: itemMap,
       };
     } else if (existRet.status == FuncStatus.SUCCESS) {
       const id = existRet.data!;
       const removedItem = itemMap[id];
-      ret =
+      const removeRet =
         await this.mailboxExtractionService.removeAmazonSubscribeMonitorItem(
           this.userId,
           removedItem
         );
+      if (removeRet.status == FuncStatus.SUCCESS) {
+        logger.log(`Successfully Removed from Subscribe items.`);
+
+        // itemMap から削除済みアイテムを反映した新しい Map を作る
+        const newItemMap = { ...itemMap };
+        delete newItemMap[id];
+        return {
+          status: FuncStatus.SUCCESS,
+          data: newItemMap,
+          message: `Removed ${removedItem.productName} successfully`,
+        };
+      } else {
+        /* 削除に失敗したらそのまま */
+        ret = toFuncResult(removeRet);
+      }
     } else {
       ret = {
         status: FuncStatus.ERROR,
