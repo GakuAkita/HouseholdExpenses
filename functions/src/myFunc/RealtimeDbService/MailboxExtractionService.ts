@@ -481,7 +481,7 @@ export class MailboxExtractionService {
   async addAmazonSubscribeMonitorItem(
     userId: string,
     subscribeItem: AmazonSubscribeItem
-  ): Promise<FuncResult> {
+  ): Promise<FuncResultWithData<AmazonSubscribeItem>> {
     try {
       const ref = this.getUserAmazonSubscribeMonitorItemsRef(userId);
       const newRef = ref.push();
@@ -507,6 +507,7 @@ export class MailboxExtractionService {
       return {
         status: FuncStatus.SUCCESS,
         message: `Successfully added subscribe item with id:${id}`,
+        data: itemWithId,
       };
     } catch (e: any) {
       return {

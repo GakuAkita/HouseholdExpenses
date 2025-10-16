@@ -1,6 +1,11 @@
 import { logger } from "firebase-functions";
 import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
-import { FuncResult, FuncStatus } from "../../type/FuncStatus";
+import {
+  FuncResult,
+  FuncResultWithData,
+  FuncStatus,
+  toFuncResult,
+} from "../../type/FuncStatus";
 import {
   AmazonSubscribeItem,
   createAmazonSubscribeSettingInstance,
@@ -257,16 +262,35 @@ export class AmazonSubscribeMonitorItemsProcessor {
   async updateAmazonSubscribeItems(
     item: AmazonSubscribeItem,
     itemMap: Record<string, AmazonSubscribeItem>
-  ): Promise<FuncResult> {
-    let ret: FuncResult;
+  ): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>> {
+    /* 追加/updateしたときに新しいMapを返す */
+    let ret: FuncResultWithData<Record<string, AmazonSubscribeItem>>;
     const existRet = isAmazonSubscribeProductExist(item, itemMap);
     if (existRet.status == FuncStatus.ERROR) {
-      ret = existRet;
+      /* 何かしらのエラー */
+      ret = toFuncResult(existRet);
     } else if (existRet.status == FuncStatus.EMPTY) {
-      ret = await this.mailboxExtractionService.addAmazonSubscribeMonitorItem(
-        this.userId,
-        item
-      );
+      /* 存在しないので新規追加 */
+      const addRet =
+        await this.mailboxExtractionService.addAmazonSubscribeMonitorItem(
+          this.userId,
+          item
+        );
+      if (addRet.status == FuncStatus.SUCCESS) {
+        /* 成功したのでMapに追加 */
+        const newItem = addRet.data!;
+        const newItemMap = {
+          ...itemMap,
+          [newItem.id!]: newItem,
+        };
+
+        ret = {
+          status: FuncStatus.SUCCESS,
+          data: newItemMap,
+        };
+      } else {
+        ret = toFuncResult(addRet);
+      }
     } else if (existRet.status == FuncStatus.SUCCESS) {
       const id = existRet.data!;
       const existingItem = itemMap[id];
@@ -274,18 +298,32 @@ export class AmazonSubscribeMonitorItemsProcessor {
         existingItem.price !== item.price ||
         existingItem.quantity !== item.quantity
       ) {
+        /* 価格と個数が違えばupdate */
         const updatedItem: AmazonSubscribeItem = {
           ...existingItem,
           price: item.price,
           quantity: item.quantity,
         };
 
-        ret =
+        const updateRet =
           await this.mailboxExtractionService.updateAmazonSubscribeMonitorItem(
             this.userId,
             updatedItem
           );
+        if (updateRet.status == FuncStatus.SUCCESS) {
+          const newItemMap = {
+            ...itemMap,
+            [updatedItem.id!]: updatedItem,
+          };
+          ret = {
+            status: FuncStatus.SUCCESS,
+            data: newItemMap,
+          };
+        } else {
+          ret = toFuncResult(updateRet);
+        }
       } else {
+        logger.log(`No need to update AmazonSubscribeItem!!`);
         ret = {
           status: FuncStatus.SUCCESS,
           message: "No need to update AmazonSubscribeItem",
@@ -297,7 +335,6 @@ export class AmazonSubscribeMonitorItemsProcessor {
         message: `This is the bug in editAmazonSubscribeItemData`,
       };
     }
-
     return ret;
   }
 

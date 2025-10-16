@@ -17,3 +17,10 @@ export interface FirestoreAddResult extends FuncResult {
 export interface FuncResultWithData<T> extends FuncResult {
   data?: T; // 成功時に返されるデータ
 }
+
+export function toFuncResult<T>(result: FuncResultWithData<T>): FuncResult {
+  return {
+    status: result.status,
+    message: result.message,
+  };
+}
