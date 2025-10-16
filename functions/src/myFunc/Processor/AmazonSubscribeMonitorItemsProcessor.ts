@@ -216,6 +216,10 @@ export class AmazonSubscribeMonitorItemsProcessor {
           }
 
           const item: AmazonSubscribeItem = ret.data!;
+          logger.log(
+            `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
+          );
+
           /**
            * アイテムの中に製品名があるかチェックする
            * 価格、個数
@@ -242,16 +246,6 @@ export class AmazonSubscribeMonitorItemsProcessor {
           logger.log(`This is unknown subject:${subject}`);
           continue;
         }
-
-        /* Parseする */
-        /**
-         * if(subject=="次回、、"){
-         * subscribeItemsの中に同じのがないかチェックして、なければadd、あればupdate
-         * }
-         * "定期購入をキャンセル"
-         * subscribeItemsの中になければスルー、あればremove
-         */
-        /* subscribeItemsにすでに存在するかチェックする */
       }
     }
 
@@ -332,6 +326,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
         ret = {
           status: FuncStatus.SUCCESS,
           message: "No need to update AmazonSubscribeItem",
+          data: itemMap,
         };
       }
     } else {
