@@ -154,7 +154,9 @@ export class AmazonSubscribeMonitorItemsProcessor {
           /* めったに起きないはず */
           logger.warn(`${funcName}: Probably this is not error.`);
         }
-        logger.error(`${funcName}:${filterRet.message}`);
+        logger.error(
+          `${funcName}:${filterRet.message ? filterRet.message : "No message"}`
+        );
         return filterRet;
       }
 
