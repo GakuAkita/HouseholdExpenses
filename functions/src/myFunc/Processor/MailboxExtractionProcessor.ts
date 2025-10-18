@@ -371,6 +371,7 @@ export class MailboxExtractionProcessor {
           rawText,
           setting,
           categories,
+          categoryAssignmentData,
           sentDate
         );
         break;
@@ -583,6 +584,7 @@ export class MailboxExtractionProcessor {
     rawText: string,
     setting: AmazonSubscribeSetting,
     categories: Record<string, Category>,
+    assignmentData: CategoryAssignmentData,
     internalDate?: string | null
   ): Promise<FuncResult> {
     if (!internalDate) {
@@ -641,9 +643,20 @@ export class MailboxExtractionProcessor {
         continue;
       }
 
-      /* Amazon定期便ではカテゴリー割当を行わない */
+      /* Amazon定期便でもカテゴリー割当を行う（商品名で割当） */
+      // 商品名でカテゴリー割当
+      const expenseWithCategory =
+        assignmentData.productName && expense.itemName
+          ? assignCategoryFromAssignmentData(
+            expense,
+            expense.itemName,
+            assignmentData.productName,
+            categories
+          )
+          : expense;
+
       const addRet = await this.addExpenseFromMailExtraction(
-        expense,
+        expenseWithCategory,
         setting
       );
 

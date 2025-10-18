@@ -62,7 +62,16 @@ export class CategoryAssignmentService {
     const ref = this.getUserCategoryAssignmentDataRef(userId);
     try {
       await ref.set({
-        productName: {},
+        productName: {
+          product1: {
+            id: "product1",
+            name: "by Amazon 天然水 ラベルレス 500ml ×24本",
+            categoryId: "category1",
+            condition: AssignmentCondition.CONTAINS,
+            regex: false,
+            generatedType: "amazon_item",
+          },
+        },
         storeName: {
           store1: {
             id: "store1",
