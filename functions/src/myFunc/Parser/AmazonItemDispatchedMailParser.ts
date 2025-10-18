@@ -1,4 +1,5 @@
 import { Expense } from "../../type/Expense";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { MailParserBase } from "./MailParserBase";
 
 export class AmazonItemDispatchedMailParser extends MailParserBase {
@@ -6,7 +7,10 @@ export class AmazonItemDispatchedMailParser extends MailParserBase {
     super(rawText, internalDate);
   }
 
-  toExpense(): Expense[] {
-    return [];
+  toExpenses(): FuncResultWithData<Expense[]> {
+    return {
+      status: FuncStatus.ERROR,
+      message: `Not implemeneted yet.`,
+    };
   }
 }

@@ -12,8 +12,11 @@ import {
   AllMailType,
   AmazonItemSetting,
   AmazonKindleSetting,
+  AmazonSubscribeItem,
+  AmazonSubscribeSetting,
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
+  createAmazonSubscribeSettingInstance,
   createRakutenCardETCSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
@@ -27,6 +30,7 @@ import {
 import { GmailApiClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
+import { AmazonItemDispatchedMailParser } from "../Parser/AmazonItemDispatchedMailParser";
 import { AmazonItemMailParser } from "../Parser/AmazonItemMailParser";
 import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
 import { RakutenCardETCParser } from "../Parser/RakutenCardETCParser";
@@ -39,6 +43,7 @@ import {
   assignCategoryById,
   assignCategoryFromAssignmentData,
 } from "../utility/cateogryAssign";
+import { isAmazonSubscribeProductExist } from "../utility/isAmazonSubscribeProductExist";
 import {
   convertUnixMillisecToSec,
   getCurrentUnixMillisec,
@@ -48,6 +53,7 @@ import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
 import {
+  getAmazonDispatchedMailIds,
   getAmazonItemMailIds,
   getAmazonKindleMailIds,
   getRakutenCardETCMailIds,
@@ -64,6 +70,7 @@ export class MailboxExtractionProcessor {
   private categories: Record<string, Category> | null = null;
   private categoryAssignmentData: CategoryAssignmentData | null =
     null; /* 今のところ毎回全部取るが、将来的に商品名か店名の片方で良いかも */
+  private amazonSubscribeItems: Record<string, AmazonSubscribeItem> | null = null;
 
   constructor(
     userId: string,
@@ -152,6 +159,35 @@ export class MailboxExtractionProcessor {
     };
   }
 
+  /* ************************Amazon定期便アイテムの読み込み***************************** */
+  private async loadAmazonSubscribeItems(): Promise<
+    FuncResultWithData<Record<string, AmazonSubscribeItem>>
+  > {
+    if (this.amazonSubscribeItems === null) {
+      const result = await this.mailboxExtractionService.getAmazonSubscribeMonitorItems(this.userId);
+      if (result.status !== FuncStatus.SUCCESS) {
+        return result;
+      }
+
+      if (!result.data) {
+        /* 定期便アイテムがない可能性もあるから、成功として扱う。 */
+        this.amazonSubscribeItems = {};
+        return {
+          status: FuncStatus.SUCCESS,
+          message: "There was no error in getAmazonSubscribeMonitorItems, but empty.",
+          data: this.amazonSubscribeItems,
+        };
+      } 
+      this.amazonSubscribeItems = result.data;
+    }
+
+    return {
+      status: FuncStatus.SUCCESS,
+      message: "Already loaded before.",
+      data: this.amazonSubscribeItems,
+    };
+  }
+
   /* *****************************Gmailのクエリ関係************************************ */
   async getMailIdsByQuery(
     type: AllMailType,
@@ -165,6 +201,7 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
+    const amazonSubscribeSamp = createAmazonSubscribeSettingInstance();
     const udemySetting = createUdemySettingInstance();
     const rakutenETCSamp = createRakutenCardETCSettingInstance();
 
@@ -190,6 +227,13 @@ export class MailboxExtractionProcessor {
       case amazonItemSamp.nodeName:
         ret = await getAmazonItemMailIds(gmailClient, startTime, endTime);
         break;
+
+      case amazonSubscribeSamp.nodeName:
+        /**
+         *  発送済みのメールアドレスを取りに行く。
+         * その中で定期便に登録してあるものだけあとで追加
+         * */
+        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime);
 
       case udemySetting.nodeName:
         ret = await getUdemyMailIds(gmailClient, startTime, endTime);
@@ -247,6 +291,7 @@ export class MailboxExtractionProcessor {
     const amazonKindleSamp = createAmazonKindleSettingInstance();
     const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
     const amazonItemSamp = createAmazonItemSettingInstance();
+    const amazonSubscribeSamp = createAmazonSubscribeSettingInstance();
     const udemySamp = createUdemySettingInstance();
     const rakutenETCSamp = createRakutenCardETCSettingInstance();
 
@@ -276,6 +321,10 @@ export class MailboxExtractionProcessor {
     } else {
       /* Do nothing */
       /* ここに来ることはあまりないのでは？ */
+    }
+
+    if (nodeName == amazonSubscribeSamp.nodeName) {
+      logger.debug(`This is subscribe. Start Loading`);
     }
 
     let ret: FuncResult = {
@@ -316,6 +365,15 @@ export class MailboxExtractionProcessor {
           setting,
           categories,
           categoryAssignmentData,
+          sentDate
+        );
+        break;
+
+      case amazonSubscribeSamp.nodeName:
+        ret = await this.saveExpenseFromAmazonSubscribe(
+          rawText,
+          setting,
+          categories,
           sentDate
         );
         break;
@@ -521,6 +579,89 @@ export class MailboxExtractionProcessor {
       : {
           status: FuncStatus.ERROR,
           message: `No expense was added. Unable to extract any expenses`,
+        };
+  }
+
+  async saveExpenseFromAmazonSubscribe(
+    rawText: string,
+    setting: AmazonSubscribeSetting,
+    categories: Record<string, Category>,
+    internalDate?: string | null
+  ): Promise<FuncResult> {
+    if (!internalDate) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `When saving from AmazonSubscribe, internalDate should be given.`,
+      };
+    }
+    
+    const parser = new AmazonItemDispatchedMailParser(rawText, internalDate);
+    const parserRet = parser.toExpenses();
+    if (parserRet.status != FuncStatus.SUCCESS) {
+      return parserRet;
+    } else if (!parserRet.data) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `AmazonItemDispatchedMailParser was success, but data was not attached`,
+      };
+    }
+
+    const expensesAdded = parserRet.data;
+    
+    /* Amazon定期便アイテムリストを取得（キャッシュから） */
+    const subscribeItemsRet = await this.loadAmazonSubscribeItems();
+    if (subscribeItemsRet.status !== FuncStatus.SUCCESS) {
+      logger.error(`Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`);
+      return {
+        status: FuncStatus.ERROR,
+        message: `Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`,
+      };
+    }
+    
+    const subscribeItems = subscribeItemsRet.data || {};
+    
+    /* 一個でもaddできたらtrueに設定する */
+    let expenseAddedFlag = false;
+    for (const expense of expensesAdded) {
+      /* 製品名がAmazon定期便リストに含まれているかチェック */
+      if (!expense.itemName) {
+        logger.warn(`Expense has no itemName, skipping: ${JSON.stringify(expense)}`);
+        continue;
+      }
+      
+      /* 定期便アイテムリストに含まれているかチェック */
+      const expenseItem = {
+        productName: expense.itemName,
+      };
+      const existRet = isAmazonSubscribeProductExist(expenseItem, subscribeItems);
+      
+      if (existRet.status !== FuncStatus.SUCCESS) {
+        logger.debug(`Item "${expense.itemName}" is not in Amazon Subscribe list, skipping`);
+        continue;
+      }
+      
+      /* Amazon定期便ではカテゴリー割当を行わない */
+      const addRet = await this.addExpenseFromMailExtraction(
+        expense,
+        setting
+      );
+
+      if (addRet.status == FuncStatus.SUCCESS) {
+        expenseAddedFlag = true;
+        logger.info(`Added Amazon Subscribe expense for item: ${expense.itemName}`);
+      } else {
+        logger.error(`saveExpenseFromAmazonSubscribe: ${addRet.message}`);
+      }
+    }
+
+    return expenseAddedFlag
+      ? {
+          status: FuncStatus.SUCCESS,
+          message: `At least one expense was added from Amazon Subscribe.`,
+        }
+      : {
+          status: FuncStatus.ERROR,
+          message: `No expense was added from Amazon Subscribe - no items matched the subscribe list`,
         };
   }
 

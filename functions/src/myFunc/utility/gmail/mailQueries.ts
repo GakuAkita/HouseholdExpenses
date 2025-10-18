@@ -90,6 +90,21 @@ export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
   return funcResult;
 }
 
+export async function getAmazonDispatchedMailIds(
+  gmailClinet: GmailApiClient,
+  startTime: number,
+  endTime: number,
+  maxResult: number = 5
+): Promise<FuncResultWithData<string[]>> {
+  const mailFrom = "shipment-tracking@amazon.co.jp";
+  const subject = "発送済み";
+  const endTimeAdded = endTime + 1;
+  const query = `from:${mailFrom} subject:${subject} after:${startTime} before:${endTimeAdded}`;
+  logger.debug(`Query:${query}`);
+  const funcResult = gmailClinet.queryMessages(query, maxResult);
+  return funcResult;
+}
+
 export async function getAmazonCurrentlyShippedMailIds(
   gmailClient: GmailApiClient,
   startTime: number,
