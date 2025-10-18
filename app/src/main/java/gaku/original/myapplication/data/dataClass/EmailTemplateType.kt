@@ -81,7 +81,7 @@ sealed class EmailTemplateType : CategorizationMode {
         override val nodeName = "amazon_subscribe"
         override val menuName = "Amazon定期便"
         override fun defaultInstance() = AmazonSubscribe()
-        override val categoryAssignFlag = CategoryAssignFlag.NONE.value
+        override val categoryAssignFlag = CategoryAssignFlag.PRODUCT_NAME.value
     }
 
     data class Udemy(

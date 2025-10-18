@@ -177,7 +177,7 @@ export class MailboxExtractionProcessor {
           message: "There was no error in getAmazonSubscribeMonitorItems, but empty.",
           data: this.amazonSubscribeItems,
         };
-      } 
+      }
       this.amazonSubscribeItems = result.data;
     }
 
@@ -234,6 +234,7 @@ export class MailboxExtractionProcessor {
          * その中で定期便に登録してあるものだけあとで追加
          * */
         ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime);
+        break;
 
       case udemySetting.nodeName:
         ret = await getUdemyMailIds(gmailClient, startTime, endTime);
@@ -321,10 +322,6 @@ export class MailboxExtractionProcessor {
     } else {
       /* Do nothing */
       /* ここに来ることはあまりないのでは？ */
-    }
-
-    if (nodeName == amazonSubscribeSamp.nodeName) {
-      logger.debug(`This is subscribe. Start Loading`);
     }
 
     let ret: FuncResult = {
@@ -429,11 +426,11 @@ export class MailboxExtractionProcessor {
     const expenseWithCategory =
       assignmentData.storeName && baseExpense.storeName
         ? assignCategoryFromAssignmentData(
-            baseExpense,
-            baseExpense.storeName,
-            assignmentData.storeName,
-            categories
-          )
+          baseExpense,
+          baseExpense.storeName,
+          assignmentData.storeName,
+          categories
+        )
         : baseExpense;
 
     const addRet = await this.addExpenseFromMailExtraction(
@@ -548,11 +545,11 @@ export class MailboxExtractionProcessor {
       const expenseWithCategory =
         assignmentData.productName && expense.itemName
           ? assignCategoryFromAssignmentData(
-              expense,
-              expense.itemName,
-              assignmentData.productName,
-              categories
-            )
+            expense,
+            expense.itemName,
+            assignmentData.productName,
+            categories
+          )
           : expense;
 
       /* Firestoreに保存する */
@@ -573,13 +570,13 @@ export class MailboxExtractionProcessor {
 
     return expenseAddedFlag
       ? {
-          status: FuncStatus.SUCCESS,
-          message: `at least one expense was added`,
-        }
+        status: FuncStatus.SUCCESS,
+        message: `at least one expense was added`,
+      }
       : {
-          status: FuncStatus.ERROR,
-          message: `No expense was added. Unable to extract any expenses`,
-        };
+        status: FuncStatus.ERROR,
+        message: `No expense was added. Unable to extract any expenses`,
+      };
   }
 
   async saveExpenseFromAmazonSubscribe(
@@ -594,7 +591,7 @@ export class MailboxExtractionProcessor {
         message: `When saving from AmazonSubscribe, internalDate should be given.`,
       };
     }
-    
+
     const parser = new AmazonItemDispatchedMailParser(rawText, internalDate);
     const parserRet = parser.toExpenses();
     if (parserRet.status != FuncStatus.SUCCESS) {
@@ -604,10 +601,12 @@ export class MailboxExtractionProcessor {
         status: FuncStatus.ERROR,
         message: `AmazonItemDispatchedMailParser was success, but data was not attached`,
       };
+    } else {
+      /* do nothing */
     }
 
     const expensesAdded = parserRet.data;
-    
+
     /* Amazon定期便アイテムリストを取得（キャッシュから） */
     const subscribeItemsRet = await this.loadAmazonSubscribeItems();
     if (subscribeItemsRet.status !== FuncStatus.SUCCESS) {
@@ -617,29 +616,31 @@ export class MailboxExtractionProcessor {
         message: `Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`,
       };
     }
-    
+
     const subscribeItems = subscribeItemsRet.data || {};
-    
+
     /* 一個でもaddできたらtrueに設定する */
     let expenseAddedFlag = false;
+    let success_cnt: number = 0;
     for (const expense of expensesAdded) {
       /* 製品名がAmazon定期便リストに含まれているかチェック */
       if (!expense.itemName) {
         logger.warn(`Expense has no itemName, skipping: ${JSON.stringify(expense)}`);
         continue;
       }
-      
+
       /* 定期便アイテムリストに含まれているかチェック */
       const expenseItem = {
         productName: expense.itemName,
       };
       const existRet = isAmazonSubscribeProductExist(expenseItem, subscribeItems);
-      
+
       if (existRet.status !== FuncStatus.SUCCESS) {
         logger.debug(`Item "${expense.itemName}" is not in Amazon Subscribe list, skipping`);
+        success_cnt++;/* ヒットしなかったのもカウント */
         continue;
       }
-      
+
       /* Amazon定期便ではカテゴリー割当を行わない */
       const addRet = await this.addExpenseFromMailExtraction(
         expense,
@@ -648,20 +649,27 @@ export class MailboxExtractionProcessor {
 
       if (addRet.status == FuncStatus.SUCCESS) {
         expenseAddedFlag = true;
+        success_cnt++;
         logger.info(`Added Amazon Subscribe expense for item: ${expense.itemName}`);
       } else {
         logger.error(`saveExpenseFromAmazonSubscribe: ${addRet.message}`);
       }
     }
 
-    return expenseAddedFlag
+
+    return success_cnt === expensesAdded.length
       ? {
+        status: FuncStatus.SUCCESS,
+        message: "No expenses were added from Amazon Subscribe - no items matched the subscribe list",
+      }
+      : expenseAddedFlag
+        ? {
           status: FuncStatus.SUCCESS,
           message: `At least one expense was added from Amazon Subscribe.`,
         }
-      : {
+        : {
           status: FuncStatus.ERROR,
-          message: `No expense was added from Amazon Subscribe - no items matched the subscribe list`,
+          message: `There might be some problems with the Amazon Subscribe Add.`,
         };
   }
 
@@ -715,13 +723,13 @@ export class MailboxExtractionProcessor {
 
     return expenseAddedFlag
       ? {
-          status: FuncStatus.SUCCESS,
-          message: `At least one expense was added.`,
-        }
+        status: FuncStatus.SUCCESS,
+        message: `At least one expense was added.`,
+      }
       : {
-          status: FuncStatus.ERROR,
-          message: `No expense was added`,
-        };
+        status: FuncStatus.ERROR,
+        message: `No expense was added`,
+      };
   }
 
   async saveExpenseFromRakutenCardETC(
@@ -765,13 +773,13 @@ export class MailboxExtractionProcessor {
 
     return expensesAdded
       ? {
-          status: FuncStatus.SUCCESS,
-          message: `More than 1 expense was added from Rakuten ETC`,
-        }
+        status: FuncStatus.SUCCESS,
+        message: `More than 1 expense was added from Rakuten ETC`,
+      }
       : {
-          status: FuncStatus.ERROR,
-          message: "No expense was added from Rakuten ETC",
-        };
+        status: FuncStatus.ERROR,
+        message: "No expense was added from Rakuten ETC",
+      };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
@@ -863,8 +871,8 @@ export class MailboxExtractionProcessor {
     const queryAfter = isEmulator
       ? 1
       : convertUnixMillisecToSec(
-          startTime
-        ); /* emulatorの場合は1をいれて全部取ってくる */
+        startTime
+      ); /* emulatorの場合は1をいれて全部取ってくる */
     const queryBefore = convertUnixMillisecToSec(endTime);
     const queryRet = await this.getMailIdsByQuery(
       type,

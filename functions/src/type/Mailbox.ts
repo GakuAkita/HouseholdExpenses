@@ -57,7 +57,7 @@ export type AmazonSubscribeSetting = {
   emailProvider: string;
   readonly nodeName: "amazon_subscribe";
   readonly menuName: "Amazon定期便";
-  readonly categoryAssignFlag: CategoryAssignFlags.NONE;
+  readonly categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME;
 };
 
 export type UdemySetting = {
@@ -154,9 +154,9 @@ export function createAmazonKindleSettingInstance(
     categoryId?: string;
     emailProvider: EmailProvider;
   } = {
-    enabled: true,
-    emailProvider: EmailProvider.GMAIL,
-  }
+      enabled: true,
+      emailProvider: EmailProvider.GMAIL,
+    }
 ): AmazonKindleSetting {
   return {
     nodeName: "amazon_kindle",
@@ -175,9 +175,9 @@ export function createShikokuElectricPowerSettingInstance(
     categoryId?: string;
     emailProvider: EmailProvider;
   } = {
-    enabled: true,
-    emailProvider: EmailProvider.GMAIL,
-  }
+      enabled: true,
+      emailProvider: EmailProvider.GMAIL,
+    }
 ): ShikokuElectricPowerSetting {
   return {
     nodeName: "shikoku_electric_power",
@@ -216,7 +216,7 @@ export function createAmazonSubscribeSettingInstance(
   return {
     nodeName: "amazon_subscribe",
     menuName: "Amazon定期便",
-    categoryAssignFlag: CategoryAssignFlags.NONE,
+    categoryAssignFlag: CategoryAssignFlags.PRODUCT_NAME,
     ...params,
   };
 }
@@ -230,9 +230,9 @@ export function createUdemySettingInstance(
     categoryId?: string;
     emailProvider: EmailProvider;
   } = {
-    enabled: true,
-    emailProvider: EmailProvider.GMAIL,
-  }
+      enabled: true,
+      emailProvider: EmailProvider.GMAIL,
+    }
 ): UdemySetting {
   return {
     nodeName: "udemy",
@@ -251,9 +251,9 @@ export function createRakutenCardETCSettingInstance(
     categoryId?: string;
     emailProvider: EmailProvider;
   } = {
-    enabled: true,
-    emailProvider: EmailProvider.GMAIL,
-  }
+      enabled: true,
+      emailProvider: EmailProvider.GMAIL,
+    }
 ): RakutenCardETCSetting {
   return {
     nodeName: "rakuten_card_etc",
