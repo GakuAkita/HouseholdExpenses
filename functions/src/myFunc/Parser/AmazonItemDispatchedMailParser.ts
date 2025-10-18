@@ -9,13 +9,18 @@ export class AmazonItemDispatchedMailParser extends MailParserBase {
   }
 
   toExpenses(): FuncResultWithData<Expense[]> {
-    logger.debug(`${this.rawText}`);
+    //logger.debug(`${this.rawText}`);
 
     try {
       const expenses: Expense[] = [];
 
       // 製品情報を抽出する正規表現
       // パターン: * 製品名\n  数量: X\n  価格 JPY
+      /**
+       * この価格は数量が複数だった場合、その合計に鳴るっぽいが、、
+       * その場合は単価を計算して、数量分だけ個別のExpenseを作成する。
+       * もし違った場合は修正が必要。ただ、複数数量注文することはあまりない
+       */
       const productPattern = /\*\s*([^\n]+)\s*\n\s*数量:\s*(\d+)\s*\n\s*(\d+)\s*JPY/g;
 
       let match;
@@ -27,17 +32,20 @@ export class AmazonItemDispatchedMailParser extends MailParserBase {
         // 単価を計算（価格 ÷ 数量）
         const unitPrice = Math.round(price / quantity);
 
-        const expense: Expense = {
-          datetime: this.extractDate() ?? undefined,
-          amount: unitPrice,
-          itemName: productName,
-          storeName: "Amazon",
-          // カテゴリーは後で割り当てられる
-        };
+        // 数量分だけ個別のExpenseを作成
+        for (let i = 0; i < quantity; i++) {
+          const expense: Expense = {
+            datetime: this.extractDate() ?? new Date().toISOString(),
+            amount: unitPrice,
+            itemName: productName,
+            storeName: "Amazon",
+            // カテゴリーは後で割り当てられる
+          };
 
-        expenses.push(expense);
+          expenses.push(expense);
+        }
 
-        logger.debug(`Extracted product: ${productName}, quantity: ${quantity}, total: ${price}, unit: ${unitPrice}`);
+        logger.debug(`Extracted product: ${productName}, quantity: ${quantity}, total: ${price}, unit: ${unitPrice}, created ${quantity} individual expenses`);
       }
 
       if (expenses.length === 0) {
