@@ -15,6 +15,7 @@ import {
   mailboxExtractionSchedules,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
+import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
 const {
   userService,
   repeatAddProcessor,
@@ -264,3 +265,43 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
     }
   );
 }
+
+/**
+ * 定期便リストの生成
+ */
+const amazonSubscribeMonitor = async () => {
+  let funcResult = await userService.getAllUserIds();
+  if (funcResult.status !== FuncStatus.SUCCESS) {
+    logger.error("Failed to retrieve user IDs:", funcResult.message);
+    return;
+  }
+  const userIds = funcResult.data;
+  if (userIds == null) {
+    logger.error("No user IDs found.");
+    return;
+  }
+  logger.log(`Found ${userIds.length} users.`);
+
+  for (const uid of userIds) {
+    const processor = new AmazonSubscribeMonitorItemsProcessor(
+      uid,
+      mailboxExtractionService
+    );
+    const ret = await processor.handleAmazonSubscribeItems();
+    if (ret.status !== FuncStatus.SUCCESS) {
+      logger.error(`Failed to handle Amazon Subscribe items: ${ret.message ?? "No message"}`);
+    }
+  }
+};
+
+exports.daily_amazonSubscribeMonitorJob = onSchedule(
+  {
+    schedule: "0 8 * * *", // 毎日 8:00 JST
+    timeZone: TriggerTimeZone, // 現在時刻の設定も日本にしているから、大丈夫。
+    concurrency: 1,
+  },
+  async (_) => {
+    logger.log("Starting daily amazonSubscribeMonitor job...");
+    await amazonSubscribeMonitor();
+  }
+);

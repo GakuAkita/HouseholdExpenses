@@ -124,6 +124,7 @@ export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
       createShikokuElectricPowerSettingInstance(),
       createUdemySettingInstance(),
       createRakutenCardETCSettingInstance(),
+      createAmazonSubscribeSettingInstance(),
     ],
   },
 ];
