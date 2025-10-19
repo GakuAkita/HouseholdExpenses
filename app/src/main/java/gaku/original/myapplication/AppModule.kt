@@ -13,6 +13,7 @@ import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirest
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.repository.RealtimeDBrepository.AmazonSubscribeItemsRTDbRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.repository.SharedPreferencesRepository
@@ -105,6 +106,15 @@ object AppModule {
     ): FirebaseAuthRepository {
         return FirebaseAuthRepository(firebaseAuth)
     }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideAmazonSubscribeItemsRTDbRepository(
+        realtimeDbReference: RealtimeDbReference
+    ): AmazonSubscribeItemsRTDbRepository {
+        return AmazonSubscribeItemsRTDbRepository(realtimeDbReference)
+    }
+
 
     @Provides
     @ActivityRetainedScoped

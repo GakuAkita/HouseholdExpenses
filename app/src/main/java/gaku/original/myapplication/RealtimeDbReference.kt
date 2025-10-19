@@ -280,4 +280,38 @@ class RealtimeDbReference @Inject constructor(
 
         return result
     }
+
+    /**
+     * Amazon定期便モニターの参照を取得
+     * users/{userId}/mailbox_extraction/amazon_subscribe_monitor
+     */
+    suspend fun getAmazonSubscribeMonitorRef(): FuncResultWithData<DatabaseReference> {
+        val funcName = ::getAmazonSubscribeMonitorRef.name
+        val baseRefRet = getMailboxExtractionRef()
+        if (baseRefRet !is FuncResultWithData.Success) {
+            return baseRefRet
+        }
+        val baseRef = baseRefRet.data
+        val result = FuncResultWithData.Success(
+            baseRef.child("amazon_subscribe_monitor")
+        )
+        return result
+    }
+
+    /**
+     * Amazon定期便アイテムの参照を取得
+     * users/{userId}/mailbox_extraction/amazon_subscribe_monitor/subscribe
+     */
+    suspend fun getAmazonSubscribeMonitorItemsRef(): FuncResultWithData<DatabaseReference> {
+        val funcName = ::getAmazonSubscribeMonitorItemsRef.name
+        val baseRefRet = getAmazonSubscribeMonitorRef()
+        if (baseRefRet !is FuncResultWithData.Success) {
+            return baseRefRet
+        }
+        val baseRef = baseRefRet.data
+        val result = FuncResultWithData.Success(
+            baseRef.child("subscribe_items")
+        )
+        return result
+    }
 }

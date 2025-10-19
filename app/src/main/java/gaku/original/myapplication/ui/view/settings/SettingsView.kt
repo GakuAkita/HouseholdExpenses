@@ -85,6 +85,12 @@ fun SettingsView(
                 route = Screen.SettingScreen.MailboxExtraction.Main.route
             )
 
+            SettingRowWithNavigation(
+                label = "Amazon定期便リスト",
+                navController = navController,
+                route = Screen.SettingScreen.AmazonSubscribeItems.route
+            )
+
 //            SettingRowWithNavigation(
 //                label = "プッシュ通知から費用抽出",
 //                navController = navController,

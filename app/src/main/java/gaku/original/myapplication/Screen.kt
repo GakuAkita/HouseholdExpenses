@@ -53,6 +53,8 @@ sealed class Screen(val route: String) {
 
         object NotificationListenerSetting :
             SettingScreen("$BASE_ROUTE/notification_listener_setting")
+
+        object AmazonSubscribeItems : SettingScreen("$BASE_ROUTE/amazon_subscribe_items")
     }
 
     //グローバルな画面
