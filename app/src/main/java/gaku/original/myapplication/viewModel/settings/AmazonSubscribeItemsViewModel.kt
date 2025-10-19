@@ -17,14 +17,15 @@ import javax.inject.Inject
 class AmazonSubscribeItemsViewModel @Inject constructor(
     private val amazonSubscribeItemsRepository: AmazonSubscribeItemsRTDbRepository
 ) : ViewModel() {
-    
+
     private val className: String = this::class.java.simpleName
 
     // UI状態管理
     private val _loadingStatus = MutableStateFlow(LoadingStatus.IDLE)
     val loadingStatus: StateFlow<LoadingStatus> = _loadingStatus
 
-    private val _amazonSubscribeItems = MutableStateFlow<Map<String, AmazonSubscribeItem>>(emptyMap())
+    private val _amazonSubscribeItems =
+        MutableStateFlow<Map<String, AmazonSubscribeItem>>(emptyMap())
     val amazonSubscribeItems: StateFlow<Map<String, AmazonSubscribeItem>> = _amazonSubscribeItems
 
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -45,27 +46,30 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
                 _errorMessage.value = null
 
                 val result = amazonSubscribeItemsRepository.getAllAmazonSubscribeItems()
-                
-                when (result.status) {
-                    FuncStatus.SUCCESS -> {
+
+                when (result) {
+                    is FuncResultWithData.Success -> {
                         _amazonSubscribeItems.value = result.data ?: emptyMap()
                         _loadingStatus.value = LoadingStatus.SUCCESS
-                        Log.d(className, "Successfully loaded ${result.data?.size ?: 0} Amazon Subscribe items")
+                        Log.d(
+                            className,
+                            "Successfully loaded ${result.data?.size ?: 0} Amazon Subscribe items"
+                        )
                     }
-                    FuncStatus.FAILED -> {
-                        _errorMessage.value = result.errorMessage ?: "Failed to load Amazon Subscribe items"
+
+                    is FuncResultWithData.Failure -> {
+                        _errorMessage.value = result.errorMessage
                         _loadingStatus.value = LoadingStatus.ERROR
-                        Log.e(className, "Failed to load Amazon Subscribe items: ${result.errorMessage}")
+                        Log.e(
+                            className,
+                            "Failed to load Amazon Subscribe items: ${result.errorMessage}"
+                        )
                     }
-                    FuncStatus.TIMEOUT -> {
-                        _errorMessage.value = "Request timeout. Please try again."
+
+                    is FuncResultWithData.Warning -> {
+                        _errorMessage.value = result.warningMessage
                         _loadingStatus.value = LoadingStatus.ERROR
-                        Log.e(className, "Timeout while loading Amazon Subscribe items")
-                    }
-                    else -> {
-                        _errorMessage.value = "Unknown error occurred"
-                        _loadingStatus.value = LoadingStatus.ERROR
-                        Log.e(className, "Unknown error while loading Amazon Subscribe items")
+                        Log.w(className, "Warning while loading Amazon Subscribe items: ${result.warningMessage}")
                     }
                 }
             } catch (e: Exception) {

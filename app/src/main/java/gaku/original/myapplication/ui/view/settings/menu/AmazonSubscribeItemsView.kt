@@ -67,21 +67,23 @@ fun AmazonSubscribeItemsView(
                         Text("Amazon定期便アイテムを読み込み中...")
                     }
                 }
+
                 LoadingStatus.SUCCESS -> {
                     // データ表示
                     if (amazonSubscribeItems.isEmpty()) {
                         Text("定期便アイテムはありません")
                     } else {
                         LazyColumn {
-                            items(amazonSubscribeItems.toList()) { (id, item) ->
+                            items(amazonSubscribeItems.toList()) { (_, item) ->
                                 Text(
                                     text = "${item.productName ?: "(商品名不明)"} x${item.quantity ?: 1} / ¥${item.price ?: 0f}",
-                                    modifier = Modifier.padding(vertical = 8)
+                                    modifier = Modifier.padding(vertical = 8.dp)
                                 )
                             }
                         }
                     }
                 }
+
                 LoadingStatus.ERROR -> {
                     // エラー表示
                     Column(
@@ -101,6 +103,7 @@ fun AmazonSubscribeItemsView(
                         }
                     }
                 }
+
                 LoadingStatus.TIMEOUT -> {
                     // タイムアウト表示
                     Column(
@@ -120,6 +123,7 @@ fun AmazonSubscribeItemsView(
                         }
                     }
                 }
+
                 else -> {
                     Text("不明な状態です")
                 }

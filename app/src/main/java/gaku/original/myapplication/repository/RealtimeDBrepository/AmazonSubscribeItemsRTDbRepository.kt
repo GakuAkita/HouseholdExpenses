@@ -31,7 +31,11 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         if (refResult !is FuncResultWithData.Success) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
+                errorMessage = when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
             )
         }
 
@@ -79,7 +83,11 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         if (refResult !is FuncResultWithData.Success) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
+                errorMessage = when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
             )
         }
 
@@ -131,7 +139,11 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         if (refResult !is FuncResultWithData.Success) {
             return FuncStatusInfo(
                 FuncStatus.FAILED,
-                "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
+                when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
             )
         }
 
