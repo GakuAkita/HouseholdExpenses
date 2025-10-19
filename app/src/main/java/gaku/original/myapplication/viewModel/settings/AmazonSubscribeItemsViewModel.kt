@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.repository.RealtimeDBrepository.AmazonSubscribeItemsRTDbRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,7 +53,7 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
                         _loadingStatus.value = LoadingStatus.SUCCESS
                         Log.d(
                             className,
-                            "Successfully loaded ${result.data?.size ?: 0} Amazon Subscribe items"
+                            "Successfully loaded ${result.data.size ?: 0} Amazon Subscribe items"
                         )
                     }
 
@@ -69,7 +69,10 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
                     is FuncResultWithData.Warning -> {
                         _errorMessage.value = result.warningMessage
                         _loadingStatus.value = LoadingStatus.ERROR
-                        Log.w(className, "Warning while loading Amazon Subscribe items: ${result.warningMessage}")
+                        Log.w(
+                            className,
+                            "Warning while loading Amazon Subscribe items: ${result.warningMessage}"
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -85,12 +88,5 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
      */
     fun refresh() {
         loadAmazonSubscribeItems()
-    }
-
-    /**
-     * エラーメッセージをクリア
-     */
-    fun clearError() {
-        _errorMessage.value = null
     }
 }
