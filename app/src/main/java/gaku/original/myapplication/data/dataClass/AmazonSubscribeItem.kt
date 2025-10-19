@@ -6,5 +6,6 @@ data class AmazonSubscribeItem(
     override var id: String? = null,
     val productName: String? = null,
     val quantity: Int? = null,
-    val price: Float? = 0f
+    val price: Float? = 0f,
+    val timestamp: Long? = null
 ) : HasId
