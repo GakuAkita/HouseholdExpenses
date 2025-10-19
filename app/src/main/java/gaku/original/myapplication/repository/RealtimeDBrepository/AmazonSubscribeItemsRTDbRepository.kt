@@ -1,8 +1,5 @@
 package gaku.original.myapplication.repository.RealtimeDBrepository
 
-import android.util.Log
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
@@ -14,6 +11,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import removeDataFromRTDb
 import javax.inject.Inject
 
 class AmazonSubscribeItemsRTDbRepository @Inject constructor(
@@ -28,12 +26,12 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         timeout: Long = 10000
     ): FuncResultWithData<Map<String, AmazonSubscribeItem>> {
         LogClassFuncCalled(className, ::getAllAmazonSubscribeItems.name)
-        
+
         val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
         if (refResult !is FuncResultWithData.Success) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
             )
         }
 
@@ -44,21 +42,17 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     val itemsMap = mutableMapOf<String, AmazonSubscribeItem>()
-                    
+
                     for (childSnapshot in snapshot.children) {
-                        try {
-                            val item = childSnapshot.getValue(AmazonSubscribeItem::class.java)
-                            val itemId = childSnapshot.key
-                            if (item != null && itemId != null) {
-                                // IDを設定
-                                val itemWithId = item.copy(id = itemId)
-                                itemsMap[itemId] = itemWithId
-                            }
-                        } catch (e: Exception) {
-                            Log.e(className, "Error converting snapshot to AmazonSubscribeItem: ${e.message}")
+                        val item = childSnapshot.getValue(AmazonSubscribeItem::class.java)
+                        val itemId = childSnapshot.key
+                        if (item != null && itemId != null) {
+                            // IDを設定
+                            val itemWithId = item.copy(id = itemId)
+                            itemsMap[itemId] = itemWithId
                         }
                     }
-                    
+
                     FuncResultWithData.Success(data = itemsMap)
                 }
             }
@@ -80,12 +74,12 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         timeout: Long = 5000
     ): FuncResultWithData<AmazonSubscribeItem> {
         LogClassFuncCalled(className, ::getAmazonSubscribeItem.name)
-        
+
         val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
         if (refResult !is FuncResultWithData.Success) {
             return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                errorMessage = "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
             )
         }
 
@@ -127,37 +121,23 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
     /**
      * Amazon定期便アイテムを削除する
      */
-    suspend fun deleteAmazonSubscribeItem(
-        itemId: String,
+    suspend fun removeAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
         timeout: Long = 3000
     ): FuncStatusInfo {
-        LogClassFuncCalled(className, ::deleteAmazonSubscribeItem.name)
-        
+        LogClassFuncCalled(className, ::removeAmazonSubscribeItem.name)
+
         val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
         if (refResult !is FuncResultWithData.Success) {
             return FuncStatusInfo(
                 FuncStatus.FAILED,
-                "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.toFuncStatusInfo().errorMessage}"
             )
         }
 
         val ref = refResult.data
 
-        return try {
-            withTimeout(timeout) {
-                withContext(Dispatchers.IO) {
-                    ref.child(itemId).removeValue().await()
-                    FuncStatusInfo(FuncStatus.SUCCESS, "Successfully deleted Amazon Subscribe Item")
-                }
-            }
-        } catch (e: TimeoutCancellationException) {
-            FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout occurred while deleting Amazon Subscribe Item")
-        } catch (e: Exception) {
-            FuncStatusInfo(
-                FuncStatus.FAILED,
-                e.message ?: "Unknown error occurred while deleting Amazon Subscribe Item"
-            )
-        }
+        return removeDataFromRTDb(item, ref, timeout)
     }
 
 }
