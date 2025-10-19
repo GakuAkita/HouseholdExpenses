@@ -88,7 +88,7 @@ fun SettingsView(
             SettingRowWithNavigation(
                 label = "Amazon定期便リスト",
                 navController = navController,
-                route = Screen.SettingScreen.AmazonSubscribeList.route
+                route = Screen.SettingScreen.AmazonSubscribeItems.route
             )
 
 //            SettingRowWithNavigation(
