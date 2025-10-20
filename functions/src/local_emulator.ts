@@ -256,7 +256,7 @@ const init_add = async () => {
 
   console.log("Data written to emulator.");
 };
-init_add();
+//init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
@@ -390,13 +390,13 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    // createRakutenPaySettingInstance(),
-    // createAmazonItemSettingInstance(),
-    // createAmazonKindleSettingInstance(),
-    createAmazonSubscribeSettingInstance()
-    // createShikokuElectricPowerSettingInstance(),
-    // createUdemySettingInstance(),
-    //createRakutenCardETCSettingInstance(),
+    createRakutenPaySettingInstance(),
+    createAmazonItemSettingInstance(),
+    createAmazonKindleSettingInstance(),
+    createAmazonSubscribeSettingInstance(),
+    createShikokuElectricPowerSettingInstance(),
+    createUdemySettingInstance(),
+    createRakutenCardETCSettingInstance(),
   ];
 
   for (const type of testTypes) {

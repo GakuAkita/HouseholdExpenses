@@ -17,5 +17,6 @@ local.properties
 /app/google-services.json
 /firebase-debug.log
 /firestore-debug.log
+/database-debug.log
 /emu_data
 *.jks
