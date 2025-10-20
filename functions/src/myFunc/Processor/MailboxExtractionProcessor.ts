@@ -611,12 +611,22 @@ export class MailboxExtractionProcessor {
 
     /* Amazon定期便アイテムリストを取得（キャッシュから） */
     const subscribeItemsRet = await this.loadAmazonSubscribeItems();
-    if (subscribeItemsRet.status !== FuncStatus.SUCCESS) {
+    if (subscribeItemsRet.status == FuncStatus.EMPTY) {
+      /*  */
+      logger.warn(`Amazon Subscirbe items are not registered, yet.`);
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `Amazon Subscirbe items are not registered, yet.`
+      }
+    }
+    else if (subscribeItemsRet.status !== FuncStatus.SUCCESS) {
       logger.error(`Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`);
       return {
         status: FuncStatus.ERROR,
         message: `Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`,
       };
+    } else {
+      /* Do nothing */
     }
 
     const subscribeItems = subscribeItemsRet.data || {};
