@@ -35,7 +35,7 @@ class ExpenseSharedViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         Log.d(className, "${className}Cleared!!!!")
-        clearPossession()
+        clearPossession()  // メモリ上のデータのみクリア（ローカルDBは保持）
     }
 
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
@@ -59,8 +59,24 @@ class ExpenseSharedViewModel @Inject constructor(
 
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
+    
+    /**
+     * メモリ上のカテゴリーをクリア（ローカルDBはクリアしない）
+     * アプリ終了時などに使用
+     */
     fun clearAllCategories() {
         _allCategories.value = emptyList()
+        Log.d(className, "Memory categories cleared.")
+    }
+    
+    /**
+     * メモリとローカルDBの両方のカテゴリーをクリア
+     * サインアウト時のみ使用
+     */
+    suspend fun clearAllCategoriesIncludingLocalCache() {
+        _allCategories.value = emptyList()
+        categoryUseCase.clearLocalCache()
+        Log.d(className, "Memory and local category cache cleared.")
     }
 
     /* Expense関連はここにまとめておく */
@@ -123,7 +139,7 @@ class ExpenseSharedViewModel @Inject constructor(
     fun clearPossession() {
         Log.d(className, "clearPossession was called.")
         clearAllExpenses()
-        clearAllCategories()
+        clearAllCategories()  // メモリ上のデータのみクリア
         clearAllListeners()
     }
 
@@ -143,7 +159,7 @@ class ExpenseSharedViewModel @Inject constructor(
 
     fun onSignedIn(callback: (FuncStatusInfo) -> Unit) {
         /* サインアウト時にほとんどクリアしているが、ここでも行っておく */
-        clearPossession()
+        clearPossession()  // メモリ上のデータのみクリア
         _expensesLoadingStatus.value = LoadingStatus.LOADING
         /**
          * このfetchもどっちでやるか要件等だな、
@@ -199,7 +215,11 @@ class ExpenseSharedViewModel @Inject constructor(
     }
 
     fun onSignedOut() {
-        clearPossession()
+        clearPossession()  // メモリ上のデータをクリア
+        /* ローカルDBのカテゴリーも裏で非同期にクリア（画面遷移はブロックしない） */
+        viewModelScope.launch {
+            clearAllCategoriesIncludingLocalCache()
+        }
         setIsFirstSignIn(true)//
         /* サインアップした時用に、 タイムゾーンを日本にしておく*/
         AppTimeZone.updateStrZoneId(TimeZoneOption.JAPAN.id)

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import gaku.original.myapplication.data.local.entity.CategoryEntity
 import kotlinx.coroutines.flow.Flow
