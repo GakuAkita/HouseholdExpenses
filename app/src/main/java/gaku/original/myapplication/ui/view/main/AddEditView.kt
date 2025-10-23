@@ -97,7 +97,7 @@ FloatingActionボタンから来た場合は、ボタンを叩いた時間を入
 カレンダーの日付を叩いてきたときはその日付と時間(今の時間)をデフォルトでいれる
  */
 enum class FromScreen {
-    NOT_CATEGORIZED,
+    SEARCH,
     MAIN_CONTENT,
     UNKNOWN
 }
@@ -111,7 +111,7 @@ fun ExpenseAddEditView(
     from: String/* 遷移元のスクリーン */
 ) {
     val fromScreen = when (from) {
-        Screen.SearchScreen.route -> FromScreen.NOT_CATEGORIZED
+        Screen.SearchScreen.route -> FromScreen.SEARCH
         Screen.MainScreen.Content.route -> FromScreen.MAIN_CONTENT
         else -> FromScreen.UNKNOWN
     }
@@ -188,6 +188,17 @@ fun ExpenseAddEditView(
             }
         }
 
+        // カテゴリーチェック（ローカルDBキャッシュがあるので必須化）
+        for (expense in viewModel.expenseList.value) {
+            if (expense.category == null) {
+                scope.launch {
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    snackBarHostState.showSnackbar("カテゴリーを選択してください", actionLabel = "OK")
+                }
+                return
+            }
+        }
+
         if (viewModel.calcExpenseListSum() != totalAmount && splitInputState) {
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
@@ -209,16 +220,6 @@ fun ExpenseAddEditView(
 //        LogAkitaDebug("converted String ${isoStr}")
         /* isoStrがnullであることはない。上でチェックしている。 */
         viewModel.updateExpenseDatetime(isoStr!!)
-
-        /* カテゴリーをリモートから取得できなかったとき保存も更新もできなくなる。したがって、カテゴリーのチェックはやめる */
-        /* あるいは、allCategoriesがemptyList()のときだけこのチェックをバイパスするとかでもいいな */
-//        if (viewModel.currentTmpExpense.category == null) {
-//            scope.launch {
-//                snackBarHostState.showSnackbar(
-//                    "カテゴリーを選択してください"
-//                )
-//            }
-//        }
 
         if (viewModel.getHeadExpense().id == null) {
             viewModel.addExpenseToDb(callback = {
@@ -581,7 +582,7 @@ fun ExpenseAddEditView(
                             label = { Text(text = "商品名(空欄可)") },
                             modifier = basicModifier
                         )
-                        if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                        if (fromScreen == FromScreen.SEARCH) {
                             if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
                                 val templateType = getEmailTemplateTypeByNodeName(subType)
                                 if (templateType != null) {
@@ -651,7 +652,7 @@ fun ExpenseAddEditView(
                  * EmailTemplateTypeにはcategoryAssignFlagがあって、そこにビットで商品名なのか店名なのかを保持している
                  * AND演算子を使って店名や商品名が入っているかをとり、入っていたらボタンを表示
                  * */
-                if (fromScreen == FromScreen.NOT_CATEGORIZED) {
+                if (fromScreen == FromScreen.SEARCH) {
                     if (mainType == GeneratedType.MAIL_EXTRACTION && subType != null) {
                         val templateType = getEmailTemplateTypeByNodeName(subType)
                         if (templateType != null) {
