@@ -188,6 +188,17 @@ fun ExpenseAddEditView(
             }
         }
 
+        // カテゴリーチェック（ローカルDBキャッシュがあるので必須化）
+        for (expense in viewModel.expenseList.value) {
+            if (expense.category == null) {
+                scope.launch {
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    snackBarHostState.showSnackbar("カテゴリーを選択してください", actionLabel = "OK")
+                }
+                return
+            }
+        }
+
         if (viewModel.calcExpenseListSum() != totalAmount && splitInputState) {
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
@@ -209,16 +220,6 @@ fun ExpenseAddEditView(
 //        LogAkitaDebug("converted String ${isoStr}")
         /* isoStrがnullであることはない。上でチェックしている。 */
         viewModel.updateExpenseDatetime(isoStr!!)
-
-        /* カテゴリーをリモートから取得できなかったとき保存も更新もできなくなる。したがって、カテゴリーのチェックはやめる */
-        /* あるいは、allCategoriesがemptyList()のときだけこのチェックをバイパスするとかでもいいな */
-//        if (viewModel.currentTmpExpense.category == null) {
-//            scope.launch {
-//                snackBarHostState.showSnackbar(
-//                    "カテゴリーを選択してください"
-//                )
-//            }
-//        }
 
         if (viewModel.getHeadExpense().id == null) {
             viewModel.addExpenseToDb(callback = {
