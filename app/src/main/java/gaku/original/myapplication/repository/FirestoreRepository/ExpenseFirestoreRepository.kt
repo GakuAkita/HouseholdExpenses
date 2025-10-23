@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -216,6 +217,140 @@ class ExpenseFirestoreRepository @Inject constructor(
             /* 戻り値 */
             result
         }
+    }
+
+    /**
+     * フィルター条件に基づいてExpenseを検索
+     * 
+     * Firestoreの制限により、以下の方法でフィルタリングを行います：
+     * 1. Firestoreクエリ: 日付範囲、category（null判定）、generatedType（in演算）
+     * 2. ローカルフィルタリング: 金額範囲、テキスト検索（storeName, itemName, note）
+     * 
+     * 注意: categoryIds を使ったフィルタリングは制限があります。
+     * - category.idでのフィルタリングはFirestoreの複雑なクエリのため、一度取得してからローカルでフィルタリングします
+     */
+    suspend fun searchExpenses(
+        filter: ExpenseSearchFilter,
+        timeout: Long = 10000
+    ): FuncResultWithData<List<Expense>> {
+        val funcName = ::searchExpenses.name
+        LogClassFuncCalled(className, funcName)
+
+        val expenseRef = getExpensesColRef()
+            ?: return FuncResultWithData.Failure.GenericFailure(
+                status = FuncStatus.FAILED,
+                errorMessage = "Expensesコレクションが参照できませんでした"
+            )
+
+        return try {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {
+                    // Firestoreクエリを構築
+                    var query = expenseRef.orderBy("datetime")
+                    
+                    // 日付範囲でフィルタリング（Firestoreで実行）
+                    if (filter.dateFrom != null) {
+                        query = query.whereGreaterThanOrEqualTo("datetime", filter.dateFrom)
+                    }
+                    if (filter.dateTo != null) {
+                        query = query.whereLessThanOrEqualTo("datetime", filter.dateTo)
+                    }
+                    
+                    // GeneratedTypeでフィルタリング（Firestoreで実行）
+                    // 注意: in演算は10個まで
+                    if (filter.generatedTypes != null && filter.generatedTypes.isNotEmpty()) {
+                        if (filter.generatedTypes.size <= 10) {
+                            query = query.whereIn("generatedType", filter.generatedTypes)
+                        }
+                        // 10個を超える場合は後でローカルフィルタリング
+                    }
+                    
+                    // Categoryがnullのものだけを取得する場合（Firestoreで実行）
+                    if (filter.categoryIds != null && 
+                        filter.categoryIds.size == 1 && 
+                        filter.categoryIds[0] == null) {
+                        query = query.whereEqualTo("category", null)
+                    }
+                    
+                    // クエリを実行
+                    val snapshot = query.get().await()
+                    var list = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+                    
+                    // ローカルでのフィルタリング
+                    list = applyLocalFilters(list, filter)
+                    
+                    FuncResultWithData.Success(data = list)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            FuncResultWithData.Failure.Timeout()
+        } catch (e: Exception) {
+            FuncResultWithData.Failure.GenericFailure(
+                status = FuncStatus.FAILED,
+                errorMessage = e.message ?: "不明なエラー"
+            )
+        }
+    }
+
+    /**
+     * ローカルでフィルタリングを適用
+     */
+    private fun applyLocalFilters(
+        expenses: List<Expense>,
+        filter: ExpenseSearchFilter
+    ): List<Expense> {
+        var filtered = expenses
+        
+        // GeneratedTypeフィルタリング（10個を超える場合）
+        if (filter.generatedTypes != null && filter.generatedTypes.size > 10) {
+            filtered = filtered.filter { expense ->
+                expense.generatedType in filter.generatedTypes
+            }
+        }
+        
+        // CategoryIdフィルタリング
+        if (filter.categoryIds != null && 
+            !(filter.categoryIds.size == 1 && filter.categoryIds[0] == null)) {
+            // categoryIds が指定されている場合（nullのみではない）
+            filtered = filtered.filter { expense ->
+                expense.category?.id in filter.categoryIds
+            }
+        }
+        
+        // 金額範囲フィルタリング
+        if (filter.amountMin != null) {
+            filtered = filtered.filter { expense ->
+                (expense.amount ?: 0) >= filter.amountMin
+            }
+        }
+        if (filter.amountMax != null) {
+            filtered = filtered.filter { expense ->
+                (expense.amount ?: Long.MAX_VALUE) <= filter.amountMax
+            }
+        }
+        
+        // ストア名フィルタリング（部分一致）
+        if (filter.storeName != null) {
+            filtered = filtered.filter { expense ->
+                expense.storeName?.contains(filter.storeName, ignoreCase = true) == true
+            }
+        }
+        
+        // アイテム名フィルタリング（部分一致）
+        if (filter.itemName != null) {
+            filtered = filtered.filter { expense ->
+                expense.itemName?.contains(filter.itemName, ignoreCase = true) == true
+            }
+        }
+        
+        // メモフィルタリング（部分一致）
+        if (filter.note != null) {
+            filtered = filtered.filter { expense ->
+                expense.note?.contains(filter.note, ignoreCase = true) == true
+            }
+        }
+        
+        return filtered
     }
 
 

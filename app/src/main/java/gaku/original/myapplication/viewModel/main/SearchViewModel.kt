@@ -7,6 +7,8 @@ import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
+import gaku.original.myapplication.data.dataClass.getDefaultSearchFilter
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
@@ -31,16 +33,37 @@ class SearchViewModel @Inject constructor(
     private val _loadingStatus = MutableStateFlow(LoadingStatus.COMPLETED)
     val loadingStatus: StateFlow<LoadingStatus> get() = _loadingStatus
 
-    private val _notCategorizedExpenses = MutableStateFlow<List<Expense>>(emptyList())
-    val notCategorizedExpenses: StateFlow<List<Expense>> get() = _notCategorizedExpenses
+    private val _searchedExpenses = MutableStateFlow<List<Expense>>(emptyList())
+    val searchedExpenses: StateFlow<List<Expense>> get() = _searchedExpenses
 
-    private suspend fun fetchNotCategorizedExpensesInternal(): FuncResultWithData<List<Expense>> {
+    // 現在のフィルター条件（デフォルトはカテゴリーがnull）
+    private val _currentFilter = MutableStateFlow(getDefaultSearchFilter())
+    val currentFilter: StateFlow<ExpenseSearchFilter> get() = _currentFilter
+
+    /**
+     * フィルター条件を更新
+     */
+    fun updateFilter(filter: ExpenseSearchFilter) {
+        _currentFilter.value = filter
+    }
+
+    /**
+     * フィルター条件をリセット（カテゴリーがnullのデフォルト）
+     */
+    fun resetFilter() {
+        _currentFilter.value = getDefaultSearchFilter()
+    }
+
+    /**
+     * 現在のフィルター条件で検索を実行
+     */
+    private suspend fun searchExpensesInternal(): FuncResultWithData<List<Expense>> {
         _loadingStatus.value = LoadingStatus.LOADING
-        val result = expenseFirestoreRepository.fetchNotCategorizedExpenses()
+        val result = expenseFirestoreRepository.searchExpenses(_currentFilter.value)
         if (result is FuncResultWithData.Success) {
             _loadingStatus.value = LoadingStatus.COMPLETED
-            _notCategorizedExpenses.value = result.data//成功のときだけ更新
-            LogAkitaDebug("expenses:${_notCategorizedExpenses.value}")
+            _searchedExpenses.value = result.data
+            LogAkitaDebug("expenses:${_searchedExpenses.value}")
         } else {
             if (result is FuncResultWithData.Failure.Timeout) {
                 _loadingStatus.value = LoadingStatus.TIMEOUT
@@ -51,6 +74,44 @@ class SearchViewModel @Inject constructor(
         return result
     }
 
+    /**
+     * 検索を実行（公開API）
+     */
+    fun searchExpenses(callback: (FuncStatusInfo) -> Unit) {
+        viewModelScope.launch {
+            val result = searchExpensesInternal()
+            callback(result.toFuncStatusInfo())
+        }
+    }
+
+    /**
+     * 特定のフィルターで検索を実行
+     */
+    fun searchWithFilter(filter: ExpenseSearchFilter, callback: (FuncStatusInfo) -> Unit) {
+        updateFilter(filter)
+        searchExpenses(callback)
+    }
+
+    // 後方互換性のため残す（将来的に削除予定）
+    @Deprecated("Use searchExpenses() instead", ReplaceWith("searchExpenses(callback)"))
+    private suspend fun fetchNotCategorizedExpensesInternal(): FuncResultWithData<List<Expense>> {
+        _loadingStatus.value = LoadingStatus.LOADING
+        val result = expenseFirestoreRepository.fetchNotCategorizedExpenses()
+        if (result is FuncResultWithData.Success) {
+            _loadingStatus.value = LoadingStatus.COMPLETED
+            _searchedExpenses.value = result.data
+            LogAkitaDebug("expenses:${_searchedExpenses.value}")
+        } else {
+            if (result is FuncResultWithData.Failure.Timeout) {
+                _loadingStatus.value = LoadingStatus.TIMEOUT
+            } else {
+                _loadingStatus.value = LoadingStatus.ERROR
+            }
+        }
+        return result
+    }
+
+    @Deprecated("Use searchExpenses() instead", ReplaceWith("searchExpenses(callback)"))
     fun fetchNotCategorizedExpenses(callback: (FuncStatusInfo) -> Unit) {
         viewModelScope.launch {
             val result = fetchNotCategorizedExpensesInternal()
