@@ -8,6 +8,7 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -78,6 +79,10 @@ class CategoryFirestoreRepository @Inject constructor(
     suspend fun fetchAllCategories(
         timeout: Long = 10000,
     ): FuncResultWithData<List<Category>> {
+        LogAkitaDebug("fetchAllCategories called. timeout=$timeout Intentional")
+//        return FuncResultWithData.Failure.Timeout(
+//            errorMessage = "fetchAllCategories() timeout.Intentional"
+//        )
         val funcName = ::fetchAllCategories.name
         LogClassFuncCalled(className, funcName)
 

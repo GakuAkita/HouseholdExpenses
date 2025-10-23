@@ -1,5 +1,6 @@
 package gaku.original.myapplication.useCase
 
+import android.util.Log
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.Interface.HasCategoryId
@@ -10,25 +11,85 @@ import gaku.original.myapplication.data.dataClass.getAllAssignments
 import gaku.original.myapplication.data.dataClass.getAllEmailTemplateTypes
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.repository.LocalRepository.CategoryLocalRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class CategoryUseCase @Inject constructor(
     private val categoryRepository: CategoryFirestoreRepository,
+    private val categoryLocalRepository: CategoryLocalRepository,
     private val repeatAddRepository: RepeatAddFirestoreRepository,
     private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
     private val categoryAssignmentRepository: CategoryAssignmentRepository
 ) {
+    private val className = this::class.simpleName ?: "UnableToGetClassName"
 
+    /**
+     * カテゴリを取得（ローカルキャッシュファースト戦略）
+     * 1. ローカルRoomDBから読み込み（即座に返す）
+     * 2. バックグラウンドでFirebaseから取得してローカルDBを完全同期（トランザクション）
+     */
     suspend fun fetchAllCategories(): FuncResultWithData<List<Category>> {
-        return categoryRepository.fetchAllCategories()
+        // まずローカルDBから読み込み
+        val localResult = categoryLocalRepository.getAllCategories()
+        if (localResult is FuncResultWithData.Success && localResult.data.isNotEmpty()) {
+            Log.d(className, "Using cached categories from Room DB (${localResult.data.size} items)")
+        }
+
+        // Firebaseから最新データを取得
+        val firebaseResult = categoryRepository.fetchAllCategories()
+        
+        // Firebase取得成功時はローカルDBを完全置き換え（トランザクション）
+        if (firebaseResult is FuncResultWithData.Success) {
+            categoryLocalRepository.replaceAllCategories(firebaseResult.data)
+            Log.d(className, "Synced local category cache with Firebase (${firebaseResult.data.size} items)")
+            return firebaseResult
+        }
+        
+        // Firebase取得失敗時はローカルDBデータを返す（存在する場合）
+        if (localResult is FuncResultWithData.Success && localResult.data.isNotEmpty()) {
+            Log.d(className, "Firebase fetch failed, using cached categories as fallback")
+            return localResult
+        }
+        
+        // ローカルもFirebaseも失敗
+        return firebaseResult
+    }
+
+    /**
+     * ローカルDBのみから取得（即座に返す）
+     */
+    suspend fun getCachedCategories(): FuncResultWithData<List<Category>> {
+        return categoryLocalRepository.getAllCategories()
+    }
+
+    /**
+     * ローカルDBのカテゴリをFlowで監視
+     */
+    fun getCategoriesFlow(): Flow<List<Category>> {
+        return categoryLocalRepository.getAllCategoriesFlow()
+    }
+
+    /**
+     * ローカルキャッシュをクリア
+     */
+    suspend fun clearLocalCache() {
+        categoryLocalRepository.deleteAllCategories()
     }
 
     /* SharedViewModel側で既存ダブりチェックをする */
     suspend fun addCategory(category: Category): FuncResultWithData<Category> {
-        return categoryRepository.addCategory(category)
+        val result = categoryRepository.addCategory(category)
+        
+        // Firebaseへの追加成功時、ローカルDBにも保存
+        if (result is FuncResultWithData.Success) {
+            categoryLocalRepository.insertCategory(result.data)
+        }
+        
+        return result
     }
 
     suspend fun updateCategory(category: Category): FuncStatusInfo {
@@ -45,6 +106,9 @@ class CategoryUseCase @Inject constructor(
         if (categoryUpdateStatus.status != FuncStatus.SUCCESS) {
             return categoryUpdateStatus
         }
+
+        // Firebaseへの更新成功時、ローカルDBも更新
+        categoryLocalRepository.updateCategory(category)
 
         for (repeatAdd in repeatAddList) {
             if (repeatAdd.expense.category?.id == category.id) {
@@ -88,7 +152,14 @@ class CategoryUseCase @Inject constructor(
             return emailTemplateTypeExistCheck
         }
 
-        return categoryRepository.removeCategory(category)
+        val removeStatus = categoryRepository.removeCategory(category)
+        
+        // Firebaseから削除成功時、ローカルDBからも削除
+        if (removeStatus.status == FuncStatus.SUCCESS) {
+            categoryLocalRepository.deleteCategory(category)
+        }
+        
+        return removeStatus
     }
 
     suspend fun checkRepeatAddExists(

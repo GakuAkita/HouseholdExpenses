@@ -1,6 +1,7 @@
 package gaku.original.myapplication
 
 import android.content.Context
+import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -8,11 +9,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.components.SingletonComponent
+import gaku.original.myapplication.data.local.AppDatabase
+import gaku.original.myapplication.data.local.dao.CategoryDao
 import gaku.original.myapplication.repository.FirebaseAuthRepository
 import gaku.original.myapplication.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.repository.LocalRepository.CategoryLocalRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.AmazonSubscribeItemsRTDbRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
@@ -24,6 +29,7 @@ import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
+import javax.inject.Singleton
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -124,6 +130,33 @@ object AppModule {
         return SharedPreferencesRepository(context)
     }
 
+    /************************** Room Database (Local) ******************************/
+    @Provides
+    @ActivityRetainedScoped
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            AppDatabase.DATABASE_NAME
+        ).build()
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideCategoryDao(appDatabase: AppDatabase): CategoryDao {
+        return appDatabase.categoryDao()
+    }
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideCategoryLocalRepository(
+        categoryDao: CategoryDao
+    ): CategoryLocalRepository {
+        return CategoryLocalRepository(categoryDao)
+    }
+
     /* --------------------------UseCase関連---------------------------------- */
     @Provides
     @ActivityRetainedScoped
@@ -146,12 +179,14 @@ object AppModule {
     @ActivityRetainedScoped
     fun provideCategoryUseCase(
         categoryRepository: CategoryFirestoreRepository,
+        categoryLocalRepository: CategoryLocalRepository,
         repeatAddRepository: RepeatAddFirestoreRepository,
         mailboxExtractionRepository: MailboxExtractionRTDbRepository,
         categoryAssignmentRepository: CategoryAssignmentRepository
     ): CategoryUseCase {
         return CategoryUseCase(
             categoryRepository,
+            categoryLocalRepository,
             repeatAddRepository,
             mailboxExtractionRepository,
             categoryAssignmentRepository
