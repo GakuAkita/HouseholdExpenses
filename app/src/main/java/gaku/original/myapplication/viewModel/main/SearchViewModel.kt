@@ -6,11 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
 import gaku.original.myapplication.data.dataClass.getDefaultSearchFilter
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +23,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseFirestoreRepository,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+    private val expenseSharedViewModel: ExpenseSharedViewModel,
 ) : ViewModel() {
     override fun onCleared() {
         /**
@@ -30,7 +33,7 @@ class SearchViewModel @Inject constructor(
         LogAkitaDebug("${this::class.simpleName} Cleared!!!!")
     }
 
-    private val _loadingStatus = MutableStateFlow(LoadingStatus.COMPLETED)
+    private val _loadingStatus = MutableStateFlow(LoadingStatus.SUCCESS)
     val loadingStatus: StateFlow<LoadingStatus> get() = _loadingStatus
 
     private val _searchedExpenses = MutableStateFlow<List<Expense>>(emptyList())
@@ -39,6 +42,9 @@ class SearchViewModel @Inject constructor(
     // 現在のフィルター条件（デフォルトはカテゴリーがnull）
     private val _currentFilter = MutableStateFlow(getDefaultSearchFilter())
     val currentFilter: StateFlow<ExpenseSearchFilter> get() = _currentFilter
+
+    // カテゴリー一覧（ExpenseSharedViewModelから取得）
+    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     /**
      * フィルター条件を更新
@@ -61,7 +67,7 @@ class SearchViewModel @Inject constructor(
         _loadingStatus.value = LoadingStatus.LOADING
         val result = expenseFirestoreRepository.searchExpenses(_currentFilter.value)
         if (result is FuncResultWithData.Success) {
-            _loadingStatus.value = LoadingStatus.COMPLETED
+            _loadingStatus.value = LoadingStatus.SUCCESS
             _searchedExpenses.value = result.data
             LogAkitaDebug("expenses:${_searchedExpenses.value}")
         } else {
@@ -98,7 +104,7 @@ class SearchViewModel @Inject constructor(
         _loadingStatus.value = LoadingStatus.LOADING
         val result = expenseFirestoreRepository.fetchNotCategorizedExpenses()
         if (result is FuncResultWithData.Success) {
-            _loadingStatus.value = LoadingStatus.COMPLETED
+            _loadingStatus.value = LoadingStatus.SUCCESS
             _searchedExpenses.value = result.data
             LogAkitaDebug("expenses:${_searchedExpenses.value}")
         } else {

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
@@ -50,9 +52,11 @@ import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
 import gaku.original.myapplication.data.dataClass.GeneratedType
+import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplay
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
@@ -70,7 +74,8 @@ fun SearchView(
     val listState = rememberLazyListState()
     val loadingStatus = viewModel.loadingStatus.collectAsState()
     val currentFilter = viewModel.currentFilter.collectAsState()
-    
+    val allCategories = viewModel.allCategories.collectAsState()
+
     var showFilterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -138,7 +143,7 @@ fun SearchView(
                 ) {
                     Text("タイムアウトしました。")
                 }
-            } else if (loadingStatus.value == LoadingStatus.COMPLETED && expenses.value.isEmpty()) {
+            } else if (loadingStatus.value == LoadingStatus.SUCCESS && expenses.value.isEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -174,6 +179,7 @@ fun SearchView(
         ) {
             FilterSheetContent(
                 currentFilter = currentFilter.value,
+                allCategories = allCategories.value,
                 onApplyFilter = { filter ->
                     viewModel.searchWithFilter(filter) {
                         LogAkitaDebug("Apply filter and search")
@@ -216,7 +222,7 @@ fun FilterControlBar(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Row {
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = "更新")
@@ -226,7 +232,7 @@ fun FilterControlBar(
                     }
                 }
             }
-            
+
             // アクティブなフィルターを表示
             val activeCount = currentFilter.activeFilterCount()
             if (activeCount > 0) {
@@ -259,17 +265,26 @@ fun FilterControlBar(
 @Composable
 fun FilterSheetContent(
     currentFilter: ExpenseSearchFilter,
+    allCategories: List<Category>,
     onApplyFilter: (ExpenseSearchFilter) -> Unit,
     onDismiss: () -> Unit
 ) {
     var generatedTypes by remember { mutableStateOf(currentFilter.generatedTypes ?: emptyList()) }
-    var categoryOnlyNull by remember { 
+
+    // カテゴリーフィルターの状態
+    var categoryOnlyNull by remember {
         mutableStateOf(
-            currentFilter.categoryIds != null && 
-            currentFilter.categoryIds.size == 1 && 
-            currentFilter.categoryIds[0] == null
-        ) 
+            currentFilter.categoryIds != null &&
+                    currentFilter.categoryIds.size == 1 &&
+                    currentFilter.categoryIds[0] == null
+        )
     }
+    var selectedCategoryIds by remember {
+        mutableStateOf(
+            currentFilter.categoryIds?.filterNotNull() ?: emptyList()
+        )
+    }
+
     var storeNameText by remember { mutableStateOf(currentFilter.storeName ?: "") }
     var itemNameText by remember { mutableStateOf(currentFilter.itemName ?: "") }
     var noteText by remember { mutableStateOf(currentFilter.note ?: "") }
@@ -277,6 +292,7 @@ fun FilterSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Row(
@@ -303,19 +319,18 @@ fun FilterSheetContent(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         val availableTypes = listOf(
-            GeneratedType.MANUAL to "手動生成",
-            GeneratedType.AUTO to "自動生成",
-            GeneratedType.REPEAT_ADD to "繰り返し追加",
-            GeneratedType.MAIL_EXTRACTION to "メール抽出"
+            GeneratedType.MANUAL,
+            GeneratedType.REPEAT_ADD,
+            GeneratedType.MAIL_EXTRACTION
         )
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            availableTypes.forEach { (type, label) ->
+            availableTypes.forEach { type ->
                 FilterChip(
                     selected = type in generatedTypes,
                     onClick = {
@@ -325,7 +340,7 @@ fun FilterSheetContent(
                             generatedTypes + type
                         }
                     },
-                    label = { Text(label) }
+                    label = { Text(convertGeneratedTypeToDisplay(type)) }
                 )
             }
         }
@@ -339,14 +354,66 @@ fun FilterSheetContent(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         FilterChip(
             selected = categoryOnlyNull,
-            onClick = { categoryOnlyNull = !categoryOnlyNull },
+            onClick = {
+                categoryOnlyNull = !categoryOnlyNull
+                // カテゴリー未設定を選択した場合、他の選択をクリア
+                if (categoryOnlyNull) {
+                    selectedCategoryIds = emptyList()
+                }
+            },
             label = { Text("カテゴリー未設定のみ") }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // カテゴリー選択チップ（複数選択可能）
+        if (allCategories.isNotEmpty()) {
+            Text(
+                text = "または特定のカテゴリーを選択:",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // カテゴリーチップをFlowRowのように配置
+            val chunkedCategories = allCategories.chunked(3)
+            chunkedCategories.forEach { rowCategories ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowCategories.forEach { category ->
+                        category.id?.let { categoryId ->
+                            FilterChip(
+                                selected = categoryId in selectedCategoryIds,
+                                onClick = {
+                                    selectedCategoryIds = if (categoryId in selectedCategoryIds) {
+                                        selectedCategoryIds - categoryId
+                                    } else {
+                                        selectedCategoryIds + categoryId
+                                    }
+                                    // カテゴリーを選択した場合、「未設定のみ」をクリア
+                                    if (selectedCategoryIds.isNotEmpty()) {
+                                        categoryOnlyNull = false
+                                    }
+                                },
+                                label = { Text(category.name ?: "不明") },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    // 行が3つに満たない場合は空のスペースを埋める
+                    repeat(3 - rowCategories.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // テキスト検索フィルター
         Text(
@@ -355,7 +422,7 @@ fun FilterSheetContent(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         OutlinedTextField(
             value = storeNameText,
             onValueChange = { storeNameText = it },
@@ -363,9 +430,9 @@ fun FilterSheetContent(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         OutlinedTextField(
             value = itemNameText,
             onValueChange = { itemNameText = it },
@@ -373,9 +440,9 @@ fun FilterSheetContent(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         OutlinedTextField(
             value = noteText,
             onValueChange = { noteText = it },
@@ -389,9 +456,16 @@ fun FilterSheetContent(
         // 適用ボタン
         Button(
             onClick = {
+                // カテゴリーフィルターの決定
+                val categoryIdsFilter = when {
+                    categoryOnlyNull -> listOf(null) // カテゴリー未設定のみ
+                    selectedCategoryIds.isNotEmpty() -> selectedCategoryIds // 選択されたカテゴリーID
+                    else -> null // フィルターなし
+                }
+
                 val newFilter = ExpenseSearchFilter(
                     generatedTypes = if (generatedTypes.isNotEmpty()) generatedTypes else null,
-                    categoryIds = if (categoryOnlyNull) listOf(null) else null,
+                    categoryIds = categoryIdsFilter,
                     storeName = storeNameText.ifBlank { null },
                     itemName = itemNameText.ifBlank { null },
                     note = noteText.ifBlank { null }
@@ -402,7 +476,7 @@ fun FilterSheetContent(
         ) {
             Text("フィルターを適用")
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
