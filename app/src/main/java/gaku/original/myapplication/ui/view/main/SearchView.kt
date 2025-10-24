@@ -79,13 +79,18 @@ fun SearchView(
     var showFilterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.searchExpenses {
-            if (it.status == FuncStatus.SUCCESS) {
-                LogAkitaDebug("search success!!")
-            } else if (it.status == FuncStatus.TIMEOUT) {
-                LogAkitaDebug("Timeout")
-            } else {
-                LogAkitaDebug("Failed")
+        viewModel.searchExpenses { result ->
+            LogAkitaDebug("Initial search result: status=${result.status}, error=${result.errorMessage}")
+            when (result.status) {
+                FuncStatus.SUCCESS -> {
+                    LogAkitaDebug("初期検索成功")
+                }
+                FuncStatus.TIMEOUT -> {
+                    LogAkitaDebug("初期検索タイムアウト: ${result.errorMessage}")
+                }
+                FuncStatus.FAILED -> {
+                    LogAkitaDebug("初期検索失敗: ${result.errorMessage}")
+                }
             }
         }
     }
@@ -107,13 +112,13 @@ fun SearchView(
                 onShowFilterSheet = { showFilterSheet = true },
                 onResetFilter = {
                     viewModel.resetFilter()
-                    viewModel.searchExpenses {
-                        LogAkitaDebug("Reset filter and search")
+                    viewModel.searchExpenses { result ->
+                        LogAkitaDebug("Reset filter result: status=${result.status}, error=${result.errorMessage}")
                     }
                 },
                 onRefresh = {
-                    viewModel.searchExpenses {
-                        LogAkitaDebug("Refresh search")
+                    viewModel.searchExpenses { result ->
+                        LogAkitaDebug("Refresh result: status=${result.status}, error=${result.errorMessage}")
                     }
                 }
             )
@@ -181,8 +186,19 @@ fun SearchView(
                 currentFilter = currentFilter.value,
                 allCategories = allCategories.value,
                 onApplyFilter = { filter ->
-                    viewModel.searchWithFilter(filter) {
-                        LogAkitaDebug("Apply filter and search")
+                    viewModel.searchWithFilter(filter) { result ->
+                        LogAkitaDebug("Apply filter result: status=${result.status}, error=${result.errorMessage}")
+                        when (result.status) {
+                            FuncStatus.SUCCESS -> {
+                                LogAkitaDebug("フィルター適用成功")
+                            }
+                            FuncStatus.TIMEOUT -> {
+                                LogAkitaDebug("フィルター適用タイムアウト: ${result.errorMessage}")
+                            }
+                            FuncStatus.FAILED -> {
+                                LogAkitaDebug("フィルター適用失敗: ${result.errorMessage}")
+                            }
+                        }
                     }
                     showFilterSheet = false
                 },
@@ -272,11 +288,9 @@ fun FilterSheetContent(
     var generatedTypes by remember { mutableStateOf(currentFilter.generatedTypes ?: emptyList()) }
 
     // カテゴリーフィルターの状態
-    var categoryOnlyNull by remember {
+    var includeNullCategory by remember {
         mutableStateOf(
-            currentFilter.categoryIds != null &&
-                    currentFilter.categoryIds.size == 1 &&
-                    currentFilter.categoryIds[0] == null
+            currentFilter.categoryIds?.contains(null) ?: false
         )
     }
     var selectedCategoryIds by remember {
@@ -314,7 +328,7 @@ fun FilterSheetContent(
 
         // GeneratedTypeフィルター
         Text(
-            text = "生成タイプ",
+            text = "追加方法",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -356,15 +370,11 @@ fun FilterSheetContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         FilterChip(
-            selected = categoryOnlyNull,
+            selected = includeNullCategory,
             onClick = {
-                categoryOnlyNull = !categoryOnlyNull
-                // カテゴリー未設定を選択した場合、他の選択をクリア
-                if (categoryOnlyNull) {
-                    selectedCategoryIds = emptyList()
-                }
+                includeNullCategory = !includeNullCategory
             },
-            label = { Text("カテゴリー未設定のみ") }
+            label = { Text("カテゴリー未設定を含む") }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -394,10 +404,6 @@ fun FilterSheetContent(
                                     } else {
                                         selectedCategoryIds + categoryId
                                     }
-                                    // カテゴリーを選択した場合、「未設定のみ」をクリア
-                                    if (selectedCategoryIds.isNotEmpty()) {
-                                        categoryOnlyNull = false
-                                    }
                                 },
                                 label = { Text(category.name ?: "不明") },
                                 modifier = Modifier.weight(1f)
@@ -424,6 +430,16 @@ fun FilterSheetContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
+            value = noteText,
+            onValueChange = { noteText = it },
+            label = { Text("メモ") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
             value = storeNameText,
             onValueChange = { storeNameText = it },
             label = { Text("ストア名") },
@@ -441,27 +457,23 @@ fun FilterSheetContent(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = noteText,
-            onValueChange = { noteText = it },
-            label = { Text("メモ") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
         Spacer(modifier = Modifier.height(24.dp))
 
         // 適用ボタン
         Button(
             onClick = {
                 // カテゴリーフィルターの決定
-                val categoryIdsFilter = when {
-                    categoryOnlyNull -> listOf(null) // カテゴリー未設定のみ
-                    selectedCategoryIds.isNotEmpty() -> selectedCategoryIds // 選択されたカテゴリーID
-                    else -> null // フィルターなし
-                }
+                val categoryIdsFilter =
+                    if (includeNullCategory || selectedCategoryIds.isNotEmpty()) {
+                        val ids = mutableListOf<String?>()
+                        if (includeNullCategory) {
+                            ids.add(null)
+                        }
+                        ids.addAll(selectedCategoryIds)
+                        ids.toList()
+                    } else {
+                        null // フィルターなし
+                    }
 
                 val newFilter = ExpenseSearchFilter(
                     generatedTypes = if (generatedTypes.isNotEmpty()) generatedTypes else null,
@@ -470,6 +482,8 @@ fun FilterSheetContent(
                     itemName = itemNameText.ifBlank { null },
                     note = noteText.ifBlank { null }
                 )
+
+                LogAkitaDebug("Applying filter: $newFilter")
                 onApplyFilter(newFilter)
             },
             modifier = Modifier.fillMaxWidth()
