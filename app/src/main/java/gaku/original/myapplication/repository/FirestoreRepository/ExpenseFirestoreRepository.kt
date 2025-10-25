@@ -217,6 +217,4 @@ class ExpenseFirestoreRepository @Inject constructor(
             result
         }
     }
-
-
 }
