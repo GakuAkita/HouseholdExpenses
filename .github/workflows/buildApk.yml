@@ -20,3 +20,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build With Gradle
+        run: |
+          ./gradlew assembleRelease
