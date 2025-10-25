@@ -128,7 +128,6 @@ fun MainView(
     }
 
     LaunchedEffect(Unit) {
-        LogAkitaDebug("LaunchedEffect(Unit) Running???")
         /* 内部で一回だけ実行するようにしている、、 */
         viewModel.onSignedIn(callback = { status ->
             when (status.status) {
