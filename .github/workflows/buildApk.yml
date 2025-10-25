@@ -1,11 +1,11 @@
 name: Build apk
 
+# どうやらこのflowは失敗するので、一応作って保存しておくが使わない
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
-
+  # push:
+  #   branches:
+  #     - main
 jobs:
   build:
     name: Build
@@ -21,3 +21,24 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: false
+          # より安全なキャッシュキー（必要に応じて）
+          # cache-encryption-key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          java-version: '17'
+
+      - name: Build With Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+        shell: bash
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
