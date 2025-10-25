@@ -62,10 +62,22 @@ class SearchViewModel @Inject constructor(
 
     /**
      * 現在のフィルター条件で検索を実行
+     * コスト最適化のため、テキスト検索が含まれる場合は厳格な検索を使用
      */
     private suspend fun searchExpensesInternal(): FuncResultWithData<List<Expense>> {
         _loadingStatus.value = LoadingStatus.LOADING
-        val result = expenseFirestoreRepository.searchExpenses(_currentFilter.value)
+        
+        // テキスト検索が含まれている場合は厳格な検索を使用（コスト削減）
+        val hasTextSearch = _currentFilter.value.storeName != null || 
+                           _currentFilter.value.itemName != null || 
+                           _currentFilter.value.note != null
+        
+        val result = if (hasTextSearch) {
+            expenseFirestoreRepository.searchExpensesStrict(_currentFilter.value)
+        } else {
+            expenseFirestoreRepository.searchExpenses(_currentFilter.value)
+        }
+        
         if (result is FuncResultWithData.Success) {
             _loadingStatus.value = LoadingStatus.SUCCESS
             _searchedExpenses.value = result.data

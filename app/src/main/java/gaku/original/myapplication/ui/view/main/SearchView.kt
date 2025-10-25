@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.view.main
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -40,7 +43,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +75,8 @@ fun SearchView(
     viewModel: SearchViewModel = hiltViewModel(),
     navController: NavController
 ) {
+    val funcName = "SearchView"
+
     val expenses = viewModel.searchedExpenses.collectAsState()
     val listState = rememberLazyListState()
     val loadingStatus = viewModel.loadingStatus.collectAsState()
@@ -77,19 +84,48 @@ fun SearchView(
     val allCategories = viewModel.allCategories.collectAsState()
 
     var showFilterSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.searchExpenses { result ->
-            LogAkitaDebug("Initial search result: status=${result.status}, error=${result.errorMessage}")
+            Log.d(
+                funcName,
+                "Initial search result: status=${result.status}, error=${result.errorMessage}"
+            )
             when (result.status) {
                 FuncStatus.SUCCESS -> {
-                    LogAkitaDebug("初期検索成功")
+                    Log.d(funcName, "初期検索成功")
                 }
+
                 FuncStatus.TIMEOUT -> {
-                    LogAkitaDebug("初期検索タイムアウト: ${result.errorMessage}")
+                    Log.d(funcName, "初期検索タイムアウト: ${result.errorMessage}")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "タイムアウトしました: ${result.errorMessage}",
+                            actionLabel = "OK"
+                        )
+                    }
                 }
+
                 FuncStatus.FAILED -> {
-                    LogAkitaDebug("初期検索失敗: ${result.errorMessage}")
+                    Log.d(funcName, "初期検索失敗: ${result.errorMessage}")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "検索に失敗しました: ${result.errorMessage}",
+                            actionLabel = "OK"
+                        )
+                    }
+                }
+
+                else -> {
+                    Log.d(funcName, "初期検索その他: ${result.errorMessage}")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "エラーが発生しました: ${result.errorMessage}",
+                            actionLabel = "OK"
+                        )
+                    }
                 }
             }
         }
@@ -99,7 +135,8 @@ fun SearchView(
         topBar = {
             TopBarView("検索")
         },
-        bottomBar = { BottomBarView(navController) }
+        bottomBar = { BottomBarView(navController) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -113,12 +150,74 @@ fun SearchView(
                 onResetFilter = {
                     viewModel.resetFilter()
                     viewModel.searchExpenses { result ->
-                        LogAkitaDebug("Reset filter result: status=${result.status}, error=${result.errorMessage}")
+                        Log.d(
+                            funcName,
+                            "Reset filter result: status=${result.status}, error=${result.errorMessage}"
+                        )
+                        when (result.status) {
+                            FuncStatus.TIMEOUT -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "タイムアウトしました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                            FuncStatus.FAILED -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "検索に失敗しました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                            else -> {
+                                if (result.status != FuncStatus.SUCCESS) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "エラーが発生しました: ${result.errorMessage}",
+                                            actionLabel = "OK"
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 onRefresh = {
                     viewModel.searchExpenses { result ->
-                        LogAkitaDebug("Refresh result: status=${result.status}, error=${result.errorMessage}")
+                        Log.d(
+                            funcName,
+                            "Refresh result: status=${result.status}, error=${result.errorMessage}"
+                        )
+                        when (result.status) {
+                            FuncStatus.TIMEOUT -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "タイムアウトしました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                            FuncStatus.FAILED -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "検索に失敗しました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+                            else -> {
+                                if (result.status != FuncStatus.SUCCESS) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "エラーが発生しました: ${result.errorMessage}",
+                                            actionLabel = "OK"
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             )
@@ -131,22 +230,6 @@ fun SearchView(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator()
-                }
-            } else if (loadingStatus.value == LoadingStatus.ERROR) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("データの取得に失敗しました。")
-                }
-            } else if (loadingStatus.value == LoadingStatus.TIMEOUT) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("タイムアウトしました。")
                 }
             } else if (loadingStatus.value == LoadingStatus.SUCCESS && expenses.value.isEmpty()) {
                 Row(
@@ -187,16 +270,46 @@ fun SearchView(
                 allCategories = allCategories.value,
                 onApplyFilter = { filter ->
                     viewModel.searchWithFilter(filter) { result ->
-                        LogAkitaDebug("Apply filter result: status=${result.status}, error=${result.errorMessage}")
+                        Log.d(
+                            funcName,
+                            "Apply filter result: status=${result.status}, error=${result.errorMessage}"
+                        )
                         when (result.status) {
                             FuncStatus.SUCCESS -> {
-                                LogAkitaDebug("フィルター適用成功")
+                                Log.d(funcName, "フィルター適用成功")
                             }
+
                             FuncStatus.TIMEOUT -> {
-                                LogAkitaDebug("フィルター適用タイムアウト: ${result.errorMessage}")
+                                Log.d(
+                                    funcName,
+                                    "フィルター適用タイムアウト: ${result.errorMessage}"
+                                )
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "タイムアウトしました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
                             }
+
                             FuncStatus.FAILED -> {
-                                LogAkitaDebug("フィルター適用失敗: ${result.errorMessage}")
+                                Log.d(funcName, "フィルター適用失敗: ${result.errorMessage}")
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "フィルター適用に失敗しました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
+                            }
+
+                            else -> {
+                                Log.d(funcName, "フィルター適用その他: ${result.errorMessage}")
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "エラーが発生しました: ${result.errorMessage}",
+                                        actionLabel = "OK"
+                                    )
+                                }
                             }
                         }
                     }
