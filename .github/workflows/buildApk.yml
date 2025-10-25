@@ -1,10 +1,11 @@
 name: Build apk
 
+# どうやらこのflowは失敗するので、一応作って保存しておくが使わない
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 jobs:
   build:
     name: Build
