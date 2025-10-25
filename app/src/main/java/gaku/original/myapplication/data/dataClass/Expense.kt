@@ -44,7 +44,6 @@ fun getDefaultExpense(): Expense {
     )
 }
 
-/* 使われていない？↓ */
 /* firebase functions側と一致させないとまずい */
 class GeneratedType {
     companion object {

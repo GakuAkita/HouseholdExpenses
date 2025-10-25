@@ -29,6 +29,7 @@ jobs:
           cache-read-only: false
           # より安全なキャッシュキー（必要に応じて）
           # cache-encryption-key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          java-version: '17'
 
       - name: Build With Gradle
         run: |
