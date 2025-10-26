@@ -32,6 +32,10 @@ import gaku.original.myapplication.data.dataClass.AssignmentCondition
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 
+/**
+ * 同じ名前のCategoryDropDownが定義されているが、
+ * これはこれで問題ないらしい
+ */
 @Composable
 fun CategoryDropDown(
     initialCategory: Category?,
