@@ -8,10 +8,8 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncStatusInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlin.coroutines.resume
 
 /**
  * 引数のデータは一切いじらず、
@@ -26,34 +24,10 @@ suspend fun addDataToFirestore(
     return try {
         withTimeout(timeout) {
             withContext(Dispatchers.IO) {
-                suspendCancellableCoroutine { continuation ->
-                    reference.add(data)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val statusInfo =
-                                    FuncStatusInfo(FuncStatus.SUCCESS, "")
-                                callback(statusInfo)
-                                continuation.resume(
-                                    Pair(
-                                        statusInfo,
-                                        task.result
-                                    )
-                                )
-                            } else {
-                                val statusInfo = FuncStatusInfo(
-                                    FuncStatus.FAILED,
-                                    task.exception?.message ?: "不明なエラーが発生しました"
-                                )
-                                callback(statusInfo)
-                                continuation.resume(
-                                    Pair(
-                                        statusInfo,
-                                        null
-                                    )
-                                )
-                            }
-                        }
-                }
+                val task = reference.add(data).await()
+                val statusInfo = FuncStatusInfo(FuncStatus.SUCCESS, "")
+                callback(statusInfo)
+                Pair(statusInfo, task)
             }
         }
     } catch (e: TimeoutCancellationException) {
@@ -91,35 +65,21 @@ suspend fun setDataToFirestoreWithOption(
     return try {
         withTimeout(timeout) {
             withContext(Dispatchers.IO) {
-                suspendCancellableCoroutine { continuation ->
-                    val task = if (setOptions != null) {
-                        reference.set(data, setOptions)
-                    } else {
-                        reference.set(data)
-                    }
-
-                    task.addOnCompleteListener { result ->
-                        if (result.isSuccessful) {
-                            Log.d(funcName, "Data ($data) was set successfully")
-                            val statusInfo = FuncStatusInfo(FuncStatus.SUCCESS, "")
-                            continuation.resume(statusInfo)
-                        } else {
-                            Log.e(funcName, "Failed to set data $data", result.exception)
-                            val statusInfo = FuncStatusInfo(
-                                FuncStatus.FAILED,
-                                result.exception?.message ?: "不明なエラーが発生しました"
-                            )
-                            continuation.resume(statusInfo)
-                        }
-                    }
+                if (setOptions != null) {
+                    reference.set(data, setOptions).await()
+                } else {
+                    reference.set(data).await()
                 }
+                Log.d(funcName, "Data ($data) was set successfully")
+                FuncStatusInfo(FuncStatus.SUCCESS, "")
             }
         }
     } catch (e: TimeoutCancellationException) {
         val statusInfo = FuncStatusInfo(FuncStatus.TIMEOUT, "タイムアウトしました。")
         return statusInfo
     } catch (e: Exception) {
-        val statusInfo = FuncStatusInfo(FuncStatus.FAILED, "${e.message}")
+        Log.e(funcName, "Failed to set data $data", e)
+        val statusInfo = FuncStatusInfo(FuncStatus.FAILED, e.message ?: "不明なエラーが発生しました")
         return statusInfo
     }
 }
@@ -160,22 +120,8 @@ suspend fun removeDocument(
         // タイムアウトを設定して削除処理
         withTimeout(timeout) {
             withContext(Dispatchers.IO) {
-                suspendCancellableCoroutine { continuation ->
-                    reference.delete()
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val statusInfo =
-                                    FuncStatusInfo(FuncStatus.SUCCESS, "")
-                                continuation.resume(statusInfo)
-                            } else {
-                                val statusInfo = FuncStatusInfo(
-                                    FuncStatus.FAILED,
-                                    task.exception?.message ?: "Failed to delete document"
-                                )
-                                continuation.resume(statusInfo)
-                            }
-                        }
-                }
+                reference.delete().await()
+                FuncStatusInfo(FuncStatus.SUCCESS, "")
             }
         }
     } catch (e: TimeoutCancellationException) {
