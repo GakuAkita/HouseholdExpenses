@@ -513,7 +513,7 @@ fun ExpenseAddEditView(
                     RowSpace()
                     Row {
                         CategoryDropDown(
-                            initialCategoryId = expense.category?.id,
+                            initialCategory = expense.category,
                             categories = allCategories,
                             onCategorySelected = {
                                 viewModel.updateExpenseCategoryAt(index, it)

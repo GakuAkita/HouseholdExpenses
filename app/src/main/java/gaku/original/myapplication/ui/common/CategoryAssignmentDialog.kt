@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,7 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 
 @Composable
 fun CategoryDropDown(
-    initialCategoryId: String?,
+    initialCategory: Category?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
@@ -42,8 +43,15 @@ fun CategoryDropDown(
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
 
-    if (selectedCategory == null) {
-        selectedCategory = categories.find { it.id == initialCategoryId }
+    // 初期カテゴリーを設定
+    LaunchedEffect(initialCategory, categories) {
+        if (selectedCategory == null) {
+            if (initialCategory != null) {
+                // まず現在のカテゴリーリストから探す
+                val foundCategory = categories.find { it.id == initialCategory.id }
+                selectedCategory = foundCategory ?: initialCategory // 見つからない場合は元のカテゴリーを使用
+            }
+        }
     }
 
     Box(
@@ -81,6 +89,22 @@ fun CategoryDropDown(
                 )
             }
 
+            // 現在選択されているカテゴリーが削除されたカテゴリーの場合は表示
+            if (selectedCategory != null && selectedCategory !in categories) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = selectedCategory?.name ?: "不明なカテゴリー",
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onCategorySelected(selectedCategory!!)
+                    }
+                )
+            }
+
             categories.forEach { category ->
                 DropdownMenuItem(
                     text = { Text(text = category.name ?: "") },
@@ -93,6 +117,35 @@ fun CategoryDropDown(
             }
         }
     }
+}
+
+@Composable
+fun CategoryDropDown(
+    initialCategoryId: String?,
+    categories: List<Category>,
+    onCategorySelected: (Category) -> Unit,
+    nullOption: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    // initialCategoryIdをCategoryオブジェクトに変換
+    val initialCategory = remember(initialCategoryId, categories) {
+        if (initialCategoryId != null) {
+            categories.find { it.id == initialCategoryId } ?: Category(
+                id = initialCategoryId,
+                name = "削除されたカテゴリー"
+            )
+        } else {
+            null
+        }
+    }
+
+    CategoryDropDown(
+        initialCategory = initialCategory,
+        categories = categories,
+        onCategorySelected = onCategorySelected,
+        nullOption = nullOption,
+        modifier = modifier
+    )
 }
 
 @Composable

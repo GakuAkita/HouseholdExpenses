@@ -474,7 +474,7 @@ fun RepeatAddEditDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     CategoryDropDown(
-                        initialCategoryId = newRepeatAdd.expense.category?.id,
+                        initialCategory = newRepeatAdd.expense.category,
                         categories = categories.value,
                         onCategorySelected = {
                             newRepeatAdd = newRepeatAdd.copy(
