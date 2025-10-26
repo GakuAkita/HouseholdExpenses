@@ -33,4 +33,15 @@ class SharedPreferencesRepository @Inject constructor(
 object PrefKeys {
     const val PAYPAY_RECEIPT_LEFT_MASK_RATIO = "paypay_receipt_left_mask_ratio"
     const val PAYPAY_RECEIPT_TOP_MASK_RATIO = "paypay_receipt_top_mask_ratio"
+    
+    // SearchFilter用のキー
+    const val SEARCH_FILTER_GENERATED_TYPES = "search_filter_generated_types"
+    const val SEARCH_FILTER_CATEGORY_IDS = "search_filter_category_ids"
+    const val SEARCH_FILTER_DATE_FROM = "search_filter_date_from"
+    const val SEARCH_FILTER_DATE_TO = "search_filter_date_to"
+    const val SEARCH_FILTER_AMOUNT_MIN = "search_filter_amount_min"
+    const val SEARCH_FILTER_AMOUNT_MAX = "search_filter_amount_max"
+    const val SEARCH_FILTER_STORE_NAME = "search_filter_store_name"
+    const val SEARCH_FILTER_ITEM_NAME = "search_filter_item_name"
+    const val SEARCH_FILTER_NOTE = "search_filter_note"
 }

@@ -9,9 +9,10 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
+import android.util.Log
 import gaku.original.myapplication.data.dataClass.getDefaultSearchFilter
 import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.utility.LogAkitaDebug
+import gaku.original.myapplication.useCase.SearchFilterUseCase
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,13 +25,14 @@ class SearchViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseFirestoreRepository,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
     private val expenseSharedViewModel: ExpenseSharedViewModel,
+    private val searchFilterUseCase: SearchFilterUseCase,
 ) : ViewModel() {
     override fun onCleared() {
         /**
          * 他のボトムバーに移動したときにViewModelは破棄される
          */
         super.onCleared()
-        LogAkitaDebug("${this::class.simpleName} Cleared!!!!")
+        Log.d("SearchViewModel", "onCleared: ViewModel cleared")
     }
 
     private val _loadingStatus = MutableStateFlow(LoadingStatus.SUCCESS)
@@ -39,25 +41,71 @@ class SearchViewModel @Inject constructor(
     private val _searchedExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val searchedExpenses: StateFlow<List<Expense>> get() = _searchedExpenses
 
-    // 現在のフィルター条件（デフォルトはカテゴリーがnull）
-    private val _currentFilter = MutableStateFlow(getDefaultSearchFilter())
+    // 現在のフィルター条件（初期化時にSharedPreferencesから復元）
+    private val _currentFilter = MutableStateFlow(loadSavedFilter())
     val currentFilter: StateFlow<ExpenseSearchFilter> get() = _currentFilter
 
     // カテゴリー一覧（ExpenseSharedViewModelから取得）
     val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     /**
-     * フィルター条件を更新
+     * 保存されたフィルターを復元
      */
-    fun updateFilter(filter: ExpenseSearchFilter) {
-        _currentFilter.value = filter
+    private fun loadSavedFilter(): ExpenseSearchFilter {
+        val result = searchFilterUseCase.loadSavedFilterOrDefault()
+        return when (result) {
+            is FuncResultWithData.Success -> {
+                Log.d("SearchViewModel", "loadSavedFilter: Loaded filter successfully: ${result.data}")
+                result.data
+            }
+            is FuncResultWithData.Failure -> {
+                Log.e("SearchViewModel", "loadSavedFilter: Failed to load filter: ${result.errorMessage}, using default")
+                getDefaultSearchFilter()
+            }
+            else -> {
+                Log.e("SearchViewModel", "loadSavedFilter: Unexpected result type: $result, using default")
+                getDefaultSearchFilter()
+            }
+        }
     }
 
     /**
-     * フィルター条件をリセット（カテゴリーがnullのデフォルト）
+     * フィルター条件を更新し、SharedPreferencesに保存
+     */
+    fun updateFilter(filter: ExpenseSearchFilter) {
+        _currentFilter.value = filter
+        val result = searchFilterUseCase.saveSearchFilter(filter)
+        when (result) {
+            is FuncResultWithData.Success -> {
+                Log.d("SearchViewModel", "updateFilter: Filter saved successfully: ${result.data}")
+            }
+            is FuncResultWithData.Failure -> {
+                Log.e("SearchViewModel", "updateFilter: Failed to save filter: ${result.errorMessage}")
+            }
+            else -> {
+                Log.e("SearchViewModel", "updateFilter: Unexpected result type: $result")
+            }
+        }
+    }
+
+    /**
+     * フィルター条件をリセット（カテゴリーがnullのデフォルト）し、SharedPreferencesに保存
      */
     fun resetFilter() {
-        _currentFilter.value = getDefaultSearchFilter()
+        val defaultFilter = getDefaultSearchFilter()
+        _currentFilter.value = defaultFilter
+        val result = searchFilterUseCase.saveSearchFilter(defaultFilter)
+        when (result) {
+            is FuncResultWithData.Success -> {
+                Log.d("SearchViewModel", "resetFilter: Default filter saved successfully: ${result.data}")
+            }
+            is FuncResultWithData.Failure -> {
+                Log.e("SearchViewModel", "resetFilter: Failed to save default filter: ${result.errorMessage}")
+            }
+            else -> {
+                Log.e("SearchViewModel", "resetFilter: Unexpected result type: $result")
+            }
+        }
     }
 
     /**
@@ -81,7 +129,7 @@ class SearchViewModel @Inject constructor(
         if (result is FuncResultWithData.Success) {
             _loadingStatus.value = LoadingStatus.SUCCESS
             _searchedExpenses.value = result.data
-            LogAkitaDebug("expenses:${_searchedExpenses.value}")
+            Log.d("SearchViewModel", "searchExpensesInternal: Found ${result.data.size} expenses")
         } else {
             if (result is FuncResultWithData.Failure.Timeout) {
                 _loadingStatus.value = LoadingStatus.TIMEOUT
@@ -118,7 +166,7 @@ class SearchViewModel @Inject constructor(
         if (result is FuncResultWithData.Success) {
             _loadingStatus.value = LoadingStatus.SUCCESS
             _searchedExpenses.value = result.data
-            LogAkitaDebug("expenses:${_searchedExpenses.value}")
+            Log.d("SearchViewModel", "searchExpensesInternal: Found ${result.data.size} expenses")
         } else {
             if (result is FuncResultWithData.Failure.Timeout) {
                 _loadingStatus.value = LoadingStatus.TIMEOUT
