@@ -18,33 +18,29 @@ import kotlinx.coroutines.withTimeout
 suspend fun addDataToFirestore(
     data: Any,
     reference: CollectionReference,
-    timeout: Long = 3000,
-    callback: (FuncStatusInfo) -> Unit = { _ -> }
-): Pair<FuncStatusInfo, DocumentReference?> {
+    timeout: Long = 3000,    
+): FuncResultWithData<DocumentReference?> {
     return try {
         withTimeout(timeout) {
             withContext(Dispatchers.IO) {
                 val task = reference.add(data).await()
                 val statusInfo = FuncStatusInfo(FuncStatus.SUCCESS, "")
                 callback(statusInfo)
-                Pair(statusInfo, task)
+                FuncResultWithData.Success(task)
             }
         }
     } catch (e: TimeoutCancellationException) {
         val statusInfo =
             FuncStatusInfo(FuncStatus.TIMEOUT, "タイムアウトが発生しました。")
         callback(statusInfo)
-        Pair(
-            statusInfo,
-            null
-        )
+        FuncResultWithData.Failure.Timeout("タイムアウトが発生しました。")
     } catch (e: Exception) {
         val statusInfo =
             FuncStatusInfo(FuncStatus.FAILED, e.message ?: "不明なエラー")
         callback(statusInfo)
-        Pair(
-            statusInfo,
-            null
+        FuncResultWithData.Failure.GenericFailure(
+            status = FuncStatus.FAILED,
+            errorMessage = e.message ?: "不明なエラー"
         )
     }
 }
