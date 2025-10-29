@@ -262,6 +262,18 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
     },
     async () => {
       await scheduledMailboxExtraction(schedule.mailTypes);
+
+      /**
+       * 
+       */
+      if (schedule.id === "daily") {
+        /**
+         * CloudSchedulerは合計3つしか無料で使えないらしい
+         * RepeatAddで毎月実行は必要だから、他の歯dailyとshortPeriodの2つしか使えない。
+         * したがって、なにか増えたときはこのようにidで条件分岐をして加えていく
+         */
+        await amazonSubscribeMonitor();
+      }
     }
   );
 }
@@ -293,15 +305,3 @@ const amazonSubscribeMonitor = async () => {
     }
   }
 };
-
-exports.daily_amazonSubscribeMonitorJob = onSchedule(
-  {
-    schedule: "0 8 * * *", // 毎日 8:00 JST
-    timeZone: TriggerTimeZone, // 現在時刻の設定も日本にしているから、大丈夫。
-    concurrency: 1,
-  },
-  async (_) => {
-    logger.log("Starting daily amazonSubscribeMonitor job...");
-    await amazonSubscribeMonitor();
-  }
-);
