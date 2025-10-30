@@ -1,12 +1,13 @@
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.Interface.HasId
-import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -43,11 +44,23 @@ suspend fun <T> addDataToRTDbSimple(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        val statusInfo = FuncStatusInfo(
-            FuncStatus.TIMEOUT,
-            "Timeout occurred"
-        )
-        statusInfo
+        Log.w(funcName, "Timeout occurred — checking local cache reflection")
+
+        val isReflected = try {
+            delay(100) // 少し待ってローカル反映を確実にする
+            isLocalWriteReflected(reference, data)
+        } catch (inner: Exception) {
+            Log.w(funcName, "Local reflection check failed: ${inner.message}")
+            false
+        }
+
+        if (isReflected) {
+            Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
+            FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+        } else {
+            Log.w(funcName, "Local cache not updated; timeout remains.")
+            FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+        }
     } catch (e: Exception) {
         val statusInfo = FuncStatusInfo(
             FuncStatus.FAILED,
