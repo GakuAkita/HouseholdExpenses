@@ -119,29 +119,40 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                     namePattern,
                 )
             if (addRet is FuncResultWithData.Success) {
-                /**
-                 *  本当はstoreNameかproductNameかを見て、片方だけ更新するだけでいいが、、
-                 *  まあそんな頻繁に更新するものでもないから全部取ってしまおう。
-                 *  */
-                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate(2000L)
+                Log.d(className, "addCategoryAssignment succeeded remotely.")
+                // まずローカルの配列に追加
+                val addedAssignment = addRet.data
+                val id = addedAssignment.id
+                if (id != null) {
+                    val targetMap =
+                        currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
+                            ?: mutableMapOf()
+                    targetMap[id] = addedAssignment
+                    val updatedData = currentData.copyWithUpdatedMap(namePattern, targetMap)
+                    _assignmentData.value = updatedData
+                }
 
-                var ret: FuncStatusInfo
-                if (fetchRet is FuncResultWithData.Success) {
-                    _assignmentData.value = fetchRet.data
-                    ret = fetchRet.toFuncStatusInfo()
-                } else {
-                    Log.e(
-                        className,
-                        "Failed to fetch updated category assignment data: ${fetchRet.toFuncStatusInfo().errorMessage}"
-                    )
-                    ret = FuncStatusInfo(
+                // 成功コールバックを即座に返す
+                callback(
+                    FuncStatusInfo(
                         status = FuncStatus.SUCCESS,
                         errorMessage = "データ追加には成功しました"
                     )
-                    /* ここでローカルの配列に追加しておきたい */
+                )
+                // 裏でLocalUpdateを実行
+                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate(2000L)
+                if (fetchRet !is FuncResultWithData.Success) {
+                    Log.e(
+                        className,
+                        "Failed to fetch updated category assignment data in background: ${fetchRet.toFuncStatusInfo().errorMessage}"
+                    )
                 }
-                callback(ret)
+
             } else {
+                Log.d(
+                    className,
+                    "addCategoryAssignment failed remotely: ${addRet.toFuncStatusInfo().errorMessage}"
+                )
                 callback(addRet.toFuncStatusInfo())
             }
         }
@@ -170,19 +181,13 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                     namePattern,
                 )
 
-            var ret: FuncStatusInfo = updateRet
             if (updateRet.status == FuncStatus.SUCCESS) {
-                /* ローカルについてはidを見つけて、そこだけ更新 */
-                val currentMap = _assignmentData.value?.copy()
-                val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
-                val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
-                if (targetMap == null) {
-                    ret = FuncStatusInfo(
-                        status = FuncStatus.FAILED,
-                        errorMessage = "名前パターンからカテゴリー割当を取得できません"
-                    )
-                } else {
-                    if (targetMap.containsKey(id)) {
+                // まずローカルの配列を更新
+                val id = assignment.id
+                if (id != null) {
+                    val targetMap =
+                        currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
+                    if (targetMap != null && targetMap.containsKey(id)) {
                         // id に該当する assignment を更新
                         targetMap[id] = assignment
 
@@ -191,15 +196,28 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
                         // StateFlow に反映
                         _assignmentData.value = updatedData
-                    } else {
-                        ret = FuncStatusInfo(
-                            status = FuncStatus.FAILED,
-                            errorMessage = "更新には成功しましたが、UIへの反映に失敗しました"
-                        )
                     }
                 }
+
+                // 成功コールバックを即座に返す
+                callback(
+                    FuncStatusInfo(
+                        status = FuncStatus.SUCCESS,
+                        errorMessage = "データ更新に成功しました"
+                    )
+                )
+
+                // 裏でLocalUpdateを実行
+                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate(2000L)
+                if (fetchRet !is FuncResultWithData.Success) {
+                    Log.e(
+                        className,
+                        "Failed to fetch updated category assignment data in background: ${fetchRet.toFuncStatusInfo().errorMessage}"
+                    )
+                }
+            } else {
+                callback(updateRet)
             }
-            callback(ret)
         }
     }
 
@@ -226,20 +244,13 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                     namePattern,
                 )
 
-            var ret: FuncStatusInfo = removeRet
             if (removeRet.status == FuncStatus.SUCCESS) {
-                /* ローカルについてはidを見つけて、そこだけ削除 */
-                val currentMap = _assignmentData.value?.copy()
-                val id = assignment.id!!/* ここは大丈夫。場合によってはチェックした方が良い。 */
-                val targetMap = currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
-                if (targetMap == null) {
-                    //ここに来ることはないはず、、
-                    ret = FuncStatusInfo(
-                        status = FuncStatus.FAILED,
-                        errorMessage = "名前パターンからカテゴリー割当を取得できません"
-                    )
-                } else {
-                    if (targetMap.containsKey(id)) {
+                // まずローカルの配列から削除
+                val id = assignment.id
+                if (id != null) {
+                    val targetMap =
+                        currentData.getAssignmentsByNamePattern(namePattern)?.toMutableMap()
+                    if (targetMap != null && targetMap.containsKey(id)) {
                         // id に該当する assignment を削除
                         targetMap.remove(id)
 
@@ -248,15 +259,28 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
                         // StateFlow に反映
                         _assignmentData.value = updatedData
-                    } else {
-                        ret = FuncStatusInfo(
-                            status = FuncStatus.FAILED,
-                            errorMessage = "削除には成功しましたが、UIへの反映に失敗しました"
-                        )
                     }
                 }
+
+                // 成功コールバックを即座に返す
+                callback(
+                    FuncStatusInfo(
+                        status = FuncStatus.SUCCESS,
+                        errorMessage = "データ削除には成功しました"
+                    )
+                )
+
+                // 裏でLocalUpdateを実行
+                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate(2000L)
+                if (fetchRet !is FuncResultWithData.Success) {
+                    Log.e(
+                        className,
+                        "Failed to fetch updated category assignment data in background: ${fetchRet.toFuncStatusInfo().errorMessage}"
+                    )
+                }
+            } else {
+                callback(removeRet)
             }
-            callback(ret)
         }
     }
 
