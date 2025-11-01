@@ -1,6 +1,7 @@
 import android.util.Log
 import com.google.firebase.database.DatabaseReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
+import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.Interface.HasId
@@ -15,12 +16,13 @@ import kotlin.coroutines.resume
 
 /**
  * ただReferenceに追加するだけ
+ * 成功時に追加したデータを返す
  */
 suspend fun <T> addDataToRTDbSimple(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): FuncStatusInfo = withContext(Dispatchers.IO) {
+): FuncResultWithData<T> = withContext(Dispatchers.IO) {
     val funcName = "addDataToRTDbSimple"
     LogAkitaDebug("${funcName} called")
     try {
@@ -29,17 +31,17 @@ suspend fun <T> addDataToRTDbSimple(
                 LogAkitaDebug("${data}")
                 reference.setValue(data)
                     .addOnCompleteListener { task ->
-                        val statusInfo = if (task.isSuccessful) {
+                        val result = if (task.isSuccessful) {
                             Log.d(funcName, "Data added successfully")
-                            FuncStatusInfo(FuncStatus.SUCCESS, "")
+                            FuncResultWithData.Success(data)
                         } else {
                             Log.e(funcName, "Failed to add data", task.exception)
-                            FuncStatusInfo(
-                                FuncStatus.FAILED,
-                                task.exception?.message ?: "Unknown error"
+                            FuncResultWithData.Failure.GenericFailure(
+                                status = FuncStatus.FAILED,
+                                errorMessage = task.exception?.message ?: "Unknown error"
                             )
                         }
-                        continuation.resume(statusInfo)
+                        continuation.resume(result)
                     }
             }
         }
@@ -56,29 +58,29 @@ suspend fun <T> addDataToRTDbSimple(
 
         if (isReflected) {
             Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
-            FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+            FuncResultWithData.Success(data)
         } else {
             Log.w(funcName, "Local cache not updated; timeout remains.")
-            FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+            FuncResultWithData.Failure.Timeout("Timeout (not reflected locally)")
         }
     } catch (e: Exception) {
-        val statusInfo = FuncStatusInfo(
-            FuncStatus.FAILED,
-            e.message ?: "Unknown error"
+        FuncResultWithData.Failure.GenericFailure(
+            status = FuncStatus.FAILED,
+            errorMessage = e.message ?: "Unknown error"
         )
-        statusInfo
     }
 }
 
 
 /**
  * 親referenceを渡して、その下にpushして追加する
+ * idが設定されたデータを返す
  */
 suspend fun <T : HasId> addDataToRTDbWithId(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): FuncStatusInfo {
+): FuncResultWithData<T> {
     val newDataRef = reference.push()
     data.id = newDataRef.key
     return addDataToRTDbSimple(
@@ -92,7 +94,7 @@ suspend fun <T : CommonProperty> addDataToRTDbWithCommonProperty(
     data: T,
     reference: DatabaseReference,
     timeout: Long = 2000,
-): FuncStatusInfo {
+): FuncResultWithData<T> {
 
     val newDataRef = reference.push()
 

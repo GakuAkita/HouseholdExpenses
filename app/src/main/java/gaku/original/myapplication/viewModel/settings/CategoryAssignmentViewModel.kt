@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.FuncStatusInfo
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
@@ -71,8 +71,8 @@ class CategoryAssignmentEditViewModel @Inject constructor(
 
     }
 
-    suspend fun fetchCategoryAssignmentDataWithLocalUpdate(): FuncResultWithData<CategoryAssignmentData> {
-        val result = categoryAssignmentUseCase.getCategoryAssignmentData()
+    suspend fun fetchCategoryAssignmentDataWithLocalUpdate(timeout: Long = 10000): FuncResultWithData<CategoryAssignmentData> {
+        val result = categoryAssignmentUseCase.getCategoryAssignmentData(timeout)
         if (result is FuncResultWithData.Success) {
             /**
              * リモートに何もなかった場合は、storeとproductはnullになる。
@@ -113,17 +113,17 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                 return@launch
             }
 
-            val addRet: FuncStatusInfo =
+            val addRet: FuncResultWithData<CategoryAssignment> =
                 categoryAssignmentUseCase.addCategoryAssignmentWithCheck(
                     assignment,
                     namePattern,
                 )
-            if (addRet.status == FuncStatus.SUCCESS) {
+            if (addRet is FuncResultWithData.Success) {
                 /**
                  *  本当はstoreNameかproductNameかを見て、片方だけ更新するだけでいいが、、
                  *  まあそんな頻繁に更新するものでもないから全部取ってしまおう。
                  *  */
-                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate()
+                val fetchRet = fetchCategoryAssignmentDataWithLocalUpdate(2000L)
 
                 var ret: FuncStatusInfo
                 if (fetchRet is FuncResultWithData.Success) {
@@ -135,13 +135,14 @@ class CategoryAssignmentEditViewModel @Inject constructor(
                         "Failed to fetch updated category assignment data: ${fetchRet.toFuncStatusInfo().errorMessage}"
                     )
                     ret = FuncStatusInfo(
-                        status = FuncStatus.FAILED,
-                        errorMessage = "データ追加には成功しましたが、その後のリモートデータ取得で失敗しました。 ${fetchRet.toFuncStatusInfo().errorMessage}"
+                        status = FuncStatus.SUCCESS,
+                        errorMessage = "データ追加には成功しました"
                     )
+                    /* ここでローカルの配列に追加しておきたい */
                 }
                 callback(ret)
             } else {
-                callback(addRet)
+                callback(addRet.toFuncStatusInfo())
             }
         }
     }

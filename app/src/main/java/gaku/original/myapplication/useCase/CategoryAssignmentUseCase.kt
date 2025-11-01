@@ -5,11 +5,12 @@ import gaku.original.myapplication.data.CheckResult
 import gaku.original.myapplication.data.Constants.Status.CheckStatus
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.FuncStatusInfo
+import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
 import gaku.original.myapplication.data.dataClass.checkAssignment
+import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.repository.RealtimeDBrepository.CategoryAssignmentRepository
 import javax.inject.Inject
 
@@ -37,22 +38,23 @@ class CategoryAssignmentUseCase @Inject constructor(
         }
     }
 
-    suspend fun getCategoryAssignmentData(): FuncResultWithData<CategoryAssignmentData> {
-        return categoryAssignmentRepository.getCategoryAssignmentData()
+    suspend fun getCategoryAssignmentData(timeout: Long = 10000L): FuncResultWithData<CategoryAssignmentData> {
+        return categoryAssignmentRepository.getCategoryAssignmentData(timeout)
     }
 
     /**
      * ダブりチェックを含める
+     * idが設定されたデータを返す
      */
     suspend fun addCategoryAssignmentWithCheck(
         categoryAssignment: CategoryAssignment,
         namePattern: CategoryAssignNamePattern,
-    ): FuncStatusInfo {
+    ): FuncResultWithData<CategoryAssignment> {
         val refRet = getCategoryAssignmentRef(
             pattern = namePattern
         )
         if (refRet !is FuncResultWithData.Success) {
-            return refRet.toFuncStatusInfo()
+            return refRet.mapFailure()
         }
         val reference = refRet.data
 
@@ -62,10 +64,9 @@ class CategoryAssignmentUseCase @Inject constructor(
          */
         val dataRet = categoryAssignmentRepository.getCategoryAssignments(reference)
         if (dataRet !is FuncResultWithData.Success) {
-            val statusInfo = dataRet.toFuncStatusInfo()
-            return FuncStatusInfo(
-                status = statusInfo.status,
-                errorMessage = "ダブりチェックのための既存カテゴリー割当の取得に失敗しました:${statusInfo.errorMessage}"
+            return FuncResultWithData.Failure.GenericFailure(
+                status = FuncStatus.FAILED,
+                errorMessage = "ダブりチェックのための既存カテゴリー割当の取得に失敗しました:${dataRet.toFuncStatusInfo().errorMessage}"
             )
         }
         val data = dataRet.data
@@ -73,7 +74,7 @@ class CategoryAssignmentUseCase @Inject constructor(
         val checkRet: CheckResult = checkAssignment(categoryAssignment, data)
 
         if (checkRet.status != CheckStatus.OK) {
-            return FuncStatusInfo(
+            return FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
                 errorMessage = checkRet.errorMessage
             )

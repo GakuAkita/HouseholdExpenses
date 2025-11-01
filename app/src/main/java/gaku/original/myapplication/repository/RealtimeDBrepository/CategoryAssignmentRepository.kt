@@ -37,7 +37,9 @@ class CategoryAssignmentRepository @Inject constructor(
         return realtimeDbReference.getStoreNameCategoryAssignmentRef()
     }
 
-    suspend fun getCategoryAssignmentData(): FuncResultWithData<CategoryAssignmentData> {
+    suspend fun getCategoryAssignmentData(
+        timeout: Long = 10000
+    ): FuncResultWithData<CategoryAssignmentData> {
         val funcName = ::getCategoryAssignmentData.name
 
         val refRet = getCategoryAssignmentDataRef()
@@ -48,7 +50,7 @@ class CategoryAssignmentRepository @Inject constructor(
         val ref = refRet.data
 
         return try {
-            withTimeout(10000) {
+            withTimeout(timeout) {
                 withContext(Dispatchers.IO) {
                     val snapshot = ref.get().await()
                     if (!snapshot.exists()) {
@@ -146,7 +148,7 @@ class CategoryAssignmentRepository @Inject constructor(
     suspend fun addCategoryAssignment(
         categoryAssignment: CategoryAssignment,
         reference: DatabaseReference
-    ): FuncStatusInfo {
+    ): FuncResultWithData<CategoryAssignment> {
         return addDataToRTDbWithId(
             data = categoryAssignment,
             reference = reference
