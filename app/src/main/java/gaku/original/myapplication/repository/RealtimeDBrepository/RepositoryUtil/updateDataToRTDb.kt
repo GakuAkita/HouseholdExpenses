@@ -5,6 +5,7 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.utility.toMap
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
@@ -51,12 +52,25 @@ suspend fun <T : HasId> updateDataToRTDb(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        Log.e(funcName, "Timeout occurred")
-        val statusInfo = FuncStatusInfo(
-            status = FuncStatus.TIMEOUT,
-            errorMessage = "Timeout occurred"
-        )
-        return statusInfo
+        // タイムアウト発生時
+        Log.w(funcName, "Timeout occurred — checking local cache reflection")
+
+        // ローカルキャッシュに反映されているか確認
+        val isReflected = try {
+            delay(100) // 若干の反映遅延対策（optional）
+            isLocalWriteReflected(updateRef, data)
+        } catch (inner: Exception) {
+            Log.w(funcName, "Local reflection check failed: ${inner.message}")
+            false
+        }
+
+        if (isReflected) {
+            Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
+            return FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+        } else {
+            Log.w(funcName, "Local cache not updated; timeout remains.")
+            return FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+        }
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
         val statusInfo = FuncStatusInfo(
@@ -97,12 +111,25 @@ suspend fun <T : Any> updateAnyDataToRTDb(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        Log.e(funcName, "Timeout occurred")
-        val statusInfo = FuncStatusInfo(
-            status = FuncStatus.TIMEOUT,
-            errorMessage = "Timeout occurred"
-        )
-        return statusInfo
+        // タイムアウト発生時
+        Log.w(funcName, "Timeout occurred — checking local cache reflection")
+
+        // ローカルキャッシュに反映されているか確認
+        val isReflected = try {
+            delay(100) // 若干の反映遅延対策（optional）
+            isLocalWriteReflected(reference, data)
+        } catch (inner: Exception) {
+            Log.w(funcName, "Local reflection check failed: ${inner.message}")
+            false
+        }
+
+        if (isReflected) {
+            Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
+            return FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+        } else {
+            Log.w(funcName, "Local cache not updated; timeout remains.")
+            return FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+        }
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
         val statusInfo = FuncStatusInfo(
@@ -145,11 +172,25 @@ suspend fun <T : Any> setAnyDataToRTDb(
             }
         }
     } catch (e: TimeoutCancellationException) {
-        Log.e(funcName, "Timeout occurred")
-        return FuncStatusInfo(
-            status = FuncStatus.TIMEOUT,
-            errorMessage = "Timeout occurred"
-        )
+        // タイムアウト発生時
+        Log.w(funcName, "Timeout occurred — checking local cache reflection")
+
+        // ローカルキャッシュに反映されているか確認
+        val isReflected = try {
+            delay(100) // 若干の反映遅延対策（optional）
+            isLocalWriteReflected(reference, data)
+        } catch (inner: Exception) {
+            Log.w(funcName, "Local reflection check failed: ${inner.message}")
+            false
+        }
+
+        if (isReflected) {
+            Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
+            return FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+        } else {
+            Log.w(funcName, "Local cache not updated; timeout remains.")
+            return FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+        }
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
         return FuncStatusInfo(

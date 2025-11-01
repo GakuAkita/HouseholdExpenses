@@ -47,6 +47,35 @@ suspend fun <T> isLocalWriteReflected(
     }
 }
 
+/**
+ * 削除がローカルキャッシュに反映されているか確認。
+ * 削除の場合は、参照が存在しないことを確認する。
+ */
+suspend fun isLocalDeleteReflected(
+    reference: DatabaseReference
+): Boolean = suspendCancellableCoroutine { continuation ->
+    val listener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            // 削除の場合、存在しないことを確認
+            val isDeleted = !snapshot.exists()
+            continuation.resume(isDeleted)
+            reference.removeEventListener(this) // 明示的に解除
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            continuation.resume(false)
+            reference.removeEventListener(this) // 安全解除
+        }
+    }
+
+    reference.addListenerForSingleValueEvent(listener)
+
+    continuation.invokeOnCancellation {
+        // コルーチンキャンセル時にもリスナー解除
+        reference.removeEventListener(listener)
+    }
+}
+
 suspend fun <T : HasId> removeDataFromRTDb(
     data: T,
     reference: DatabaseReference,
@@ -93,20 +122,21 @@ suspend fun <T : HasId> removeDataFromRTDb(
         // ⏱ タイムアウト発生時
         Log.w(funcName, "Timeout occurred — checking local cache reflection")
 
-        // ローカルキャッシュに反映されているか確認
+        // ローカルキャッシュに反映されているか確認（削除の場合、参照が存在しないことを確認）
         val isReflected = try {
             delay(100) // 若干の反映遅延対策（optional）
-            isLocalWriteReflected(reference, data)
+            isLocalDeleteReflected(reference.child(id))
         } catch (inner: Exception) {
+            Log.w(funcName, "Local reflection check failed: ${inner.message}")
             false
         }
 
         if (isReflected) {
-            Log.i(funcName, "Local cache reflects data; treating as SUCCESS")
-            FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
+            Log.i(funcName, "Local cache reflects deletion; treating as SUCCESS")
+            return FuncStatusInfo(FuncStatus.SUCCESS, "Reflected locally (offline mode)")
         } else {
             Log.w(funcName, "Local cache not updated; timeout remains.")
-            FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
+            return FuncStatusInfo(FuncStatus.TIMEOUT, "Timeout (not reflected locally)")
         }
     } catch (e: Exception) {
         Log.e(funcName, "Exception occurred", e)
