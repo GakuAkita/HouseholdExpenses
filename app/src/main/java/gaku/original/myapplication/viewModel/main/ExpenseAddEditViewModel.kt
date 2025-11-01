@@ -391,7 +391,7 @@ class ExpenseAddEditViewModel @Inject constructor(
         viewModelScope.launch {
             val ret =
                 categoryAssignmentUseCase.addCategoryAssignmentWithCheck(assignment, namePattern)
-            callback(ret)
+            callback(ret.toFuncStatusInfo())
         }
     }
 
