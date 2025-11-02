@@ -77,8 +77,7 @@ exports.repeatAddTest = functions.https.onRequest(async (req, res) => {
 });
 /**
  * ユーザーが作成されたときに走らせる
- * 注意：Gen1はnode18以前でないとdeployに失敗する。package.jsonの"engines"の"node"をアップデートしてはいけない！
- * 今のところ、Gen2にonUserCreateみたいな関数はないので、nodeもこのままにしておく。2025/6/4
+ * 注意：Node.js 18は2025-10-30に廃止されたため、Node.js 20以上が必須。2025/11/2
  */
 exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
   const uid = user.uid;
