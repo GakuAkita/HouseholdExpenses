@@ -1,8 +1,9 @@
+import { logger } from "firebase-functions";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { AmazonSubscribeItem } from "../../type/Mailbox";
 
 export class AmazonSubscribeNextShipmentMailParser {
-  constructor(private rawText: string) {}
+  constructor(private rawText: string) { }
 
   /**
     ..様、こんにちは
@@ -31,17 +32,24 @@ export class AmazonSubscribeNextShipmentMailParser {
     配送を管理する (url)
    */
 
-  extractProductName(): string | null {
+  extractProductName(): string[] {
     const regex = /([^\r\n]+)\r?\n[^\r\n]*ごとのユニット/gm;
     const matches = [...this.rawText.matchAll(regex)].map((m) => m[1]);
-    if (matches.length === 0) return null;
+    if (matches.length === 0) return [];
 
     // 末尾の「...」だけ削除（全角省略記号「…」にも対応）
-    const product = matches[0].replace(/(?:\.{3}|…)\s*$/, "").trim();
-    return product;
+    const products = matches.map((product) =>
+      product.replace(/(?:\.{3}|…)\s*$/, "").trim()
+    );
+    logger.debug(`Extracted product names: ${products}`);
+    return products;
   }
 
   extractPrice(): number | null {
+    /**
+     * 単一の製品なら大丈夫だが、rawTextに複数の製品がある場合、注文合計は各商品の価格にはもちろんならない。
+     * rawTextから取りたいのだが、どうやら取れないっぽい。したがって、Expenseを作るときは
+     */
     // 注文合計(税込) の取得
     const totalMatch = this.rawText.match(/注文合計\s*\(税込\)\s*￥([\d,]+)/);
     const orderTotal = totalMatch
@@ -50,32 +58,43 @@ export class AmazonSubscribeNextShipmentMailParser {
     return orderTotal;
   }
 
-  extractQuantity(): number {
-    const match = this.rawText.match(/(\d+)\s*ごとのユニット/);
-    const quantity = match ? parseInt(match[1], 10) : 1;
-    return quantity;
+  extractQuantity(): number[] {
+    const regex = /([^\r\n]+)\r?\n[^\r\n]*(\d+)\s*ごとのユニット/gm;
+    const matches = [...this.rawText.matchAll(regex)];
+    if (matches.length === 0) return [];
+
+    const quantities = matches.map((m) => {
+      const quantity = parseInt(m[2], 10);
+      return isNaN(quantity) ? 1 : quantity;
+    });
+    return quantities;
   }
 
-  toSubscribeItem(): FuncResultWithData<AmazonSubscribeItem> {
-    const productName = this.extractProductName();
+  toSubscribeItem(): FuncResultWithData<AmazonSubscribeItem[]> {
+    const productNames = this.extractProductName();
     const price = this.extractPrice();
-    const quantity = this.extractQuantity();
+    const quantities = this.extractQuantity();
 
-    if (!productName || !price || !quantity) {
+    if (productNames.length === 0 || !price) {
       return {
         status: FuncStatus.ERROR,
-        message: `ProductName${productName} , Price:${price}, Quantity:${quantity} are invalid.`,
+        message: `ProductNames:${productNames.length} , Price:${price} are invalid.`,
       };
-    } else {
-      const item: AmazonSubscribeItem = {
+    }
+
+    // 製品名と数量の数が一致しない場合は、数量の数に合わせるか、デフォルト値を使う
+    const items: AmazonSubscribeItem[] = productNames.map((productName, index) => {
+      const quantity = quantities[index] ?? 1;
+      return {
         productName: productName,
         price: price,
         quantity: quantity,
       };
-      return {
-        status: FuncStatus.SUCCESS,
-        data: item,
-      };
-    }
+    });
+
+    return {
+      status: FuncStatus.SUCCESS,
+      data: items,
+    };
   }
 }

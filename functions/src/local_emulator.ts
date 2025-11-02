@@ -97,9 +97,14 @@ const execAmazonSubscribe = async () => {
 
   const ret =
     await amazonSubscribeMointorProcessor.handleAmazonSubscribeItems();
+
+  await mailboxExtractionService.setAmazonSubscribeMonitorLastExec(userId, {
+    timestamp: 1,
+    lastMsgId: "",
+  });
 };
 
-// execAmazonSubscribe();
+execAmazonSubscribe();
 
 const init_add = async () => {
   await userService.addUserCol(userId);
@@ -414,6 +419,6 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-processMailTest();
+//processMailTest();
 
 

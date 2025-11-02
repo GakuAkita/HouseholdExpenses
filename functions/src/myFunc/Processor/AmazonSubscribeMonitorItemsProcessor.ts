@@ -20,8 +20,10 @@ import {
   getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
 import {
+  extractHtmlBody,
   extractTextBody,
   getSubjectFromMessage,
+  stripHtmlTags,
 } from "../utility/gmail/extractHtmlBody";
 import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
@@ -45,7 +47,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
   }
 
   async handleAmazonSubscribeItems(): Promise<FuncResult> {
-    const funcName = "updateAmazonSubscribeList";
+    const funcName = "handleAmazonSubscribeList";
 
     const type = createAmazonSubscribeSettingInstance();
     let ret =
@@ -205,11 +207,18 @@ export class AmazonSubscribeMonitorItemsProcessor {
           continue;
         }
 
+        /* デバッグ。あとで消す */
+        const debugHtml = extractHtmlBody(gmail.payload);
+        if (debugHtml) {
+          const debugText = stripHtmlTags(debugHtml);
+          console.log(`debugText: ${debugText}`);
+        }
+
         const subject = getSubjectFromMessage(gmail);
         if (
           subject == AmazonMailSubjects.NEXT_SHIPMENT ||
           subject ==
-            AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
+          AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
         ) {
           const parser = new AmazonSubscribeNextShipmentMailParser(rawText);
           const ret = parser.toSubscribeItem();
@@ -218,23 +227,25 @@ export class AmazonSubscribeMonitorItemsProcessor {
             continue;
           }
 
-          const item: AmazonSubscribeItem = ret.data!;
-          logger.log(
-            `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
-          );
+          const items: AmazonSubscribeItem[] = ret.data!;
+          for (const item of items) {
+            logger.log(
+              `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
+            );
 
-          /**
-           * アイテムの中に製品名があるかチェックする
-           * 価格、個数
-           */
-          const updateRet = await this.updateAmazonSubscribeItems(
-            item,
-            subscribeItems
-          );
+            /**
+             * アイテムの中に製品名があるかチェックする
+             * 価格、個数
+             */
+            const updateRet = await this.updateAmazonSubscribeItems(
+              item,
+              subscribeItems
+            );
 
-          if (updateRet.status == FuncStatus.SUCCESS) {
-            /* 成功の場合のみここでmapを更新 */
-            subscribeItems = updateRet.data!;
+            if (updateRet.status == FuncStatus.SUCCESS) {
+              /* 成功の場合のみここでmapを更新 */
+              subscribeItems = updateRet.data!;
+            }
           }
         } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
           logger.log(`-------This is item runout mail--------`);
@@ -266,8 +277,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
           );
           if (removeRet.status == FuncStatus.SUCCESS) {
             logger.debug(
-              `Removed ${item.productName} ${
-                removeRet?.message ? removeRet.message : "No message"
+              `Removed ${item.productName} ${removeRet?.message ? removeRet.message : "No message"
               }`
             );
             subscribeItems = removeRet.data!;
@@ -282,8 +292,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
              */
           } else {
             logger.log(
-              `Something went wrong: ${
-                removeRet.message ? removeRet.message : "No message"
+              `Something went wrong: ${removeRet.message ? removeRet.message : "No message"
               }`
             );
           }
