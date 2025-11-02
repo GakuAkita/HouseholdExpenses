@@ -207,20 +207,24 @@ export class AmazonSubscribeMonitorItemsProcessor {
           continue;
         }
 
-        /* デバッグ。あとで消す */
-        const debugHtml = extractHtmlBody(gmail.payload);
-        if (debugHtml) {
-          const debugText = stripHtmlTags(debugHtml);
-          console.log(`debugText: ${debugText}`);
-        }
-
         const subject = getSubjectFromMessage(gmail);
         if (
           subject == AmazonMailSubjects.NEXT_SHIPMENT ||
           subject ==
           AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
         ) {
-          const parser = new AmazonSubscribeNextShipmentMailParser(rawText);
+          /**
+           *  普通にplain textで取得すると、価格の情報が抜けてしまうので
+           *  HTMLを削除してテキストを取得する
+           *  その後、AmazonSubscribeNextShipmentMailParserで解析する
+           */
+          let htmlStrippedText = extractHtmlBody(gmail.payload, true);
+          if (!htmlStrippedText) {
+            logger.error("Unable to extract HTML stripped Text from the mail");
+            continue;
+          }
+
+          const parser = new AmazonSubscribeNextShipmentMailParser(htmlStrippedText);
           const ret = parser.toSubscribeItem();
           if (ret.status != FuncStatus.SUCCESS) {
             logger.error(`${ret.message}`);

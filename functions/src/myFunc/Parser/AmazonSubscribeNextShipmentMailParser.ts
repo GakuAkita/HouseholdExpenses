@@ -33,29 +33,77 @@ export class AmazonSubscribeNextShipmentMailParser {
    */
 
   extractProductName(): string[] {
-    const regex = /([^\r\n]+)\r?\n[^\r\n]*ごとのユニット/gm;
-    const matches = [...this.rawText.matchAll(regex)].map((m) => m[1]);
-    if (matches.length === 0) return [];
+    // 「ごとのユニット」を含む行の直前の非空行を製品名として取得
+    // 各行を分割して、「ごとのユニット」を含む行の前の行を探す
+    const lines = this.rawText.split(/\r?\n/);
+    const productNames: string[] = [];
 
-    // 末尾の「...」だけ削除（全角省略記号「…」にも対応）
-    const products = matches.map((product) =>
-      product.replace(/(?:\.{3}|…)\s*$/, "").trim()
-    );
-    logger.debug(`Extracted product names: ${products}`);
-    return products;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      // 「ごとのユニット」を含む行を見つける
+      if (/\d+\s*ごとのユニット/.test(line)) {
+        // 前の行を遡って非空行を探す
+        for (let j = i - 1; j >= 0; j--) {
+          const prevLine = lines[j].trim();
+          if (prevLine) {
+            // 末尾の「...」だけ削除（全角省略記号「…」にも対応）
+            const productName = prevLine.replace(/(?:\.{3}|…)\s*$/, "").trim();
+            if (productName) {
+              productNames.push(productName);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    logger.debug(`Extracted product names: ${productNames}`);
+    return productNames;
   }
 
-  extractPrice(): number | null {
-    /**
-     * 単一の製品なら大丈夫だが、rawTextに複数の製品がある場合、注文合計は各商品の価格にはもちろんならない。
-     * rawTextから取りたいのだが、どうやら取れないっぽい。したがって、Expenseを作るときは
-     */
-    // 注文合計(税込) の取得
-    const totalMatch = this.rawText.match(/注文合計\s*\(税込\)\s*￥([\d,]+)/);
-    const orderTotal = totalMatch
-      ? parseInt(totalMatch[1].replace(/,/g, ""), 10)
-      : null;
-    return orderTotal;
+  extractPrice(): (number | null)[] {
+    const lines = this.rawText.split(/\r?\n/);
+    const prices: (number | null)[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      // 「ごとのユニット」を含む行を見つける
+      if (/\d+\s*ごとのユニット/.test(line)) {
+        let foundPrice: number | null = null;
+
+        // 「ごとのユニット」の行以降の数行を探索（最大5行まで）
+        for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+          const searchLine = lines[j].trim();
+
+          // まず「新価格: ￥X,XXX」のパターンを探す
+          const newPriceMatch = searchLine.match(/新価格:\s*￥([\d,]+)/);
+          if (newPriceMatch) {
+            foundPrice = parseInt(newPriceMatch[1].replace(/,/g, ""), 10);
+            break;
+          }
+
+          // 「新価格」がない場合、「￥X,XXX」のパターンを探す
+          // ただし「前回の購入価格」や「お得」などの行は除外
+          if (!foundPrice && !/前回の購入価格|お得|割引/.test(searchLine)) {
+            const priceMatch = searchLine.match(/￥([\d,]+)/);
+            if (priceMatch) {
+              foundPrice = parseInt(priceMatch[1].replace(/,/g, ""), 10);
+              // 「新価格」が後にある可能性があるので、もう少し探索を続ける
+              // ただし、次の製品名や「配送を管理」などのキーワードが出たら終了
+              if (j + 1 < lines.length && !/配送を管理|この配達に含まれる/.test(lines[j + 1].trim())) {
+                continue;
+              }
+              break;
+            }
+          }
+        }
+
+        prices.push(foundPrice);
+      }
+    }
+
+    logger.debug(`Extracted prices: ${prices}`);
+    return prices;
   }
 
   extractQuantity(): number[] {
@@ -72,22 +120,25 @@ export class AmazonSubscribeNextShipmentMailParser {
 
   toSubscribeItem(): FuncResultWithData<AmazonSubscribeItem[]> {
     const productNames = this.extractProductName();
-    const price = this.extractPrice();
+    const prices = this.extractPrice();
     const quantities = this.extractQuantity();
 
-    if (productNames.length === 0 || !price) {
+    if (productNames.length === 0) {
       return {
         status: FuncStatus.ERROR,
-        message: `ProductNames:${productNames.length} , Price:${price} are invalid.`,
+        message: `ProductNames:${productNames.length} are invalid.`,
       };
     }
 
-    // 製品名と数量の数が一致しない場合は、数量の数に合わせるか、デフォルト値を使う
+    // 製品名と数量、価格の数が一致しない場合は、デフォルト値を使う
     const items: AmazonSubscribeItem[] = productNames.map((productName, index) => {
       const quantity = quantities[index] ?? 1;
+      const price = prices[index];
+      // 価格が取得できない場合は1を設定
+      const finalPrice = price !== null && price !== undefined ? price : 1;
       return {
         productName: productName,
-        price: price,
+        price: finalPrice,
         quantity: quantity,
       };
     });
