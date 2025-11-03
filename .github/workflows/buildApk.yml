@@ -47,9 +47,18 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
+      - name: Rename apk
+        shell: bash
+        run: |
+          DATE=$(date +%Y%m%d)
+          TIME=$(date +%H%M%S)
+          NEW_PATH="app/build/outputs/apk/release/app-release-unsigned-signed-${DATE}-${TIME}.apk"
+          mv app/build/outputs/apk/release/app-release-unsigned-signed.apk "$NEW_PATH"
+          echo "APK_FILE=$NEW_PATH" >> $GITHUB_ENV
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release-unsigned-signed.apk
+          path: ${{ env.APK_FILE }}
           retention-days: 1
