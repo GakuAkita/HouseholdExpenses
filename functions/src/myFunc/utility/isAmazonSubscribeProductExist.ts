@@ -1,3 +1,4 @@
+import { logger } from "firebase-functions";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { AmazonSubscribeItem } from "../../type/Mailbox";
 
@@ -13,8 +14,8 @@ export function isAmazonSubscribeProductExist(
       message: `item's product name is empty`,
     };
   }
-  for (const [id, item] of Object.entries(itemMap)) {
-    const productName = item.productName?.trim();
+  for (const [id, itemInMap] of Object.entries(itemMap)) {
+    const productName = itemInMap.productName?.trim();
     if (!productName) {
       return {
         status: FuncStatus.ERROR,
@@ -22,18 +23,34 @@ export function isAmazonSubscribeProductExist(
       };
     }
 
+    /**
+     * targetNameが引数に渡されるほう
+     * productNameがmapに登録されているほう
+     */
+    logger.debug(`isAmazonSubscribeProductExist:  targetName: ${targetName}, productName: ${productName}`);
+
     const shorter =
       targetName.length <= productName.length ? targetName : productName;
+
+    /**
+     *  targetName.length >= productName.lengthになってしまうと、強制的に存在する扱いになっていしまう！！
+     *  なぜなら両方にproductNameが入ってしまうから。
+     *  そのため、targetName.length > productName.lengthになっている方をlongerとしている。
+     *  確率的にはあまりないんだが、targetNamneとproductNameが同じ文字数になってしまうケースが有る、、
+     */
     const longer =
-      targetName.length >= productName.length ? targetName : productName;
+      targetName.length > productName.length ? targetName : productName;
+
     if (longer.startsWith(shorter)) {
+      logger.log(`isAmazonSubscribeProductExist: Found ${item.productName} in the map.`);
+      logger.debug(`isAmazonSubscribeProductExist: !!!${longer} starts with ${shorter}!!!`);
       return {
         status: FuncStatus.SUCCESS,
         data: id,
       };
     }
   }
-
+  logger.log(`isAmazonSubscribeProductExist: Not found ${item.productName} in the map.`);
   /* ここまで来たら新規追加 */
   return {
     status: FuncStatus.EMPTY,
