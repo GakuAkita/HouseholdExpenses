@@ -26,9 +26,6 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
-      # こんなエラーが出た。なので、このステップを挟む。      
-      # Couldnt find the Android build tools @ /usr/local/lib/android/sdk/build-tools...
-      # 参考：https://github.com/r0adkll/sign-android-release/issues/84#issuecomment-1889636075
       - name: Setup build tool version variable
         shell: bash
         run: |
@@ -46,8 +43,7 @@ jobs:
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          output: app/build/outputs/apk/release/app-release-signed.apk
+          keyPassword: ${{ secrets.KEY_PASSWORD }}          
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
@@ -55,5 +51,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release-signed.apk
+          path: app/build/outputs/apk/release/app-release-unsigned-signed.apk
           retention-days: 1
