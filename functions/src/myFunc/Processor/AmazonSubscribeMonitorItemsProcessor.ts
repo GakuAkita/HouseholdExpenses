@@ -233,8 +233,6 @@ export class AmazonSubscribeMonitorItemsProcessor {
 
           const items: AmazonSubscribeItem[] = ret.data!;
 
-          console.log("===================================================");
-          logger.log(`${JSON.stringify(subscribeItems)}`);
           for (const item of items) {
             logger.log(
               `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
@@ -253,7 +251,6 @@ export class AmazonSubscribeMonitorItemsProcessor {
               /* 成功の場合のみここでmapを更新 */
               subscribeItems = updateRet.data!;
             }
-            console.log("--------------------------------");
           }
         } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
           logger.log(`-------This is item runout mail--------`);
