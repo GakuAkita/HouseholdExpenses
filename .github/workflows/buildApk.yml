@@ -15,6 +15,10 @@ jobs:
         with:
           ref: ${{ github.ref_name || 'main' }}
 
+      - name: copy google-services-json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > ./app/google-services.json
+
       - name: Build With Gradle
         shell: bash
         run: |
