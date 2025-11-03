@@ -8,7 +8,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -32,7 +31,6 @@ fun UserInfoView(
 
         bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
-        val context = LocalContext.current
 
         Column(
             modifier = Modifier
@@ -43,13 +41,6 @@ fun UserInfoView(
                 )
                 .padding(horizontal = 10.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-            ) {
-                Text("ユーザーID:")
-                Text("${viewModel.userId}")
-            }
             Row {
                 Text("Email:")
                 Text("${viewModel.email}")
