@@ -232,6 +232,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
           }
 
           const items: AmazonSubscribeItem[] = ret.data!;
+
           for (const item of items) {
             logger.log(
               `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
@@ -338,10 +339,13 @@ export class AmazonSubscribeMonitorItemsProcessor {
     /* 追加/updateしたときに新しいMapを返す */
     let ret: FuncResultWithData<Record<string, AmazonSubscribeItem>>;
     const existRet = isAmazonSubscribeProductExist(item, itemMap);
+
     if (existRet.status == FuncStatus.ERROR) {
+      logger.error(`${existRet.message}`);
       /* 何かしらのエラー */
       ret = toFuncResult(existRet);
     } else if (existRet.status == FuncStatus.EMPTY) {
+      logger.log(`New item: ${item.productName} should be added.`);
       /* 存在しないので新規追加 */
       const addRet =
         await this.mailboxExtractionService.addAmazonSubscribeMonitorItem(
@@ -370,6 +374,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
         existingItem.price !== item.price ||
         existingItem.quantity !== item.quantity
       ) {
+        logger.log("This item:${existingItem.productName} must be updated.");
         /* 価格と個数が違えばupdate */
         const updatedItem: AmazonSubscribeItem = {
           ...existingItem,
@@ -395,7 +400,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
           ret = toFuncResult(updateRet);
         }
       } else {
-        logger.log(`No need to update AmazonSubscribeItem!!`);
+        logger.log(`updateAmazonSubscribeItems: No need to update AmazonSubscribeItem!!`);
         ret = {
           status: FuncStatus.SUCCESS,
           message: "No need to update AmazonSubscribeItem",
