@@ -36,6 +36,8 @@ jobs:
           echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
           echo Last build tool version is: $BUILD_TOOL_VERSION
 
+          # https://www.geeksforgeeks.org/android/automated-release-for-android-using-github-actions/
+          # これ試してみるか。
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         id: sign_app  #いらないか
@@ -45,6 +47,7 @@ jobs:
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+          output: app/build/outputs/apk/release/app-release-signed.apk
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
@@ -52,5 +55,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/
+          path: app/build/outputs/apk/release/app-release-signed.apk
           retention-days: 1
