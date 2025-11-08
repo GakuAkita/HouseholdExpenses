@@ -25,16 +25,20 @@
     },
     "singleProjectMode": true,
     "firestore": {
-      "port": 5002
+      "port": 5002,
+      "host": "192.168.1.39"
     },
     "auth": {
-      "port": 9099
+      "port": 9099,
+      "host": "192.168.1.39"
     },
     "hosting": {
-      "port": 5003
+      "port": 5003,
+      "host": "192.168.1.39"
     },
     "database": {
-      "port": 9000
+      "port": 9000,
+      "host": "192.168.1.39"
     }
   },
   "hosting": {

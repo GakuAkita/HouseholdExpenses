@@ -15,9 +15,27 @@ class FirestoreReference @Inject constructor(
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
     private val firestore = if (BuildConfig.DEBUG) {
-        Firebase.firestore.also {
-            Log.d(className, "Using Firestore emulator")
-            it.useEmulator("10.0.2.2", 5002)
+        // DEBUGモードではエミュレータを使用
+        // 注意: useEmulatorはFirestoreインスタンスを取得する前に呼ぶ必要がある
+        // しかし、Firebase.firestoreにアクセスすると初期化されるため、
+        // MyApplication.onCreate()で既に設定されていることを前提とする
+        // ここでは念のため再度設定を試みる（既に設定されている場合は例外が発生する可能性がある）
+        try {
+            val fs = Firebase.firestore
+            // 既に設定されている場合でも例外を無視
+            try {
+                val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
+                fs.useEmulator(emulatorHost, 5002)
+                Log.d(className, "Firestore emulator configured: $emulatorHost:5002")
+            } catch (e: IllegalStateException) {
+                // 既にエミュレータが設定されている場合は無視
+                Log.d(className, "Firestore emulator already configured or cannot be reconfigured")
+            }
+            fs
+        } catch (e: Exception) {
+            Log.e(className, "Failed to configure Firestore emulator: ${e.message}", e)
+            // エミュレータ設定に失敗した場合は通常のFirestoreを使用
+            Firebase.firestore
         }
     } else {
         Firebase.firestore

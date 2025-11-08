@@ -25,8 +25,11 @@ class RealtimeDbReference @Inject constructor(
 
     private val database = if (BuildConfig.DEBUG) {
         FirebaseDatabase.getInstance().also {
-            Log.d(className, "Using Realtime Database emulator")
-            it.useEmulator("10.0.2.2", 9000)
+            // Androidエミュレータからは "10.0.2.2" を使用（ホストマシンの127.0.0.1にアクセス）
+            // 実機でテストする場合は、local.propertiesでFIREBASE_EMULATOR_HOSTを設定
+            val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
+            Log.d(className, "Using Realtime Database emulator: $emulatorHost:9000")
+            it.useEmulator(emulatorHost, 9000)
         }.reference
     } else {
         FirebaseDatabase

@@ -29,7 +29,7 @@ import javax.inject.Inject
 class ExpenseAddEditViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val categoryAssignmentUseCase: CategoryAssignmentUseCase
+    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
 ) : ViewModel() {
 
     override fun onCleared() {
@@ -283,6 +283,7 @@ class ExpenseAddEditViewModel @Inject constructor(
     }
 
     fun addExpenseToDb(callback: (FuncStatusInfo) -> Unit) {
+
         setLoadingState(true)
         /**
          * ここで中身チェックを行った方が良い。
