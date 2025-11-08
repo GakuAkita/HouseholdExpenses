@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -13,7 +14,14 @@ class FirestoreReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val firestore = Firebase.firestore
+    private val firestore = if (BuildConfig.DEBUG) {
+        Firebase.firestore.also {
+            Log.d(className, "Using Firestore emulator")
+            it.useEmulator("10.0.2.2", 5002)
+        }
+    } else {
+        Firebase.firestore
+    }
 
     private val currentUserId: String?
         get() = firebaseAuth.currentUser?.uid

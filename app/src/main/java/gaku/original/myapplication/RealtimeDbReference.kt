@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -22,9 +23,16 @@ class RealtimeDbReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val database = FirebaseDatabase
-        .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
-        .reference//users配下にそれぞれのuserIdが存在
+    private val database = if (BuildConfig.DEBUG) {
+        FirebaseDatabase.getInstance().also {
+            Log.d(className, "Using Realtime Database emulator")
+            it.useEmulator("10.0.2.2", 9000)
+        }.reference
+    } else {
+        FirebaseDatabase
+            .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
+            .reference
+    }//users配下にそれぞれのuserIdが存在
 
     private val currentUserId: String?
         get() = firebaseAuth.currentUser?.uid
