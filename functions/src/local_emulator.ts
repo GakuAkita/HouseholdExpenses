@@ -104,7 +104,7 @@ const execAmazonSubscribe = async () => {
   });
 };
 
-execAmazonSubscribe();
+// execAmazonSubscribe();
 
 const init_add = async () => {
   await userService.addUserCol(userId);
@@ -129,7 +129,7 @@ const init_add = async () => {
     amount: 100,
     category: sampleCategory,
   };
-  // expenseService.addExpenseWithId(userId, sampleExpense);
+  expenseService.addExpenseWithId(userId, sampleExpense);
 
   const sampleRepeatAdd = {
     id: "Ld0bXW2F6kfuySfG1jqy",
@@ -261,7 +261,7 @@ const init_add = async () => {
 
   console.log("Data written to emulator.");
 };
-// init_add();
+init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
