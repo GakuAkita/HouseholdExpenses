@@ -182,4 +182,33 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         return updateDataToRTDb(disabledItem, ref, timeout)
     }
 
+    /**
+     * Amazon定期便アイテムを有効化する（enabledをtrueに設定）
+     */
+    suspend fun enableAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        LogClassFuncCalled(className, ::enableAmazonSubscribeItem.name)
+
+        val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
+        if (refResult !is FuncResultWithData.Success) {
+            return FuncStatusInfo(
+                FuncStatus.FAILED,
+                when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
+            )
+        }
+
+        val ref = refResult.data
+
+        // enabledをtrueに設定した新しいアイテムを作成
+        val enabledItem = item.copy(enabled = true)
+
+        return updateDataToRTDb(enabledItem, ref, timeout)
+    }
+
 }
