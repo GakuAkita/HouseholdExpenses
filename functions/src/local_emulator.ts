@@ -257,11 +257,24 @@ const init_add = async () => {
     logger.log("ENCRYPTED_REFRESH_TOKEN or MY_GMAIL not set in environment variables");
   }
 
+  const myMailSub = process.env.SUB_GMAIL;
+  const tokenConf: MailboxGmailTokenType = {
+    refreshToken: "",
+    gmail: myMailSub || "",
+  };
+  const refreshTokenRet =
+    await mailboxExtractionService.setMailboxExtractionToken(
+      userId,
+      tokenConf,
+      myMailSub
+    );
+  logger.log(`setMailboxExtractionToken status:${refreshTokenRet.status}`);
+
   await categoryAssignmentService.dbgAddCategoryAssignment(userId);
 
   console.log("Data written to emulator.");
 };
-init_add();
+//init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */
