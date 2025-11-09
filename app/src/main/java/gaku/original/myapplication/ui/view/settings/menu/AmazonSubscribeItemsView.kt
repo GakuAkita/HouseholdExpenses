@@ -137,7 +137,10 @@ fun AmazonSubscribeItemsView(
                             }
                             
                             items(amazonSubscribeItems.toList()) { (_, item) ->
-                                AmazonSubscribeItemCard(item = item)
+                                AmazonSubscribeItemCard(
+                                    item = item,
+                                    onDeleteClick = { viewModel.disableItem(it) }
+                                )
                             }
                         }
                     }
@@ -239,7 +242,10 @@ private fun AmazonSubscribeItemsInfoCard() {
 }
 
 @Composable
-private fun AmazonSubscribeItemCard(item: AmazonSubscribeItem) {
+private fun AmazonSubscribeItemCard(
+    item: AmazonSubscribeItem,
+    onDeleteClick: (AmazonSubscribeItem) -> Unit
+) {
     val numberFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN)
     val formattedPrice = numberFormat.format((item.price ?: 0f).toDouble())
 
@@ -307,7 +313,7 @@ private fun AmazonSubscribeItemCard(item: AmazonSubscribeItem) {
             // 削除ボタン
             IconButton(
                 onClick = {
-                    // TODO: 削除処理を実装
+                    onDeleteClick(item)
                 }
             ) {
                 Icon(

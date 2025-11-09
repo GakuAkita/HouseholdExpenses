@@ -12,6 +12,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import removeDataFromRTDb
+import updateDataToRTDb
 import javax.inject.Inject
 
 class AmazonSubscribeItemsRTDbRepository @Inject constructor(
@@ -150,6 +151,35 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         val ref = refResult.data
 
         return removeDataFromRTDb(item, ref, timeout)
+    }
+
+    /**
+     * Amazon定期便アイテムを無効化する（enabledをfalseに設定）
+     */
+    suspend fun disableAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        LogClassFuncCalled(className, ::disableAmazonSubscribeItem.name)
+
+        val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
+        if (refResult !is FuncResultWithData.Success) {
+            return FuncStatusInfo(
+                FuncStatus.FAILED,
+                when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
+            )
+        }
+
+        val ref = refResult.data
+
+        // enabledをfalseに設定した新しいアイテムを作成
+        val disabledItem = item.copy(enabled = false)
+
+        return updateDataToRTDb(disabledItem, ref, timeout)
     }
 
 }
