@@ -29,6 +29,9 @@ class RealtimeDbReference @Inject constructor(
     private val database = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
         // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
         // エミュレータではデフォルトインスタンス（プロジェクト名ベース: householdexpenses2）を明示的に指定
+        // getInstance()だとhouseholdexpenses2-default-rtdbを使ってしまう。それでもよいのだが、local_emulator.tsで初期データを追加するので
+        // functions側と合わせないといけない。すでにhouseholdexpense2を使う設定になっているのでAndroid側をそれに合わせる。
+
         // 注意: useEmulatorはFirebaseDatabaseインスタンスを取得する前に呼ぶ必要がある
         try {
             val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
