@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
@@ -190,10 +191,13 @@ fun ExpenseAddEditView(
 
         // カテゴリーチェック（ローカルDBキャッシュがあるので必須化）
         for (expense in viewModel.expenseList.value) {
-            if (expense.category == null) {
+            if (expense.category == null && !BuildConfig.DEBUG) {
                 scope.launch {
                     snackBarHostState.currentSnackbarData?.dismiss()
-                    snackBarHostState.showSnackbar("カテゴリーを選択してください", actionLabel = "OK")
+                    snackBarHostState.showSnackbar(
+                        "カテゴリーを選択してください",
+                        actionLabel = "OK"
+                    )
                 }
                 return
             }

@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -22,12 +23,48 @@ class RealtimeDbReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val database = FirebaseDatabase
-        .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
-        .reference//users配下にそれぞれのuserIdが存在
+    private val database = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+        // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
+        // 注意: useEmulatorはFirebaseDatabaseインスタンスを取得する前に呼ぶ必要がある
+        try {
+            val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
+            Log.d(className, "🔧 Realtime Databaseエミュレータ設定開始: host=$emulatorHost, port=9000")
+            Log.d(className, "🔧 FirebaseDatabase.getInstance()にアクセス前")
+            
+            // FirebaseDatabaseインスタンスを取得してからuseEmulatorを呼ぶ
+            val dbInstance = FirebaseDatabase.getInstance()
+            dbInstance.useEmulator(emulatorHost, 9000)
+            
+            Log.d(className, "✅ Realtime Database emulator configured: $emulatorHost:9000")
+            Log.d(className, "🔧 FirebaseDatabase.getInstance()にアクセス後")
+            
+            dbInstance.reference
+        } catch (e: IllegalStateException) {
+            // 既にエミュレータが設定されている場合は、そのままDatabaseインスタンスを取得
+            Log.d(className, "⚠️ Realtime Database emulator already configured, using existing instance")
+            FirebaseDatabase.getInstance().reference
+        } catch (e: Exception) {
+            Log.e(className, "❌ Failed to configure Realtime Database emulator: ${e.message}", e)
+            // エミュレータ設定に失敗した場合は通常のDatabaseを使用
+            FirebaseDatabase.getInstance().reference
+        }
+    } else {
+        // 本番環境のRealtime Databaseを使用
+        if (BuildConfig.DEBUG) {
+            Log.d(className, "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用")
+        }
+        FirebaseDatabase
+            .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
+            .reference
+    }//users配下にそれぞれのuserIdが存在
 
     private val currentUserId: String?
-        get() = firebaseAuth.currentUser?.uid
+        get() = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+            // エミュレータ使用時はtestUserを使用（functions/src/local_emulator.tsと同じ）
+            "testUser"
+        } else {
+            firebaseAuth.currentUser?.uid
+        }
 
     private val currentUserEmail: String?
         get() = firebaseAuth.currentUser?.email
