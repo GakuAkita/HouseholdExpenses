@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.AmazonSubscribeItemsViewModel
 import java.text.NumberFormat
@@ -177,7 +178,7 @@ fun AmazonSubscribeItemsView(
 }
 
 @Composable
-private fun AmazonSubscribeItemCard(item: gaku.original.myapplication.data.dataClass.AmazonSubscribeItem) {
+private fun AmazonSubscribeItemCard(item: AmazonSubscribeItem) {
     val numberFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN)
     val formattedPrice = numberFormat.format((item.price ?: 0f).toDouble())
 

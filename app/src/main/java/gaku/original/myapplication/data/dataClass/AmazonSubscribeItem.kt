@@ -7,5 +7,6 @@ data class AmazonSubscribeItem(
     val productName: String? = null,
     val quantity: Int? = null,
     val price: Float? = 0f,
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+    val enabled: Boolean? = true  // デフォルトは有効
 ) : HasId

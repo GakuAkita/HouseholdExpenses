@@ -278,4 +278,5 @@ export interface AmazonSubscribeItem {
   quantity?: number;
   price?: number;
   timestamp?: number;
+  enabled?: boolean;  // デフォルトは有効
 }
