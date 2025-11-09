@@ -35,6 +35,11 @@ android {
         //環境変数をBuildConfigに設定する
         buildConfigField("String", "WEB_CLIENT_ID", "\"${localProperties["WEB_CLIENT_ID"]}\"")
         buildConfigField("String", "REDIRECT_URI", "\"${localProperties["REDIRECT_URI"]}\"")
+        // Firebase Emulator設定
+        // USE_FIREBASE_EMULATOR=true のときはエミュレータを使用、false または未設定のときは本番環境を使用
+        val useEmulator = (localProperties["USE_FIREBASE_EMULATOR"] as String?)?.toBoolean() ?: true
+        buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", useEmulator.toString())
+        
         // Firebase Emulator Host設定（Androidエミュレータ: 10.0.2.2, 実機: PCのIPアドレス）
         val emulatorHost = localProperties["FIREBASE_EMULATOR_HOST"] as String? ?: "10.0.2.2"
         buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")

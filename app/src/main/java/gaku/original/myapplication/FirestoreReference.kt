@@ -14,8 +14,8 @@ class FirestoreReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val firestore = if (BuildConfig.DEBUG) {
-        // DEBUGモードではエミュレータを使用
+    private val firestore = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+        // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
         // 注意: useEmulatorはFirestoreインスタンスを取得する前に呼ぶ必要がある
         // しかし、Firebase.firestoreにアクセスすると初期化されるため、
         // MyApplication.onCreate()で既に設定されていることを前提とする
@@ -38,11 +38,17 @@ class FirestoreReference @Inject constructor(
             Firebase.firestore
         }
     } else {
+        // 本番環境のFirestoreを使用
         Firebase.firestore
     }
 
     private val currentUserId: String?
-        get() = firebaseAuth.currentUser?.uid
+        get() = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+            // エミュレータ使用時はtestUserを使用（functions/src/local_emulator.tsと同じ）
+            "testUser"
+        } else {
+            firebaseAuth.currentUser?.uid
+        }
 
     /**
      * コレクションやドキュメント名はスネークケースの方が良い

@@ -16,7 +16,8 @@ class MyApplication : Application() {
         // 注意: Firebase Authは本番環境を使用（Googleサインイン等のOAuthプロバイダー認証のため）
         // FirestoreとRealtime Databaseのみエミュレータに接続
         // super.onCreate()の前に設定することで、Firestoreインスタンスが初期化される前にエミュレータ設定を行う
-        if (BuildConfig.DEBUG) {
+        // USE_FIREBASE_EMULATOR=true のときのみエミュレータを使用（DEBUGモードでも本番環境に接続可能）
+        if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
             try {
                 // Firestoreエミュレータの設定
                 // 注意: 
@@ -43,7 +44,11 @@ class MyApplication : Application() {
                 // エミュレータ設定に失敗してもアプリは続行
             }
         } else {
-            Log.d("MyApplication", "ℹ️ DEBUGモードではないため、エミュレータ設定をスキップ")
+            if (BuildConfig.DEBUG) {
+                Log.d("MyApplication", "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用")
+            } else {
+                Log.d("MyApplication", "ℹ️ DEBUGモードではないため、エミュレータ設定をスキップ（本番環境を使用）")
+            }
         }
         super.onCreate()
     }

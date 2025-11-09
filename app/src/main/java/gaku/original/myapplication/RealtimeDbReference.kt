@@ -23,7 +23,8 @@ class RealtimeDbReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    private val database = if (BuildConfig.DEBUG) {
+    private val database = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+        // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
         FirebaseDatabase.getInstance().also {
             // Androidエミュレータからは "10.0.2.2" を使用（ホストマシンの127.0.0.1にアクセス）
             // 実機でテストする場合は、local.propertiesでFIREBASE_EMULATOR_HOSTを設定
@@ -32,13 +33,19 @@ class RealtimeDbReference @Inject constructor(
             it.useEmulator(emulatorHost, 9000)
         }.reference
     } else {
+        // 本番環境のRealtime Databaseを使用
         FirebaseDatabase
             .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
             .reference
     }//users配下にそれぞれのuserIdが存在
 
     private val currentUserId: String?
-        get() = firebaseAuth.currentUser?.uid
+        get() = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
+            // エミュレータ使用時はtestUserを使用（functions/src/local_emulator.tsと同じ）
+            "testUser"
+        } else {
+            firebaseAuth.currentUser?.uid
+        }
 
     private val currentUserEmail: String?
         get() = firebaseAuth.currentUser?.email
