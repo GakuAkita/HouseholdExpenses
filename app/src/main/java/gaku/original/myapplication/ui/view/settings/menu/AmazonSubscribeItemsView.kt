@@ -2,12 +2,25 @@ package gaku.original.myapplication.ui.view.settings.menu
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,12 +29,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.AmazonSubscribeItemsViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun AmazonSubscribeItemsView(
@@ -71,14 +88,41 @@ fun AmazonSubscribeItemsView(
                 LoadingStatus.SUCCESS -> {
                     // データ表示
                     if (amazonSubscribeItems.isEmpty()) {
-                        Text("定期便アイテムはありません")
+                        // 空の状態の改善
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "定期便アイテムはありません",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "メールから自動的に追加されます",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
                     } else {
-                        LazyColumn {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             items(amazonSubscribeItems.toList()) { (_, item) ->
-                                Text(
-                                    text = "${item.productName ?: "(商品名不明)"} x${item.quantity ?: 1} / ¥${item.price ?: 0f}",
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                                AmazonSubscribeItemCard(item = item)
                             }
                         }
                     }
@@ -126,6 +170,75 @@ fun AmazonSubscribeItemsView(
 
                 else -> {
                     Text("不明な状態です")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AmazonSubscribeItemCard(item: gaku.original.myapplication.data.dataClass.AmazonSubscribeItem) {
+    val numberFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN)
+    val formattedPrice = numberFormat.format((item.price ?: 0f).toDouble())
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // アイコン
+            Icon(
+                imageVector = Icons.Default.ShoppingCart,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // 商品情報
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // 商品名
+                Text(
+                    text = item.productName ?: "(商品名不明)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 数量と価格
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 数量
+                    Text(
+                        text = "数量: ${item.quantity ?: 1}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // 価格
+                    Text(
+                        text = formattedPrice,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
