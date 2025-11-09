@@ -14,19 +14,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -122,6 +131,11 @@ fun AmazonSubscribeItemsView(
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            // 注意書き
+                            item {
+                                AmazonSubscribeItemsInfoCard()
+                            }
+                            
                             items(amazonSubscribeItems.toList()) { (_, item) ->
                                 AmazonSubscribeItemCard(item = item)
                             }
@@ -172,6 +186,53 @@ fun AmazonSubscribeItemsView(
                 else -> {
                     Text("不明な状態です")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AmazonSubscribeItemsInfoCard() {
+    var isExpanded by remember { mutableStateOf(false) }
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        shape = MaterialTheme.shapes.small
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "検知方法について",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (isExpanded) "折りたたむ" else "展開する",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Amazonから届く「次回の配達」メールから商品名を自動抽出して追加しています。定期便キャンセルメールが届いた場合は、ここから自動的に削除されます。したがって、自分でこのページを触る必要はありません。\n\nしかし、稀にキャンセルメールが届いても削除されないケースもあります。その場合は、各アイテムのゴミ箱アイコンから手動で削除してください。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp)
+                )
             }
         }
     }
@@ -241,6 +302,19 @@ private fun AmazonSubscribeItemCard(item: AmazonSubscribeItem) {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+            
+            // 削除ボタン
+            IconButton(
+                onClick = {
+                    // TODO: 削除処理を実装
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "削除",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
