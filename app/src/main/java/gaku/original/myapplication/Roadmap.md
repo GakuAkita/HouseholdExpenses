@@ -76,6 +76,7 @@
   改善必要)
 - done:::
   オフライン時の挙動を確かめる。ネット接続切ってupdateすると、ローカルのメモリ&キャッシュには追加されるが、UIの表示は失敗になる？Firestoreの方はやったので、次はRealtimeDBの方
+- done:::ローカルテストで保存できるように。Firebase emulator
 
 
 - 正規表現を作り直す(GPTに任せすぎ、、)
@@ -101,7 +102,6 @@
 - functionsで失敗していたときに端末に通知
 - AccessibilityServiceでPayPay通知の取得を試みる
 - 自動テスト
-- ローカルテストで保存できるように。Firebase emulator
 - 商品名をつけるときに検索候補をつけたい
 - ViewModel のライフサイクルについて深く勉強 →SharedViewModel 再構成
 - DatePicker と TimePicker は Experimental なので、Material Dialogs for Compose を使う

@@ -12,44 +12,8 @@ import dagger.hilt.android.HiltAndroidApp
 class MyApplication : Application() {
 
     override fun onCreate() {
-        // Firebase Local Emulatorの設定
+        // Firebase Local Emulatorの設定は、FirestoreReferenceとRealtimeDbReferenceのコンストラクタで行う
         // 注意: Firebase Authは本番環境を使用（Googleサインイン等のOAuthプロバイダー認証のため）
-        // FirestoreとRealtime Databaseのみエミュレータに接続
-        // super.onCreate()の前に設定することで、Firestoreインスタンスが初期化される前にエミュレータ設定を行う
-        // USE_FIREBASE_EMULATOR=true のときのみエミュレータを使用（DEBUGモードでも本番環境に接続可能）
-        if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
-            try {
-                // Firestoreエミュレータの設定
-                // 注意: 
-                // - Androidエミュレータからは "10.0.2.2" を使用（ホストマシンの127.0.0.1にアクセス）
-                // - 実機からはホストマシンの実際のIPアドレスを使用（local.propertiesで設定）
-                // - Firebase Emulator Suiteは通常 localhost:5002 でリッスン
-                val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST
-                val emulatorPort = 5002
-                
-                Log.d("MyApplication", "🔧 エミュレータ設定開始: host=$emulatorHost, port=$emulatorPort")
-                Log.d("MyApplication", "🔧 Firebase.firestoreにアクセス前")
-                
-                Firebase.firestore.useEmulator(emulatorHost, emulatorPort)
-                
-                Log.d("MyApplication", "✅ Firestore emulator configured: $emulatorHost:$emulatorPort")
-                Log.d("MyApplication", "🔧 Firebase.firestoreにアクセス後")
-                
-                // Realtime Databaseのエミュレータ設定はRealtimeDbReference.ktで行っている
-            } catch (e: Exception) {
-                Log.e("MyApplication", "❌ Failed to configure Firestore エミュレーター: ${e.message}", e)
-                Log.e("MyApplication", "❌ Error message: ${e.message}")
-                Log.e("MyApplication", "❌ Error type: ${e.javaClass.simpleName}")
-                e.printStackTrace()
-                // エミュレータ設定に失敗してもアプリは続行
-            }
-        } else {
-            if (BuildConfig.DEBUG) {
-                Log.d("MyApplication", "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用")
-            } else {
-                Log.d("MyApplication", "ℹ️ DEBUGモードではないため、エミュレータ設定をスキップ（本番環境を使用）")
-            }
-        }
         super.onCreate()
     }
 }

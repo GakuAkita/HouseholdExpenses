@@ -17,28 +17,34 @@ class FirestoreReference @Inject constructor(
     private val firestore = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
         // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
         // 注意: useEmulatorはFirestoreインスタンスを取得する前に呼ぶ必要がある
-        // しかし、Firebase.firestoreにアクセスすると初期化されるため、
-        // MyApplication.onCreate()で既に設定されていることを前提とする
-        // ここでは念のため再度設定を試みる（既に設定されている場合は例外が発生する可能性がある）
+        // ここでFirestoreインスタンスを取得する前にuseEmulatorを呼ぶ
         try {
-            val fs = Firebase.firestore
-            // 既に設定されている場合でも例外を無視
-            try {
-                val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
-                fs.useEmulator(emulatorHost, 5002)
-                Log.d(className, "Firestore emulator configured: $emulatorHost:5002")
-            } catch (e: IllegalStateException) {
-                // 既にエミュレータが設定されている場合は無視
-                Log.d(className, "Firestore emulator already configured or cannot be reconfigured")
-            }
-            fs
+            val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
+            Log.d(className, "🔧 Firestoreエミュレータ設定開始: host=$emulatorHost, port=5002")
+            Log.d(className, "🔧 Firebase.firestoreにアクセス前")
+            
+            // Firebase.firestoreにアクセスする前にuseEmulatorを呼ぶ
+            Firebase.firestore.useEmulator(emulatorHost, 5002)
+            
+            Log.d(className, "✅ Firestore emulator configured: $emulatorHost:5002")
+            Log.d(className, "🔧 Firebase.firestoreにアクセス後")
+            
+            // エミュレータ設定後にFirestoreインスタンスを取得
+            Firebase.firestore
+        } catch (e: IllegalStateException) {
+            // 既にエミュレータが設定されている場合は、そのままFirestoreインスタンスを取得
+            Log.d(className, "⚠️ Firestore emulator already configured, using existing instance")
+            Firebase.firestore
         } catch (e: Exception) {
-            Log.e(className, "Failed to configure Firestore emulator: ${e.message}", e)
+            Log.e(className, "❌ Failed to configure Firestore emulator: ${e.message}", e)
             // エミュレータ設定に失敗した場合は通常のFirestoreを使用
             Firebase.firestore
         }
     } else {
         // 本番環境のFirestoreを使用
+        if (BuildConfig.DEBUG) {
+            Log.d(className, "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用")
+        }
         Firebase.firestore
     }
 
