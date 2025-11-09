@@ -154,14 +154,13 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
     }
 
     /**
-     * Amazon定期便アイテムを無効化する（enabledをfalseに設定）
+     * Amazon定期便アイテムのenabled状態を設定する（共通処理）
      */
-    suspend fun disableAmazonSubscribeItem(
+    private suspend fun setAmazonSubscribeItemEnabled(
         item: AmazonSubscribeItem,
+        enabled: Boolean,
         timeout: Long = 3000
     ): FuncStatusInfo {
-        LogClassFuncCalled(className, ::disableAmazonSubscribeItem.name)
-
         val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
         if (refResult !is FuncResultWithData.Success) {
             return FuncStatusInfo(
@@ -176,10 +175,21 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
 
         val ref = refResult.data
 
-        // enabledをfalseに設定した新しいアイテムを作成
-        val disabledItem = item.copy(enabled = false)
+        // enabledを設定した新しいアイテムを作成
+        val updatedItem = item.copy(enabled = enabled)
 
-        return updateDataToRTDb(disabledItem, ref, timeout)
+        return updateDataToRTDb(updatedItem, ref, timeout)
+    }
+
+    /**
+     * Amazon定期便アイテムを無効化する（enabledをfalseに設定）
+     */
+    suspend fun disableAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        LogClassFuncCalled(className, ::disableAmazonSubscribeItem.name)
+        return setAmazonSubscribeItemEnabled(item, enabled = false, timeout)
     }
 
     /**
@@ -190,25 +200,7 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         timeout: Long = 3000
     ): FuncStatusInfo {
         LogClassFuncCalled(className, ::enableAmazonSubscribeItem.name)
-
-        val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
-        if (refResult !is FuncResultWithData.Success) {
-            return FuncStatusInfo(
-                FuncStatus.FAILED,
-                when (refResult) {
-                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
-                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
-                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
-                }
-            )
-        }
-
-        val ref = refResult.data
-
-        // enabledをtrueに設定した新しいアイテムを作成
-        val enabledItem = item.copy(enabled = true)
-
-        return updateDataToRTDb(enabledItem, ref, timeout)
+        return setAmazonSubscribeItemEnabled(item, enabled = true, timeout)
     }
 
 }
