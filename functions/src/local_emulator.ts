@@ -257,11 +257,55 @@ const init_add = async () => {
     logger.log("ENCRYPTED_REFRESH_TOKEN or MY_GMAIL not set in environment variables");
   }
 
+  const myMailSub = process.env.SUB_GMAIL;
+  const tokenConf: MailboxGmailTokenType = {
+    refreshToken: "",
+    gmail: myMailSub || "",
+  };
+  const refreshTokenRet =
+    await mailboxExtractionService.setMailboxExtractionToken(
+      userId,
+      tokenConf,
+      myMailSub
+    );
+  logger.log(`setMailboxExtractionToken status:${refreshTokenRet.status}`);
+
   await categoryAssignmentService.dbgAddCategoryAssignment(userId);
+
+  // Amazon定期便アイテムを追加
+  const amazonSubscribeItem1 = {
+    productName: "by Amazon 天然水 ラベルレス 500ml ×24本",
+    quantity: 1,
+    price: 1000,
+  };
+  const addItemRet1 = await mailboxExtractionService.addAmazonSubscribeMonitorItem(
+    userId,
+    amazonSubscribeItem1
+  );
+  if (addItemRet1.status === FuncStatus.SUCCESS) {
+    console.log("Amazon定期便アイテム1追加成功:", addItemRet1.data);
+  } else {
+    console.error("Amazon定期便アイテム1追加失敗:", addItemRet1.message);
+  }
+
+  const amazonSubscribeItem2 = {
+    productName: "ソニックケア",
+    quantity: 1,
+    price: 2000,
+  };
+  const addItemRet2 = await mailboxExtractionService.addAmazonSubscribeMonitorItem(
+    userId,
+    amazonSubscribeItem2
+  );
+  if (addItemRet2.status === FuncStatus.SUCCESS) {
+    console.log("Amazon定期便アイテム2追加成功:", addItemRet2.data);
+  } else {
+    console.error("Amazon定期便アイテム2追加失敗:", addItemRet2.message);
+  }
 
   console.log("Data written to emulator.");
 };
-init_add();
+//init_add();
 
 const schedule_func = async () => {
   /* ユーザーIDをすべて取得してくる */

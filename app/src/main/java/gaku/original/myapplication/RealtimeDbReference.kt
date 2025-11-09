@@ -23,35 +23,48 @@ class RealtimeDbReference @Inject constructor(
 ) {
     val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
+    // エミュレータ用のデフォルトインスタンスURL（プロジェクト名ベース: householdexpenses2）
+    private val emulatorDefaultDatabaseUrl = "https://householdexpenses2.firebaseio.com"
+    
     private val database = if (BuildConfig.DEBUG && BuildConfig.USE_FIREBASE_EMULATOR) {
         // DEBUGモードかつUSE_FIREBASE_EMULATOR=trueのときはエミュレータを使用
+        // エミュレータではデフォルトインスタンス（プロジェクト名ベース: householdexpenses2）を明示的に指定
+        // getInstance()だとhouseholdexpenses2-default-rtdbを使ってしまう。それでもよいのだが、local_emulator.tsで初期データを追加するので
+        // functions側と合わせないといけない。すでにhouseholdexpense2を使う設定になっているのでAndroid側をそれに合わせる。
+
         // 注意: useEmulatorはFirebaseDatabaseインスタンスを取得する前に呼ぶ必要がある
         try {
             val emulatorHost = BuildConfig.FIREBASE_EMULATOR_HOST // local.propertiesから読み込まれる
-            Log.d(className, "🔧 Realtime Databaseエミュレータ設定開始: host=$emulatorHost, port=9000")
+            Log.d(
+                className,
+                "🔧 Realtime Databaseエミュレータ設定開始: host=$emulatorHost, port=9000 (デフォルトインスタンス: householdexpenses2)"
+            )
             Log.d(className, "🔧 FirebaseDatabase.getInstance()にアクセス前")
-            
-            // FirebaseDatabaseインスタンスを取得してからuseEmulatorを呼ぶ
-            val dbInstance = FirebaseDatabase.getInstance()
+
+            // エミュレータではプロジェクト名ベースのデフォルトインスタンスURLを明示的に指定
+            val dbInstance = FirebaseDatabase.getInstance(emulatorDefaultDatabaseUrl)
             dbInstance.useEmulator(emulatorHost, 9000)
-            
-            Log.d(className, "✅ Realtime Database emulator configured: $emulatorHost:9000")
+
+            Log.d(className, "✅ Realtime Database emulator configured: $emulatorHost:9000 (デフォルトインスタンス: householdexpenses2)")
             Log.d(className, "🔧 FirebaseDatabase.getInstance()にアクセス後")
-            
+
             dbInstance.reference
         } catch (e: IllegalStateException) {
             // 既にエミュレータが設定されている場合は、そのままDatabaseインスタンスを取得
-            Log.d(className, "⚠️ Realtime Database emulator already configured, using existing instance")
-            FirebaseDatabase.getInstance().reference
+            Log.d(
+                className,
+                "⚠️ Realtime Database emulator already configured, using existing instance (デフォルトインスタンス: householdexpenses2)"
+            )
+            FirebaseDatabase.getInstance(emulatorDefaultDatabaseUrl).reference
         } catch (e: Exception) {
             Log.e(className, "❌ Failed to configure Realtime Database emulator: ${e.message}", e)
             // エミュレータ設定に失敗した場合は通常のDatabaseを使用
-            FirebaseDatabase.getInstance().reference
+            FirebaseDatabase.getInstance(emulatorDefaultDatabaseUrl).reference
         }
     } else {
-        // 本番環境のRealtime Databaseを使用
+        // 本番環境のRealtime Databaseを使用（明示的にURLを指定）
         if (BuildConfig.DEBUG) {
-            Log.d(className, "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用")
+            Log.d(className, "ℹ️ DEBUGモードですが、USE_FIREBASE_EMULATOR=falseのため本番環境を使用 (database: householdexpenses2-default-rtdb)")
         }
         FirebaseDatabase
             .getInstance("https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app")
