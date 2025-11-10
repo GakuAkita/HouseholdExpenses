@@ -259,8 +259,9 @@ export class MailboxExtractionProcessor {
         /**
          *  発送済みのメールアドレスを取りに行く。
          * その中で定期便に登録してあるものだけあとで追加
+         * 発送済みのメールは結構来るので、最大10件まで取得する。
          * */
-        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime);
+        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime, 10);
         break;
 
       case udemySetting.nodeName:

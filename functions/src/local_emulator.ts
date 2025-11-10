@@ -439,13 +439,13 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    createRakutenPaySettingInstance(),
-    createAmazonItemSettingInstance(),
-    createAmazonKindleSettingInstance(),
+    //createRakutenPaySettingInstance(),
+    //createAmazonItemSettingInstance(),
+    //createAmazonKindleSettingInstance(),
     createAmazonSubscribeSettingInstance(),
-    createShikokuElectricPowerSettingInstance(),
-    createUdemySettingInstance(),
-    createRakutenCardETCSettingInstance(),
+    //createShikokuElectricPowerSettingInstance(),
+    //createUdemySettingInstance(),
+    //createRakutenCardETCSettingInstance(),
   ];
 
   for (const type of testTypes) {
@@ -463,6 +463,6 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-//processMailTest();
+processMailTest();
 
 
