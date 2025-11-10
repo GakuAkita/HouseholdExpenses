@@ -12,6 +12,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import removeDataFromRTDb
+import updateDataToRTDb
 import javax.inject.Inject
 
 class AmazonSubscribeItemsRTDbRepository @Inject constructor(
@@ -150,6 +151,56 @@ class AmazonSubscribeItemsRTDbRepository @Inject constructor(
         val ref = refResult.data
 
         return removeDataFromRTDb(item, ref, timeout)
+    }
+
+    /**
+     * Amazon定期便アイテムのenabled状態を設定する（共通処理）
+     */
+    private suspend fun setAmazonSubscribeItemEnabled(
+        item: AmazonSubscribeItem,
+        enabled: Boolean,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        val refResult = realtimeDbReference.getAmazonSubscribeMonitorItemsRef()
+        if (refResult !is FuncResultWithData.Success) {
+            return FuncStatusInfo(
+                FuncStatus.FAILED,
+                when (refResult) {
+                    is FuncResultWithData.Failure -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.errorMessage}"
+                    is FuncResultWithData.Warning -> "Failed to get Amazon Subscribe Monitor Items reference: ${refResult.warningMessage}"
+                    else -> "Failed to get Amazon Subscribe Monitor Items reference: Unknown error"
+                }
+            )
+        }
+
+        val ref = refResult.data
+
+        // enabledを設定した新しいアイテムを作成
+        val updatedItem = item.copy(enabled = enabled)
+
+        return updateDataToRTDb(updatedItem, ref, timeout)
+    }
+
+    /**
+     * Amazon定期便アイテムを無効化する（enabledをfalseに設定）
+     */
+    suspend fun disableAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        LogClassFuncCalled(className, ::disableAmazonSubscribeItem.name)
+        return setAmazonSubscribeItemEnabled(item, enabled = false, timeout)
+    }
+
+    /**
+     * Amazon定期便アイテムを有効化する（enabledをtrueに設定）
+     */
+    suspend fun enableAmazonSubscribeItem(
+        item: AmazonSubscribeItem,
+        timeout: Long = 3000
+    ): FuncStatusInfo {
+        LogClassFuncCalled(className, ::enableAmazonSubscribeItem.name)
+        return setAmazonSubscribeItemEnabled(item, enabled = true, timeout)
     }
 
 }

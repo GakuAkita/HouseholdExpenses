@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
@@ -28,6 +29,10 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
         MutableStateFlow<Map<String, AmazonSubscribeItem>>(emptyMap())
     val amazonSubscribeItems: StateFlow<Map<String, AmazonSubscribeItem>> = _amazonSubscribeItems
 
+    private val _disabledAmazonSubscribeItems =
+        MutableStateFlow<Map<String, AmazonSubscribeItem>>(emptyMap())
+    val disabledAmazonSubscribeItems: StateFlow<Map<String, AmazonSubscribeItem>> = _disabledAmazonSubscribeItems
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
@@ -49,11 +54,19 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
 
                 when (result) {
                     is FuncResultWithData.Success -> {
-                        _amazonSubscribeItems.value = result.data ?: emptyMap()
+                        val allItems = result.data ?: emptyMap()
+                        // enabledがtrueのアイテムのみをフィルタリング
+                        val enabledItems = allItems
+                            .filter { (_, item) -> item.enabled != false }
+                        // enabledがfalseのアイテムをフィルタリング
+                        val disabledItems = allItems
+                            .filter { (_, item) -> item.enabled == false }
+                        _amazonSubscribeItems.value = enabledItems
+                        _disabledAmazonSubscribeItems.value = disabledItems
                         _loadingStatus.value = LoadingStatus.SUCCESS
                         Log.d(
                             className,
-                            "Successfully loaded ${result.data.size ?: 0} Amazon Subscribe items"
+                            "Successfully loaded ${enabledItems.size} enabled and ${disabledItems.size} disabled Amazon Subscribe items"
                         )
                     }
 
@@ -88,5 +101,57 @@ class AmazonSubscribeItemsViewModel @Inject constructor(
      */
     fun refresh() {
         loadAmazonSubscribeItems()
+    }
+
+    /**
+     * アイテムを無効化する（enabledをfalseに設定）
+     */
+    fun disableItem(item: AmazonSubscribeItem) {
+        viewModelScope.launch {
+            try {
+                val result = amazonSubscribeItemsRepository.disableAmazonSubscribeItem(item)
+
+                when (result.status) {
+                    FuncStatus.SUCCESS -> {
+                        // 成功時はリストを再読み込み
+                        loadAmazonSubscribeItems()
+                        Log.d(className, "Successfully disabled Amazon Subscribe item: ${item.id}")
+                    }
+                    else -> {
+                        _errorMessage.value = result.errorMessage ?: "Failed to disable item"
+                        Log.e(className, "Failed to disable Amazon Subscribe item: ${result.errorMessage}")
+                    }
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Unexpected error: ${e.message}"
+                Log.e(className, "Exception while disabling Amazon Subscribe item", e)
+            }
+        }
+    }
+
+    /**
+     * アイテムを有効化する（enabledをtrueに設定）
+     */
+    fun enableItem(item: AmazonSubscribeItem) {
+        viewModelScope.launch {
+            try {
+                val result = amazonSubscribeItemsRepository.enableAmazonSubscribeItem(item)
+
+                when (result.status) {
+                    FuncStatus.SUCCESS -> {
+                        // 成功時はリストを再読み込み
+                        loadAmazonSubscribeItems()
+                        Log.d(className, "Successfully enabled Amazon Subscribe item: ${item.id}")
+                    }
+                    else -> {
+                        _errorMessage.value = result.errorMessage ?: "Failed to enable item"
+                        Log.e(className, "Failed to enable Amazon Subscribe item: ${result.errorMessage}")
+                    }
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Unexpected error: ${e.message}"
+                Log.e(className, "Exception while enabling Amazon Subscribe item", e)
+            }
+        }
     }
 }

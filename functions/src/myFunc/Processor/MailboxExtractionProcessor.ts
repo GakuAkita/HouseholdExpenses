@@ -188,6 +188,33 @@ export class MailboxExtractionProcessor {
     };
   }
 
+  /**
+   * enabled=trueまたはnullのAmazon定期便アイテムのみを取得する
+   * enabledがnullの場合はtrueとして扱う
+   */
+  private async loadEnabledAmazonSubscribeItems(): Promise<
+    FuncResultWithData<Record<string, AmazonSubscribeItem>>
+  > {
+    const result = await this.loadAmazonSubscribeItems();
+    if (result.status !== FuncStatus.SUCCESS || !result.data) {
+      return result;
+    }
+
+    // enabled=falseのアイテムを除外（enabledがnullの場合はtrueとして扱う）
+    const filteredItems: Record<string, AmazonSubscribeItem> = {};
+    for (const [id, item] of Object.entries(result.data)) {
+      if (item.enabled !== false) {
+        filteredItems[id] = item;
+      }
+    }
+
+    return {
+      status: FuncStatus.SUCCESS,
+      message: "Filtered enabled Amazon Subscribe items",
+      data: filteredItems,
+    };
+  }
+
   /* *****************************Gmailのクエリ関係************************************ */
   async getMailIdsByQuery(
     type: AllMailType,
@@ -232,8 +259,9 @@ export class MailboxExtractionProcessor {
         /**
          *  発送済みのメールアドレスを取りに行く。
          * その中で定期便に登録してあるものだけあとで追加
+         * 発送済みのメールは結構来るので、最大10件まで取得する。
          * */
-        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime);
+        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime, 10);
         break;
 
       case udemySetting.nodeName:
@@ -610,9 +638,8 @@ export class MailboxExtractionProcessor {
     const expensesAdded = parserRet.data;
 
     /* Amazon定期便アイテムリストを取得（キャッシュから） */
-    const subscribeItemsRet = await this.loadAmazonSubscribeItems();
+    const subscribeItemsRet = await this.loadEnabledAmazonSubscribeItems();
     if (subscribeItemsRet.status == FuncStatus.EMPTY) {
-      /*  */
       logger.warn(`Amazon Subscirbe items are not registered, yet.`);
       return {
         status: FuncStatus.SUCCESS,
