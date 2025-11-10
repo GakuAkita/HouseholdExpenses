@@ -370,16 +370,22 @@ export class AmazonSubscribeMonitorItemsProcessor {
     } else if (existRet.status == FuncStatus.SUCCESS) {
       const id = existRet.data!;
       const existingItem = itemMap[id];
+
+      // enabled=falseの場合はtrueに戻す
+      const needsEnableUpdate = existingItem.enabled === false;
+
       if (
         existingItem.price !== item.price ||
-        existingItem.quantity !== item.quantity
+        existingItem.quantity !== item.quantity ||
+        needsEnableUpdate
       ) {
         logger.log("This item:${existingItem.productName} must be updated.");
-        /* 価格と個数が違えばupdate */
+        /* 価格と個数が違えばupdate、またはenabled=falseの場合はtrueに戻す */
         const updatedItem: AmazonSubscribeItem = {
           ...existingItem,
           price: item.price,
           quantity: item.quantity,
+          enabled: needsEnableUpdate ? true : existingItem.enabled,
         };
 
         const updateRet =
