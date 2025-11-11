@@ -9,11 +9,67 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.ref_name || 'main' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest tag and determine version
+        id: version
+        shell: bash
+        run: |
+          # 最新のタグを取得(vで始まるタグのみ)
+          LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # タグが存在しない場合は v1.0.0 から開始
+            NEW_TAG="v1.0.0"
+            HAS_CHANGES=true
+            echo "No existing tags found, starting with $NEW_TAG"
+          else
+            echo "Latest tag: $LATEST_TAG"
+            
+            # タグのコミットと現在のコミットを比較
+            TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+            
+            if [ "$TAG_COMMIT" = "$CURRENT_COMMIT" ]; then
+              # 変更がない場合は既存のタグを使用
+              NEW_TAG="$LATEST_TAG"
+              HAS_CHANGES=false
+              echo "No changes since $LATEST_TAG, using existing tag"
+            else
+              # 変更がある場合は一番下の位を1つ繰り上げ
+              # v1.0.0 -> v1.0.1, v1.2.3 -> v1.2.4
+              VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
+              IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+              PATCH=$((PATCH + 1))
+              NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+              HAS_CHANGES=true
+              echo "Changes detected, creating new tag: $NEW_TAG"
+            fi
+          fi
+          
+          echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
+          echo "Using tag: $NEW_TAG"
+
+      - name: Create tag if needed
+        if: steps.version.outputs.has_changes == 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
 
       - name: copy google-services-json
         run: |
@@ -54,9 +110,8 @@ jobs:
       - name: Rename apk
         shell: bash
         run: |
-          DATE=$(date +%Y%m%d)
-          TIME=$(date +%H%M%S)
-          NEW_PATH="app/build/outputs/apk/release/app-release-unsigned-signed-${DATE}-${TIME}.apk"
+          TAG_NAME="${{ steps.version.outputs.tag }}"
+          NEW_PATH="app/build/outputs/apk/release/app-release-${TAG_NAME}.apk"
           mv app/build/outputs/apk/release/app-release-unsigned-signed.apk "$NEW_PATH"
           echo "APK_FILE=$NEW_PATH" >> $GITHUB_ENV
 
@@ -66,3 +121,14 @@ jobs:
           name: app-release
           path: ${{ env.APK_FILE }}
           retention-days: 1
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          files: ${{ env.APK_FILE }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
