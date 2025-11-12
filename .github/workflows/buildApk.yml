@@ -121,14 +121,3 @@ jobs:
           name: app-release
           path: ${{ env.APK_FILE }}
           retention-days: 1
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: ${{ steps.version.outputs.tag }}
-          files: ${{ env.APK_FILE }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
