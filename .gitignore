@@ -7,6 +7,10 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/gradle.xml
+/.idea/deviceManager.xml
+/.idea/misc.xml
+/.idea/copilot.data.migration.agent.xml
 /.env*
 .DS_Store
 /build
