@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.view.settings
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.SignOutResult
 import gaku.original.myapplication.ui.common.BottomBarView
@@ -101,6 +103,22 @@ fun SettingsView(
                 navController = navController,
                 route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // バージョン情報を表示
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "バージョン: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             Button(
                 modifier = Modifier

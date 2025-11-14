@@ -1,4 +1,41 @@
 import java.util.Properties
+import java.io.ByteArrayOutputStream
+
+// Gitタグからバージョンを取得する関数
+fun Project.getVersionName(): String {
+    return try {
+        val stdout = ByteArrayOutputStream()
+        exec {
+            commandLine("git", "describe", "--tags", "--abbrev=0")
+            standardOutput = stdout
+            isIgnoreExitValue = true
+        }
+        val tag = stdout.toString().trim()
+        if (tag.isNotEmpty() && tag.startsWith("v")) {
+            tag.substring(1) // "v"を削除
+        } else if (tag.isNotEmpty()) {
+            tag
+        } else {
+            "1.0.0" // デフォルト値
+        }
+    } catch (e: Exception) {
+        "1.0.0" // エラー時はデフォルト値
+    }
+}
+
+// セマンティックバージョン（例：1.0.0）をバージョンコード（整数）に変換
+// 各3桁で表現: major * 1000000 + minor * 1000 + patch
+fun getVersionCode(versionName: String): Int {
+    val parts = versionName.split(".")
+    return try {
+        val major = parts.getOrNull(0)?.toIntOrNull() ?: 1
+        val minor = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val patch = parts.getOrNull(2)?.toIntOrNull() ?: 0
+        major * 1000000 + minor * 1000 + patch
+    } catch (e: Exception) {
+        1 // エラー時はデフォルト値
+    }
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -16,8 +53,11 @@ android {
     defaultConfig {
         applicationId = "gaku.original.myapplication"
         minSdk = 31//ここを上げる。上げないとkizitonwoseが使いづらくなる
-        versionCode = 1
-        versionName = "1.0"
+        
+        // Gitタグからバージョンを取得
+        val versionNameFromGit = project.getVersionName()
+        versionName = versionNameFromGit
+        versionCode = getVersionCode(versionNameFromGit)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
