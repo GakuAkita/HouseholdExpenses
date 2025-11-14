@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.view.settings
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -100,6 +101,12 @@ fun SettingsView(
                 label = "PayPayレシートOCR設定",
                 navController = navController,
                 route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
+            )
+
+            SettingRowWithNavigation(
+                label = "バージョン情報",
+                navController = navController,
+                route = Screen.SettingScreen.Version.route
             )
 
             Button(

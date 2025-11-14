@@ -39,6 +39,7 @@ sealed class Screen(val route: String) {
         object UserInfo : SettingScreen("$BASE_ROUTE/user_info")
         object RepeatAdd : SettingScreen("$BASE_ROUTE/repeat_add")
         object AppSettings : SettingScreen("$BASE_ROUTE/app_settings")
+        object Version : SettingScreen("$BASE_ROUTE/version")
 
         sealed class MailboxExtraction(route: String) : SettingScreen(route) {
             companion object {

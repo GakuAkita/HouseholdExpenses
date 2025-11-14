@@ -25,6 +25,7 @@ import gaku.original.myapplication.ui.view.settings.menu.NotificationListenerSet
 import gaku.original.myapplication.ui.view.settings.menu.PayPayReceiptOCRSettingView
 import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
 import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
+import gaku.original.myapplication.ui.view.settings.menu.VersionView
 import gaku.original.myapplication.ui.view.settings.menu.AmazonSubscribeItemsView
 import gaku.original.myapplication.ui.view.start.ForgotPasswordView
 import gaku.original.myapplication.ui.view.start.LoginSignUpView
@@ -123,6 +124,10 @@ fun Navigation(
 
         composable(Screen.SettingScreen.AmazonSubscribeItems.route) {
             AmazonSubscribeItemsView(navController = navController)
+        }
+
+        composable(Screen.SettingScreen.Version.route) {
+            VersionView(navController = navController)
         }
 
         //OCR用のスクリーン
