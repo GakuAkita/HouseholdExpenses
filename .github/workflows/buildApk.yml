@@ -25,7 +25,7 @@ jobs:
         run: |
           # 最新のタグを取得(vで始まるタグのみ)
           LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
-          
+
           if [ -z "$LATEST_TAG" ]; then
             # タグが存在しない場合は v1.0.0 から開始
             NEW_TAG="v1.0.0"
@@ -54,7 +54,7 @@ jobs:
               echo "Changes detected, creating new tag: $NEW_TAG"
             fi
           fi
-          
+
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
           echo "Using tag: $NEW_TAG"
@@ -78,7 +78,13 @@ jobs:
       # これいらないか？
       - name: copy firebase.json
         run: |
-          echo "${{ secrets.FIREBASE_JSON }}" | base64 --decode --ignore-garbage > ./firebase.json          
+          echo "${{ secrets.FIREBASE_JSON }}" | base64 --decode --ignore-garbage > ./firebase.json
+
+      - name: Create local.properties
+        run: |
+          echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" >> ./local.properties
+          echo "REDIRECT_URI=${{ secrets.REDIRECT_URI }}" >> ./local.properties
+          echo "USE_FIREBASE_EMULATOR=false" >> ./local.properties
 
       - name: Build With Gradle
         shell: bash
@@ -97,13 +103,13 @@ jobs:
           # これ試してみるか。
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
-        id: sign_app  #いらないか
+        id: sign_app #いらないか
         with:
           releaseDirectory: app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}          
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
 
