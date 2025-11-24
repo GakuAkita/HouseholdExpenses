@@ -1,5 +1,6 @@
 *.iml
 .gradle
+/.vscode
 /local.properties
 /.idea
 /.idea/caches
@@ -26,3 +27,5 @@ local.properties
 /emu_data
 *.jks
 /firebase.json
+/start_emulator.bat
+
