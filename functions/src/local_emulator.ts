@@ -43,6 +43,8 @@ const userId = "testUser"; // テスト用のユーザーID
 
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
+console.log("FIRESTORE_EMULATOR_HOST:", process.env.FIRESTORE_EMULATOR_HOST);
+console.log("FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID);
 
 /* -----------Firebase Databaseに接続するため---------------- */
 const emulatorHost =

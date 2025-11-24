@@ -1,28 +1,34 @@
 import * as admin from "firebase-admin";
 import { logger } from "firebase-functions";
 
-/**
- *  環境変数についてはよくわかっていないけど、ここで毎回コメントアウトでローカルとそうでないのを切り替えればよいのでは？
- */
 export const initMyFirebaseAdmin = (options?: admin.AppOptions) => {
   if (admin.apps.length > 0) {
     return;
   }
 
   if (options) {
-    logger.log("Initializing Firebase Admin SDK in LOCAL (emulator) mode");
+    /**
+     * エミュレーターに接続するときは、
+     * project idとdatabaseURLをいれて渡す
+     */
+    if (options.databaseURL === undefined) {
+      logger.warn(`-----------!!!!!!databaseURL is not defined!!!!!!-----------`);
+    }
     admin.initializeApp(options);
+
+    /**
+     *  FIRESTORE_EMULATOR_HOSTが環境変数で定義されていれば
+     *  自動でエミュレーターに接続する。
+     * */
+    if (process.env.FIRESTORE_EMULATOR_HOST !== undefined) {
+      logger.log(`Firestore is connected to emulator =${process.env.FIRESTORE_EMULATOR_HOST}`);
+    }
   } else {
     logger.log("Initializing Firebase Admin SDK in PRODUCTION mode");
     admin.initializeApp();
   }
 };
 
-/**
- * オプションが渡されていなかったらdeploy状態、
- * 渡されていたらローカル
- * ------------使ってない---------
- */
 export const getMyFirestore = (options?: admin.AppOptions) => {
   initMyFirebaseAdmin(options);
   return admin.firestore();
