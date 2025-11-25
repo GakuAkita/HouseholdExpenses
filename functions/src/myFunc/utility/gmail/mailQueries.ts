@@ -34,7 +34,7 @@ export async function getAmazonKindleMailIds(
     "Kindle"; /* まあこれなくてもいいけど、、一応つけておく。本文または件名に含まれる */
 
   const endTimeAdded = endTime + 1;
-  const query = `from:${mailFrom} ${wordIncluded} after:${startTime} before:${endTimeAdded}`;
+  const query = `from:${mailFrom} ${wordIncluded} -subject:予約注文 after:${startTime} before:${endTimeAdded}`;
   logger.debug(`Query:${query}`);
   const funcResult = await gmailClient.queryMessages(query);
   return funcResult;
