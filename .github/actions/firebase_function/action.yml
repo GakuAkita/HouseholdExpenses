@@ -1,0 +1,40 @@
+name: Firebase Function Deploy
+description: Deploy Firebase Function
+
+inputs:
+  node-version:
+    description: "Node.js version"
+    required: false
+    default: "20"
+  working-directory:
+    description: "Working directory for functions"
+    required: false
+    default: "./functions"
+  firebase_token:
+    description: "Firebase CLI Token"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "npm"
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+    - name: Install Dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm ci
+
+    - name: Build Functions
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm run build
+
+    - name: Deploy to Firebase
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npx firebase-tools deploy --only functions --token ${{ inputs.firebase_token }} --project default

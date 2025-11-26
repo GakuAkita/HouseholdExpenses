@@ -1,0 +1,17 @@
+name: Deploy Firebase Functions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Firebase Functions
+        uses: ./.github/actions/firebase_function
+        with:
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+          working-directory: ./functions
