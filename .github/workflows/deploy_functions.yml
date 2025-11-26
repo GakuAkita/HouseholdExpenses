@@ -10,6 +10,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: copy google-services-json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode --ignore-garbage > ./app/google-services.json
+
+      - name: copy firebase.json
+        run: |
+          echo "${{ secrets.FIREBASE_JSON }}" | base64 --decode --ignore-garbage > ./firebase.json
+
       - name: Deploy Firebase Functions
         uses: ./.github/actions/firebase_function
         with:
