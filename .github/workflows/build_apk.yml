@@ -12,8 +12,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Setup Code
-        uses: ./.github/actions/setup_code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup setting Files
+        uses: ./.github/actions/setup_setting
 
       - name: Get latest tag and determine version
         id: version
@@ -66,15 +69,6 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           git tag "${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
-
-      - name: copy google-services-json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode --ignore-garbage > ./app/google-services.json
-
-      # これいらないか？
-      - name: copy firebase.json
-        run: |
-          echo "${{ secrets.FIREBASE_JSON }}" | base64 --decode --ignore-garbage > ./firebase.json
 
       - name: Create local.properties
         run: |

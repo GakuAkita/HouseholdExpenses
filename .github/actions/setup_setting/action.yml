@@ -4,9 +4,6 @@ description: Setup Code
 runs:
   using: composite
   steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
     - name: copy google-services-json
       shell: bash
       run: |

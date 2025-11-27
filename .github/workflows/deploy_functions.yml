@@ -7,8 +7,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Code
-        uses: ./.github/actions/setup_code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup setting Files
+        uses: ./.github/actions/setup_setting
 
       - name: Deploy Firebase Functions
         uses: ./.github/actions/firebase_function
