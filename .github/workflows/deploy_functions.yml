@@ -7,16 +7,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: copy google-services-json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode --ignore-garbage > ./app/google-services.json
-
-      - name: copy firebase.json
-        run: |
-          echo "${{ secrets.FIREBASE_JSON }}" | base64 --decode --ignore-garbage > ./firebase.json
+      - name: Setup Code
+        uses: ./.github/actions/setup_code
 
       - name: Deploy Firebase Functions
         uses: ./.github/actions/firebase_function

@@ -12,12 +12,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref_name || 'main' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Code
+        uses: ./.github/actions/setup_code
 
       - name: Get latest tag and determine version
         id: version
