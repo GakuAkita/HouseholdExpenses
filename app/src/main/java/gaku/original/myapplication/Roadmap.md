@@ -79,7 +79,7 @@
 - done:::ローカルテストで保存できるように。Firebase emulator
 - done:::バージョンをアプリ内に表示できるようにする
 - done:::kindle予約注文のときも検知しようとしてしまう
-- GitHubのdependabotの対応
+- done:::GitHubのdependabotの対応
 - 正規表現を作り直す(GPTに任せすぎ、、 )
 - カレンダー以外の表示方法
 - デザインを整える
