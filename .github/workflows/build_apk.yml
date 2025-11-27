@@ -17,6 +17,9 @@ jobs:
 
       - name: Setup setting Files
         uses: ./.github/actions/setup_setting
+        with:
+          google_services_json: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          firebase_json: ${{ secrets.FIREBASE_JSON }}
 
       - name: Get latest tag and determine version
         id: version
