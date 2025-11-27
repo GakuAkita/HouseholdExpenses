@@ -1,0 +1,23 @@
+name: Setup Code
+description: Setup Code
+
+inputs:
+  google_services_json:
+    description: "Google Services JSON"
+    required: true
+  firebase_json:
+    description: "Firebase JSON"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: copy google-services-json
+      shell: bash
+      run: |
+        echo "${{ inputs.google_services_json }}" | base64 --decode --ignore-garbage > ./app/google-services.json
+
+    - name: copy firebase.json
+      shell: bash
+      run: |
+        echo "${{ inputs.firebase_json }}" | base64 --decode --ignore-garbage > ./firebase.json
