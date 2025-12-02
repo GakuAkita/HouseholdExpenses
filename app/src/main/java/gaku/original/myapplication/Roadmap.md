@@ -97,6 +97,7 @@
 - done:::他の月のときに日付が同じだと背景青になっている
 - done??:::amazon物のやつの書式チェック(新しい書式か？Parserをいじらないとかも)
 - searchがうまく動いていない
+- firebase tokenからGCPでworkflowの認証をする
 
 //optional
 

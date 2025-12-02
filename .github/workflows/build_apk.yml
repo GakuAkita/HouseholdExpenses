@@ -96,6 +96,7 @@ jobs:
 
           # https://www.geeksforgeeks.org/android/automated-release-for-android-using-github-actions/
           # これ試してみるか。
+
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         id: sign_app #いらないか
@@ -112,7 +113,7 @@ jobs:
         shell: bash
         run: |
           TAG_NAME="${{ steps.version.outputs.tag }}"
-          NEW_PATH="app/build/outputs/apk/release/app-release-${TAG_NAME}.apk"
+          NEW_PATH="app/build/outputs/apk/release/app-release-household-expenses-${TAG_NAME}.apk"
           mv app/build/outputs/apk/release/app-release-unsigned-signed.apk "$NEW_PATH"
           echo "APK_FILE=$NEW_PATH" >> $GITHUB_ENV
 
