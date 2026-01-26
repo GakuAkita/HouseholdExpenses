@@ -12,7 +12,7 @@ export class AmazonKindleMailParser extends MailParserBase {
   }
 
   extractBookTitle(): string | null {
-    const match = this.rawText.match(/\n\n(.+?)\n販売者：/);
+    const match = this.rawText.match(/(?:^|\n)([^\n]+)\n販売者[：:]/);
     return match ? match[1].trim() : null;
   }
 
