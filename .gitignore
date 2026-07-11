@@ -25,6 +25,7 @@ local.properties
 /firestore-debug.log
 /database-debug.log
 /emu_data
+/emulator_data
 *.jks
 /firebase.json
 /start_emulator.bat

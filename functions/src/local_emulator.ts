@@ -443,10 +443,10 @@ const processMailTest = async () => {
   const testTypes = [
     //createRakutenPaySettingInstance(),
     //createAmazonItemSettingInstance(),
-    createAmazonKindleSettingInstance(),
+    //createAmazonKindleSettingInstance(),
     //createAmazonSubscribeSettingInstance(),
     //createShikokuElectricPowerSettingInstance(),
-    //createUdemySettingInstance(),
+    createUdemySettingInstance(),
     //createRakutenCardETCSettingInstance(),
   ];
 
