@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
             ) {
 
                 val snackbarHostState = remember { SnackbarHostState() }
-                val rootNavController = rememberNavController()
+                navController = rememberNavController()
 
                 // https://developer.android.com/develop/ui/compose/compositionlocal
                 CompositionLocalProvider(
@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
                             appContainer = (application as MyApplication).appContainer
                         )
                     }
+
                 }
             }
         }

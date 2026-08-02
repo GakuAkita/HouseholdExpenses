@@ -29,7 +29,6 @@ fun RootNavigation(
     ){
         composable<Splash> {
             Scaffold(
-
             ) {innerPadding->
                 Column(
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
