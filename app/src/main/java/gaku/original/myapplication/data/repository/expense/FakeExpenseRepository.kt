@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.repository.expense
 import gaku.original.myapplication.data.dataClass.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.UUID
 
 class FakeExpenseRepository: ExpenseRepository {
     private val _expenses = MutableStateFlow<Map<String, Expense>>(emptyMap())
@@ -18,11 +19,17 @@ class FakeExpenseRepository: ExpenseRepository {
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
-        TODO("Not yet implemented")
+        val newExpense = expense.copy(
+            id = UUID.randomUUID().toString(),
+            timestamp = System.currentTimeMillis()
+        )
+        _expenses.value += (newExpense.id!! to newExpense)
+        return newExpense
     }
 
-    override suspend fun updateExpense(expense: Expense) {
-        TODO("Not yet implemented")
+    override suspend fun updateExpense(expense: Expense): Expense {
+        _expenses.value += (expense.id!! to expense)
+        return expense
     }
 
     override suspend fun removeExpense(expense: Expense) {

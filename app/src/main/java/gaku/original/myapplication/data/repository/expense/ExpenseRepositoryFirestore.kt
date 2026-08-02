@@ -21,20 +21,14 @@ class ExpenseRepositoryFirestore: ExpenseRepository {
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
-        val newExpense = expense.copy(
-            id = UUID.randomUUID().toString(),
-            timestamp = System.currentTimeMillis()
-        )
-        _expenses.value += (newExpense.id!! to newExpense)
-        return newExpense
+        TODO("Not yet implemented")
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        _expenses.value = _expenses.value + (expense.id!! to expense)
-        return expense
+        TODO("Not yet implemented")
     }
 
     override suspend fun removeExpense(expense: Expense) {
-        _expenses.value = _expenses.value - expense.id!!
+        TODO("Not yet implemented")
     }
 }
