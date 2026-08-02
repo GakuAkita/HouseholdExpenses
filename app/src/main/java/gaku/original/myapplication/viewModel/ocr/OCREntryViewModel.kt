@@ -3,8 +3,8 @@ package gaku.original.myapplication.viewModel.ocr
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.repository.PrefKeys
-import gaku.original.myapplication.repository.SharedPreferencesRepository
+import gaku.original.myapplication.data.repository.PrefKeys
+import gaku.original.myapplication.data.repository.SharedPreferencesRepository
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import javax.inject.Inject

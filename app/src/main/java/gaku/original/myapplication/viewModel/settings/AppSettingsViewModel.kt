@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.repository.FirestoreRepository.UserSettingsFirestoreRepository
+import gaku.original.myapplication.data.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

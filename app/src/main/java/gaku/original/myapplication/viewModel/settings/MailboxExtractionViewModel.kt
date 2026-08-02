@@ -11,8 +11,8 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
 import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
-import gaku.original.myapplication.repository.FirebaseAuthRepository
-import gaku.original.myapplication.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.data.repository.FirebaseAuthRepository
+import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
 import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -227,11 +227,11 @@ class MailboxExtractionViewModel @Inject constructor(
         }
 
         activeLoadingCount++
-        fetchAllCategories(
-            callback = {
-                onFinishOne()
-            }
-        )
+//        fetchAllCategories(
+//            callback = {
+//                onFinishOne()
+//            }
+//        )
 
         activeLoadingCount++
         loadAllEmailTemplateTypeSetting(
@@ -377,20 +377,20 @@ class MailboxExtractionViewModel @Inject constructor(
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
     val allCategories: StateFlow<List<Category>> get() = _allCategories
 
-    private suspend fun fetchAllCategoriesWithLocalUpdate(): FuncResultWithData<List<Category>> {
-        val fetchResult = categoryUseCase.fetchAllCategories()
-        if (fetchResult is FuncResultWithData.Success) {
-            _allCategories.value = fetchResult.data
-        }
-        return fetchResult
-    }
+//    private suspend fun fetchAllCategoriesWithLocalUpdate(): FuncResultWithData<List<Category>> {
+//        val fetchResult = categoryUseCase.fetchAllCategories()
+//        if (fetchResult is FuncResultWithData.Success) {
+//            _allCategories.value = fetchResult.data
+//        }
+//        return fetchResult
+//    }
 
-    fun fetchAllCategories(callback: (FuncStatusInfo) -> Unit = {}) {
-        viewModelScope.launch {
-            val fetchResult = fetchAllCategoriesWithLocalUpdate()
-            callback(fetchResult.toFuncStatusInfo())
-        }
-    }
+//    fun fetchAllCategories(callback: (FuncStatusInfo) -> Unit = {}) {
+//        viewModelScope.launch {
+//            val fetchResult = fetchAllCategoriesWithLocalUpdate()
+//            callback(fetchResult.toFuncStatusInfo())
+//        }
+//    }
 
     /******************* メール抽出の実行状況 **********************/
     suspend fun getIsGmailTokenExist(): FuncResultWithData<Boolean> {

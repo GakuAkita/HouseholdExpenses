@@ -49,177 +49,177 @@ fun CategoryAddEditView(
 
     navController: NavController
 ) {
-    var editedCategory by remember { mutableStateOf(Category(name = null)) }
-    var showDialog by remember { mutableStateOf(false) }
-    var removeShowDialog by remember { mutableStateOf(false) }
-
-    val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
-
-    val context = LocalContext.current
-
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember {
-        SnackbarHostState()
-    }
-    Scaffold(
-        topBar = {
-            TopBarView(
-                title = "What is essential is invisible to the eye",
-                onBackNavClicked = {
-                    navController.popBackStack()
-                },
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { BottomBarView(navController) }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(allCategories) {
-                    CategoryItem(
-                        category = it,
-                        onClick = {
-                            showDialog = true
-                            editedCategory = it
-                        },
-                        onDelete = {
-                            removeShowDialog = true
-                            editedCategory = it
-                        }
-                    )
-                }
-            }
-
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    showDialog = true
-                    editedCategory = Category(
-                        name = null
-                    )
-                }
-            ) {
-                Text("Add Category")
-            }
-
-            //ダイアログを表示
-            if (showDialog) {
-                //EditかAddはeditedCategoryのidがnullかどうかで判断する
-                CategoryAddEditDialog(
-                    category = editedCategory,
-                    onSave = { newCategory ->
-                        if (newCategory.id == null) {
-                            //新規追加
-                            viewModel.addCategory(
-                                newCategory,
-                                callback = { status ->
-                                    when (status.status) {
-                                        FuncStatus.SUCCESS -> {
-                                            Toast.makeText(
-                                                context,
-                                                "カテゴリーを追加しました",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            showDialog = false
-                                        }
-
-                                        FuncStatus.TIMEOUT -> {
-                                            Toast.makeText(
-                                                context,
-                                                status.errorMessage,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            showDialog = false
-                                        }
-
-                                        FuncStatus.FAILED -> {
-                                            Toast.makeText(
-                                                context,
-                                                status.errorMessage,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            showDialog = false
-                                        }
-
-                                        else -> {}
-                                    }
-
-                                }
-                            )
-                        } else {
-                            //編集
-                            viewModel.updateCategory(
-                                newCategory,
-
-                                callback = { status ->
-                                    when (status.status) {
-                                        FuncStatus.SUCCESS -> {
-                                            showDialog = false
-                                            Toast.makeText(
-                                                context,
-                                                "カテゴリーを編集しました",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-
-                                        FuncStatus.TIMEOUT -> {
-                                            Toast.makeText(
-                                                context,
-                                                status.errorMessage,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            showDialog = false
-                                        }
-
-                                        FuncStatus.FAILED -> {
-                                            Toast.makeText(
-                                                context,
-                                                status.errorMessage,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            showDialog = false
-                                        }
-
-                                        else -> {}
-                                    }
-                                }
-                            )
-                        }
-                    },
-                    onDismiss = {
-                        showDialog = false
-                    }
-                )
-            }
-
-            if (removeShowDialog) {
-                CategoryRemoveConfirmDialog(
-                    category = editedCategory,
-                    onOK = { categoryRemoved ->
-                        viewModel.removeCategory(
-                            category = categoryRemoved,
-                            callback = { status ->
-                                if (status.status != FuncStatus.SUCCESS) {
-                                    scope.launch {
-                                        snackBarHostState.showSnackbar("${status.errorMessage}:${categoryRemoved.name}")
-                                    }
-                                }
-                            }
-                        )
-                        removeShowDialog = false
-                    },
-                    onDismiss = {
-                        removeShowDialog = false
-                    }
-                )
-            }
-        }
-    }
+//    var editedCategory by remember { mutableStateOf(Category(name = null)) }
+//    var showDialog by remember { mutableStateOf(false) }
+//    var removeShowDialog by remember { mutableStateOf(false) }
+//
+//    val allCategories by remember { viewModel.allCategories }.collectAsState(initial = emptyList())
+//
+//    val context = LocalContext.current
+//
+//    val scope = rememberCoroutineScope()
+//    val snackBarHostState = remember {
+//        SnackbarHostState()
+//    }
+//    Scaffold(
+//        topBar = {
+//            TopBarView(
+//                title = "What is essential is invisible to the eye",
+//                onBackNavClicked = {
+//                    navController.popBackStack()
+//                },
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+//        bottomBar = { BottomBarView(navController) }
+//    ) { innerPadding ->
+//        Column(
+//            modifier = Modifier.padding(innerPadding)
+//        ) {
+//            LazyVerticalGrid(
+//                columns = GridCells.Fixed(2),
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                items(allCategories) {
+//                    CategoryItem(
+//                        category = it,
+//                        onClick = {
+//                            showDialog = true
+//                            editedCategory = it
+//                        },
+//                        onDelete = {
+//                            removeShowDialog = true
+//                            editedCategory = it
+//                        }
+//                    )
+//                }
+//            }
+//
+//            Button(
+//                modifier = Modifier.fillMaxWidth(),
+//                onClick = {
+//                    showDialog = true
+//                    editedCategory = Category(
+//                        name = null
+//                    )
+//                }
+//            ) {
+//                Text("Add Category")
+//            }
+//
+//            //ダイアログを表示
+//            if (showDialog) {
+//                //EditかAddはeditedCategoryのidがnullかどうかで判断する
+//                CategoryAddEditDialog(
+//                    category = editedCategory,
+//                    onSave = { newCategory ->
+//                        if (newCategory.id == null) {
+//                            //新規追加
+//                            viewModel.addCategory(
+//                                newCategory,
+//                                callback = { status ->
+//                                    when (status.status) {
+//                                        FuncStatus.SUCCESS -> {
+//                                            Toast.makeText(
+//                                                context,
+//                                                "カテゴリーを追加しました",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                            showDialog = false
+//                                        }
+//
+//                                        FuncStatus.TIMEOUT -> {
+//                                            Toast.makeText(
+//                                                context,
+//                                                status.errorMessage,
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                            showDialog = false
+//                                        }
+//
+//                                        FuncStatus.FAILED -> {
+//                                            Toast.makeText(
+//                                                context,
+//                                                status.errorMessage,
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                            showDialog = false
+//                                        }
+//
+//                                        else -> {}
+//                                    }
+//
+//                                }
+//                            )
+//                        } else {
+//                            //編集
+//                            viewModel.updateCategory(
+//                                newCategory,
+//
+//                                callback = { status ->
+//                                    when (status.status) {
+//                                        FuncStatus.SUCCESS -> {
+//                                            showDialog = false
+//                                            Toast.makeText(
+//                                                context,
+//                                                "カテゴリーを編集しました",
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                        }
+//
+//                                        FuncStatus.TIMEOUT -> {
+//                                            Toast.makeText(
+//                                                context,
+//                                                status.errorMessage,
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                            showDialog = false
+//                                        }
+//
+//                                        FuncStatus.FAILED -> {
+//                                            Toast.makeText(
+//                                                context,
+//                                                status.errorMessage,
+//                                                Toast.LENGTH_SHORT
+//                                            ).show()
+//                                            showDialog = false
+//                                        }
+//
+//                                        else -> {}
+//                                    }
+//                                }
+//                            )
+//                        }
+//                    },
+//                    onDismiss = {
+//                        showDialog = false
+//                    }
+//                )
+//            }
+//
+//            if (removeShowDialog) {
+//                CategoryRemoveConfirmDialog(
+//                    category = editedCategory,
+//                    onOK = { categoryRemoved ->
+//                        viewModel.removeCategory(
+//                            category = categoryRemoved,
+//                            callback = { status ->
+//                                if (status.status != FuncStatus.SUCCESS) {
+//                                    scope.launch {
+//                                        snackBarHostState.showSnackbar("${status.errorMessage}:${categoryRemoved.name}")
+//                                    }
+//                                }
+//                            }
+//                        )
+//                        removeShowDialog = false
+//                    },
+//                    onDismiss = {
+//                        removeShowDialog = false
+//                    }
+//                )
+//            }
+//        }
+//    }
 }
 
 @Composable

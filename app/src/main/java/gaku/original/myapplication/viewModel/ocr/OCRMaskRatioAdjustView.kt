@@ -10,8 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.SharedImageData
-import gaku.original.myapplication.repository.PrefKeys
-import gaku.original.myapplication.repository.SharedPreferencesRepository
+import gaku.original.myapplication.data.repository.SharedPreferencesRepository
 import gaku.original.myapplication.utility.loadBitmapFromUri
 import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
@@ -26,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OCRMaskRatioAdjustViewModel @Inject constructor(
     private val sharedImageViewModel: SharedImageViewModel,
-    private val prefRepository: SharedPreferencesRepository
+    //private val prefRepository: SharedPreferencesRepository
 ) : ViewModel() {
 
     /**
@@ -93,8 +92,8 @@ class OCRMaskRatioAdjustViewModel @Inject constructor(
     }
 
     private fun saveRatioSetting(leftRatio: Float, topRatio: Float) {
-        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO, leftRatio)
-        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO, topRatio)
+//        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO, leftRatio)
+//        prefRepository.setFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO, topRatio)
     }
 
     fun updateLeftRatio(ratio: Float) {

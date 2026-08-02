@@ -8,16 +8,15 @@ import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.repository.FirestoreRepository.ExpenseFirestoreRepository
-import gaku.original.myapplication.repository.FirestoreRepository.RepeatAddFirestoreRepository
+import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.utility.concatStringWithBars
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class RepeatAddUseCase @Inject constructor(
-    private val repeatAddRepository: RepeatAddFirestoreRepository,
-    private val expenseRepository: ExpenseFirestoreRepository
+    //private val repeatAddRepository: RepeatAddFirestoreRepository,
+    private val expenseRepository: ExpenseRepository
 ) {
     //新しいRepeatAddにちゃんと値が入っているかチェックする
     fun checkNewRepeatAddValid(newRepeatAdd: RepeatAdd): String {
@@ -61,41 +60,41 @@ class RepeatAddUseCase @Inject constructor(
         return ""
     }
 
-    suspend fun addRepeatAdd(
-        repeatAdd: RepeatAdd,
-        validCheck: Boolean = true
-    ): FuncResultWithData<RepeatAdd> {
-        if (validCheck) {
-            val msg = checkNewRepeatAddValid(repeatAdd)
-            if (msg.isNotEmpty()) return FuncResultWithData.Failure.GenericFailure(
-                status = FuncStatus.FAILED,
-                errorMessage = msg
-            )
-        }
-        return repeatAddRepository.addRepeatAdd(repeatAdd)
-    }
-
-    suspend fun fetchAllRepeatAdd(): FuncResultWithData<List<RepeatAdd>> {
-        return repeatAddRepository.fetchAllRepeatAdd()
-    }
-
-    suspend fun updateRepeatAdd(
-        repeatAdd: RepeatAdd,
-        validCheck: Boolean = true
-    ): FuncStatusInfo {
-        if (validCheck) {
-            val msg = checkNewRepeatAddValid(repeatAdd)
-            if (msg.isNotEmpty()) return FuncStatusInfo(
-                status = FuncStatus.FAILED,
-                errorMessage = msg
-            )
-        }
-        return repeatAddRepository.updateRepeatAdd(repeatAdd)
-    }
-
-    suspend fun removeRepeatAdd(repeatAdd: RepeatAdd): FuncStatusInfo {
-        return repeatAddRepository.removeRepeatAdd(repeatAdd)
-    }
+//    suspend fun addRepeatAdd(
+//        repeatAdd: RepeatAdd,
+//        validCheck: Boolean = true
+//    ): FuncResultWithData<RepeatAdd> {
+//        if (validCheck) {
+//            val msg = checkNewRepeatAddValid(repeatAdd)
+//            if (msg.isNotEmpty()) return FuncResultWithData.Failure.GenericFailure(
+//                status = FuncStatus.FAILED,
+//                errorMessage = msg
+//            )
+//        }
+//        return repeatAddRepository.addRepeatAdd(repeatAdd)
+//    }
+//
+//    suspend fun fetchAllRepeatAdd(): FuncResultWithData<List<RepeatAdd>> {
+//        return repeatAddRepository.fetchAllRepeatAdd()
+//    }
+//
+//    suspend fun updateRepeatAdd(
+//        repeatAdd: RepeatAdd,
+//        validCheck: Boolean = true
+//    ): FuncStatusInfo {
+//        if (validCheck) {
+//            val msg = checkNewRepeatAddValid(repeatAdd)
+//            if (msg.isNotEmpty()) return FuncStatusInfo(
+//                status = FuncStatus.FAILED,
+//                errorMessage = msg
+//            )
+//        }
+//        return repeatAddRepository.updateRepeatAdd(repeatAdd)
+//    }
+//
+//    suspend fun removeRepeatAdd(repeatAdd: RepeatAdd): FuncStatusInfo {
+//        return repeatAddRepository.removeRepeatAdd(repeatAdd)
+//    }
 
     /**
      * UI側で何％完了したかをわかるように、Flowで実行
@@ -135,11 +134,11 @@ class RepeatAddUseCase @Inject constructor(
                 val isoStr = AppTimeZone.localDateTimeToIsoString(day)
                 val expenseToAdd = expenseTemplate.copy(datetime = isoStr)
 
-                val stat = expenseRepository.addExpense(expenseToAdd)
-                if (stat.toFuncStatusInfo().status == FuncStatus.SUCCESS) {
-                    addedCnt++
-                }
-                emit((index + 1).toFloat() / addDays.size to null)
+//                val stat = expenseRepository.addExpense(expenseToAdd)
+//                if (stat.toFuncStatusInfo().status == FuncStatus.SUCCESS) {
+//                    addedCnt++
+//                }
+//                emit((index + 1).toFloat() / addDays.size to null)
             }
 
             val finalStatus = if (addedCnt == addDays.size) {

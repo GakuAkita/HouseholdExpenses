@@ -79,246 +79,246 @@ fun SearchView(
     val expenses = viewModel.searchedExpenses.collectAsState()
     val listState = rememberLazyListState()
     val loadingStatus = viewModel.loadingStatus.collectAsState()
-    val currentFilter = viewModel.currentFilter.collectAsState()
-    val allCategories = viewModel.allCategories.collectAsState()
-
-    var showFilterSheet by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        viewModel.searchExpenses { result ->
-            Log.d(
-                funcName,
-                "Initial search result: status=${result.status}, error=${result.errorMessage}"
-            )
-            when (result.status) {
-                FuncStatus.SUCCESS -> {
-                    Log.d(funcName, "初期検索成功")
-                }
-
-                FuncStatus.TIMEOUT -> {
-                    Log.d(funcName, "初期検索タイムアウト: ${result.errorMessage}")
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "タイムアウトしました: ${result.errorMessage}",
-                            actionLabel = "OK"
-                        )
-                    }
-                }
-
-                FuncStatus.FAILED -> {
-                    Log.d(funcName, "初期検索失敗: ${result.errorMessage}")
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "検索に失敗しました: ${result.errorMessage}",
-                            actionLabel = "OK"
-                        )
-                    }
-                }
-
-                else -> {
-                    Log.d(funcName, "初期検索その他: ${result.errorMessage}")
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "エラーが発生しました: ${result.errorMessage}",
-                            actionLabel = "OK"
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopBarView("検索")
-        },
-        bottomBar = { BottomBarView(navController) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // フィルターコントロール
-            FilterControlBar(
-                currentFilter = currentFilter.value,
-                onShowFilterSheet = { showFilterSheet = true },
-                onResetFilter = {
-                    viewModel.resetFilter()
-                    viewModel.searchExpenses { result ->
-                        Log.d(
-                            funcName,
-                            "Reset filter result: status=${result.status}, error=${result.errorMessage}"
-                        )
-                        when (result.status) {
-                            FuncStatus.TIMEOUT -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "タイムアウトしました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-                            FuncStatus.FAILED -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "検索に失敗しました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-                            else -> {
-                                if (result.status != FuncStatus.SUCCESS) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "エラーが発生しました: ${result.errorMessage}",
-                                            actionLabel = "OK"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                onRefresh = {
-                    viewModel.searchExpenses { result ->
-                        Log.d(
-                            funcName,
-                            "Refresh result: status=${result.status}, error=${result.errorMessage}"
-                        )
-                        when (result.status) {
-                            FuncStatus.TIMEOUT -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "タイムアウトしました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-                            FuncStatus.FAILED -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "検索に失敗しました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-                            else -> {
-                                if (result.status != FuncStatus.SUCCESS) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "エラーが発生しました: ${result.errorMessage}",
-                                            actionLabel = "OK"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            )
-
-            // コンテンツ
-            if (loadingStatus.value == LoadingStatus.LOADING) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (loadingStatus.value == LoadingStatus.SUCCESS && expenses.value.isEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("検索結果がありません")
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxWidth(),
-                    userScrollEnabled = true
-                ) {
-                    items(expenses.value) { expense ->
-                        SearchedExpenseItem(expense) {
-                            viewModel.setToTmpExpense(it)
-                            // @TODO 作り直し
-//                            navController.navigate(
-//                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
-//                                    Screen.SearchScreen
+//    val currentFilter = viewModel.currentFilter.collectAsState()
+//    val allCategories = viewModel.allCategories.collectAsState()
+//
+//    var showFilterSheet by remember { mutableStateOf(false) }
+//    val snackbarHostState = remember { SnackbarHostState() }
+//    val scope = rememberCoroutineScope()
+//
+//    LaunchedEffect(Unit) {
+//        viewModel.searchExpenses { result ->
+//            Log.d(
+//                funcName,
+//                "Initial search result: status=${result.status}, error=${result.errorMessage}"
+//            )
+//            when (result.status) {
+//                FuncStatus.SUCCESS -> {
+//                    Log.d(funcName, "初期検索成功")
+//                }
+//
+//                FuncStatus.TIMEOUT -> {
+//                    Log.d(funcName, "初期検索タイムアウト: ${result.errorMessage}")
+//                    scope.launch {
+//                        snackbarHostState.showSnackbar(
+//                            message = "タイムアウトしました: ${result.errorMessage}",
+//                            actionLabel = "OK"
+//                        )
+//                    }
+//                }
+//
+//                FuncStatus.FAILED -> {
+//                    Log.d(funcName, "初期検索失敗: ${result.errorMessage}")
+//                    scope.launch {
+//                        snackbarHostState.showSnackbar(
+//                            message = "検索に失敗しました: ${result.errorMessage}",
+//                            actionLabel = "OK"
+//                        )
+//                    }
+//                }
+//
+//                else -> {
+//                    Log.d(funcName, "初期検索その他: ${result.errorMessage}")
+//                    scope.launch {
+//                        snackbarHostState.showSnackbar(
+//                            message = "エラーが発生しました: ${result.errorMessage}",
+//                            actionLabel = "OK"
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    Scaffold(
+//        topBar = {
+//            TopBarView("検索")
+//        },
+//        bottomBar = { BottomBarView(navController) },
+//        snackbarHost = { SnackbarHost(snackbarHostState) }
+//    ) { innerPadding ->
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//        ) {
+//            // フィルターコントロール
+//            FilterControlBar(
+//                currentFilter = currentFilter.value,
+//                onShowFilterSheet = { showFilterSheet = true },
+//                onResetFilter = {
+//                    viewModel.resetFilter()
+//                    viewModel.searchExpenses { result ->
+//                        Log.d(
+//                            funcName,
+//                            "Reset filter result: status=${result.status}, error=${result.errorMessage}"
+//                        )
+//                        when (result.status) {
+//                            FuncStatus.TIMEOUT -> {
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "タイムアウトしました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//                            FuncStatus.FAILED -> {
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "検索に失敗しました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//                            else -> {
+//                                if (result.status != FuncStatus.SUCCESS) {
+//                                    scope.launch {
+//                                        snackbarHostState.showSnackbar(
+//                                            message = "エラーが発生しました: ${result.errorMessage}",
+//                                            actionLabel = "OK"
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                },
+//                onRefresh = {
+//                    viewModel.searchExpenses { result ->
+//                        Log.d(
+//                            funcName,
+//                            "Refresh result: status=${result.status}, error=${result.errorMessage}"
+//                        )
+//                        when (result.status) {
+//                            FuncStatus.TIMEOUT -> {
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "タイムアウトしました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//                            FuncStatus.FAILED -> {
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "検索に失敗しました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//                            else -> {
+//                                if (result.status != FuncStatus.SUCCESS) {
+//                                    scope.launch {
+//                                        snackbarHostState.showSnackbar(
+//                                            message = "エラーが発生しました: ${result.errorMessage}",
+//                                            actionLabel = "OK"
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            )
+//
+//            // コンテンツ
+//            if (loadingStatus.value == LoadingStatus.LOADING) {
+//                Row(
+//                    modifier = Modifier.fillMaxSize(),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    CircularProgressIndicator()
+//                }
+//            } else if (loadingStatus.value == LoadingStatus.SUCCESS && expenses.value.isEmpty()) {
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    Text("検索結果がありません")
+//                }
+//            } else {
+//                LazyColumn(
+//                    state = listState,
+//                    modifier = Modifier.fillMaxWidth(),
+//                    userScrollEnabled = true
+//                ) {
+//                    items(expenses.value) { expense ->
+//                        SearchedExpenseItem(expense) {
+//                            viewModel.setToTmpExpense(it)
+//                            // @TODO 作り直し
+////                            navController.navigate(
+////                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+////                                    Screen.SearchScreen
+////                                )
+////                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    // フィルターシート
+//    if (showFilterSheet) {
+//        ModalBottomSheet(
+//            onDismissRequest = { showFilterSheet = false },
+//            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+//        ) {
+//            FilterSheetContent(
+//                currentFilter = currentFilter.value,
+//                allCategories = allCategories.value,
+//                onApplyFilter = { filter ->
+//                    viewModel.searchWithFilter(filter) { result ->
+//                        Log.d(
+//                            funcName,
+//                            "Apply filter result: status=${result.status}, error=${result.errorMessage}"
+//                        )
+//                        when (result.status) {
+//                            FuncStatus.SUCCESS -> {
+//                                Log.d(funcName, "フィルター適用成功")
+//                            }
+//
+//                            FuncStatus.TIMEOUT -> {
+//                                Log.d(
+//                                    funcName,
+//                                    "フィルター適用タイムアウト: ${result.errorMessage}"
 //                                )
-//                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // フィルターシート
-    if (showFilterSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showFilterSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-            FilterSheetContent(
-                currentFilter = currentFilter.value,
-                allCategories = allCategories.value,
-                onApplyFilter = { filter ->
-                    viewModel.searchWithFilter(filter) { result ->
-                        Log.d(
-                            funcName,
-                            "Apply filter result: status=${result.status}, error=${result.errorMessage}"
-                        )
-                        when (result.status) {
-                            FuncStatus.SUCCESS -> {
-                                Log.d(funcName, "フィルター適用成功")
-                            }
-
-                            FuncStatus.TIMEOUT -> {
-                                Log.d(
-                                    funcName,
-                                    "フィルター適用タイムアウト: ${result.errorMessage}"
-                                )
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "タイムアウトしました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-
-                            FuncStatus.FAILED -> {
-                                Log.d(funcName, "フィルター適用失敗: ${result.errorMessage}")
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "フィルター適用に失敗しました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-
-                            else -> {
-                                Log.d(funcName, "フィルター適用その他: ${result.errorMessage}")
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "エラーが発生しました: ${result.errorMessage}",
-                                        actionLabel = "OK"
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    showFilterSheet = false
-                },
-                onDismiss = { showFilterSheet = false }
-            )
-        }
-    }
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "タイムアウトしました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//
+//                            FuncStatus.FAILED -> {
+//                                Log.d(funcName, "フィルター適用失敗: ${result.errorMessage}")
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "フィルター適用に失敗しました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//
+//                            else -> {
+//                                Log.d(funcName, "フィルター適用その他: ${result.errorMessage}")
+//                                scope.launch {
+//                                    snackbarHostState.showSnackbar(
+//                                        message = "エラーが発生しました: ${result.errorMessage}",
+//                                        actionLabel = "OK"
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+//                    showFilterSheet = false
+//                },
+//                onDismiss = { showFilterSheet = false }
+//            )
+//        }
+//    }
 }
 
 /**

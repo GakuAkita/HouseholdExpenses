@@ -31,19 +31,19 @@ class RepeatAddViewModel @Inject constructor(
     //ページを開くたびロードする感じで良い。頻度はそんなに多くないから
     fun fetchAllRepeatAddSettings(callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val fetchResult = repeatAddUseCase.fetchAllRepeatAdd()
-            if (fetchResult is FuncResultWithData.Success) {
-                _repeatAddSettings.value = fetchResult.data
-            } else {
-                _repeatAddSettings.value = emptyList()
-            }
-            callback(fetchResult.toFuncStatusInfo())
+//            val fetchResult = repeatAddUseCase.fetchAllRepeatAdd()
+//            if (fetchResult is FuncResultWithData.Success) {
+//                _repeatAddSettings.value = fetchResult.data
+//            } else {
+//                _repeatAddSettings.value = emptyList()
+//            }
+//            callback(fetchResult.toFuncStatusInfo())
         }
     }
 
-    suspend fun addRepeatAdd(repeatAdd: RepeatAdd): FuncResultWithData<RepeatAdd> {
-        return repeatAddUseCase.addRepeatAdd(repeatAdd)
-    }
+//    suspend fun addRepeatAdd(repeatAdd: RepeatAdd): FuncResultWithData<RepeatAdd> {
+//        return repeatAddUseCase.addRepeatAdd(repeatAdd)
+//    }
 
     fun addRepeatAddSetting(
         repeatAdd: RepeatAdd,
@@ -51,22 +51,22 @@ class RepeatAddViewModel @Inject constructor(
     ) {
         //チェックをいれる
         viewModelScope.launch {
-            val ret = addRepeatAdd(repeatAdd)
-            callback(ret)
+//            val ret = addRepeatAdd(repeatAdd)
+//            callback(ret)
         }
     }
 
     fun updateRepeatAdd(repeatAdd: RepeatAdd, callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val ret = repeatAddUseCase.updateRepeatAdd(repeatAdd)
-            callback(ret)
+//            val ret = repeatAddUseCase.updateRepeatAdd(repeatAdd)
+//            callback(ret)
         }
     }
 
     fun removeRepeatAdd(repeatAdd: RepeatAdd, callback: (FuncStatusInfo) -> Unit = {}) {
         viewModelScope.launch {
-            val ret = repeatAddUseCase.removeRepeatAdd(repeatAdd)
-            callback(ret)
+//            val ret = repeatAddUseCase.removeRepeatAdd(repeatAdd)
+//            callback(ret)
         }
     }
 

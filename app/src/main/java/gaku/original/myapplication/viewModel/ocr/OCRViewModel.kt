@@ -18,9 +18,9 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
 import gaku.original.myapplication.data.mapFailure
+import gaku.original.myapplication.data.repository.PrefKeys
+import gaku.original.myapplication.data.repository.SharedPreferencesRepository
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
-import gaku.original.myapplication.repository.PrefKeys
-import gaku.original.myapplication.repository.SharedPreferencesRepository
 import gaku.original.myapplication.utility.loadBitmapFromUri
 import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
