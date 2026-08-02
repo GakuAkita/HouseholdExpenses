@@ -111,12 +111,12 @@ fun LoginSignUpView(
                                 duration = SnackbarDuration.Long
                             )
                         }
-                        navController.navigate(Screen.MainScreen.Content.route) {
-                            //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
+//                        navController.navigate(Screen.MainScreen.Content.route) {
+//                            //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
+//                            popUpTo(0) {
+//                                inclusive = true
+//                            }
+//                        }
                     }
 
                     FuncStatus.TIMEOUT -> {
@@ -219,9 +219,9 @@ fun LoginSignUpView(
 //                )
 //            }
             /* Mainスクリーンに遷移 */
-            navController.navigate(Screen.MainScreen.Content.route) {
-                popUpTo(0) { inclusive = true }
-            }
+//            navController.navigate(Screen.MainScreen.Content.route) {
+//                popUpTo(0) { inclusive = true }
+//            }
         }
     }
 
@@ -345,9 +345,9 @@ fun LoginSignUpView(
                             .padding(top = 300.dp)
                             .clickable {
                                 // パスワードリセット処理
-                                navController.navigate(
-                                    Screen.StartScreen.ForgotPassword.route
-                                )
+//                                navController.navigate(
+//                                    Screen.StartScreen.ForgotPassword.route
+//                                )
                             }
                     )
                 }

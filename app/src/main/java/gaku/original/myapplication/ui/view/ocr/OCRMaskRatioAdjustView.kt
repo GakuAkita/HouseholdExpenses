@@ -89,7 +89,7 @@ fun OCRMaskRatioAdjustView(
                 onClick = {
                     /* 設定値を保存 */
                     viewModel.saveAdjustedRatioSetting()
-                    navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
+                    //navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
                 }
             ) {
                 Text("設定値を保存")

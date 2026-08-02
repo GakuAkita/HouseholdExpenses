@@ -228,7 +228,7 @@ fun MailboxExtractionView(
                             .weight(2f),
                         onClick = {
                             /* カテゴリー割当画面へ */
-                            navController.navigate(Screen.GlobalScreen.CategoryAssignmentEdit.route)
+                            //navController.navigate(Screen.GlobalScreen.CategoryAssignmentEdit.route)
                         }
                     ) {
                         Text("カテゴリー割当画面へ")

@@ -31,15 +31,15 @@ fun OCREntryView(
                 /**
                  * 両方すでにセットされているのでOCR読み取りへ直行
                  */
-                navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
+                //navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
             } else {
                 /**
                  * Ratio設定画面へ
                  */
-                navigateAndRemoveCurrent(
-                    navController,
-                    Screen.GlobalScreen.OCR.MaskRatioAdjust.route
-                )
+//                navigateAndRemoveCurrent(
+//                    navController,
+//                    Screen.GlobalScreen.OCR.MaskRatioAdjust.route
+//                )
             }
         } else {
             /**
@@ -73,5 +73,5 @@ fun OCREntryView(
 
 /* OCR画面は基本的に単一画面。すでに存在する場合は強制的に上書きする */
 fun navigateToOCREntryView(navController: NavHostController) {
-    navigateToSingle(navController, Screen.GlobalScreen.OCR.Entry.route)
+    //navigateToSingle(navController, Screen.GlobalScreen.OCR.Entry.route)
 }

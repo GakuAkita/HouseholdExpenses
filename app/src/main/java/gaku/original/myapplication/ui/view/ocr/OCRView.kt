@@ -81,11 +81,13 @@ fun OCRView(
                 /**
                  * ↓これも仮数で置き換える？
                  */
-                navController.navigate(Screen.GlobalScreen.ExpenseAddEdit.route) {
-                    popUpTo(Screen.GlobalScreen.OCR.Read.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
-                        inclusive = true // OCRView を含めて削除
-                    }
-                }
+                // @TODO 作るなおし
+//                navController.navigate(Screen.
+//                GlobalScreen.ExpenseAddEdit.route) {
+//                    popUpTo(Screen.GlobalScreen.OCR.Read.route) {/* OCR画面をスタックから消してnavigate。そうじゃないと戻ったときにまたOCRが走ってしまう*/
+//                        inclusive = true // OCRView を含めて削除
+//                    }
+//                }
             } else if (it.status == FuncStatus.WARNING) {
                 Toast.makeText(context, "OCR読み取り部分的に失敗しました", Toast.LENGTH_SHORT)
                     .show()

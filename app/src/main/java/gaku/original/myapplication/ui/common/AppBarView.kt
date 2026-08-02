@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.R
 import gaku.original.myapplication.Screen
 
@@ -62,28 +63,29 @@ fun TopBarView(
 fun BottomBarView(
     navController: NavController
 ) {
+    // @Todo ちゃんと設定する
     val bottomNavigationItems = listOf(
         BottomNavigationItem(
             title = "Main",
             icon = painterResource(id = R.drawable.baseline_home_24),
             //@Todo できればExpenseAddEditViewのとき別のbottomBarViewに移動したときに戻った際に入力結果を保存してかつ、AddEditViewに戻ってほしい
             //viewModelに保存しておくのがまるいか？
-            route = Screen.MainScreen.Content.route
+            route = MainGraph.Bottom.toString()
         ),
         BottomNavigationItem(
             title = "Search",
             icon = painterResource(id = R.drawable.baseline_search_24),
-            route = Screen.SearchScreen.route
+            route = MainGraph.Bottom.toString()
         ),
         BottomNavigationItem(
             title = "Graph",
             icon = painterResource(id = R.drawable.baseline_pie_chart_24),
-            route = Screen.GraphScreen.route
+            route = MainGraph.Bottom.toString()
         ),
         BottomNavigationItem(
             title = "Settings",
             icon = painterResource(id = R.drawable.baseline_settings_24),
-            route = Screen.SettingScreen.Main.route
+            route = MainGraph.Bottom.toString()
         )
     )
 

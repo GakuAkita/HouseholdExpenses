@@ -118,5 +118,5 @@ fun NotificationListenerProcessView(
 fun navigateToNLProcess(navController: NavHostController) {
     val funcName = "navigateToNLProcess"
     Log.d(funcName, "${funcName} was called.")
-    navigateToSingle(navController, Screen.GlobalScreen.NotificationListenerProcess.route)
+    //navigateToSingle(navController, Screen.GlobalScreen.NotificationListenerProcess.route)
 }

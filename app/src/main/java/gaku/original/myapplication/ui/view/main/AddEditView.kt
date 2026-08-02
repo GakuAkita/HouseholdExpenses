@@ -112,8 +112,9 @@ fun ExpenseAddEditView(
     from: String/* 遷移元のスクリーン */
 ) {
     val fromScreen = when (from) {
-        Screen.SearchScreen.route -> FromScreen.SEARCH
-        Screen.MainScreen.Content.route -> FromScreen.MAIN_CONTENT
+        // @Todo 作り直し
+//        Screen.SearchScreen.route -> FromScreen.SEARCH
+//        Screen.MainScreen.Content.route -> FromScreen.MAIN_CONTENT
         else -> FromScreen.UNKNOWN
     }
 
@@ -528,7 +529,7 @@ fun ExpenseAddEditView(
                         // カテゴリー編集ボタン
                         IconButton(
                             onClick = {
-                                navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
+                                //navController.navigate(Screen.GlobalScreen.CategoryAddEdit.route)
                             }
                         ) {
                             Icon(

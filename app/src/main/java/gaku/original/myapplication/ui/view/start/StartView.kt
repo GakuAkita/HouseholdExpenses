@@ -51,7 +51,7 @@ fun StartView(navController: NavHostController) {
             Button(
                 modifier = Modifier.width(buttonWidth.dp),
                 onClick = {
-                    navController.navigate(Screen.StartScreen.SignUp.route)
+//                    navController.navigate(Screen.StartScreen.SignUp.route)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.tertiary,
@@ -65,7 +65,7 @@ fun StartView(navController: NavHostController) {
             Button(
                 modifier = Modifier.width(buttonWidth.dp),
                 onClick = {
-                    navController.navigate(Screen.StartScreen.Login.route)
+//                    navController.navigate(Screen.StartScreen.Login.route)
                 }
             ) {
                 Text("Login")

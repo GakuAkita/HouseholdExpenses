@@ -247,11 +247,12 @@ fun SearchView(
                     items(expenses.value) { expense ->
                         SearchedExpenseItem(expense) {
                             viewModel.setToTmpExpense(it)
-                            navController.navigate(
-                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
-                                    Screen.SearchScreen
-                                )
-                            )
+                            // @TODO 作り直し
+//                            navController.navigate(
+//                                Screen.GlobalScreen.ExpenseAddEdit.createRoute(
+//                                    Screen.SearchScreen
+//                                )
+//                            )
                         }
                     }
                 }

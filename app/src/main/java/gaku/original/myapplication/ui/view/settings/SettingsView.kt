@@ -56,86 +56,86 @@ fun SettingsView(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            SettingRowWithNavigation(
-                label = "ユーザー情報",
-                navController = navController,
-                route = Screen.SettingScreen.UserInfo.route
-            )
-
-            SettingRowWithNavigation(
-                label = "タイムゾーン設定",
-                navController = navController,
-                route = Screen.SettingScreen.AppSettings.route
-            )
-
-            SettingRowWithNavigation(
-                label = "カテゴリー一覧",
-                navController = navController,
-                route = Screen.GlobalScreen.CategoryAddEdit.route
-            )
-
-            SettingRowWithNavigation(
-                label = "繰り返し自動追加",
-                navController = navController,
-                route = Screen.SettingScreen.RepeatAdd.route
-            )
-
-            SettingRowWithNavigation(
-                label = "メールボックス自動抽出",
-                navController = navController,
-                route = Screen.SettingScreen.MailboxExtraction.Main.route
-            )
-
-            SettingRowWithNavigation(
-                label = "Amazon定期便リスト",
-                navController = navController,
-                route = Screen.SettingScreen.AmazonSubscribeItems.route
-            )
-
 //            SettingRowWithNavigation(
-//                label = "プッシュ通知から費用抽出",
+//                label = "ユーザー情報",
 //                navController = navController,
-//                route = Screen.SettingScreen.NotificationListenerSetting.route
+//                route = Screen.SettingScreen.UserInfo.route
 //            )
-            SettingRowWithNavigation(
-                label = "PayPayレシートOCR設定",
-                navController = navController,
-                route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
-            )
-
-            SettingRowWithNavigation(
-                label = "バージョン情報",
-                navController = navController,
-                route = Screen.SettingScreen.Version.route
-            )
-
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                onClick = {
-                    /**
-                     * サインアウトに失敗したときに、FirebaseAuthは空になっているけど、initしちゃったみたいなケースはあるか？？
-                     * そこらへんの対処が必要になるか??
-                     * */
-                    //ログアウト機能を実装
-                    val ret = viewModel.signOut()
-                    if (ret == SignOutResult.SUCCESS) {
-                        scope.launch {
-                            snackBarHostState.showSnackbar("ログアウトしました")
-                        }
-                        navController.navigate(Screen.StartScreen.Start.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    } else if (ret == SignOutResult.SIGN_OUT_FAILED) {
-                        scope.launch {
-                            snackBarHostState.showSnackbar("ログアウトに失敗しました")
-                        }
-                    }
-                }
-            ) {
-                Text("LogOut")
-            }
+//
+//            SettingRowWithNavigation(
+//                label = "タイムゾーン設定",
+//                navController = navController,
+//                route = Screen.SettingScreen.AppSettings.route
+//            )
+//
+//            SettingRowWithNavigation(
+//                label = "カテゴリー一覧",
+//                navController = navController,
+//                route = Screen.GlobalScreen.CategoryAddEdit.route
+//            )
+//
+//            SettingRowWithNavigation(
+//                label = "繰り返し自動追加",
+//                navController = navController,
+//                route = Screen.SettingScreen.RepeatAdd.route
+//            )
+//
+//            SettingRowWithNavigation(
+//                label = "メールボックス自動抽出",
+//                navController = navController,
+//                route = Screen.SettingScreen.MailboxExtraction.Main.route
+//            )
+//
+//            SettingRowWithNavigation(
+//                label = "Amazon定期便リスト",
+//                navController = navController,
+//                route = Screen.SettingScreen.AmazonSubscribeItems.route
+//            )
+//
+////            SettingRowWithNavigation(
+////                label = "プッシュ通知から費用抽出",
+////                navController = navController,
+////                route = Screen.SettingScreen.NotificationListenerSetting.route
+////            )
+//            SettingRowWithNavigation(
+//                label = "PayPayレシートOCR設定",
+//                navController = navController,
+//                route = Screen.SettingScreen.PayPayReceiptOCRSetting.route
+//            )
+//
+//            SettingRowWithNavigation(
+//                label = "バージョン情報",
+//                navController = navController,
+//                route = Screen.SettingScreen.Version.route
+//            )
+//
+//            Button(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 20.dp),
+//                onClick = {
+//                    /**
+//                     * サインアウトに失敗したときに、FirebaseAuthは空になっているけど、initしちゃったみたいなケースはあるか？？
+//                     * そこらへんの対処が必要になるか??
+//                     * */
+//                    //ログアウト機能を実装
+//                    val ret = viewModel.signOut()
+//                    if (ret == SignOutResult.SUCCESS) {
+//                        scope.launch {
+//                            snackBarHostState.showSnackbar("ログアウトしました")
+//                        }
+//                        navController.navigate(Screen.StartScreen.Start.route) {
+//                            popUpTo(0) { inclusive = true }
+//                        }
+//                    } else if (ret == SignOutResult.SIGN_OUT_FAILED) {
+//                        scope.launch {
+//                            snackBarHostState.showSnackbar("ログアウトに失敗しました")
+//                        }
+//                    }
+//                }
+//            ) {
+//                Text("LogOut")
+//            }
         }
     }
 }
