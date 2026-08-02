@@ -12,7 +12,7 @@ interface ExpenseRepository {
 
     suspend fun addExpense(expense: Expense): Expense
 
-    suspend fun updateExpense(expense: Expense)
+    suspend fun updateExpense(expense: Expense): Expense
 
     suspend fun removeExpense(expense: Expense)
 }
