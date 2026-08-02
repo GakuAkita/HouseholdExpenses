@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.start
+package gaku.original.myapplication.ui.screens.start
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.ocr
+package gaku.original.myapplication.ui.screens.ocr
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -35,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView

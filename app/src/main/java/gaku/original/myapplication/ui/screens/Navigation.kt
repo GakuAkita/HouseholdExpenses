@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable

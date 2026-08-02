@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.start
+package gaku.original.myapplication.ui.screens.start
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import gaku.original.myapplication.Screen
 
 @Composable
 fun StartView(

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.main
+package gaku.original.myapplication.ui.screens.main
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -66,7 +66,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.R
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.CategoryAssignFlag

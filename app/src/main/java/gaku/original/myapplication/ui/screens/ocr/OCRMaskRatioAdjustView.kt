@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.ocr
+package gaku.original.myapplication.ui.screens.ocr
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -19,10 +19,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.utility.navigateAndRemoveCurrent
 import gaku.original.myapplication.viewModel.ocr.OCRMaskRatioAdjustViewModel
 
 @Composable

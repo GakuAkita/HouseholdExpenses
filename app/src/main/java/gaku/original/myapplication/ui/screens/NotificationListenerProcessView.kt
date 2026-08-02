@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view
+package gaku.original.myapplication.ui.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -18,10 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.NotificationListenerProcessViewModel
 import kotlinx.coroutines.launch
 

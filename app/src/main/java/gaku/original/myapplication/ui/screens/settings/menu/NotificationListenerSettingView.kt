@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu
+package gaku.original.myapplication.ui.screens.settings.menu
 
 import android.content.Context
 import android.content.Intent

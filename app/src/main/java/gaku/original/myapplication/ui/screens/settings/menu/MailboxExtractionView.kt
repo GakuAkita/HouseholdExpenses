@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu
+package gaku.original.myapplication.ui.screens.settings.menu
 
 import android.content.Context
 import android.content.Intent
@@ -41,7 +41,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId

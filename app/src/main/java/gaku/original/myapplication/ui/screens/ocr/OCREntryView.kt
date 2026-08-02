@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.ocr
+package gaku.original.myapplication.ui.screens.ocr
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -9,11 +9,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.utility.navigateAndRemoveCurrent
-import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.ocr.OCREntryViewModel
 
 /**

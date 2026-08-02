@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.main
+package gaku.original.myapplication.ui.screens.main
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable

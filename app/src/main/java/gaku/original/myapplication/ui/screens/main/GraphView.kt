@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.main
+package gaku.original.myapplication.ui.screens.main
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

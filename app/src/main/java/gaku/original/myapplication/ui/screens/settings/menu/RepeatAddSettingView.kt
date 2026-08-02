@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu
+package gaku.original.myapplication.ui.screens.settings.menu
 
 import android.content.Context
 import android.util.Log
@@ -77,7 +77,7 @@ import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
-import gaku.original.myapplication.ui.view.main.DialWithDialog
+import gaku.original.myapplication.ui.screens.main.DialWithDialog
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getLastDayOfMonth
 import gaku.original.myapplication.viewModel.settings.RepeatAddViewModel

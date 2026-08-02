@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.settings.menu
+package gaku.original.myapplication.ui.screens.settings.menu
 
 import android.widget.Toast
 import androidx.compose.foundation.border

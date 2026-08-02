@@ -15,10 +15,12 @@ import androidx.navigation.compose.composable
 import androidx.room.util.TableInfo
 import gaku.original.myapplication.AuthGraph
 import gaku.original.myapplication.Splash
+import gaku.original.myapplication.di.appContainer.AppContainer
 
 @Composable
 fun RootNavigation(
     navHostController: NavHostController,
+    appContainer: AppContainer
 ){
     NavHost(
         navController = navHostController,

@@ -1,34 +1,25 @@
 package gaku.original.myapplication
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
-import dagger.hilt.android.AndroidEntryPoint
-import gaku.original.myapplication.data.Constants.IntentKey
-import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.createAllNotificationChannelsWithRemove
-import gaku.original.myapplication.data.dataClass.NotificationData
-import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.ui.navigation.RootNavigation
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
-import gaku.original.myapplication.ui.view.Navigation
-import gaku.original.myapplication.ui.view.navigateToNLProcess
-import gaku.original.myapplication.ui.view.ocr.navigateToOCREntryView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.utility.getParcelableExtraCompat
-import gaku.original.myapplication.utility.navigateToSingle
-import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
-import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 
+val LocalSnackBarHostState = compositionLocalOf<SnackbarHostState> {
+    error("SnackbarHostState state should be initialized at runtime")
+}
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
 //    private val sharedImageViewModel: SharedImageViewModel by viewModels()
@@ -44,22 +35,31 @@ class MainActivity : ComponentActivity() {
         createAllNotificationChannelsWithRemove(this)
 
         setContent {
-            navController = rememberNavController()
             HouseholdExpensesTheme(
                 darkTheme = true/*システム設定によらずずっとダーク*/
             ) {
-                /**
-                 * onCreateされていないとonNewIntentは走らない
-                 * したがって、ここでもsetArgsをしておかないとだめ。
-                 */
-                //setArgsToSharedImageViewModel()
-                //setArgsToSharedNotificationListenerViewModel()
-                // 一番最初にデフォルで存在するScaffold
-                // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
-                Surface(modifier = Modifier.fillMaxSize()) {
-//                    val startDestination = decideDestination()
-//                    Navigation(navController, startDestination = startDestination)
-                    RootNavigation(navController)
+
+                val snackbarHostState = remember { SnackbarHostState() }
+                val rootNavController = rememberNavController()
+
+                // https://developer.android.com/develop/ui/compose/compositionlocal
+                CompositionLocalProvider(
+                    LocalSnackBarHostState provides snackbarHostState
+                ) {
+                    /**
+                     * onCreateされていないとonNewIntentは走らない
+                     * したがって、ここでもsetArgsをしておかないとだめ。
+                     */
+                    //setArgsToSharedImageViewModel()
+                    //setArgsToSharedNotificationListenerViewModel()
+                    // 一番最初にデフォルで存在するScaffold
+                    // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        RootNavigation(
+                            navController,
+                            appContainer = (application as MyApplication).appContainer
+                        )
+                    }
                 }
             }
         }
