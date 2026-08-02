@@ -3,20 +3,34 @@ package gaku.original.myapplication.ui.screens.start.signin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
+// https://developer.android.com/topic/architecture/views/ui-layer/events-views?utm_source=chatgpt.com#handle-viewmodel-events
 data class SignInUiState(
     val isLoading: Boolean = false,
     val message:String? = null,
     val email:String = "",
     val password:String = ""
 )
+
+sealed interface SignInMethod{
+    data class Email(
+        val email:String,
+        val password:String
+    ): SignInMethod
+
+    data class Google(
+        val idToken:String
+    ): SignInMethod
+}
 
 class SignInViewModel(
     private val authRepository: AuthRepository
@@ -43,9 +57,18 @@ class SignInViewModel(
         Timber.d("Created!!!!${hashCode()}")
     }
 
-    suspend fun signIn(
+    private fun signIn(method:SignInMethod){
 
-    ){
+    }
+
+    fun signInWithEmail(){
+        viewModelScope.launch {
+
+        }
+    }
+
+    fun signInWithGoogle(){
+
 
     }
 //    suspend fun signIn(

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.ui.common.TopBarView
@@ -40,6 +41,7 @@ import timber.log.Timber
 @Composable
 fun SignInScreenRoot(
     viewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory),
+    navController: NavHostController,
     isSignIn: Boolean = true,
     isGoogleOnly: Boolean = true
 ) {
@@ -60,7 +62,9 @@ fun SignInScreenRoot(
         isSignIn = isSignIn,
         googleOnly = isGoogleOnly,
         onGoogleClick = {},
-        onBackNavClick = {},
+        onBackNavClick = {
+            navController.popBackStack()
+        },
         onEmailChange = {
 
         },
@@ -328,7 +332,7 @@ fun SignInScreen(
                     } else {
                         Button(
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (uiState.isLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+                                containerColor = if (isSignIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
                             ),
                             onClick = {
 
