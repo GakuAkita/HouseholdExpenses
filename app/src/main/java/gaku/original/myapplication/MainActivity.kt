@@ -7,8 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -58,11 +56,9 @@ class MainActivity : ComponentActivity() {
                 setArgsToSharedNotificationListenerViewModel()
                 // 一番最初にデフォルで存在するScaffold
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Surface(modifier = Modifier.padding(innerPadding)) {
-                        val startDestination = decideDestination()
-                        Navigation(navController, startDestination = startDestination)
-                    }
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    val startDestination = decideDestination()
+                    Navigation(navController, startDestination = startDestination)
                 }
             }
         }

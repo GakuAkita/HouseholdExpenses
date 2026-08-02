@@ -130,7 +130,7 @@ dependencies {
     val calendar_version = "2.6.0"
     val scrollbar_version = "2.2.0"
     val viewModel_version = "2.8.5"
-    val nav_version = "2.7.5"
+    val nav_version = "2.8.0"
     val room_version = "2.6.1"
     val hilt_version = "2.51.1"
     val gson_version = "2.10.1"
