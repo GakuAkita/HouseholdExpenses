@@ -46,7 +46,7 @@ class SearchViewModel @Inject constructor(
 //    val currentFilter: StateFlow<ExpenseSearchFilter> get() = _currentFilter
 
     // カテゴリー一覧（ExpenseSharedViewModelから取得）
-    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
+//    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
 
     /**
      * 保存されたフィルターを復元

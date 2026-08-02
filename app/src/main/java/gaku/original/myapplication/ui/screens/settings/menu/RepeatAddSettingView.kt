@@ -93,241 +93,240 @@ fun RepeatAddSettingView(
     viewModel: RepeatAddViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val funcName = "RepeatAddSettingView"
 
-    var showAddEditDialog by remember { mutableStateOf(false) }
-    var showAddExpenseConfirmDialog by remember { mutableStateOf(false) }
-
-    val progress by viewModel.progress.collectAsState()
-    var expenseAddLoading by remember { mutableStateOf(false) }
-
-    var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
-
-    val allCategories = viewModel.allCategories
-
-    val repeatAddSettings by viewModel.repeatAddSettings.collectAsState(initial = emptyList())
-
-    val listState = rememberLazyListState()
-
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
-
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        viewModel.fetchAllRepeatAddSettings()
-    }
-
-    Scaffold(
-        topBar = {
-            TopBarView("繰り返し追加", onBackNavClicked = {
-                navController.popBackStack()
-            }, showBackButton = true)
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { BottomBarView(navController) }
-    ) { innerPadding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(top = 30.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
-            ) {
-                Text("毎月1日に自動で追加されます")
-            }
-            if (repeatAddSettings.isNotEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 3.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("左にスワイプすると削除ボタンが現れます")
-                }
-            }
-            /**
-             * ここで検索とかできるようにしたいなあ～
-             */
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                userScrollEnabled = true
-            ) {
-                items(repeatAddSettings) { repeatAdd ->
-                    RepeatAddItem(
-                        repeatAdd,
-                        onEdit = {
-                            /* 編集をしたい */
-                            editedRepeatAdd = repeatAdd
-                            showAddEditDialog = true
-                        },
-                        onDelete = {
-                            /* 削除をする */
-                            viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
-                                when (status.status) {
-                                    FuncStatus.SUCCESS -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "削除しました",
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                        /* 再度読み込む、、 */
-                                        viewModel.fetchAllRepeatAddSettings()
-                                    }
-
-                                    FuncStatus.TIMEOUT -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "削除できませんでした。タイムアウトしました",
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                    }
-
-                                    FuncStatus.FAILED -> {
-                                        scope.launch {
-                                            snackBarHostState.showSnackbar(
-                                                "削除に失敗しました",
-                                                actionLabel = "OK"
-                                            )
-                                        }
-                                    }
-
-                                    FuncStatus.WARNING -> {
-
-                                    }
-                                }
-                            })
-                        })
-                }
-            }
-
-            Button(
-                onClick = {
-                    editedRepeatAdd = defaultRepeatAdd
-                    showAddEditDialog = true
-                }
-            ) {
-                Text("追加する")
-            }
-
-            if (showAddEditDialog) {
-                RepeatAddEditDialog(
-                    repeatAdd = editedRepeatAdd,
-                    allCategories = allCategories,
-                    onSave = { newRepeatAdd ->
-                        if (newRepeatAdd.id == null)//新規追加
-                        {
-                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { result ->
-                                if (result is FuncResultWithData.Success) {
-                                    viewModel.fetchAllRepeatAddSettings()
-                                    showAddEditDialog = false
-
-                                    /* 新規追加のときは、こいつをtrueにして、このあと月末まで追加するか選ばせる */
-                                    editedRepeatAdd = result.data
-                                    showAddExpenseConfirmDialog = true
-                                } else {
-                                    /* do nothing */
-                                    Toast.makeText(
-                                        context,
-                                        result.toFuncStatusInfo().errorMessage,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            })
-                        } else {/* 編集 */
-                            viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
-                                if (status.status == FuncStatus.SUCCESS) {
-                                    viewModel.fetchAllRepeatAddSettings()
-                                    showAddEditDialog = false
-                                } else {
-                                    /* do nothing */
-                                    Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-                            })
-                        }
-                    },
-                    onDismiss = {
-                        showAddEditDialog = false
-                        editedRepeatAdd = defaultRepeatAdd
-                    },
-                    context = context
-                )
-            }
-
-            /* 月末まで追加するときの確認をする */
-            if (showAddExpenseConfirmDialog) {
-                ConfirmAlertDialog(
-                    onClick = {
-                        viewModel.initProgress()
-                        showAddExpenseConfirmDialog = false
-                        expenseAddLoading = true
-                        viewModel.addExpensesForRestOfDays(
-                            editedRepeatAdd
-                        ) { status ->
-                            /**
-                             * インジケーターの表示を消して、
-                             * snackbarで成功なのか失敗なのかを伝える
-                             */
-                            expenseAddLoading = false
-                            scope.launch {
-                                snackBarHostState.currentSnackbarData?.dismiss()
-                                snackBarHostState.showSnackbar(
-                                    status.errorMessage,
-                                    actionLabel = "OK"
-                                )
-                            }
-                        }
-                    },
-                    onDismissRequest = {
-                        /**
-                         * 追加のときも編集のときもeditedRepeatAddはボタン押下時に初期化されるから
-                         * ここで初期化はしなくて良い
-                         */
-                        showAddExpenseConfirmDialog = false
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                vertical = 20.dp,
-                                horizontal = 10.dp
-                            )
-                    ) {
-                        Text("今月翌日から月末まで費用を追加しますか？\n")
-                    }
-                }
-            }
-
-            if (expenseAddLoading) {
-                BasicAlertDialog(
-                    onDismissRequest = {}
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("費用追加中...")
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-        }
-    }
+//    var showAddEditDialog by remember { mutableStateOf(false) }
+//    var showAddExpenseConfirmDialog by remember { mutableStateOf(false) }
+//
+//    val progress by viewModel.progress.collectAsState()
+//    var expenseAddLoading by remember { mutableStateOf(false) }
+//
+//    var editedRepeatAdd by remember { mutableStateOf(defaultRepeatAdd) }
+//
+//    val allCategories = viewModel.allCategories
+//
+//    val repeatAddSettings by viewModel.repeatAddSettings.collectAsState(initial = emptyList())
+//
+//    val listState = rememberLazyListState()
+//
+//    val scope = rememberCoroutineScope()
+//    val snackBarHostState = remember { SnackbarHostState() }
+//
+//    val context = LocalContext.current
+//
+//    LaunchedEffect(Unit) {
+//        viewModel.fetchAllRepeatAddSettings()
+//    }
+//
+//    Scaffold(
+//        topBar = {
+//            TopBarView("繰り返し追加", onBackNavClicked = {
+//                navController.popBackStack()
+//            }, showBackButton = true)
+//        },
+//        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+//        bottomBar = { BottomBarView(navController) }
+//    ) { innerPadding ->
+//
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//                .padding(top = 30.dp)
+//        ) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(vertical = 5.dp)
+//            ) {
+//                Text("毎月1日に自動で追加されます")
+//            }
+//            if (repeatAddSettings.isNotEmpty()) {
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 3.dp),
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    Text("左にスワイプすると削除ボタンが現れます")
+//                }
+//            }
+//            /**
+//             * ここで検索とかできるようにしたいなあ～
+//             */
+//            LazyColumn(
+//                state = listState,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 10.dp),
+//                userScrollEnabled = true
+//            ) {
+//                items(repeatAddSettings) { repeatAdd ->
+//                    RepeatAddItem(
+//                        repeatAdd,
+//                        onEdit = {
+//                            /* 編集をしたい */
+//                            editedRepeatAdd = repeatAdd
+//                            showAddEditDialog = true
+//                        },
+//                        onDelete = {
+//                            /* 削除をする */
+//                            viewModel.removeRepeatAdd(repeatAdd, callback = { status ->
+//                                when (status.status) {
+//                                    FuncStatus.SUCCESS -> {
+//                                        scope.launch {
+//                                            snackBarHostState.showSnackbar(
+//                                                "削除しました",
+//                                                actionLabel = "OK"
+//                                            )
+//                                        }
+//                                        /* 再度読み込む、、 */
+//                                        viewModel.fetchAllRepeatAddSettings()
+//                                    }
+//
+//                                    FuncStatus.TIMEOUT -> {
+//                                        scope.launch {
+//                                            snackBarHostState.showSnackbar(
+//                                                "削除できませんでした。タイムアウトしました",
+//                                                actionLabel = "OK"
+//                                            )
+//                                        }
+//                                    }
+//
+//                                    FuncStatus.FAILED -> {
+//                                        scope.launch {
+//                                            snackBarHostState.showSnackbar(
+//                                                "削除に失敗しました",
+//                                                actionLabel = "OK"
+//                                            )
+//                                        }
+//                                    }
+//
+//                                    FuncStatus.WARNING -> {
+//
+//                                    }
+//                                }
+//                            })
+//                        })
+//                }
+//            }
+//
+//            Button(
+//                onClick = {
+//                    editedRepeatAdd = defaultRepeatAdd
+//                    showAddEditDialog = true
+//                }
+//            ) {
+//                Text("追加する")
+//            }
+//
+//            if (showAddEditDialog) {
+//                RepeatAddEditDialog(
+//                    repeatAdd = editedRepeatAdd,
+//                    allCategories = allCategories,
+//                    onSave = { newRepeatAdd ->
+//                        if (newRepeatAdd.id == null)//新規追加
+//                        {
+//                            viewModel.addRepeatAddSetting(newRepeatAdd, callback = { result ->
+//                                if (result is FuncResultWithData.Success) {
+//                                    viewModel.fetchAllRepeatAddSettings()
+//                                    showAddEditDialog = false
+//
+//                                    /* 新規追加のときは、こいつをtrueにして、このあと月末まで追加するか選ばせる */
+//                                    editedRepeatAdd = result.data
+//                                    showAddExpenseConfirmDialog = true
+//                                } else {
+//                                    /* do nothing */
+//                                    Toast.makeText(
+//                                        context,
+//                                        result.toFuncStatusInfo().errorMessage,
+//                                        Toast.LENGTH_SHORT
+//                                    ).show()
+//                                }
+//                            })
+//                        } else {/* 編集 */
+//                            viewModel.updateRepeatAdd(newRepeatAdd, callback = { status ->
+//                                if (status.status == FuncStatus.SUCCESS) {
+//                                    viewModel.fetchAllRepeatAddSettings()
+//                                    showAddEditDialog = false
+//                                } else {
+//                                    /* do nothing */
+//                                    Toast.makeText(context, status.errorMessage, Toast.LENGTH_SHORT)
+//                                        .show()
+//                                }
+//                            })
+//                        }
+//                    },
+//                    onDismiss = {
+//                        showAddEditDialog = false
+//                        editedRepeatAdd = defaultRepeatAdd
+//                    },
+//                    context = context
+//                )
+//            }
+//
+//            /* 月末まで追加するときの確認をする */
+//            if (showAddExpenseConfirmDialog) {
+//                ConfirmAlertDialog(
+//                    onClick = {
+//                        viewModel.initProgress()
+//                        showAddExpenseConfirmDialog = false
+//                        expenseAddLoading = true
+//                        viewModel.addExpensesForRestOfDays(
+//                            editedRepeatAdd
+//                        ) { status ->
+//                            /**
+//                             * インジケーターの表示を消して、
+//                             * snackbarで成功なのか失敗なのかを伝える
+//                             */
+//                            expenseAddLoading = false
+//                            scope.launch {
+//                                snackBarHostState.currentSnackbarData?.dismiss()
+//                                snackBarHostState.showSnackbar(
+//                                    status.errorMessage,
+//                                    actionLabel = "OK"
+//                                )
+//                            }
+//                        }
+//                    },
+//                    onDismissRequest = {
+//                        /**
+//                         * 追加のときも編集のときもeditedRepeatAddはボタン押下時に初期化されるから
+//                         * ここで初期化はしなくて良い
+//                         */
+//                        showAddExpenseConfirmDialog = false
+//                    }
+//                ) {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(
+//                                vertical = 20.dp,
+//                                horizontal = 10.dp
+//                            )
+//                    ) {
+//                        Text("今月翌日から月末まで費用を追加しますか？\n")
+//                    }
+//                }
+//            }
+//
+//            if (expenseAddLoading) {
+//                BasicAlertDialog(
+//                    onDismissRequest = {}
+//                ) {
+//                    Column(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        Text("費用追加中...")
+//                        LinearProgressIndicator(
+//                            progress = { progress },
+//                            modifier = Modifier.fillMaxWidth(),
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable
