@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.FirestoreRepository
+package gaku.original.myapplication.data.repository.FirestoreRepository
 
 import addDataWithIdToFirestore
 import android.util.Log

@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.room.util.TableInfo
+import gaku.original.myapplication.AuthGraph
 import gaku.original.myapplication.Splash
 
 @Composable
@@ -21,7 +22,8 @@ fun RootNavigation(
 ){
     NavHost(
         navController = navHostController,
-        startDestination = Splash
+//        startDestination = Splash,
+        startDestination = AuthGraph// Only for Debugging
     ){
         composable<Splash> {
             Scaffold(

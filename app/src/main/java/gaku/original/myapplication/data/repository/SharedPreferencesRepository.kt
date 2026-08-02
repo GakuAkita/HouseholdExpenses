@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository
+package gaku.original.myapplication.data.repository
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext

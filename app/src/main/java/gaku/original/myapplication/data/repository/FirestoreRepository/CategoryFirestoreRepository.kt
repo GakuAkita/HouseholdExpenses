@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.FirestoreRepository
+package gaku.original.myapplication.data.repository.FirestoreRepository
 
 import addDataWithIdToFirestore
 import android.util.Log
@@ -7,7 +7,8 @@ import gaku.original.myapplication.FirestoreReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.LogClassFuncCalled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -18,78 +19,79 @@ import removeDataFromFirestore
 import updateDataToFirestore
 import javax.inject.Inject
 
-class RepeatAddFirestoreRepository @Inject constructor(
+class CategoryFirestoreRepository @Inject constructor(
     private val firestoreReference: FirestoreReference
 ) {
     private val className: String = this::class.simpleName ?: "UnableToGetClassName"
 
-    fun getRepeatAddColRef(): CollectionReference? {
-        return firestoreReference.getRepeatAddColRef()
+    fun getCategoriesColRef(): CollectionReference? {
+        return firestoreReference.getCategoriesColRef()
     }
 
-    suspend fun addRepeatAdd(
-        repeatAdd: RepeatAdd,
-    ): FuncResultWithData<RepeatAdd> {
-        val funcName = ::addRepeatAdd.name
-        LogClassFuncCalled(className, funcName)
-
-        val ref = getRepeatAddColRef()
+    suspend fun addCategory(
+        category: Category
+    ): FuncResultWithData<Category> {
+        val ref = getCategoriesColRef()
         if (ref == null) {
             val statusInfo = FuncResultWithData.Failure.GenericFailure(
-                FuncStatus.FAILED,
-                "RepeatAddコレクションが参照できませんでした"
+                status = FuncStatus.FAILED,
+                errorMessage = "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
         }
 
-        val statusInfo = addDataWithIdToFirestore(repeatAdd, ref)
+        val statusInfo = addDataWithIdToFirestore(category, ref)
         return statusInfo
     }
 
-    suspend fun updateRepeatAdd(
-        repeatAdd: RepeatAdd,
+    suspend fun updateCategory(
+        category: Category,
     ): FuncStatusInfo {
-        val ref = getRepeatAddColRef()
+        val ref = getCategoriesColRef()
         if (ref == null) {
             val statusInfo = FuncStatusInfo(
                 FuncStatus.FAILED,
-                "RepeatAddコレクションが参照できませんでした"
+                "Categoriesコレクションが参照できませんでした"
             )
             return statusInfo
         }
 
-        val statusInfo = updateDataToFirestore(repeatAdd, ref)
+        val statusInfo = updateDataToFirestore(category, ref)
         return statusInfo
     }
 
-    suspend fun removeRepeatAdd(
-        repeatAdd: RepeatAdd,
+    suspend fun removeCategory(
+        category: Category
     ): FuncStatusInfo {
-        val ref = getRepeatAddColRef()
+        val ref = getCategoriesColRef()
         if (ref == null) {
             val statusInfo = FuncStatusInfo(
                 FuncStatus.FAILED,
-                "RepeatAddコレクションが参照できませんでした"
+                "Expensesコレクションが参照できませんでした"
             )
             return statusInfo
         }
 
-        val statusInfo = removeDataFromFirestore(repeatAdd, ref)
+        val statusInfo = removeDataFromFirestore(category, ref)
         return statusInfo
     }
 
-    suspend fun fetchAllRepeatAdd(
-        timeout: Long = 10000
-    ): FuncResultWithData<List<RepeatAdd>> {
-        val funcName = ::fetchAllRepeatAdd.name
+    suspend fun fetchAllCategories(
+        timeout: Long = 10000,
+    ): FuncResultWithData<List<Category>> {
+        LogAkitaDebug("fetchAllCategories called. timeout=$timeout Intentional")
+//        return FuncResultWithData.Failure.Timeout(
+//            errorMessage = "fetchAllCategories() timeout.Intentional"
+//        )
+        val funcName = ::fetchAllCategories.name
         LogClassFuncCalled(className, funcName)
 
-        val repeatAddRef = getRepeatAddColRef()
+        val categoryRef = getCategoriesColRef()
 
-        if (repeatAddRef == null) {
+        if (categoryRef == null) {
             val result = FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = "RepeatAddコレクションが参照できませんでした"
+                errorMessage = "Categoriesコレクションが参照できませんでした"
             )
             return result
         }
@@ -97,20 +99,19 @@ class RepeatAddFirestoreRepository @Inject constructor(
         return try {
             withTimeout(timeout) {
                 withContext(Dispatchers.IO) {
-                    val snapshot = repeatAddRef.get().await()
+                    val snapshot = categoryRef.get().await()
 
-                    val list = mutableListOf<RepeatAdd>()
+                    val list = mutableListOf<Category>()
                     for (doc in snapshot.documents) {
-                        val repeatAdd = doc.toObject(RepeatAdd::class.java)
+                        val category = doc.toObject(Category::class.java)
                             ?: throw Exception("Categoryへの変換に失敗 docId=${doc.id}")
-                        list.add(repeatAdd)
+                        list.add(category)
                     }
 
                     Log.d(className, "Fetched Categories: $list")
                     val result = FuncResultWithData.Success(
                         data = list
                     )
-                    /* 戻り値 */
                     result
                 }
             }
@@ -122,10 +123,9 @@ class RepeatAddFirestoreRepository @Inject constructor(
             Log.d(className, "$funcName failed. ${e.message}")
             val result = FuncResultWithData.Failure.GenericFailure(
                 status = FuncStatus.FAILED,
-                errorMessage = e.message ?: "不明なエラー"
+                errorMessage = "${e.message}"
             )
             result
         }
     }
-
 }

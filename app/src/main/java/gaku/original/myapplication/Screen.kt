@@ -8,6 +8,7 @@ sealed interface Screen
 @Serializable
 data object Splash:Screen
 
+@Serializable
 data object AuthGraph{
     @Serializable
     data object Start:Screen
@@ -21,6 +22,7 @@ data object AuthGraph{
     data object SignUp:Screen
 }
 
+@Serializable
 data object MainGraph{
 
     @Serializable

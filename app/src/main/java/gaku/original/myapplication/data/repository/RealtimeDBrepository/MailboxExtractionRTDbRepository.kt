@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.RealtimeDBrepository
+package gaku.original.myapplication.data.repository.RealtimeDBrepository
 
 import android.util.Log
 import com.google.firebase.database.DatabaseReference

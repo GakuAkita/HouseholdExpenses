@@ -10,7 +10,7 @@ fun NavGraphBuilder.mainGraph(
     navController: NavHostController
 ){
     navigation<MainGraph>(
-        startDestination = MainGraph
+        startDestination = MainGraph.Bottom
     ){
         composable<MainGraph.Bottom> {
             /* MainFrame */

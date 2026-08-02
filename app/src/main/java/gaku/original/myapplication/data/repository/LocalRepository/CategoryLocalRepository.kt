@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.LocalRepository
+package gaku.original.myapplication.data.repository.LocalRepository
 
 import android.util.Log
 import gaku.original.myapplication.data.Constants.Status.FuncStatus

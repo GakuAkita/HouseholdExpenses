@@ -18,6 +18,7 @@ import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.createAllNotificationChannelsWithRemove
 import gaku.original.myapplication.data.dataClass.NotificationData
 import gaku.original.myapplication.data.dataClass.SharedImageData
+import gaku.original.myapplication.ui.navigation.RootNavigation
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.ui.view.Navigation
 import gaku.original.myapplication.ui.view.navigateToNLProcess
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
 //                    val startDestination = decideDestination()
 //                    Navigation(navController, startDestination = startDestination)
-
+                    RootNavigation(navController)
                 }
             }
         }

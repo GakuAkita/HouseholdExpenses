@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.RealtimeDBrepository
+package gaku.original.myapplication.data.repository.RealtimeDBrepository
 
 import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus

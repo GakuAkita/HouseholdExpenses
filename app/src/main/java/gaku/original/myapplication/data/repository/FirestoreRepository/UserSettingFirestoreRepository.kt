@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.FirestoreRepository
+package gaku.original.myapplication.data.repository.FirestoreRepository
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth

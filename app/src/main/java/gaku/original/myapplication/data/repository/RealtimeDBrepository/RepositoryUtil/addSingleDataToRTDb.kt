@@ -1,4 +1,4 @@
-package gaku.original.myapplication.repository.RealtimeDBrepository.RepositoryUtil
+package gaku.original.myapplication.data.repository.RealtimeDBrepository.RepositoryUtil
 
 /* たぶん使わない。使うときはTimeoutのときローカルキャッシュをチェックする機能を加えてください */
 //suspend fun addSingleDataToRTDb(
