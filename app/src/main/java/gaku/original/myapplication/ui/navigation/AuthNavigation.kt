@@ -21,5 +21,9 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable<AuthGraph.SignUp>{
 
         }
+
+        composable<AuthGraph.ForgotPassword> {
+
+        }
     }
 }

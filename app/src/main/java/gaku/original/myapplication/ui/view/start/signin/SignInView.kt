@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.view.start
+package gaku.original.myapplication.ui.view.start.signin
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -42,12 +42,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.CredentialManagerHelper
 import gaku.original.myapplication.R
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.viewModel.start.AuthManagerViewModel
 import kotlinx.coroutines.launch
 
 

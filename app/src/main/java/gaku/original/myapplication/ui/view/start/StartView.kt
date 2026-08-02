@@ -21,7 +21,10 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.Screen
 
 @Composable
-fun StartView(navController: NavHostController) {
+fun StartView(
+    onSignUpClick:()->Unit,
+    onSignInClick:()->Unit
+) {
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -52,6 +55,7 @@ fun StartView(navController: NavHostController) {
                 modifier = Modifier.width(buttonWidth.dp),
                 onClick = {
 //                    navController.navigate(Screen.StartScreen.SignUp.route)
+                    onSignUpClick()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.tertiary,
@@ -66,9 +70,10 @@ fun StartView(navController: NavHostController) {
                 modifier = Modifier.width(buttonWidth.dp),
                 onClick = {
 //                    navController.navigate(Screen.StartScreen.Login.route)
+                    onSignInClick()
                 }
             ) {
-                Text("Login")
+                Text("SignIn")
             }
         }
     }

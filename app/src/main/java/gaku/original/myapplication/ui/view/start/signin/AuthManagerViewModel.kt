@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel.start
+package gaku.original.myapplication.ui.view.start.signin
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

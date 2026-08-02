@@ -4,33 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import gaku.original.myapplication.AuthGraph
-import gaku.original.myapplication.Screen
-import gaku.original.myapplication.ui.view.main.CategoryAddEditView
-import gaku.original.myapplication.ui.view.main.ExpenseAddEditView
-import gaku.original.myapplication.ui.view.main.GraphView
-import gaku.original.myapplication.ui.view.main.MainView
-import gaku.original.myapplication.ui.view.main.SearchView
-import gaku.original.myapplication.ui.view.ocr.OCREntryView
-import gaku.original.myapplication.ui.view.ocr.OCRMaskRatioAdjustView
-import gaku.original.myapplication.ui.view.ocr.OCRView
-import gaku.original.myapplication.ui.view.settings.SettingsView
-import gaku.original.myapplication.ui.view.settings.menu.AppSettingsView
-import gaku.original.myapplication.ui.view.settings.menu.CategoryAssignmentEditView
-import gaku.original.myapplication.ui.view.settings.menu.MailboxExtractionView
-import gaku.original.myapplication.ui.view.settings.menu.NotificationListenerSettingView
-import gaku.original.myapplication.ui.view.settings.menu.PayPayReceiptOCRSettingView
-import gaku.original.myapplication.ui.view.settings.menu.RepeatAddSettingView
-import gaku.original.myapplication.ui.view.settings.menu.UserInfoView
-import gaku.original.myapplication.ui.view.settings.menu.VersionView
-import gaku.original.myapplication.ui.view.settings.menu.AmazonSubscribeItemsView
-import gaku.original.myapplication.ui.view.start.ForgotPasswordView
-import gaku.original.myapplication.ui.view.start.LoginSignUpView
-import gaku.original.myapplication.ui.view.start.StartView
 
 
 @Composable
