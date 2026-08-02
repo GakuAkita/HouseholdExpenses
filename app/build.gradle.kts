@@ -44,6 +44,8 @@ plugins {
     id("com.google.gms.google-services")
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -132,6 +134,7 @@ dependencies {
     val room_version = "2.6.1"
     val hilt_version = "2.51.1"
     val gson_version = "2.10.1"
+    val serialize_version ="1.7.3"
 
     //外部のライブラリいただく
     // The compose calendar library for Android
@@ -157,6 +160,9 @@ dependencies {
 
     /* coil-compose paypayの画像共有で表示するために使用 */
     implementation(libs.coil.kt.coil.compose)
+
+    // JSON serialization library, works with the Kotlin serialization plugin
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${serialize_version}")
 
     /**************************Room DB用************************************/
     // Roomのコアライブラリ

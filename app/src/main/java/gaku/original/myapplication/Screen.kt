@@ -1,5 +1,43 @@
 package gaku.original.myapplication
 
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface Screen
+
+@Serializable
+data object AuthGraph{
+    @Serializable
+    data object Start:Screen
+
+    @Serializable
+    data object SignIn: Screen
+
+    @Serializable
+    data object SignUp:Screen
+}
+
+@Serializable
+object MainGraph{
+    @Serializable
+    data object Home:Screen
+
+    @Serializable
+    data object Statistics: Screen
+
+    @Serializable
+    data object Search: Screen
+
+    @Serializable
+    data object Setting: Screen
+    {
+        sealed interface SettingMenu
+
+
+
+    }
+}
+
 sealed class Screen(val route: String) {
 
     // Start関連
