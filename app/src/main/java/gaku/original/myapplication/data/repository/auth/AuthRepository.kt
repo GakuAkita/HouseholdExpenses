@@ -1,5 +1,7 @@
 package gaku.original.myapplication.data.repository.auth
 
+import gaku.original.myapplication.domain.AppUser
+import gaku.original.myapplication.domain.AuthState
 import kotlinx.coroutines.flow.StateFlow
 
 sealed interface SignInRequest {
@@ -21,15 +23,15 @@ sealed interface SignUpRequest {
 }
 
 interface AuthRepository {
-    //val authState: StateFlow<A>
+    val authState: StateFlow<AuthState>
 
     suspend fun signIn(
         request: SignInRequest
-    )
+    ): AppUser
 
     suspend fun signUp(
         request: SignUpRequest
-    )
+    ): AppUser
 
-    suspend fun singOut()
+    suspend fun signOut()
 }

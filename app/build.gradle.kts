@@ -136,6 +136,7 @@ dependencies {
     val hilt_version = "2.51.1"
     val gson_version = "2.10.1"
     val serialize_version ="1.7.3"
+    val timber_version = "5.0.1"
 
     //外部のライブラリいただく
     // The compose calendar library for Android
@@ -189,6 +190,8 @@ dependencies {
 
     //OpenInNewってアイコンがこれを追加しないと使えない？
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("com.jakewharton.timber:timber:$timber_version")
 
     /************************** OCR 関連 ***********************************/
     implementation(libs.text.recognition)

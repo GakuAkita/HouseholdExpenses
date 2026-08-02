@@ -11,11 +11,11 @@ class FakeExpenseRepository: ExpenseRepository {
         get() = _expenses
 
     override fun startListening() {
-        TODO("Not yet implemented")
+        return
     }
 
     override fun stopListening() {
-        TODO("Not yet implemented")
+        return
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
@@ -33,6 +33,6 @@ class FakeExpenseRepository: ExpenseRepository {
     }
 
     override suspend fun removeExpense(expense: Expense) {
-        TODO("Not yet implemented")
+        _expenses.value -= expense.id!!
     }
 }
