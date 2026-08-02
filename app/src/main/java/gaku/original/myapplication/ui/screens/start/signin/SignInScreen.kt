@@ -60,7 +60,13 @@ fun SignInScreenRoot(
         isSignIn = isSignIn,
         googleOnly = isGoogleOnly,
         onGoogleClick = {},
-        onBackNavClick = {}
+        onBackNavClick = {},
+        onEmailChange = {
+
+        },
+        onPasswordChange = {
+        },
+        onForgotPasswordClick = {}
     )
 }
 
@@ -74,6 +80,7 @@ fun SignInScreen(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onBackNavClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
 
 //    fun getSignInErrorMsgFromCode(errorCode: String?): String {
@@ -333,7 +340,7 @@ fun SignInScreen(
                 }
 
                 // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
-                if (isLoginState && !loading) {
+                if(!uiState.isLoading && isSignIn){
                     Text(
                         text = "Forgot password?",
                         style = MaterialTheme.typography.bodyMedium.copy(
@@ -344,10 +351,7 @@ fun SignInScreen(
                             .align(Alignment.Center) // 👈 Login直下に揃えたい場合は Center
                             .padding(top = 300.dp)
                             .clickable {
-                                // パスワードリセット処理
-//                                navController.navigate(
-//                                    Screen.StartScreen.ForgotPassword.route
-//                                )
+                                onForgotPasswordClick()
                             }
                     )
                 }

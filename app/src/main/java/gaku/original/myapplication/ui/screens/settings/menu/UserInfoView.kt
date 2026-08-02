@@ -10,14 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.ui.screens.start.signin.AuthManagerViewModel
 
 @Composable
 fun UserInfoView(
-    viewModel: AuthManagerViewModel = hiltViewModel(),
+    //viewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavController
 ) {
     Scaffold(
@@ -43,7 +43,7 @@ fun UserInfoView(
         ) {
             Row {
                 Text("Email:")
-                Text("${viewModel.email}")
+                //Text("${viewModel.email}")
             }
         }
     }

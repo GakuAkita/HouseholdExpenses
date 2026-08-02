@@ -31,7 +31,10 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
         }
 
         composable<AuthGraph.SignUp>{
-
+            SignInScreenRoot(
+                isSignIn = false,
+                isGoogleOnly = true
+            )
         }
 
         composable<AuthGraph.ForgotPassword> {

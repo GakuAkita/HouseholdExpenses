@@ -28,11 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.ui.screens.start.signin.AuthManagerViewModel
 
 @Composable
 fun SettingsView(
-    viewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
