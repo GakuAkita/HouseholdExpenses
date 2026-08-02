@@ -44,6 +44,7 @@ plugins {
     id("com.google.gms.google-services")
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+    alias(libs.plugins.compose.compiler)
 
     kotlin("plugin.serialization") version "2.0.21"
 }
@@ -212,8 +213,8 @@ dependencies {
     implementation(kotlin("reflect"))
 }
 
-kapt {
-    javacOptions {
-        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-    }
-}
+//kapt {
+//    javacOptions {
+//        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
+//    }
+//}

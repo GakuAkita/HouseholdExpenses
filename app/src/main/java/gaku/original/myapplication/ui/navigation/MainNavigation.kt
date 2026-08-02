@@ -10,8 +10,23 @@ fun NavGraphBuilder.mainGraph(
     navController: NavHostController
 ){
     navigation<MainGraph>(
-        startDestination = MainGraph.Home
+        startDestination = MainGraph
     ){
-        composable {  }
+        composable<MainGraph.Bottom> {
+            /* MainFrame */
+            /* There is another navHostController. */
+        }
+
+        composable<MainGraph.Global.ExpenseAddEdit> {
+
+        }
+
+        composable<MainGraph.Global.CategoryAddEdit> {
+
+        }
+
+        composable<MainGraph.Global.CategoryAssignmentEdit> {
+
+        }
     }
 }

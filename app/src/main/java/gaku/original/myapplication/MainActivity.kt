@@ -28,11 +28,10 @@ import gaku.original.myapplication.utility.navigateToSingle
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.SharedNotificationListenerViewModel
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
-    private val sharedImageViewModel: SharedImageViewModel by viewModels()
-    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel by viewModels()
+//    private val sharedImageViewModel: SharedImageViewModel by viewModels()
+//    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,13 +51,14 @@ class MainActivity : ComponentActivity() {
                  * onCreateされていないとonNewIntentは走らない
                  * したがって、ここでもsetArgsをしておかないとだめ。
                  */
-                setArgsToSharedImageViewModel()
-                setArgsToSharedNotificationListenerViewModel()
+                //setArgsToSharedImageViewModel()
+                //setArgsToSharedNotificationListenerViewModel()
                 // 一番最初にデフォルで存在するScaffold
                 // HedgehogだとデフォルトでSurfaceがあってやりやすかったのでそっちをパクる。
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    val startDestination = decideDestination()
-                    Navigation(navController, startDestination = startDestination)
+//                    val startDestination = decideDestination()
+//                    Navigation(navController, startDestination = startDestination)
+
                 }
             }
         }
@@ -67,64 +67,64 @@ class MainActivity : ComponentActivity() {
     /**
      * onCreateが起動されていないとonNewIntentは呼ばれない
      */
-    override fun onNewIntent(intent: Intent?) {
-        LogAkitaDebug("onNewIntent() called.")
-        super.onNewIntent(intent)
-        if (intent == null) return
-        setIntent(intent)
-
-        /**
-         * ソースキーで共有画像なのか通知から起動されたのか区別する
-         */
-        val intentSourceKey = intent.getStringExtra(IntentKey)
-
-        val firebaseUser = FirebaseAuth.getInstance().currentUser
-
-        Log.d("onNewIntent", "source key:${intentSourceKey}")
-        when (intentSourceKey) {
-            IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
-                /* PayPay以外に出てきたらどうしよう、、 */
-                setArgsToSharedImageViewModel()
-                /**
-                 * 画面共有から起動された
-                 */
-                if (firebaseUser == null) {
-                    navigateToSingle(navController, Screen.StartScreen.Login.route)
-                } else {
-                    Log.d("onNewIntent", "pile OCRRead on the stack")
-                    sharedImageViewModel.setIsMovedToOCR(true)
-                    navigateToOCREntryView(navController)
-                }
-            }
-
-            IntentSourceKeys.NOTIFICATION_LISTENER -> {
-                /* sharedViewModelに格納して、画面遷移 */
-                /* データの抽出とかは遷移先で行う */
-                setArgsToSharedNotificationListenerViewModel()
-
-                /**
-                 * 通知検知から来たIntent
-                 * 画面作成用のViewを用意してそこでExpenseを作成するか
-                 */
-                if (firebaseUser == null) {
-                    navigateToSingle(navController, Screen.StartScreen.Login.route)
-                } else {
-                    sharedNotificationListenerViewModel.setIsMovedToNLProcess(true)
-                    /**
-                     * NotificationListenerProcessViewが存在しているときにnavigateしたら
-                     * 前の情報は消して新しく更新することにする。
-                     * ここを普通のnavControllerにすれば、複数画面立ち上げられる。
-                     *
-                     */
-                    navigateToNLProcess(navController)
-                }
-            }
-
-            else -> {
-
-            }
-        }
-    }
+//    override fun onNewIntent(intent: Intent?) {
+//        LogAkitaDebug("onNewIntent() called.")
+//        super.onNewIntent(intent)
+//        if (intent == null) return
+//        setIntent(intent)
+//
+//        /**
+//         * ソースキーで共有画像なのか通知から起動されたのか区別する
+//         */
+//        val intentSourceKey = intent.getStringExtra(IntentKey)
+//
+//        val firebaseUser = FirebaseAuth.getInstance().currentUser
+//
+//        Log.d("onNewIntent", "source key:${intentSourceKey}")
+//        when (intentSourceKey) {
+//            IntentSourceKeys.SHARE_IMAGE_FOR_OCR -> {
+//                /* PayPay以外に出てきたらどうしよう、、 */
+//                setArgsToSharedImageViewModel()
+//                /**
+//                 * 画面共有から起動された
+//                 */
+//                if (firebaseUser == null) {
+//                    navigateToSingle(navController, Screen.StartScreen.Login.route)
+//                } else {
+//                    Log.d("onNewIntent", "pile OCRRead on the stack")
+//                    sharedImageViewModel.setIsMovedToOCR(true)
+//                    navigateToOCREntryView(navController)
+//                }
+//            }
+//
+//            IntentSourceKeys.NOTIFICATION_LISTENER -> {
+//                /* sharedViewModelに格納して、画面遷移 */
+//                /* データの抽出とかは遷移先で行う */
+//                setArgsToSharedNotificationListenerViewModel()
+//
+//                /**
+//                 * 通知検知から来たIntent
+//                 * 画面作成用のViewを用意してそこでExpenseを作成するか
+//                 */
+//                if (firebaseUser == null) {
+//                    navigateToSingle(navController, Screen.StartScreen.Login.route)
+//                } else {
+//                    sharedNotificationListenerViewModel.setIsMovedToNLProcess(true)
+//                    /**
+//                     * NotificationListenerProcessViewが存在しているときにnavigateしたら
+//                     * 前の情報は消して新しく更新することにする。
+//                     * ここを普通のnavControllerにすれば、複数画面立ち上げられる。
+//                     *
+//                     */
+//                    navigateToNLProcess(navController)
+//                }
+//            }
+//
+//            else -> {
+//
+//            }
+//        }
+//    }
 
     override fun onStart() {
         super.onStart()
@@ -165,57 +165,57 @@ class MainActivity : ComponentActivity() {
      * 必ずShareReceiverを
      */
     private fun setArgsToSharedImageViewModel() {
-        val passedData = intent.getParcelableExtraCompat<SharedImageData>(SharedImageData.EXTRA_KEY)
-
-        val imageUri = passedData?.imageUri
-        LogAkitaDebug("OCRDebug: URI to load:${imageUri}")
-
-        if (imageUri != null) {
-            try {
-                contentResolver.takePersistableUriPermission(
-                    imageUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (e: SecurityException) {
-                e.printStackTrace()
-            }
-        }
-        sharedImageViewModel.updateSharedImageData(passedData)
-        sharedImageViewModel.setIsMovedToOCR(false)
+//        val passedData = intent.getParcelableExtraCompat<SharedImageData>(SharedImageData.EXTRA_KEY)
+//
+//        val imageUri = passedData?.imageUri
+//        LogAkitaDebug("OCRDebug: URI to load:${imageUri}")
+//
+//        if (imageUri != null) {
+//            try {
+//                contentResolver.takePersistableUriPermission(
+//                    imageUri,
+//                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+//                )
+//            } catch (e: SecurityException) {
+//                e.printStackTrace()
+//            }
+//        }
+//        sharedImageViewModel.updateSharedImageData(passedData)
+//        sharedImageViewModel.setIsMovedToOCR(false)
     }
 
     /**
      * 通知検知から来た場合
      */
     private fun setArgsToSharedNotificationListenerViewModel() {
-        val notificationData =
-            intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
-        LogAkitaDebug("Received notification data:${notificationData}")
-        sharedNotificationListenerViewModel.setIsMovedToNLProcess(false)
-        sharedNotificationListenerViewModel.setNotificationData(notificationData)
+//        val notificationData =
+//            intent.getParcelableExtraCompat<NotificationData>(NotificationData.EXTRA_KEY)
+//        LogAkitaDebug("Received notification data:${notificationData}")
+//        sharedNotificationListenerViewModel.setIsMovedToNLProcess(false)
+//        sharedNotificationListenerViewModel.setNotificationData(notificationData)
     }
 
 
-    private fun decideDestination(): String {
-        val firebaseUser = FirebaseAuth.getInstance().currentUser
-        val launchedByTap =
-            intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
-        LogAkitaDebug("decideDestination action:${Intent.ACTION_MAIN} category:${Intent.CATEGORY_LAUNCHER} launchedByTap:$launchedByTap")
-
-        if (firebaseUser == null) {
-            if (launchedByTap) {
-                /**
-                 * アイコンタップにより起動された
-                 */
-                return Screen.StartScreen.Start.route
-            } else {
-                /**
-                 * 画像共有等で起動された
-                 */
-                return Screen.StartScreen.Login.route
-            }
-        } else {
-            return Screen.MainScreen.Content.route
-        }
-    }
+//    private fun decideDestination(): String {
+//        val firebaseUser = FirebaseAuth.getInstance().currentUser
+//        val launchedByTap =
+//            intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
+//        LogAkitaDebug("decideDestination action:${Intent.ACTION_MAIN} category:${Intent.CATEGORY_LAUNCHER} launchedByTap:$launchedByTap")
+//
+//        if (firebaseUser == null) {
+//            if (launchedByTap) {
+//                /**
+//                 * アイコンタップにより起動された
+//                 */
+//                return Screen.StartScreen.Start.route
+//            } else {
+//                /**
+//                 * 画像共有等で起動された
+//                 */
+//                return Screen.StartScreen.Login.route
+//            }
+//        } else {
+//            return Screen.MainScreen.Content.route
+//        }
+//    }
 }

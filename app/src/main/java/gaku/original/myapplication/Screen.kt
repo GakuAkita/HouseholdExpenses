@@ -20,24 +20,21 @@ data object AuthGraph{
     data object SignUp:Screen
 }
 
-@Serializable
-object MainGraph{
-    @Serializable
-    data object Home:Screen
+data object MainGraph{
 
     @Serializable
-    data object Statistics: Screen
+    data object Bottom: Screen{
+        @Serializable
+        data object Home: Screen
 
-    @Serializable
-    data object Search: Screen
+        @Serializable
+        data object Search: Screen
 
-    @Serializable
-    data object Setting: Screen
-    {
-        sealed interface SettingMenu
+        @Serializable
+        data object Statistics: Screen
 
-
-
+        @Serializable
+        data object Setting: Screen
     }
 
     sealed interface SettingMenu: Screen{
