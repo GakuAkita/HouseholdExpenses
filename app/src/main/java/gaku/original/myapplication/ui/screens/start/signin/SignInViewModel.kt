@@ -8,28 +8,30 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.auth.AuthRepository
+import gaku.original.myapplication.data.repository.auth.SignInRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 // https://developer.android.com/topic/architecture/views/ui-layer/events-views?utm_source=chatgpt.com#handle-viewmodel-events
 data class SignInUiState(
     val isLoading: Boolean = false,
-    val message:String? = null,
-    val email:String = "",
-    val password:String = ""
+    val message: String? = null,
+    val email: String = "",
+    val password: String = "",
 )
 
-sealed interface SignInMethod{
+sealed interface SignInMethod {
     data class Email(
-        val email:String,
-        val password:String
-    ): SignInMethod
+        val email: String,
+        val password: String
+    ) : SignInMethod
 
     data class Google(
-        val idToken:String
-    ): SignInMethod
+        val idToken: String
+    ) : SignInMethod
 }
 
 class SignInViewModel(
@@ -53,23 +55,60 @@ class SignInViewModel(
     private val _uiState = MutableStateFlow(SignInUiState())
     val uiState: StateFlow<SignInUiState> = _uiState
 
-    init{
+    init {
         Timber.d("Created!!!!${hashCode()}")
     }
 
-    private fun signIn(method:SignInMethod){
-
-    }
-
-    fun signInWithEmail(){
-        viewModelScope.launch {
-
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(message = null)
         }
     }
 
-    fun signInWithGoogle(){
+    fun onEmailChange(value: String) {
+        _uiState.update {
+            it.copy(email = value)
+        }
+    }
 
+    fun onPasswordChange(value: String) {
+        _uiState.update {
+            it.copy(password = value)
+        }
+    }
 
+    fun signInWithEmail() {
+        viewModelScope.launch {
+            try {
+                val request = SignInRequest.Email(
+                    email = _uiState.value.email,
+                    password = _uiState.value.password
+                )
+                _uiState.update {
+                    it.copy(isLoading = true)
+                }
+                authRepository.signIn(request)
+                _uiState.update {
+                    it.copy(
+                        message = "Sign in Successful"
+                    )
+                }
+                /* navigation is done at the root */
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = e.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun signInWithGoogle() {
+        viewModelScope.launch {
+
+        }
     }
 //    suspend fun signIn(
 //        email: String,

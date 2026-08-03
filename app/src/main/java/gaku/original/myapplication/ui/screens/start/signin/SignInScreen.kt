@@ -3,7 +3,6 @@ package gaku.original.myapplication.ui.screens.start.signin
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,6 +53,8 @@ fun SignInScreenRoot(
         uiState.message?.let {
             Timber.d("Message:$it")
             /* snackbar */
+            snackbarHostState.showSnackbar(message = it, actionLabel = "OK")
+            viewModel.onMessageShown()
         }
     }
 
@@ -60,17 +62,23 @@ fun SignInScreenRoot(
         uiState,
         snackbarHostState,
         isSignIn = isSignIn,
-        googleOnly = isGoogleOnly,
-        onGoogleClick = {},
+        isGoogleOnly = isGoogleOnly,
+        onGoogleClick = {
+
+        },
         onBackNavClick = {
             navController.popBackStack()
         },
         onEmailChange = {
-
+            it
+            viewModel.onEmailChange(it)
         },
         onPasswordChange = {
+            viewModel.onPasswordChange(it)
         },
-        onForgotPasswordClick = {}
+        onForgotPasswordClick = {
+
+        }
     )
 }
 
@@ -79,7 +87,7 @@ fun SignInScreen(
     uiState: SignInUiState,
     snackbarHostState: SnackbarHostState,
     isSignIn: Boolean,
-    googleOnly: Boolean = true,
+    isGoogleOnly: Boolean = true,
     onGoogleClick: () -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -249,26 +257,29 @@ fun SignInScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
-        if (googleOnly) {
-            /**
-             * Googleログインだけに絞る場合
-             */
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            if (isGoogleOnly) {
+                /**
+                 * Googleログインだけに絞る場合
+                 */
                 Text(text = "Googleログインのみにする", fontSize = 20.sp)
-                Spacer(modifier = Modifier.height(30.dp))
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    IconButton(
-                        onClick = {
-                            /* Googleでログイン */
-                            /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                IconButton(
+                    onClick = {
+                        /* Googleでログイン */
+                        /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
 //                            authViewModel.viewModelScope.launch {
 //                                val result = CredentialManagerHelper.getGoogleIdToken(context)
 //                                if (result !is FuncResultWithData.Success) {
@@ -283,84 +294,94 @@ fun SignInScreen(
 //                                val idToken = result.data
 //                                authViewModel.signInWithGoogleIdToken(idToken)
 //                            }
-                            onGoogleClick()
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                        onGoogleClick()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp)
+                ) {
+                    /* 広げないとめっちゃ小さくなる */
+                    Image(
+                        painter = painterResource(id = R.drawable.android_light_sq_si_4x),
+                        contentDescription = "Google Sign In",
+                    )
+                }
+            }
+
+            if (!isGoogleOnly) {
+                TextField(
+                    value = uiState.email,
+                    onValueChange = {
+                        onEmailChange(it)
+                    },
+                    label = { Text("mail") },
+                    singleLine = true,
+                    enabled = true
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                TextField(
+                    value = uiState.password,
+                    onValueChange = {
+                        onPasswordChange(it)
+                    },
+                    label = { Text("password") },
+                    singleLine = true,
+                    enabled = true
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSignIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+                        ),
+                        onClick = {
+
+                        }
                     ) {
-                        /* 広げないとめっちゃ小さくなる */
-                        Image(
-                            painter = painterResource(id = R.drawable.android_light_sq_si_4x),
-                            contentDescription = "Google Sign In",
-                        )
+                        Text(if (isSignIn) "SignIn" else "SignUp")
                     }
                 }
             }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                // 🎯 email・password・Login → 画面の縦中央に固定
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    TextField(
-                        value = uiState.email,
-                        onValueChange = {
-                            onEmailChange(it)
-                        },
-                        label = { Text("mail") },
-                        singleLine = true,
-                        enabled = true
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    TextField(
-                        value = uiState.password,
-                        onValueChange = {
-                            onPasswordChange(it)
-                        },
-                        label = { Text("password") },
-                        singleLine = true,
-                        enabled = true
-                    )
-                    Spacer(modifier = Modifier.height(30.dp))
 
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator()
-                    } else {
-                        Button(
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSignIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-                            ),
-                            onClick = {
+            // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
 
-                            }
-                        ) {
-                            Text(if (isSignIn) "SignIn" else "SignUp")
+            if (!uiState.isLoading && isSignIn && !isGoogleOnly) {
+                Text(
+                    text = "Forgot password?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline
+                    ),
+                    modifier = Modifier
+                        .padding(top = 30.dp)
+                        .clickable {
+                            onForgotPasswordClick()
                         }
-                    }
-                }
-
-                // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
-                if(!uiState.isLoading && isSignIn){
-                    Text(
-                        text = "Forgot password?",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier
-                            .align(Alignment.Center) // 👈 Login直下に揃えたい場合は Center
-                            .padding(top = 300.dp)
-                            .clickable {
-                                onForgotPasswordClick()
-                            }
-                    )
-                }
+                )
             }
         }
-
     }
+}
+
+@Preview
+@Composable
+fun SignInScreenPreview() {
+    val uiState: SignInUiState = SignInUiState(
+        isLoading = false
+    )
+
+    SignInScreen(
+        uiState = uiState,
+        snackbarHostState = SnackbarHostState(),
+        isSignIn = true,
+        isGoogleOnly = true,
+        onGoogleClick = {},
+        onEmailChange = {},
+        onPasswordChange = {},
+        onBackNavClick = {},
+        onForgotPasswordClick = {}
+    )
 }
