@@ -27,7 +27,7 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
             SignInScreenRoot(
                 navController = navController,
                 isSignIn = true,
-                isGoogleOnly = true
+                isGoogleOnly = false
             )
         }
 

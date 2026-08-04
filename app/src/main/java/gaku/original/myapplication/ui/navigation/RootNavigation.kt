@@ -40,7 +40,7 @@ fun RootNavigation(
 
             is AuthState.LoggedIn -> {
                 appContainer.createSession()
-                navHostController.navigate(MainGraph.Bottom.Home) {
+                navHostController.navigate(MainGraph) {
                     Timber.d("navigate to main. Remove all the stacks until ${navHostController.graph.id}")
                     popUpTo(navHostController.graph.id) {
                         inclusive = true
@@ -50,6 +50,7 @@ fun RootNavigation(
             }
 
             is AuthState.LoggedOut -> {
+                Timber.d("Logged out! Move to the Start Screen")
                 appContainer.clearSession()
                 navHostController.navigate(AuthGraph.Start) {
                     popUpTo(navHostController.graph.id) {

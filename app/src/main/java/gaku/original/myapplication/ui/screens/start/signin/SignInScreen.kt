@@ -76,6 +76,9 @@ fun SignInScreenRoot(
         onPasswordChange = {
             viewModel.onPasswordChange(it)
         },
+        onSignInClick = {
+            viewModel.signInWithEmail()
+        },
         onForgotPasswordClick = {
 
         }
@@ -91,6 +94,7 @@ fun SignInScreen(
     onGoogleClick: () -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onSignInClick:()->Unit,
     onBackNavClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
@@ -338,7 +342,7 @@ fun SignInScreen(
                             containerColor = if (isSignIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
                         ),
                         onClick = {
-
+                            onSignInClick()
                         }
                     ) {
                         Text(if (isSignIn) "SignIn" else "SignUp")
@@ -381,6 +385,8 @@ fun SignInScreenPreview() {
         onGoogleClick = {},
         onEmailChange = {},
         onPasswordChange = {},
+        onSignInClick = {
+        },
         onBackNavClick = {},
         onForgotPasswordClick = {}
     )
