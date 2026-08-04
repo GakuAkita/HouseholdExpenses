@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.main
+package gaku.original.myapplication.ui.screens.bottom
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
