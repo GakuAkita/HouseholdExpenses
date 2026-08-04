@@ -52,7 +52,7 @@ fun RootNavigation(
             is AuthState.LoggedOut -> {
                 Timber.d("Logged out! Move to the Start Screen")
                 appContainer.clearSession()
-                navHostController.navigate(AuthGraph.Start) {
+                navHostController.navigate(AuthGraph) {
                     popUpTo(navHostController.graph.id) {
                         inclusive = true
                     }

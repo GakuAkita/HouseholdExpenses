@@ -70,7 +70,6 @@ fun SignInScreenRoot(
             navController.popBackStack()
         },
         onEmailChange = {
-            it
             viewModel.onEmailChange(it)
         },
         onPasswordChange = {
