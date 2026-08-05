@@ -3,12 +3,17 @@ package gaku.original.myapplication.data.repository.expense
 import gaku.original.myapplication.data.dataClass.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 import java.util.UUID
 
 class FakeExpenseRepository: ExpenseRepository {
     private val _expenses = MutableStateFlow<Map<String, Expense>>(emptyMap())
     override val expenses: StateFlow<Map<String, Expense>>
         get() = _expenses
+
+    init{
+        Timber.d("Created. ${hashCode()}")
+    }
 
     override fun startListening() {
         return

@@ -1,5 +1,7 @@
 package gaku.original.myapplication.di.sessionContainer
 
-interface SessionContainer {
+import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 
+interface SessionContainer {
+    val expenseRepository: ExpenseRepository
 }

@@ -16,16 +16,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 
 @Composable
-fun HomeScreen(
-
+fun HomeScreenRoot(
+    viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
     bottomNavController: NavHostController
-){
+) {
 
 }
 

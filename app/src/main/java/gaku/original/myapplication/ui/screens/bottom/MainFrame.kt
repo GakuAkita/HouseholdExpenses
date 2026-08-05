@@ -6,7 +6,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 
 @Composable
 fun MainFrame(
@@ -42,32 +42,31 @@ fun MainFrame(
             NavigationBar() {
                 NavigationBarItem(
                     selected = currentDestination?.hasRoute<MainGraph.Bottom.Home>() == true,
-                    onClick ={
+                    onClick = {
 
                     },
-                    icon ={
+                    icon = {
                         Text("Home")
                     }
                 )
             }
         }
-    ) {innerPadding->
+    ) { innerPadding ->
         NavHost(
             modifier = Modifier.padding(innerPadding),
             navController = bottomNavController,
             startDestination = MainGraph.Bottom.Home
-        ){
-            composable<MainGraph.Bottom.Home>{
-
+        ) {
+            composable<MainGraph.Bottom.Home> {
+                HomeScreenRoot(
+                    bottomNavController = bottomNavController,
+                )
             }
             composable<MainGraph.Bottom.Search> {
-
             }
             composable<MainGraph.Bottom.Statistics> {
-
             }
             composable<MainGraph.Bottom.Setting> {
-
             }
         }
     }
