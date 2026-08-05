@@ -30,7 +30,7 @@ data class BottomNavigationItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarView(
-    title: String,
+    title: String = "What is essential is invisible to the eye",
     showBackButton: Boolean = false,
     onBackNavClicked: () -> Unit = {},
 ) {
