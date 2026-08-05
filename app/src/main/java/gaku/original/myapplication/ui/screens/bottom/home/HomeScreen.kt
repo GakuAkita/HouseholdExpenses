@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom
+package gaku.original.myapplication.ui.screens.bottom.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +20,14 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
+
+@Composable
+fun HomeScreen(
+
+    bottomNavController: NavHostController
+){
+
+}
 
 @Composable
 fun MainView(
