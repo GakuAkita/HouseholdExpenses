@@ -1,23 +1,37 @@
 package gaku.original.myapplication.ui.screens.bottom.home
 
+import android.graphics.Paint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
@@ -27,7 +41,65 @@ fun HomeScreenRoot(
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
     bottomNavController: NavHostController
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackBarHostState.current
 
+    LaunchedEffect(
+        uiState.message
+    ) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
+    HomeScreen(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onFABClick = {}
+    )
+}
+
+@Composable
+fun HomeScreen(
+    uiState: HomeUiState,
+    snackbarHostState: SnackbarHostState,
+    onFABClick:()->Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        FloatingActionButton(
+            modifier = Modifier
+                .align(
+                    Alignment.BottomEnd
+                )
+                .padding(vertical = 16.dp, horizontal = 4.dp),
+            onClick = {
+                onFABClick()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add Expense"
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    val uiState = HomeUiState(
+        isLoading = false,
+        message = null
+    )
+
+    HomeScreen(
+        uiState = uiState,
+        snackbarHostState = SnackbarHostState(),
+        onFABClick = {}
+    )
 }
 
 @Composable

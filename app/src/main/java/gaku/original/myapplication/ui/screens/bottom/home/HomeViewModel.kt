@@ -7,11 +7,19 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 
+data class HomeUiState(
+     val isLoading:Boolean = false,
+    val message:String? = null
+)
 class HomeViewModel(
     private val expenseRepository: ExpenseRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

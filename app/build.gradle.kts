@@ -51,7 +51,7 @@ plugins {
 
 android {
     namespace = "gaku.original.myapplication"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
@@ -127,6 +127,7 @@ dependencies {
     implementation(libs.firebase.database.ktx)
 
     implementation(platform("androidx.compose:compose-bom:2025.01.01"))
+    implementation(libs.androidx.compose.material3)
 
     val calendar_version = "2.6.0"
     val scrollbar_version = "2.2.0"
