@@ -1,6 +1,12 @@
 package gaku.original.myapplication.ui.screens.bottom
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -18,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 
 @Composable
@@ -43,11 +50,54 @@ fun MainFrame(
                 NavigationBarItem(
                     selected = currentDestination?.hasRoute<MainGraph.Bottom.Home>() == true,
                     onClick = {
-
+                        bottomNavController.navigateToBottom(MainGraph.Bottom.Home)
                     },
                     icon = {
-                        Text("Home")
-                    }
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Home"
+                        )
+                    },
+                    label = { Text("Home") }
+                )
+                NavigationBarItem(
+                    selected = currentDestination?.hasRoute<MainGraph.Bottom.Search>() == true,
+                    onClick = {
+                        bottomNavController.navigateToBottom(MainGraph.Bottom.Search)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search"
+                        )
+                    },
+                    label = { Text("Search") }
+                )
+                NavigationBarItem(
+                    selected = currentDestination?.hasRoute<MainGraph.Bottom.Statistics>() == true,
+                    onClick = {
+                        bottomNavController.navigateToBottom(MainGraph.Bottom.Statistics)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Analytics,
+                            contentDescription = "Statistics"
+                        )
+                    },
+                    label = { Text("Statistics") }
+                )
+                NavigationBarItem(
+                    selected = currentDestination?.hasRoute<MainGraph.Bottom.Setting>() == true,
+                    onClick = {
+                        bottomNavController.navigateToBottom(MainGraph.Bottom.Setting)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    },
+                    label = { Text("Setting") }
                 )
             }
         }
