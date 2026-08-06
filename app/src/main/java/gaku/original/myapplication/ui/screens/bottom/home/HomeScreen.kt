@@ -1,15 +1,18 @@
 package gaku.original.myapplication.ui.screens.bottom.home
 
-import android.graphics.Paint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -63,11 +66,42 @@ fun HomeScreenRoot(
 fun HomeScreen(
     uiState: HomeUiState,
     snackbarHostState: SnackbarHostState,
-    onFABClick:()->Unit
+    onFABClick: () -> Unit
 ) {
+    // カレンダー横スクロールのため
+    val calendarHorizontalInitialPage = 12
+    // 12 months from this month to the past and 12 months from the current month to the future
+    val calendarPagerState =
+        rememberPagerState(initialPage = 12) { 2 * calendarHorizontalInitialPage + 1 }
+    val pagerState = rememberPagerState(
+        pageCount = { calendarHorizontalInitialPage }
+    )
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("${2026}-${7}")
+                Spacer(modifier = Modifier.padding(10.dp))
+                Column {
+                    Text("Monthly Total:${0}")
+//                    if (monthOffset == 0) {/* monthOffset=0とは今日の日付ってこと */
+//                        Text("Estimated:${monthlyEstimatedExpense}")
+//                    }
+                }
+            }
+
+            HorizontalPager(
+                state = pagerState
+            ) { page ->
+                Text("Page $page")
+            }
+        }
 
         FloatingActionButton(
             modifier = Modifier
