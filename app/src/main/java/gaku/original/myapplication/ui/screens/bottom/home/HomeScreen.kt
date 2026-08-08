@@ -116,16 +116,12 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.padding(10.dp))
                 Column {
                     Text("Monthly Total:${0}")
-//                    if (monthOffset == 0) {/* monthOffset=0とは今日の日付ってこと */
-//                        Text("Estimated:${monthlyEstimatedExpense}")
-//                    }
                 }
             }
 
-
             HorizontalCalendar(
                 state = calendarState,
-                modifier = Modifier.widthIn(10.dp),
+                modifier = Modifier.widthIn(max=400.dp),
                 dayContent = {
                     Day(
                         day = it,
@@ -179,14 +175,17 @@ fun Day(
         modifier = modifier
     )
     {
-        Text(
-            "${day.date.dayOfMonth}",
-            color = if (isCurrentMonth) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.primary.copy(alpha=0.5f)
-            }
-        )
+        Column{
+            Text(
+                "${day.date.dayOfMonth}",
+                color = if (isCurrentMonth) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.primary.copy(alpha=0.5f)
+                }
+            )
+            Text(if(isCurrentMonth) "0" else "-")
+        }
     }
 }
 
