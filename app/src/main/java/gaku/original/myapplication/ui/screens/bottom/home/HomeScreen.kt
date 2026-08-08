@@ -1,25 +1,23 @@
 package gaku.original.myapplication.ui.screens.bottom.home
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -136,12 +134,13 @@ fun HomeScreen(
                 HomeHorizontalCalendar(
                     uiState = uiState,
                     calendarState = calendarState,
-                    isWide = isWide
+                    modifier = Modifier.weight(1f)
                 )
 
                 LazyExpensesColumn(
                     uiState = uiState,
-                    lazyLisState = lazyLisState
+                    lazyLisState = lazyLisState,
+                    modifier = Modifier.weight(1f)
                 )
             }
         } else {
@@ -151,12 +150,13 @@ fun HomeScreen(
                 HomeHorizontalCalendar(
                     uiState = uiState,
                     calendarState = calendarState,
-                    isWide = isWide
+                    modifier = Modifier.weight(1f)
                 )
 
                 LazyExpensesColumn(
                     uiState = uiState,
-                    lazyLisState = lazyLisState
+                    lazyLisState = lazyLisState,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -211,13 +211,16 @@ fun HomeScreenPreview() {
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun HomeHorizontalCalendar(
     uiState: HomeUiState,
     calendarState: CalendarState,
-    isWide: Boolean
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(
+        modifier = modifier
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -228,36 +231,36 @@ fun HomeHorizontalCalendar(
             }
         }
 
-        HorizontalCalendar(
-            state = calendarState,
-            modifier = Modifier
-                .then(
-                    if (isWide) {
-                        Modifier.widthIn(max = 500.dp)
-                    } else {
-                        Modifier.fillMaxWidth()
-                    }
-                )
-                .heightIn(min = 300.dp)
-                .verticalScroll(rememberScrollState()),
-            dayContent = {
-                Day(
-                    day = it,
-                    price = "",
-                    isToday = it.date == LocalDate.now(),
-                    onDayClick = {}
-                )
-            }
-        )
+        BoxWithConstraints(
+            modifier = Modifier.weight(1f)
+        ){
+            /* height of the Day is calculated by maxHeight */
+            val dayHeight = maxHeight/6
+            HorizontalCalendar(
+                state = calendarState,
+                modifier = Modifier.fillMaxSize(),
+                dayContent = {
+                    Day(
+                        modifier = Modifier.height(dayHeight),
+                        day = it,
+                        price = "",
+                        isToday = it.date == LocalDate.now(),
+                        onDayClick = {}
+                    )
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun LazyExpensesColumn(
     uiState: HomeUiState,
+    modifier: Modifier = Modifier,
     lazyLisState: LazyListState
 ) {
     LazyColumnScrollbar(
+        modifier = modifier,
         state = lazyLisState,
         settings = ScrollbarSettings.Default.copy(
             alwaysShowScrollbar = true,
@@ -292,7 +295,6 @@ fun Day(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
             .then(
                 if (isToday) {
                     Modifier.border(1.dp, color = MaterialTheme.colorScheme.primary)
