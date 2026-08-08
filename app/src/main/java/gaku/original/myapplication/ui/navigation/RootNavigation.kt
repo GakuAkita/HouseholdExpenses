@@ -45,6 +45,9 @@ fun RootNavigation(
                 val isInMainGraph =
                     navHostController.currentDestination?.hierarchy?.any { it.hasRoute<MainGraph>() } == true
                 if (!isInMainGraph) {
+                    /* if it doesn't check whether maingraph or not, HomeViewModel is recreated after the screen rotation */
+                    /* By checking if MainGraph still exists in the tree, we can avoid recreating HomeViewModel */
+                    /* This seems to be an anti-pattern...? */
                     appContainer.createSession()
                     navHostController.navigate(MainGraph) {
                         Timber.d("navigate to main. Remove all the stacks until ${navHostController.graph.id}")
