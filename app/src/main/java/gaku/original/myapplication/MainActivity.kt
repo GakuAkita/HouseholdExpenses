@@ -16,6 +16,7 @@ import gaku.original.myapplication.data.Constants.createAllNotificationChannelsW
 import gaku.original.myapplication.ui.navigation.RootNavigation
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.utility.LogAkitaDebug
+import timber.log.Timber
 
 val LocalSnackBarHostState = compositionLocalOf<SnackbarHostState> {
     error("SnackbarHostState state should be initialized at runtime")
@@ -131,36 +132,36 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         //起動時になにかしたいとき
-        LogAkitaDebug("onStart() called. Do nothing.")
+        Timber.d("onStart() called. Do nothing.")
     }
 
     override fun onResume() {
         super.onResume()
-        LogAkitaDebug("onResume() called. Do nothing.")
+        Timber.d("onResume() called. Do nothing.")
     }
 
     override fun onPause() {
         super.onPause()
         //一時停止時になにかしたいとき。ユーザーは見えている
-        LogAkitaDebug("onPause() called. Do nothing.")
+        Timber.d("onPause() called. Do nothing.")
     }
 
     override fun onStop() {
         super.onStop()
         //アプリ終了時になにかしたいとき。ユーザーは何も見えない。
-        LogAkitaDebug("onStart() called. Do nothing.")
+        Timber.d("onStart() called. Do nothing.")
     }
 
     override fun onRestart() {
         super.onRestart()
         //再起動時になにかしたいとき
-        LogAkitaDebug("onRestart() called. Do nothing.")
+        Timber.d("onRestart() called. Do nothing.")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         //破棄時になにかしたいとき
-        LogAkitaDebug("onDestroy() called. Do nothing.")
+        Timber.d("onDestroy() called. Do nothing.")
     }
 
     /**

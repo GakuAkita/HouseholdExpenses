@@ -14,7 +14,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -26,6 +28,7 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
+import gaku.original.myapplication.ui.screens.bottom.home.HomeViewModel
 
 @Composable
 fun MainFrame(
@@ -107,9 +110,17 @@ fun MainFrame(
             navController = bottomNavController,
             startDestination = MainGraph.Bottom.Home
         ) {
-            composable<MainGraph.Bottom.Home> {
+            composable<MainGraph.Bottom.Home> { backStackEntry->
+                val parentEntry = remember(backStackEntry){
+                    rootNavController.getBackStackEntry(MainGraph)
+                }
+                val viewModel = viewModel<HomeViewModel>(
+                    viewModelStoreOwner = parentEntry,
+                    factory = HomeViewModel.Factory
+                )
                 HomeScreenRoot(
                     bottomNavController = bottomNavController,
+                    viewModel = viewModel
                 )
             }
             composable<MainGraph.Bottom.Search> {

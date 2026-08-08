@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,7 +76,9 @@ fun HomeScreen(
     onMonthChanged: (YearMonth) -> Unit,
     onFABClick: () -> Unit
 ) {
-    Timber.d("HomeScreen Recomposed")
+
+    val initialMonth = remember { uiState.selectedMonth }
+
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusMonths(50) } // Adjust as needed
     val endMonth = remember { currentMonth.plusMonths(50) } // Adjust as needed
@@ -86,7 +87,7 @@ fun HomeScreen(
     val calendarState = rememberCalendarState(
         startMonth = startMonth,
         endMonth = endMonth,
-        firstVisibleMonth = currentMonth,
+        firstVisibleMonth = initialMonth,
         firstDayOfWeek = firstDayOfWeek
     )
 
@@ -97,7 +98,8 @@ fun HomeScreen(
             calendarState.firstVisibleMonth.yearMonth
         }.distinctUntilChanged()
             .collect { month ->
-                    onMonthChanged(month)
+                Timber.d("Month changed to $month")
+                onMonthChanged(month)
             }
     }
 
@@ -110,7 +112,7 @@ fun HomeScreen(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("${calendarState.firstVisibleMonth.yearMonth}")
+                Text("${uiState.selectedMonth.year}-${uiState.selectedMonth.monthValue}")
                 Spacer(modifier = Modifier.padding(10.dp))
                 Column {
                     Text("Monthly Total:${0}")
