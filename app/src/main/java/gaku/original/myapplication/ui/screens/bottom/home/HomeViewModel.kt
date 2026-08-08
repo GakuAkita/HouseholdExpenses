@@ -9,11 +9,14 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
+import java.time.YearMonth
 
 data class HomeUiState(
-     val isLoading:Boolean = false,
-    val message:String? = null
+    val isLoading:Boolean = false,
+    val message:String? = null,
+    val selectedMonth: YearMonth = YearMonth.now()
 )
 class HomeViewModel(
     private val expenseRepository: ExpenseRepository
@@ -33,7 +36,18 @@ class HomeViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+    }
 
+    fun onMonthChanged(month: YearMonth){
+        if(_uiState.value.selectedMonth == month) return
+
+        Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}");
+        _uiState.update {
+            Timber.d("Updated. ${hashCode()}")
+            it.copy(
+                selectedMonth = month,
+            )
+        }
     }
 
     override fun onCleared() {

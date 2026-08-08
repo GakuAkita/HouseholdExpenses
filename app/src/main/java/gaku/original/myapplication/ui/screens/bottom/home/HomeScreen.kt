@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -24,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -34,10 +35,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.kizitonwose.calendar.compose.HorizontalCalendar
+import com.kizitonwose.calendar.compose.rememberCalendarState
+import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import timber.log.Timber
+import java.time.YearMonth
 
 @Composable
 fun HomeScreenRoot(
@@ -57,7 +64,9 @@ fun HomeScreenRoot(
 
     HomeScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
+        onMonthChanged = {
+            viewModel.onMonthChanged(it)
+        },
         onFABClick = {}
     )
 }
@@ -65,17 +74,32 @@ fun HomeScreenRoot(
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    snackbarHostState: SnackbarHostState,
+    onMonthChanged: (YearMonth) -> Unit,
     onFABClick: () -> Unit
 ) {
-    // カレンダー横スクロールのため
-    val calendarHorizontalInitialPage = 12
-    // 12 months from this month to the past and 12 months from the current month to the future
-    val calendarPagerState =
-        rememberPagerState(initialPage = 12) { 2 * calendarHorizontalInitialPage + 1 }
-    val pagerState = rememberPagerState(
-        pageCount = { calendarHorizontalInitialPage }
+    Timber.d("HomeScreen Recomposed")
+    val currentMonth = remember { YearMonth.now() }
+    val startMonth = remember { currentMonth.minusMonths(50) } // Adjust as needed
+    val endMonth = remember { currentMonth.plusMonths(50) } // Adjust as needed
+    val firstDayOfWeek = remember { firstDayOfWeekFromLocale() } // Available from the library
+
+    val calendarState = rememberCalendarState(
+        startMonth = startMonth,
+        endMonth = endMonth,
+        firstVisibleMonth = currentMonth,
+        firstDayOfWeek = firstDayOfWeek
     )
+
+    val selectedMonth by rememberUpdatedState(uiState.selectedMonth)
+
+    LaunchedEffect(calendarState) {
+        snapshotFlow {
+            calendarState.firstVisibleMonth.yearMonth
+        }.distinctUntilChanged()
+            .collect { month ->
+                    onMonthChanged(month)
+            }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -86,7 +110,7 @@ fun HomeScreen(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("${2026}-${7}")
+                Text("${calendarState.firstVisibleMonth.yearMonth}")
                 Spacer(modifier = Modifier.padding(10.dp))
                 Column {
                     Text("Monthly Total:${0}")
@@ -96,11 +120,20 @@ fun HomeScreen(
                 }
             }
 
-            HorizontalPager(
-                state = pagerState
-            ) { page ->
-                Text("Page $page")
-            }
+            HorizontalCalendar(
+                state = calendarState,
+                dayContent = {
+                    Text("${it.date}")
+                }
+            )
+
+//            HorizontalPager(
+//                state = pagerState
+//            ) { page ->
+//                HorizontalCalendar(
+//
+//                )
+//            }
         }
 
         FloatingActionButton(
@@ -131,7 +164,7 @@ fun HomeScreenPreview() {
 
     HomeScreen(
         uiState = uiState,
-        snackbarHostState = SnackbarHostState(),
+        onMonthChanged = {},
         onFABClick = {}
     )
 }
