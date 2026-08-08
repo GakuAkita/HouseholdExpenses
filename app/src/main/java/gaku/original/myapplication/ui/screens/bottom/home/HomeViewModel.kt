@@ -39,11 +39,8 @@ class HomeViewModel(
     }
 
     fun onMonthChanged(month: YearMonth){
-        if(_uiState.value.selectedMonth == month) return
-
         Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}");
         _uiState.update {
-            Timber.d("Updated. ${hashCode()}")
             it.copy(
                 selectedMonth = month,
             )
