@@ -30,7 +30,7 @@ class FakeExpenseRepository : ExpenseRepository {
         Timber.d("Created. ${hashCode()}")
     }
 
-    override fun startListening() {
+    override fun startListening(query: ExpenseQuery) {
         _expenses.value = sampleExpenses
         return
     }

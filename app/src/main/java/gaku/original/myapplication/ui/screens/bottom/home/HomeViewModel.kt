@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +43,7 @@ class HomeViewModel(
     init {
         Timber.d("Created. ${hashCode()}")
 
-        expenseRepository.startListening()
+        expenseRepository.startListening(ExpenseQuery())
         viewModelScope.launch {
             expenseRepository.expenses.collect{ expenses ->
                 _uiState.update {

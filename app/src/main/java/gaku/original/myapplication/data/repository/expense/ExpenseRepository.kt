@@ -5,12 +5,12 @@ import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 
 data class ExpenseQuery(
-    val from: Instant,
-    val to:Instant
+    val from: Instant?=null,
+    val to:Instant?=null,
 )
 
 interface ExpenseRepository {
-    fun startListening()
+    fun startListening(query: ExpenseQuery)
 
     fun stopListening()
 

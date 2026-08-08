@@ -12,7 +12,7 @@ class ExpenseRepositoryFirestore: ExpenseRepository {
     override val expenses: StateFlow<Map<String, Expense>>
         get() = _expenses
 
-    override fun startListening() {
+    override fun startListening(query: ExpenseQuery) {
         TODO("Not yet implemented")
     }
 
