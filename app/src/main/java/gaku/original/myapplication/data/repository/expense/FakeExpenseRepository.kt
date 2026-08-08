@@ -1,25 +1,42 @@
 package gaku.original.myapplication.data.repository.expense
 
+import com.google.type.DateTime
 import gaku.original.myapplication.data.dataClass.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
+import java.time.LocalDateTime
 import java.util.UUID
 
-class FakeExpenseRepository: ExpenseRepository {
+class FakeExpenseRepository : ExpenseRepository {
+    private val sampleExpenses = mapOf(
+        "1" to Expense(
+            id = "1",
+            amount = 1000,
+            datetime = LocalDateTime.now().toString()
+        ),
+        "2" to Expense(
+            id = "2",
+            amount = 2000,
+            datetime = LocalDateTime.now().toString()
+        )
+    )
+
     private val _expenses = MutableStateFlow<Map<String, Expense>>(emptyMap())
     override val expenses: StateFlow<Map<String, Expense>>
         get() = _expenses
 
-    init{
+    init {
         Timber.d("Created. ${hashCode()}")
     }
 
     override fun startListening() {
+        _expenses.value = sampleExpenses
         return
     }
 
     override fun stopListening() {
+        _expenses.value = emptyMap()
         return
     }
 

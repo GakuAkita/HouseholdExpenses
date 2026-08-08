@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.bottom.home
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,8 +11,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -27,6 +35,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.kizitonwose.calendar.compose.CalendarState
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -44,7 +54,11 @@ import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import timber.log.Timber
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
 
 @Composable
@@ -54,6 +68,8 @@ fun HomeScreenRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
+
+    val isWide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(
         uiState.message
@@ -65,6 +81,7 @@ fun HomeScreenRoot(
 
     HomeScreen(
         uiState = uiState,
+        isWide = isWide,
         onMonthChanged = {
             viewModel.onMonthChanged(it)
         },
@@ -75,6 +92,7 @@ fun HomeScreenRoot(
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    isWide: Boolean = false,
     onMonthChanged: (YearMonth) -> Unit,
     onFABClick: () -> Unit
 ) {
@@ -93,6 +111,8 @@ fun HomeScreen(
         firstDayOfWeek = firstDayOfWeek
     )
 
+    val lazyLisState = rememberLazyListState()
+
     LaunchedEffect(calendarState) {
         snapshotFlow {
             calendarState.firstVisibleMonth.yearMonth
@@ -106,28 +126,39 @@ fun HomeScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        if (isWide) {
+            Timber.d("This is wide layout")
+            /* Screen is wide. ex:tablet, rotated smartphone */
+            /* Screen is narrow. ex: smartphone */
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
-                Text("${uiState.selectedMonth.year}-${uiState.selectedMonth.monthValue}")
-                Spacer(modifier = Modifier.padding(10.dp))
-                Column {
-                    Text("Monthly Total:${0}")
-                }
-            }
+                HomeHorizontalCalendar(
+                    uiState = uiState,
+                    calendarState = calendarState,
+                    isWide = isWide
+                )
 
-            HorizontalCalendar(
-                state = calendarState,
-                modifier = Modifier.widthIn(max=400.dp),
-                dayContent = {
-                    Day(
-                        day = it,
-                    )
-                }
-            )
+                LazyExpensesColumn(
+                    uiState = uiState,
+                    lazyLisState = lazyLisState
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                HomeHorizontalCalendar(
+                    uiState = uiState,
+                    calendarState = calendarState,
+                    isWide = isWide
+                )
+
+                LazyExpensesColumn(
+                    uiState = uiState,
+                    lazyLisState = lazyLisState
+                )
+            }
         }
 
         FloatingActionButton(
@@ -153,6 +184,23 @@ fun HomeScreen(
 fun HomeScreenPreview() {
     val uiState = HomeUiState(
         isLoading = false,
+        shownExpenses = listOf(
+            Expense(
+                id = "1",
+                amount = 1200,
+                datetime = LocalDateTime.now().toString()
+            ),
+            Expense(
+                id = "2",
+                amount = 2400,
+                datetime = LocalDateTime.now().toString()
+            ),
+            Expense(
+                id = "3",
+                amount = 3400,
+                datetime = LocalDateTime.now().toString()
+            ),
+        ),
         message = null
     )
 
@@ -164,27 +212,115 @@ fun HomeScreenPreview() {
 }
 
 @Composable
+fun HomeHorizontalCalendar(
+    uiState: HomeUiState,
+    calendarState: CalendarState,
+    isWide: Boolean
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("${uiState.selectedMonth.year}-${uiState.selectedMonth.monthValue}")
+            Spacer(modifier = Modifier.padding(10.dp))
+            Column {
+                Text("Monthly Total:${0}")
+            }
+        }
+
+        HorizontalCalendar(
+            state = calendarState,
+            modifier = Modifier
+                .then(
+                    if (isWide) {
+                        Modifier.widthIn(max = 500.dp)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
+                )
+                .heightIn(min = 300.dp)
+                .verticalScroll(rememberScrollState()),
+            dayContent = {
+                Day(
+                    day = it,
+                    price = "",
+                    isToday = it.date == LocalDate.now(),
+                    onDayClick = {}
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun LazyExpensesColumn(
+    uiState: HomeUiState,
+    lazyLisState: LazyListState
+) {
+    LazyColumnScrollbar(
+        state = lazyLisState,
+        settings = ScrollbarSettings.Default.copy(
+            alwaysShowScrollbar = true,
+            thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+            thumbSelectedColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
+        LazyColumn(
+            state = lazyLisState,
+            modifier = Modifier.fillMaxWidth(),
+            userScrollEnabled = true
+        ) {
+            items(uiState.shownExpenses) { expense ->
+                ExpenseItem(
+                    expense = expense,
+                    onEdit = {}
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun Day(
     modifier: Modifier = Modifier,
     day: CalendarDay,
-    isToday: Boolean = false
+    price: String,
+    isToday: Boolean = false,
+    onDayClick: () -> Unit
 ) {
     val isCurrentMonth = day.position == DayPosition.MonthDate
 
     Box(
         modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (isToday) {
+                    Modifier.border(1.dp, color = MaterialTheme.colorScheme.primary)
+                } else {
+                    Modifier
+                }
+            )
+            .clickable(
+                enabled = isCurrentMonth,
+                onClick = {
+                    onDayClick()
+                }
+            )
     )
     {
-        Column{
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 "${day.date.dayOfMonth}",
                 color = if (isCurrentMonth) {
                     MaterialTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.primary.copy(alpha=0.5f)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                 }
             )
-            Text(if(isCurrentMonth) "0" else "-")
+            Text(if (isCurrentMonth) price else "-")
         }
     }
 }
