@@ -29,6 +29,7 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.home.HomeViewModel
+import timber.log.Timber
 
 @Composable
 fun MainFrame(
