@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -22,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +36,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
+import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.AppTimeZone
@@ -91,8 +93,6 @@ fun HomeScreen(
         firstDayOfWeek = firstDayOfWeek
     )
 
-    val selectedMonth by rememberUpdatedState(uiState.selectedMonth)
-
     LaunchedEffect(calendarState) {
         snapshotFlow {
             calendarState.firstVisibleMonth.yearMonth
@@ -122,20 +122,16 @@ fun HomeScreen(
                 }
             }
 
+
             HorizontalCalendar(
                 state = calendarState,
+                modifier = Modifier.widthIn(10.dp),
                 dayContent = {
-                    Text("${it.date}")
+                    Day(
+                        day = it,
+                    )
                 }
             )
-
-//            HorizontalPager(
-//                state = pagerState
-//            ) { page ->
-//                HorizontalCalendar(
-//
-//                )
-//            }
         }
 
         FloatingActionButton(
@@ -169,6 +165,29 @@ fun HomeScreenPreview() {
         onMonthChanged = {},
         onFABClick = {}
     )
+}
+
+@Composable
+fun Day(
+    modifier: Modifier = Modifier,
+    day: CalendarDay,
+    isToday: Boolean = false
+) {
+    val isCurrentMonth = day.position == DayPosition.MonthDate
+
+    Box(
+        modifier = modifier
+    )
+    {
+        Text(
+            "${day.date.dayOfMonth}",
+            color = if (isCurrentMonth) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.primary.copy(alpha=0.5f)
+            }
+        )
+    }
 }
 
 @Composable
