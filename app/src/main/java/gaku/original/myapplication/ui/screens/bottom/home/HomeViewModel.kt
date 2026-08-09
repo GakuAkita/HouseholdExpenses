@@ -11,7 +11,6 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.toInstant
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -20,10 +19,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneId
-import java.util.stream.Collectors.toList
 
 data class ExpenseUi(
     val id: String?,
@@ -46,8 +45,8 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
-    private val initialMonth = YearMonth.now()
-    private var cachedExpenses:Map<String, Expense> = emptyMap()
+    private var lastQuery = ExpenseQuery()
+    private var cachedExpenses = emptyMap<String, Expense>()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -64,15 +63,6 @@ class HomeViewModel(
     init {
         Timber.d("Created. ${hashCode()}")
 
-
-        refreshExpenses(initialMonth)
-        viewModelScope.launch {
-            expenseRepository.expenses.collect { expenses->
-                /* filter only selected month */
-
-            }
-        }
-
         appTimeZoneRepository.startListening()
 
         viewModelScope.launch {
@@ -81,39 +71,82 @@ class HomeViewModel(
                 Timber.d("ZoneId was updated!")
             }
         }
+
+        refreshExpenses(YearMonth.now())
+        viewModelScope.launch {
+            expenseRepository.expenses.collect { expenses ->
+                cachedExpenses = expenses
+                filterExpensesByMonth()
+            }
+        }
+    }
+
+    fun filterExpensesByMonth() {
+        val zoneId = appTimeZoneRepository.zoneId.value
+        /* filter only selected month */
+        val expenseUiList = cachedExpenses.values.filter {
+            it.datetime?.toLocalDateTime(zoneId)?.monthValue == _uiState.value.selectedMonth.monthValue
+        }.map { it.toUi(zoneId) }
+        _uiState.update {
+            it.copy(
+                shownExpenses = expenseUiList
+            )
+        }
     }
 
     /* onMonthChanged is definitely called once when the screen is created. */
     fun onMonthChanged(month: YearMonth) {
         Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}");
-
-
         _uiState.update {
             it.copy(
                 selectedMonth = month,
             )
         }
+
+        /* this should be called after uiState selectedMonth is updated */
+        filterExpensesByMonth()
+
+        val lastQueryStart = lastQuery.datetimeFrom
+        val lastQueryEnd = lastQuery.datetimeTo
+
+        if (lastQueryStart != null && lastQueryEnd != null) {
+            val twoDaysLaterStart = lastQueryStart.plus(Duration.ofDays(2))
+            val twoDaysBeforeEnd = lastQueryEnd.minus(Duration.ofDays(2))
+
+            val fromMonth = twoDaysLaterStart?.atZone(ZoneId.of("UTC"))?.monthValue
+            val toMonth = twoDaysBeforeEnd?.atZone(ZoneId.of("UTC"))?.monthValue
+
+            if (_uiState.value.selectedMonth.monthValue < fromMonth!! ||
+                _uiState.value.selectedMonth.monthValue > toMonth!!) {
+                refreshExpenses(_uiState.value.selectedMonth)
+            }
+        }
     }
+
 
     fun refreshExpenses(
         month: YearMonth
-    ){
+    ) {
         val zoneId = appTimeZoneRepository.zoneId.value
 
         /* monitor from the first day of 2 months ago to the end day of 2 months later */
         val startMonth = month.minusMonths(2)
         val endMonth = month.plusMonths(2)
 
-        val startDateTimeStr = startMonth.atDay(1).atStartOfDay().toInstant(zoneId)
-        val endDateTimeStr = endMonth.atDay(1).atStartOfDay().toInstant(zoneId)
+        val startDateTime = startMonth.atDay(1).atStartOfDay().toInstant(zoneId)
+        /* the start of the first day of the next month */
+        val endDateTime = endMonth.plusMonths(1).atDay(1).atStartOfDay().toInstant(zoneId)
 
         val query = ExpenseQuery(
-            datetimeFrom = startDateTimeStr,
-            datetimeTo = endDateTimeStr
+            datetimeFrom = startDateTime,
+            datetimeTo = endDateTime
         )
+
+        Timber.d("Refresh Expenses: start=${startDateTime} end=${endDateTime} zoneId=${zoneId}")
         viewModelScope.launch {
             expenseRepository.stopListening()
             expenseRepository.startListening(query)
+            lastQuery = query
         }
     }
 
@@ -126,7 +159,7 @@ class HomeViewModel(
 }
 
 fun Expense.toUi(zoneId: ZoneId): ExpenseUi = ExpenseUi(
-    id=id,
+    id = id,
     amount = amount,
     datetime = datetime?.toLocalDateTime(zoneId),
     category = category
