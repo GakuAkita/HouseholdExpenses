@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 
 data class ExpenseQuery(
-    val from: Instant?=null,
-    val to:Instant?=null,
+    val datetimeFrom: Instant?=null,
+    val datetimeTo:Instant?=null,
 )
 
 interface ExpenseRepository {

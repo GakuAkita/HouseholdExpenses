@@ -2,10 +2,12 @@ package gaku.original.myapplication.data.repository.expense
 
 import com.google.type.DateTime
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.UUID
 
 class FakeExpenseRepository : ExpenseRepository {
@@ -13,12 +15,12 @@ class FakeExpenseRepository : ExpenseRepository {
         "1" to Expense(
             id = "1",
             amount = 1000,
-            datetime = LocalDateTime.now().toString()
+            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo"))
         ),
         "2" to Expense(
             id = "2",
             amount = 2000,
-            datetime = LocalDateTime.now().toString()
+            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo"))
         )
     )
 

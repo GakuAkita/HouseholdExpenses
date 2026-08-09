@@ -48,16 +48,16 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
-import gaku.original.myapplication.data.AppTimeZone
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import timber.log.Timber
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.YearMonth
+import java.time.ZoneId
 
 @Composable
 fun HomeScreenRoot(
@@ -185,20 +185,25 @@ fun HomeScreenPreview() {
     val uiState = HomeUiState(
         isLoading = false,
         shownExpenses = listOf(
-            Expense(
+            ExpenseUi(
                 id = "1",
                 amount = 1200,
-                datetime = LocalDateTime.now().toString()
+                datetime = Instant.now().atZone(ZoneId.of("Asia/Tokyo")).toLocalDateTime(),
+                category = null
             ),
-            Expense(
+            ExpenseUi(
                 id = "2",
                 amount = 2400,
-                datetime = LocalDateTime.now().toString()
+                datetime = Instant.now().atZone(ZoneId.of("Asia/Tokyo")).toLocalDateTime(),
+                category = null
             ),
-            Expense(
+            ExpenseUi(
                 id = "3",
                 amount = 3400,
-                datetime = LocalDateTime.now().toString()
+                datetime = Instant.now().atZone(ZoneId.of("Asia/Tokyo")).toLocalDateTime(),
+                category = Category(
+                    name = "食費"
+                )
             ),
         ),
         message = null
@@ -233,9 +238,9 @@ fun HomeHorizontalCalendar(
 
         BoxWithConstraints(
             modifier = Modifier.weight(1f)
-        ){
+        ) {
             /* height of the Day is calculated by maxHeight */
-            val dayHeight = maxHeight/6
+            val dayHeight = maxHeight / 6
             HorizontalCalendar(
                 state = calendarState,
                 modifier = Modifier.fillMaxSize(),
@@ -275,8 +280,8 @@ fun LazyExpensesColumn(
         ) {
             items(uiState.shownExpenses) { expense ->
                 ExpenseItem(
-                    expense = expense,
-                    onEdit = {}
+                    expenseUi = expense,
+                    onEdit = {},
                 )
             }
         }
@@ -643,7 +648,11 @@ fun MainView(
 }
 
 @Composable
-fun ExpenseItem(expense: Expense, isToday: Boolean = false, onEdit: () -> Unit) {
+fun ExpenseItem(
+    expenseUi: ExpenseUi,
+    isToday: Boolean = false,
+    onEdit: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -669,20 +678,20 @@ fun ExpenseItem(expense: Expense, isToday: Boolean = false, onEdit: () -> Unit) 
     ) {
         Text(
             text = "${
-                AppTimeZone.isoStringToLocalDateTime(expense.datetime)?.dayOfMonth ?: 0
+                expenseUi.datetime?.dayOfMonth
             }日",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
             textAlign = TextAlign.Left//左寄せ
         )
         Text(
-            text = "${expense.amount}円",
+            text = "${expenseUi.amount}円",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
             textAlign = TextAlign.Left
         )
         Text(
-            text = expense.category?.name ?: "",
+            text = expenseUi.category?.name ?: "",
             modifier = Modifier.weight(1f),
             fontSize = 20.sp,
             textAlign = TextAlign.Left
