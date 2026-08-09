@@ -19,7 +19,7 @@ class FakeExpenseRepository : ExpenseRepository {
         ),
         "2" to Expense(
             id = "2",
-            amount = 2000,
+            amount = 200000,
             datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo"))
         )
     )

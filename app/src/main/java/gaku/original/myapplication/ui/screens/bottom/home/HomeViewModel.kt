@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneId
@@ -36,6 +37,8 @@ data class HomeUiState(
     val message: String? = null,
     val selectedMonth: YearMonth = YearMonth.now(),
     val shownExpenses: List<ExpenseUi> = emptyList(),
+    val monthlyTotal: Long = 0L,
+    val dailyAmounts: Map<LocalDate,Long> = emptyMap()
 )
 
 class HomeViewModel(
@@ -76,20 +79,29 @@ class HomeViewModel(
         viewModelScope.launch {
             expenseRepository.expenses.collect { expenses ->
                 cachedExpenses = expenses
-                filterExpensesByMonth()
+                rebuildExpenseUiState()
             }
         }
     }
 
-    fun filterExpensesByMonth() {
+    fun rebuildExpenseUiState() {
         val zoneId = appTimeZoneRepository.zoneId.value
         /* filter only selected month */
         val expenseUiList = cachedExpenses.values.filter {
             it.datetime?.toLocalDateTime(zoneId)?.monthValue == _uiState.value.selectedMonth.monthValue
         }.map { it.toUi(zoneId) }
+
+        /* calculate statistics and each day amount */
+        val monthlyTotal = expenseUiList.sumOf { it.amount?:0L }
+        val dailyAmounts = expenseUiList.groupBy { it.datetime!!.toLocalDate() }
+            .mapValues { (_,expenses)->
+                expenses.sumOf { it.amount?:0L }
+            }
         _uiState.update {
             it.copy(
-                shownExpenses = expenseUiList
+                shownExpenses = expenseUiList,
+                monthlyTotal = monthlyTotal,
+                dailyAmounts = dailyAmounts
             )
         }
     }
@@ -104,7 +116,7 @@ class HomeViewModel(
         }
 
         /* this should be called after uiState selectedMonth is updated */
-        filterExpensesByMonth()
+        rebuildExpenseUiState()
 
         val lastQueryStart = lastQuery.datetimeFrom
         val lastQueryEnd = lastQuery.datetimeTo

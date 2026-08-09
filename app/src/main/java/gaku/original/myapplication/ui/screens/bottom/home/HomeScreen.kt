@@ -210,7 +210,13 @@ fun HomeScreenPreview() {
                 )
             ),
         ),
-        message = null
+        message = null,
+        monthlyTotal = 10000,
+        dailyAmounts = mapOf(
+            LocalDate.now() to 1000,
+            LocalDate.now().minusDays(1) to 2000,
+            LocalDate.now().minusDays(2) to 3000
+        )
     )
 
     HomeScreen(
@@ -236,7 +242,7 @@ fun HomeHorizontalCalendar(
             Text("${uiState.selectedMonth.year}-${uiState.selectedMonth.monthValue}")
             Spacer(modifier = Modifier.padding(10.dp))
             Column {
-                Text("Monthly Total:${0}")
+                Text("Monthly Total:${uiState.monthlyTotal} yen")
             }
         }
 
@@ -256,7 +262,7 @@ fun HomeHorizontalCalendar(
                     Day(
                         modifier = Modifier.height(dayHeight),
                         day = it,
-                        price = "",
+                        price = "¥${uiState.dailyAmounts[it.date]?:0}",
                         isToday = it.date == LocalDate.now(),
                         onDayClick = {}
                     )
