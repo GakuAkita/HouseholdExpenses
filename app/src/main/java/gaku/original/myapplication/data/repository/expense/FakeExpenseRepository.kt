@@ -33,12 +33,12 @@ class FakeExpenseRepository : ExpenseRepository {
     }
 
     override fun startListening(query: ExpenseQuery) {
+        _expenses.value = emptyMap()
         _expenses.value = sampleExpenses
         return
     }
 
     override fun stopListening() {
-        _expenses.value = emptyMap()
         return
     }
 

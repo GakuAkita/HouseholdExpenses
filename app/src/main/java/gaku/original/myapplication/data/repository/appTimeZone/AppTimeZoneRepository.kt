@@ -26,3 +26,5 @@ fun String.toLocalDateTime(zoneId: ZoneId): LocalDateTime {
 fun LocalDateTime.toIsoUtcString(zoneId: ZoneId): String{
     return this.atZone(zoneId).toInstant().toString()
 }
+
+fun LocalDateTime.toInstant(zoneId: ZoneId): Instant = this.atZone(zoneId).toInstant()

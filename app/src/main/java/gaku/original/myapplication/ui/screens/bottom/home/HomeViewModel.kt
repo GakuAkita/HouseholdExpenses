@@ -10,6 +10,8 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.appTimeZone.toInstant
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -44,6 +46,9 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
+    private val initialMonth = YearMonth.now()
+    private var cachedExpenses:Map<String, Expense> = emptyMap()
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -59,33 +64,56 @@ class HomeViewModel(
     init {
         Timber.d("Created. ${hashCode()}")
 
-        expenseRepository.startListening(ExpenseQuery())
+
+        refreshExpenses(initialMonth)
         viewModelScope.launch {
-            expenseRepository.expenses.collect { expenses ->
-                _uiState.update {
-                    it.copy(
-                        shownExpenses = expenses.values.toList().map {
-                            it.toUi(appTimeZoneRepository.zoneId.value)
-                        }
-                    )
-                }
+            expenseRepository.expenses.collect { expenses->
+                /* filter only selected month */
+
             }
         }
 
         appTimeZoneRepository.startListening()
+
         viewModelScope.launch {
             appTimeZoneRepository.zoneId.collect {
                 /* reorganize the expenses list based on the new zoneId */
+                Timber.d("ZoneId was updated!")
             }
         }
     }
 
+    /* onMonthChanged is definitely called once when the screen is created. */
     fun onMonthChanged(month: YearMonth) {
         Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}");
+
+
         _uiState.update {
             it.copy(
                 selectedMonth = month,
             )
+        }
+    }
+
+    fun refreshExpenses(
+        month: YearMonth
+    ){
+        val zoneId = appTimeZoneRepository.zoneId.value
+
+        /* monitor from the first day of 2 months ago to the end day of 2 months later */
+        val startMonth = month.minusMonths(2)
+        val endMonth = month.plusMonths(2)
+
+        val startDateTimeStr = startMonth.atDay(1).atStartOfDay().toInstant(zoneId)
+        val endDateTimeStr = endMonth.atDay(1).atStartOfDay().toInstant(zoneId)
+
+        val query = ExpenseQuery(
+            datetimeFrom = startDateTimeStr,
+            datetimeTo = endDateTimeStr
+        )
+        viewModelScope.launch {
+            expenseRepository.stopListening()
+            expenseRepository.startListening(query)
         }
     }
 
