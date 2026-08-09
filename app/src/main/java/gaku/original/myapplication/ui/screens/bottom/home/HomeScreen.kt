@@ -46,6 +46,7 @@ import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
+import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.Category
@@ -54,10 +55,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import timber.log.Timber
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun HomeScreenRoot(
@@ -236,6 +240,10 @@ fun HomeHorizontalCalendar(
             }
         }
 
+        DaysOfWeekTitle(
+            daysOfWeek = daysOfWeek()
+        )
+
         BoxWithConstraints(
             modifier = Modifier.weight(1f)
         ) {
@@ -284,6 +292,22 @@ fun LazyExpensesColumn(
                     onEdit = {},
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        for (dayOfWeek in daysOfWeek) {
+            Text(
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            )
         }
     }
 }
