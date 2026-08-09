@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom
+package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.R
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
-import gaku.original.myapplication.viewModel.main.ExpenseAddEditViewModel
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import java.time.LocalDateTime
 
 /*
@@ -53,10 +53,17 @@ enum class FromScreen {
     UNKNOWN
 }
 
+@Composable
+fun ExpenseAddEditScreenRoot(
+    viewModel: ExpenseAddEditViewModel
+){
+
+}
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpenseAddEditView(
+fun _ExpenseAddEditView(
     viewModel: ExpenseAddEditViewModel = hiltViewModel(),
     navController: NavController,
     from: String/* 遷移元のスクリーン */

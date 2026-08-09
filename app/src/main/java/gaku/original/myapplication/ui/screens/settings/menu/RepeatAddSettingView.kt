@@ -60,7 +60,7 @@ import gaku.original.myapplication.data.dataClass.defaultFrequency
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
-import gaku.original.myapplication.ui.screens.bottom.DialWithDialog
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.DialWithDialog
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getLastDayOfMonth
 import gaku.original.myapplication.viewModel.settings.RepeatAddViewModel

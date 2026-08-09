@@ -1,36 +1,54 @@
-package gaku.original.myapplication.viewModel.main
+package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
+import android.os.Message
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.AppTimeZone
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
-import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
-import gaku.original.myapplication.data.dataClass.getDefaultExpense
-import gaku.original.myapplication.useCase.CategoryAssignmentUseCase
-import gaku.original.myapplication.utility.LogAkitaDebug
-import gaku.original.myapplication.utility.separateStringByBars
-import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
-import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
-import javax.inject.Inject
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import timber.log.Timber
 
-@HiltViewModel
-class ExpenseAddEditViewModel @Inject constructor(
-    private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
-    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
-) : ViewModel() {
+data class ExpenseAddEditUiState(
+    val amount:Long? = null,
+    val message: String? = null,
+    val isLoading: Boolean = false
+)
+
+class ExpenseAddEditViewModel(
+    private val expenseRepository: ExpenseRepository,
+    private val appTimeZoneRepository: AppTimeZoneRepository
+    //private val categoryRepository:
+): ViewModel() {
+
+    companion object{
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
+                val expenseRepository = app.appContainer.sessionContainer!!.expenseRepository
+                val appTimeZoneRepository = app.appContainer.sessionContainer!!.appTimeZoneRepository
+                ExpenseAddEditViewModel(expenseRepository, appTimeZoneRepository)
+            }
+        }
+    }
+
+    init{
+        Timber.d("Created. ${hashCode()}")
+    }
+
+    override fun onCleared() {
+        Timber.d("Cleared. ${hashCode()}")
+        super.onCleared()
+    }
+}
+
+//@HiltViewModel
+//class ExpenseAddEditViewModel @Inject constructor(
+//    private val expenseSharedViewModel: ExpenseSharedViewModel,
+//    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+//    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
+//) : ViewModel() {
 
 //    override fun onCleared() {
 //        super.onCleared()
@@ -413,4 +431,4 @@ class ExpenseAddEditViewModel @Inject constructor(
 //        val index = selectedIndex ?: return 0L
 //        return _expenseList.value[index].amount ?: 0L
 //    }
-}
+//}

@@ -1,0 +1,25 @@
+package gaku.original.myapplication.data.repository.category
+
+import gaku.original.myapplication.data.dataClass.Category
+
+class FakeCategoryRepository : CategoryRepository {
+
+    val sampleCategories = mapOf(
+        "1" to Category(
+            id = "1",
+            name = "食費"
+        ),
+        "2" to Category(
+            id = "2",
+            name = "交通費"
+        )
+    )
+
+    override fun getAllCategories(): Map<String, Category> {
+        return sampleCategories
+    }
+
+    override fun saveCategory(category: Category) {
+
+    }
+}
