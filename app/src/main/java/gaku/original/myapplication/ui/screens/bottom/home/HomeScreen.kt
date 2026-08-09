@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.bottom.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.text.format.DateUtils.isToday
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -262,7 +264,7 @@ fun HomeHorizontalCalendar(
                     Day(
                         modifier = Modifier.height(dayHeight),
                         day = it,
-                        price = "¥${uiState.dailyAmounts[it.date]?:0}",
+                        price = uiState.dailyAmounts[it.date]?:0L,
                         isToday = it.date == LocalDate.now(),
                         onDayClick = {}
                     )
@@ -322,7 +324,7 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 fun Day(
     modifier: Modifier = Modifier,
     day: CalendarDay,
-    price: String,
+    price: Long,
     isToday: Boolean = false,
     onDayClick: () -> Unit
 ) {
@@ -355,9 +357,16 @@ fun Day(
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                }
+                },
             )
-            Text(if (isCurrentMonth) price else "-")
+            /* when the value is too big, use the expression like 1.23K */
+            Text("¥${if (isCurrentMonth) price else 0}",
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.padding(1.dp),
+                fontSize = 12.sp
+            )
         }
     }
 }
