@@ -18,6 +18,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 data class ExpenseAddEditUiState(
+    val isEdit: Boolean = false,
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
     val expenseEditList: List<ExpenseEditItem> = emptyList(),
@@ -40,7 +41,7 @@ class ExpenseAddEditViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     companion object {
-        fun Factory(initialExpense:Expense): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(initialExpense: Expense): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
@@ -64,16 +65,31 @@ class ExpenseAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
-
-        /* based on the selected timezone, decide initial Date and Time */
-
-        /* Only when it is ADD!! */
-        val zoneId = appTimeZoneRepository.zoneId.value
+        val isEdit = initialExpense.id != null
         _uiState.update {
             it.copy(
-                selectedDate = LocalDate.now(zoneId),
-                selectedTime = LocalTime.now(zoneId)
+                isEdit = isEdit
             )
+        }
+
+        /* based on the selected timezone, decide initial Date and Time */
+        /* Only when it is ADD!! */
+        val zoneId = appTimeZoneRepository.zoneId.value
+        if (isEdit) {
+            val expense = initialExpense
+            _uiState.update {
+                it.copy(
+
+                )
+            }
+        } else {
+            /* Add */
+            _uiState.update {
+                it.copy(
+                    selectedDate = LocalDate.now(zoneId),
+                    selectedTime = LocalTime.now(zoneId),
+                )
+            }
         }
     }
 
