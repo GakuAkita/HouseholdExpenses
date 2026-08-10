@@ -95,11 +95,7 @@ fun HomeScreenRoot(
             // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
             // I just pass Expense whose id is null, which is used to identify add or edit.
             rootNavController.navigate(
-                MainGraph.Global.ExpenseAddEdit(
-                    Expense(
-                        id = null
-                    )
-                )
+                MainGraph.Global.ExpenseAddEdit()
             )
         }
     )
@@ -309,7 +305,9 @@ fun LazyExpensesColumn(
             items(uiState.shownExpenses) { expense ->
                 ExpenseItem(
                     expenseUi = expense,
-                    onEdit = {},
+                    onEdit = {
+                        /* idだけ渡してAdd/Editする */
+                    },
                 )
             }
         }

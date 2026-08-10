@@ -1,9 +1,7 @@
 package gaku.original.myapplication.ui.navigation
 
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.navigation.NavType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -13,9 +11,8 @@ import kotlinx.serialization.json.Json
 // Retrieved 2026-08-10, License - CC BY-SA 4.0
 
 inline fun <reified T> navTypeOf(
-    isNullableAllowed: Boolean = false,/* this doesn't seem to be effective. */
     json: Json = Json,
-) = object : NavType<T>(isNullableAllowed = isNullableAllowed) {
+) = object : NavType<T>(false) {
     override fun get(bundle: Bundle, key: String): T? =
         bundle.getString(key)?.let(json::decodeFromString)
 
@@ -25,5 +22,28 @@ inline fun <reified T> navTypeOf(
 
     override fun put(bundle: Bundle, key: String, value: T) =
         bundle.putString(key, json.encodeToString(value))
+
+}
+
+inline fun <reified T> nullableNavTypeOf(
+    json: Json = Json,
+) = object : NavType<T?>(true) {
+    override fun get(bundle: Bundle, key: String): T? =
+        bundle.getString(key)?.let(json::decodeFromString)
+
+    override fun parseValue(value: String): T? =
+        if (value == "null") null else json.decodeFromString(Uri.decode(value))
+
+    override fun serializeAsValue(value: T?): String =
+        value?.let {
+            Uri.encode(Json.encodeToString(it))
+        } ?: "null"
+
+    override fun put(bundle: Bundle, key: String, value: T?) {
+        bundle.putString(
+            key,
+            value?.let(json::encodeToString)
+        )
+    }
 
 }

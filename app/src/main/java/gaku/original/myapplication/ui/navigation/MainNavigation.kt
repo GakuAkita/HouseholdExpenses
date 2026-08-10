@@ -30,7 +30,7 @@ fun NavGraphBuilder.mainGraph(
 
         // https://medium.com/mercadona-tech/type-safety-in-navigation-compose-23c03e3d74a5
         composable<MainGraph.Global.ExpenseAddEdit>(
-            typeMap = mapOf(typeOf<Expense>() to navTypeOf<Expense>())
+            typeMap = mapOf(typeOf<Expense?>() to nullableNavTypeOf<Expense>())
         ) { backStackEntry ->
             val expense = backStackEntry.toRoute<MainGraph.Global.ExpenseAddEdit>().expense
 

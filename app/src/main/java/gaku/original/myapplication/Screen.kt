@@ -7,66 +7,73 @@ import kotlinx.serialization.Serializable
 sealed interface Screen
 
 @Serializable
-data object Splash:Screen
+data object Splash : Screen
 
 @Serializable
-data object AuthGraph{
+data object AuthGraph {
     @Serializable
-    data object Start:Screen
+    data object Start : Screen
 
     @Serializable
-    data object SignIn: Screen
+    data object SignIn : Screen
 
     @Serializable
-    data object ForgotPassword:Screen
+    data object ForgotPassword : Screen
+
     @Serializable
-    data object SignUp:Screen
+    data object SignUp : Screen
 }
 
 @Serializable
-data object MainGraph{
+data object MainGraph {
 
     @Serializable
-    data object Bottom: Screen{
+    data object Bottom : Screen {
         @Serializable
-        data object Home: Screen
+        data object Home : Screen
 
         @Serializable
-        data object Search: Screen
+        data object Search : Screen
 
         @Serializable
-        data object Statistics: Screen
+        data object Statistics : Screen
 
         @Serializable
-        data object Setting: Screen
+        data object Setting : Screen
     }
 
-    sealed interface SettingMenu: Screen{
+    sealed interface SettingMenu : Screen {
         @Serializable
-        data object UserInfo: SettingMenu
+        data object UserInfo : SettingMenu
+
         @Serializable
-        data object RepeatAdd: SettingMenu
+        data object RepeatAdd : SettingMenu
+
         @Serializable
-        data object AppSettings: SettingMenu
+        data object AppSettings : SettingMenu
+
         @Serializable
-        data object Version: SettingMenu
+        data object Version : SettingMenu
+
         @Serializable
-        data object MailboxExtraction: SettingMenu
+        data object MailboxExtraction : SettingMenu
+
         @Serializable
-        data object NotificationListenerSetting: SettingMenu
+        data object NotificationListenerSetting : SettingMenu
+
         @Serializable
-        data object PayPayReceiptOCRSetting: SettingMenu
+        data object PayPayReceiptOCRSetting : SettingMenu
     }
 
-    sealed interface Global:Screen{
+    sealed interface Global : Screen {
         @Serializable
-        data class ExpenseAddEdit(val expense: Expense):Global
+        data class ExpenseAddEdit(val expense: Expense? = null) : Global
 
         @Serializable
-        data object CategoryAddEdit: Global
+        data object CategoryAddEdit : Global
 
         @Serializable
-        data object CategoryAssignmentEdit: Global
+        data object CategoryAssignmentEdit : Global
     }
 }
 

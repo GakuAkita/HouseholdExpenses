@@ -35,13 +35,13 @@ data class ExpenseEditItem(
 )
 
 class ExpenseAddEditViewModel(
-    private val initialExpense: Expense,
+    private val initialExpense: Expense?,
     private val expenseRepository: ExpenseRepository,
     private val appTimeZoneRepository: AppTimeZoneRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     companion object {
-        fun Factory(initialExpense: Expense): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(initialExpense: Expense?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
@@ -65,7 +65,7 @@ class ExpenseAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
-        val isEdit = initialExpense.id != null
+        val isEdit = initialExpense?.id != null
         _uiState.update {
             it.copy(
                 isEdit = isEdit
