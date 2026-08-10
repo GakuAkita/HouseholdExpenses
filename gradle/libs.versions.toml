@@ -14,6 +14,7 @@ firebaseDatabaseKtx = "21.0.0"
 textRecognition = "16.0.1"
 textRecognitionJapanese = "16.0.1"
 material3 = "1.4.0"
+foundation = "1.11.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +37,7 @@ firebase-database-ktx = { group = "com.google.firebase", name = "firebase-databa
 text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognition" }
 text-recognition-japanese = { module = "com.google.mlkit:text-recognition-japanese", version.ref = "textRecognitionJapanese" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

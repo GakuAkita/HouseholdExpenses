@@ -1,40 +1,102 @@
 package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
-import android.os.Message
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
+import java.time.LocalDate
+import java.time.LocalTime
 
 data class ExpenseAddEditUiState(
-    val amount:Long? = null,
+    val selectedDate: LocalDate? = null,
+    val selectedTime: LocalTime? = null,
+    val amount: Long? = null,
     val message: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isDatePickerVisible: Boolean = false,
+    val isTimePickerVisible: Boolean = false,
 )
 
 class ExpenseAddEditViewModel(
     private val expenseRepository: ExpenseRepository,
-    private val appTimeZoneRepository: AppTimeZoneRepository
-    //private val categoryRepository:
-): ViewModel() {
-
-    companion object{
+    private val appTimeZoneRepository: AppTimeZoneRepository,
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
+    companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
+                val app =
+                    this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
                 val expenseRepository = app.appContainer.sessionContainer!!.expenseRepository
-                val appTimeZoneRepository = app.appContainer.sessionContainer!!.appTimeZoneRepository
-                ExpenseAddEditViewModel(expenseRepository, appTimeZoneRepository)
+                val appTimeZoneRepository =
+                    app.appContainer.sessionContainer!!.appTimeZoneRepository
+                val categoryRepository = app.appContainer.sessionContainer!!.categoryRepository
+                ExpenseAddEditViewModel(
+                    expenseRepository,
+                    appTimeZoneRepository,
+                    categoryRepository
+                )
             }
         }
     }
 
-    init{
+    private val _uiState = MutableStateFlow(ExpenseAddEditUiState())
+    val uiState: MutableStateFlow<ExpenseAddEditUiState> get() = _uiState
+
+
+    init {
         Timber.d("Created. ${hashCode()}")
+    }
+
+    fun onDateFieldClick(){
+        if(_uiState.value.isTimePickerVisible){
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isDatePickerVisible = true
+            )
+        }
+    }
+
+    fun onDateSelected(dateMillis:Long?){
+
+    }
+
+    fun onDateDismiss(){
+        _uiState.update {
+            it.copy(
+                isDatePickerVisible = false
+            )
+        }
+    }
+
+    fun onDatePickerDismiss(){
+        _uiState.update {
+            it.copy(
+                isDatePickerVisible = false
+            )
+        }
+    }
+
+    fun onTimeFieldClick(){
+        if(_uiState.value.isDatePickerVisible){
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isTimePickerVisible = true
+            )
+        }
     }
 
     override fun onCleared() {

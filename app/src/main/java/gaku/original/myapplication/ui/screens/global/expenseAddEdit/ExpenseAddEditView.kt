@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -16,13 +17,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,14 +39,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
+import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
-import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import java.time.LocalDateTime
 
 /*
@@ -55,9 +66,95 @@ enum class FromScreen {
 
 @Composable
 fun ExpenseAddEditScreenRoot(
-    viewModel: ExpenseAddEditViewModel
-){
+    viewModel: ExpenseAddEditViewModel,
+    navHostController: NavHostController
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackBarHostState.current
 
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
+    ExpenseAddEditScreen(
+        uiState,
+        snackbarHostState,
+        onBackNavClick = {
+            navHostController.popBackStack()
+        },
+        onDateFieldClick = {
+            viewModel.onDateFieldClick()
+        },
+        onDateDismiss = {
+            viewModel.onDatePickerDismiss()
+        },
+        onDateSelected = {
+            viewModel.onDateSelected(it)
+        }
+    )
+}
+
+@Composable
+fun ExpenseAddEditScreen(
+    uiState: ExpenseAddEditUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackNavClick: () -> Unit,
+    onDateFieldClick:()->Unit,
+    onDateDismiss:()->Unit,
+    onDateSelected:(Long?)->Unit,
+) {
+
+    Scaffold(
+        topBar = {
+            TopBarView(
+                title = "Add/Edit",
+                showBackButton = true,
+                onBackNavClicked = { onBackNavClick() })
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            TextField(
+                value = "aa",
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text(text = "Date") },
+                colors = enabledTextFiledColorSet(),
+                modifier = Modifier
+                        .width(150.dp)
+                        .clickable {
+                            onDateFieldClick()
+                        },
+            )
+
+            if(uiState.isDatePickerVisible){
+                DatePickerModal(
+                    onDateSelected = {
+                        onDateSelected(it)
+                    },
+                    onDismiss = onDateDismiss
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExpenseAddEditScreenPreview() {
+    ExpenseAddEditScreen(
+        uiState = ExpenseAddEditUiState(),
+        snackbarHostState = SnackbarHostState(),
+        onBackNavClick = {},
+        onDateFieldClick = {},
+        onDateSelected = {},
+        onDateDismiss = {},
+    )
 }
 
 @SuppressLint("CoroutineCreationDuringComposition")
