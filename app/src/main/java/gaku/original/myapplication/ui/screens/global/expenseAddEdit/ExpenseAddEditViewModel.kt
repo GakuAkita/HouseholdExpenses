@@ -9,14 +9,12 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
-import gaku.original.myapplication.ui.screens.bottom.home.ExpenseUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 
 data class ExpenseAddEditUiState(
     val selectedDate: LocalDate? = null,
@@ -30,7 +28,7 @@ data class ExpenseAddEditUiState(
 )
 
 data class ExpenseEditItem(
-    val amount:Long? = null,
+    val amount: Long? = null,
     val category: Category? = null
 )
 
@@ -76,8 +74,8 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onDateFieldClick(){
-        if(_uiState.value.isTimePickerVisible){
+    fun onDateFieldClick() {
+        if (_uiState.value.isTimePickerVisible) {
             return
         }
 
@@ -88,8 +86,8 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onDateSelected(dateMillis:Long?){
-        if(dateMillis == null){
+    fun onDateSelected(dateMillis: Long?) {
+        if (dateMillis == null) {
             return
         }
 
@@ -105,7 +103,7 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onDatePickerDismiss(){
+    fun onDatePickerDismiss() {
         _uiState.update {
             it.copy(
                 isDatePickerVisible = false
@@ -113,8 +111,8 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onTimeFieldClick(){
-        if(_uiState.value.isDatePickerVisible){
+    fun onTimeFieldClick() {
+        if (_uiState.value.isDatePickerVisible) {
             return
         }
 
@@ -125,7 +123,7 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onTimeSelected(time: LocalTime){
+    fun onTimeSelected(time: LocalTime) {
         /* This time is current timezone. */
         _uiState.update {
             it.copy(
@@ -135,10 +133,23 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onTimePickerDismiss(){
+    fun onTimePickerDismiss() {
         _uiState.update {
             it.copy(
                 isTimePickerVisible = false
+            )
+        }
+    }
+
+    fun onSwitchClick() {
+        val currentStatus = _uiState.value.isSplitInputEnabled
+
+        /* when switched to on, create the array  */
+
+        /* when switched to off, clear the list */
+        _uiState.update {
+            it.copy(
+                isSplitInputEnabled = !currentStatus
             )
         }
     }

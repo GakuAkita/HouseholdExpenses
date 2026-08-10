@@ -113,7 +113,7 @@ fun ExpenseAddEditScreenRoot(
             viewModel.onTimeSelected(it)
         },
         onSwitchClick = {
-
+            viewModel.onSwitchClick()
         }
     )
 }
