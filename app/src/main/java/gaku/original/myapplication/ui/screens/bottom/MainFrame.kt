@@ -120,7 +120,7 @@ fun MainFrame(
                     factory = HomeViewModel.Factory
                 )
                 HomeScreenRoot(
-                    bottomNavController = bottomNavController,
+                    rootNavController = rootNavController,
                     viewModel = viewModel
                 )
             }

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 
 fun NavGraphBuilder.mainGraph(
     navController: NavHostController
@@ -22,7 +23,9 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.Global.ExpenseAddEdit> {
-
+            ExpenseAddEditScreenRoot(
+                navHostController = navController
+            )
         }
 
         composable<MainGraph.Global.CategoryAddEdit> {

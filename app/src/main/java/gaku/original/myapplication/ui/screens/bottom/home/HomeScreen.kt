@@ -51,6 +51,7 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,7 +69,7 @@ import java.util.Locale
 @Composable
 fun HomeScreenRoot(
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
-    bottomNavController: NavHostController
+    rootNavController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
@@ -89,7 +90,9 @@ fun HomeScreenRoot(
         onMonthChanged = {
             viewModel.onMonthChanged(it)
         },
-        onFABClick = {}
+        onFABClick = {
+            rootNavController.navigate(MainGraph.Global.ExpenseAddEdit)
+        }
     )
 }
 

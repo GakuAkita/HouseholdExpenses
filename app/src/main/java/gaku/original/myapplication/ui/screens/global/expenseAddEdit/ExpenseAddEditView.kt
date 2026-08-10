@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
@@ -66,7 +67,7 @@ enum class FromScreen {
 
 @Composable
 fun ExpenseAddEditScreenRoot(
-    viewModel: ExpenseAddEditViewModel,
+    viewModel: ExpenseAddEditViewModel = viewModel(factory = ExpenseAddEditViewModel.Factory),
     navHostController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -101,9 +102,9 @@ fun ExpenseAddEditScreen(
     uiState: ExpenseAddEditUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
-    onDateFieldClick:()->Unit,
-    onDateDismiss:()->Unit,
-    onDateSelected:(Long?)->Unit,
+    onDateFieldClick: () -> Unit,
+    onDateDismiss: () -> Unit,
+    onDateSelected: (Long?) -> Unit,
 ) {
 
     Scaffold(
@@ -126,13 +127,13 @@ fun ExpenseAddEditScreen(
                 label = { Text(text = "Date") },
                 colors = enabledTextFiledColorSet(),
                 modifier = Modifier
-                        .width(150.dp)
-                        .clickable {
-                            onDateFieldClick()
-                        },
+                    .width(150.dp)
+                    .clickable {
+                        onDateFieldClick()
+                    },
             )
 
-            if(uiState.isDatePickerVisible){
+            if (uiState.isDatePickerVisible) {
                 DatePickerModal(
                     onDateSelected = {
                         onDateSelected(it)
