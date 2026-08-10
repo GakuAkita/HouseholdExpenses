@@ -2,7 +2,6 @@ package gaku.original.myapplication.ui.screens.bottom.home
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.text.format.DateUtils.isToday
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -53,6 +52,7 @@ import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
@@ -91,7 +91,16 @@ fun HomeScreenRoot(
             viewModel.onMonthChanged(it)
         },
         onFABClick = {
-            rootNavController.navigate(MainGraph.Global.ExpenseAddEdit())
+            // Honestly, I just want to pass null.
+            // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
+            // I just pass Expense whose id is null, which is used to identify add or edit.
+            rootNavController.navigate(
+                MainGraph.Global.ExpenseAddEdit(
+                    Expense(
+                        id = null
+                    )
+                )
+            )
         }
     )
 }
@@ -267,7 +276,7 @@ fun HomeHorizontalCalendar(
                     Day(
                         modifier = Modifier.height(dayHeight),
                         day = it,
-                        price = uiState.dailyAmounts[it.date]?:0L,
+                        price = uiState.dailyAmounts[it.date] ?: 0L,
                         isToday = it.date == LocalDate.now(),
                         onDayClick = {}
                     )
@@ -363,7 +372,8 @@ fun Day(
                 },
             )
             /* when the value is too big, use the expression like 1.23K */
-            Text("¥${if (isCurrentMonth) price else 0}",
+            Text(
+                "¥${if (isCurrentMonth) price else 0}",
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 softWrap = false,

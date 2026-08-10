@@ -34,13 +34,13 @@ data class ExpenseEditItem(
 )
 
 class ExpenseAddEditViewModel(
-    private val initialExpense: Expense? =null,
+    private val initialExpense: Expense,
     private val expenseRepository: ExpenseRepository,
     private val appTimeZoneRepository: AppTimeZoneRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     companion object {
-        fun Factory(initialExpense:Expense?=null): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(initialExpense:Expense): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication

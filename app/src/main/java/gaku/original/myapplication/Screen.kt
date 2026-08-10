@@ -60,7 +60,7 @@ data object MainGraph{
 
     sealed interface Global:Screen{
         @Serializable
-        data class ExpenseAddEdit(val expense: Expense?=null):Global
+        data class ExpenseAddEdit(val expense: Expense):Global
 
         @Serializable
         data object CategoryAddEdit: Global
