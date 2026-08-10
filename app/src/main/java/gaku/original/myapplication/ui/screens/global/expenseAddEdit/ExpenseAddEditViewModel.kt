@@ -5,23 +5,33 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.ui.screens.bottom.home.ExpenseUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 
 data class ExpenseAddEditUiState(
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
-    val amount: Long? = null,
+    val expenseEditList: List<ExpenseEditItem> = emptyList(),
     val message: String? = null,
     val isLoading: Boolean = false,
     val isDatePickerVisible: Boolean = false,
     val isTimePickerVisible: Boolean = false,
+    val isSplitInputEnabled: Boolean = false,
+)
+
+data class ExpenseEditItem(
+    val amount:Long? = null,
+    val category: Category? = null
 )
 
 class ExpenseAddEditViewModel(
@@ -53,6 +63,17 @@ class ExpenseAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+
+        /* based on the selected timezone, decide initial Date and Time */
+
+        /* Only when it is ADD!! */
+        val zoneId = appTimeZoneRepository.zoneId.value
+        _uiState.update {
+            it.copy(
+                selectedDate = LocalDate.now(zoneId),
+                selectedTime = LocalTime.now(zoneId)
+            )
+        }
     }
 
     fun onDateFieldClick(){
@@ -68,12 +89,17 @@ class ExpenseAddEditViewModel(
     }
 
     fun onDateSelected(dateMillis:Long?){
+        if(dateMillis == null){
+            return
+        }
 
-    }
-
-    fun onDateDismiss(){
+        /* first accept it as local date in the selected timezone */
+        /* when save it to the database, converted to UTC */
+        val localDate = Instant.ofEpochMilli(dateMillis)
+            .atZone(appTimeZoneRepository.zoneId.value).toLocalDate()
         _uiState.update {
             it.copy(
+                selectedDate = localDate,
                 isDatePickerVisible = false
             )
         }
@@ -95,6 +121,24 @@ class ExpenseAddEditViewModel(
         _uiState.update {
             it.copy(
                 isTimePickerVisible = true
+            )
+        }
+    }
+
+    fun onTimeSelected(time: LocalTime){
+        /* This time is current timezone. */
+        _uiState.update {
+            it.copy(
+                selectedTime = time,
+                isTimePickerVisible = false
+            )
+        }
+    }
+
+    fun onTimePickerDismiss(){
+        _uiState.update {
+            it.copy(
+                isTimePickerVisible = false
             )
         }
     }

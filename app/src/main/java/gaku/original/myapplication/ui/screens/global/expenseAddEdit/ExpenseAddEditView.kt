@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,9 +21,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
@@ -48,11 +51,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
-import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 /*
 ・まずはすべて手入力で実装する
@@ -64,6 +70,9 @@ enum class FromScreen {
     MAIN_CONTENT,
     UNKNOWN
 }
+
+private val DateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 fun ExpenseAddEditScreenRoot(
@@ -93,10 +102,23 @@ fun ExpenseAddEditScreenRoot(
         },
         onDateSelected = {
             viewModel.onDateSelected(it)
+        },
+        onTimeFieldClick = {
+            viewModel.onTimeFieldClick()
+        },
+        onTimePickerDismiss = {
+            viewModel.onTimePickerDismiss()
+        },
+        onTimeSelected = {
+            viewModel.onTimeSelected(it)
+        },
+        onSwitchClick = {
+
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseAddEditScreen(
     uiState: ExpenseAddEditUiState,
@@ -105,8 +127,13 @@ fun ExpenseAddEditScreen(
     onDateFieldClick: () -> Unit,
     onDateDismiss: () -> Unit,
     onDateSelected: (Long?) -> Unit,
+    onTimeFieldClick: () -> Unit,
+    onTimePickerDismiss: () -> Unit,
+    onTimeSelected: (LocalTime) -> Unit,
+    onSwitchClick: ()->Unit
 ) {
 
+    val basicModifier = remember { Modifier.width(260.dp) }
     Scaffold(
         topBar = {
             TopBarView(
@@ -119,26 +146,119 @@ fun ExpenseAddEditScreen(
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-            TextField(
-                value = "aa",
-                onValueChange = {},
-                readOnly = true,
-                enabled = false,
-                label = { Text(text = "Date") },
-                colors = enabledTextFiledColorSet(),
-                modifier = Modifier
-                    .width(150.dp)
-                    .clickable {
-                        onDateFieldClick()
-                    },
-            )
 
-            if (uiState.isDatePickerVisible) {
-                DatePickerModal(
-                    onDateSelected = {
-                        onDateSelected(it)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                TextField(
+                    value = "${uiState.selectedDate?.format(DateFormatter)}",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    label = { Text(text = "Date") },
+                    colors = enabledTextFiledColorSet(),
+                    modifier = Modifier
+                        .width(150.dp)
+                        .clickable {
+                            onDateFieldClick()
+                        },
+                )
+
+                if (uiState.isDatePickerVisible) {
+                    DatePickerModal(
+                        onDateSelected = {
+                            onDateSelected(it)
+                        },
+                        onDismiss = onDateDismiss
+                    )
+                }
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                TextField(
+                    value = "${uiState.selectedTime?.format(TimeFormatter)}",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    label = { Text(text = "Time") },
+                    colors = enabledTextFiledColorSet(),
+                    modifier = Modifier
+                        .width(150.dp)
+                        .clickable {
+                            onTimeFieldClick()
+                        },
+                )
+
+                if (uiState.isTimePickerVisible) {
+                    DialWithDialog(
+                        onConfirm = {
+                            onTimeSelected(LocalTime.of(it.hour, it.minute))
+                        },
+                        onDismiss = {
+                            onTimePickerDismiss()
+                        },
+                        initialTime = uiState.selectedTime
+                            ?: LocalTime.now()/* selectedTime is basically not null */
+                    )
+                }
+            }
+
+            if (uiState.isSplitInputEnabled) {
+                /* show total amount */
+//                TextField(
+//
+//                )
+            }
+
+            uiState.expenseEditList.forEachIndexed { index, item ->
+                val isLastElement =
+                    index == uiState.expenseEditList.size - 1 &&
+                            uiState.isSplitInputEnabled &&
+                            index != 0
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = "${item.amount ?: ""}",
+                        modifier = basicModifier.then(
+                            if (isLastElement) {
+                                Modifier
+                            } else {
+                                Modifier.clickable {
+                                    /* open calculator. */
+                                }
+                            }
+                        ),
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text(text = "Amount") },
+                        colors = if (isLastElement) TextFieldDefaults.colors() else enabledTextFiledColorSet()
+                    )
+
+                    if (index == 0) {
+                        Switch(
+                            checked = uiState.isSplitInputEnabled,
+                            onCheckedChange = {
+                                onSwitchClick()
+                            },
+                            modifier = Modifier.padding(vertical = 0.dp)
+                        )
+                        Text("分割入力")
+                    }
+                }
+
+                TextField(
+                    value = item.category?.name ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    label = { Text(text = "Category") },
+                    modifier = basicModifier.clickable{
+
                     },
-                    onDismiss = onDateDismiss
+                    colors = enabledTextFiledColorSet()
                 )
             }
         }
@@ -149,12 +269,30 @@ fun ExpenseAddEditScreen(
 @Composable
 fun ExpenseAddEditScreenPreview() {
     ExpenseAddEditScreen(
-        uiState = ExpenseAddEditUiState(),
+        uiState = ExpenseAddEditUiState(
+            selectedDate = LocalDate.now(),
+            selectedTime = LocalTime.now(),
+            expenseEditList = listOf(
+                ExpenseEditItem(
+                    amount = 1000,
+                    category = Category(name="Food")
+                ),
+                ExpenseEditItem(
+                    amount = 2000,
+                    category = Category(name="Waste")
+                )
+            ),
+            isSplitInputEnabled = true
+        ),
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onDateFieldClick = {},
         onDateSelected = {},
         onDateDismiss = {},
+        onTimeFieldClick = {},
+        onTimePickerDismiss = {},
+        onTimeSelected = {},
+        onSwitchClick = {}
     )
 }
 
@@ -969,11 +1107,11 @@ fun DatePickerModal(
 fun DialWithDialog(
     onConfirm: (TimePickerState) -> Unit,
     onDismiss: () -> Unit,
-    initialDateTime: LocalDateTime//viewModelの値をそのままいれたい
+    initialTime: LocalTime//viewModelの値をそのままいれたい
 ) {
     val timePickerState = rememberTimePickerState(
-        initialHour = initialDateTime.hour,
-        initialMinute = initialDateTime.minute,
+        initialHour = initialTime.hour,
+        initialMinute = initialTime.minute,
         is24Hour = true,
     )
 

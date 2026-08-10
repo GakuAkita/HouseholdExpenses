@@ -1039,7 +1039,7 @@ fun FrequencyTextField(
                 isTimePickerVisible = false
             },
             //@HACK let内に入っているからnullなわけないけど一応気をつけて
-            initialDateTime = AppTimeZone.getCurrentTimeInZone().toLocalDate().atTime(time)
+            initialTime = LocalTime.now()
         )
     }
 
