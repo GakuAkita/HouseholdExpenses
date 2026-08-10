@@ -91,7 +91,7 @@ fun HomeScreenRoot(
             viewModel.onMonthChanged(it)
         },
         onFABClick = {
-            rootNavController.navigate(MainGraph.Global.ExpenseAddEdit)
+            rootNavController.navigate(MainGraph.Global.ExpenseAddEdit())
         }
     )
 }

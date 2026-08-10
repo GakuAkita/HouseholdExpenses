@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -33,12 +34,13 @@ data class ExpenseEditItem(
 )
 
 class ExpenseAddEditViewModel(
+    private val initialExpense: Expense? =null,
     private val expenseRepository: ExpenseRepository,
     private val appTimeZoneRepository: AppTimeZoneRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(initialExpense:Expense?=null): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
@@ -47,6 +49,7 @@ class ExpenseAddEditViewModel(
                     app.appContainer.sessionContainer!!.appTimeZoneRepository
                 val categoryRepository = app.appContainer.sessionContainer!!.categoryRepository
                 ExpenseAddEditViewModel(
+                    initialExpense,
                     expenseRepository,
                     appTimeZoneRepository,
                     categoryRepository

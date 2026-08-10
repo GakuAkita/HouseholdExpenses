@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import gaku.original.myapplication.data.dataClass.Expense
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -59,7 +60,7 @@ data object MainGraph{
 
     sealed interface Global:Screen{
         @Serializable
-        data object ExpenseAddEdit:Global
+        data class ExpenseAddEdit(val expense: Expense?=null):Global
 
         @Serializable
         data object CategoryAddEdit: Global

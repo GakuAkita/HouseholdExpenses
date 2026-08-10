@@ -76,7 +76,7 @@ private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 fun ExpenseAddEditScreenRoot(
-    viewModel: ExpenseAddEditViewModel = viewModel(factory = ExpenseAddEditViewModel.Factory),
+    viewModel: ExpenseAddEditViewModel,
     navHostController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsState()

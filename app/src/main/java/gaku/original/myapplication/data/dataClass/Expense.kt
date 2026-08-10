@@ -1,10 +1,15 @@
 package gaku.original.myapplication.data.dataClass
 
+import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.utility.separateStringByBars
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
+@Serializable
+@Parcelize
 data class Expense(
     override var id: String? = null,
     var generatedType: String? = null,//自動生成なのか手動生成なのか
@@ -15,14 +20,16 @@ data class Expense(
     var note: String? = null,
     var storeName: String? = null,//必要だったらいれる。
     var itemName: String? = null,//必要だったらいれる
-) : CommonProperty
+) : CommonProperty, Parcelable
 
+@Serializable
+@Parcelize
 data class Category(
     override var id: String? = null,
     override var timestamp: Long? = System.currentTimeMillis(),
     val name: String? = null,
     val enabled: Boolean? = true
-) : CommonProperty
+) : CommonProperty, Parcelable
 
 
 val defaultCategory = Category(
