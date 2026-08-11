@@ -23,6 +23,9 @@ import java.time.LocalTime
 
 data class ExpenseAddEditUiState(
     val isEdit: Boolean = false,
+    val message: String? = null,
+    val isLoading: Boolean = false,
+
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
     val expenseEditList: List<ExpenseEditItem> = emptyList(),
@@ -30,16 +33,18 @@ data class ExpenseAddEditUiState(
     val totalAmount: Long = 0L,
     val isShowCalculator: Boolean = false,
     val selectedIndex: Int? = null,/* this is used to show calculator*/
-    val message: String? = null,
-    val isLoading: Boolean = false,
     val isDatePickerVisible: Boolean = false,
     val isTimePickerVisible: Boolean = false,
     val isSplitInputEnabled: Boolean = false,
+
+    val place: String = "",
 )
 
 data class ExpenseEditItem(
     val amount: Long? = null,
-    val category: Category? = null
+    val category: Category? = null,
+    val note: String? = null,
+    val productName: String? = null
 )
 
 class ExpenseAddEditViewModel(

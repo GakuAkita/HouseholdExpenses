@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -139,7 +140,9 @@ fun ExpenseAddEditScreenRoot(
             viewModel.onCategorySelected(index, category)
         },
         onCategoryEditClick = {},
-        onCategoryRefreshClick = {}
+        onCategoryRefreshClick = {},
+        onNoteChange = {_,_->},
+        onProductNameChange = {_,_-> }
     )
 }
 
@@ -163,7 +166,9 @@ fun ExpenseAddEditScreen(
     onCalculatorDismiss: () -> Unit,
     onCategorySelected: (Int, Category) -> Unit,
     onCategoryEditClick: () -> Unit,
-    onCategoryRefreshClick: () -> Unit
+    onCategoryRefreshClick: () -> Unit,
+    onNoteChange: (Int, String) -> Unit,
+    onProductNameChange: (Int, String) -> Unit
 ) {
 
     val basicModifier = remember { Modifier.width(260.dp) }
@@ -261,84 +266,113 @@ fun ExpenseAddEditScreen(
                     index == uiState.expenseEditList.size - 1 &&
                             uiState.isSplitInputEnabled &&
                             index != 0
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+
+                Column(
+                    modifier = Modifier.then(
+                        if (uiState.isSplitInputEnabled) {
+                            Modifier.border(
+                                1.dp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        } else {
+                            Modifier
+                        }
+                    )
                 ) {
-                    TextField(
-                        value = "${item.amount ?: ""}",
-                        modifier = basicModifier.then(
-                            if (isLastElement) {
-                                Modifier
-                            } else {
-                                Modifier.clickable {
-                                    /* open calculator. */
-                                    onAmountClick(index)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextField(
+                            value = "${item.amount ?: ""}",
+                            modifier = basicModifier.then(
+                                if (isLastElement) {
+                                    Modifier
+                                } else {
+                                    Modifier.clickable {
+                                        /* open calculator. */
+                                        onAmountClick(index)
+                                    }
                                 }
-                            }
-                        ),
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
-                        label = { Text(text = "Amount") },
-                        colors = if (isLastElement) TextFieldDefaults.colors() else enabledTextFiledColorSet()
-                    )
-
-                    if (index == 0) {
-                        Switch(
-                            checked = uiState.isSplitInputEnabled,
-                            onCheckedChange = {
-                                onSwitchClick()
-                            },
-                            modifier = Modifier.padding(vertical = 0.dp)
+                            ),
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false,
+                            label = { Text(text = "Amount") },
+                            colors = if (isLastElement) TextFieldDefaults.colors() else enabledTextFiledColorSet()
                         )
-                        Text("分割入力")
+
+                        if (index == 0) {
+                            Switch(
+                                checked = uiState.isSplitInputEnabled,
+                                onCheckedChange = {
+                                    onSwitchClick()
+                                },
+                                modifier = Modifier.padding(vertical = 0.dp)
+                            )
+                            Text("分割入力")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CategoryDropDown(
+                            modifier = basicModifier,
+                            initialCategory = uiState.expenseEditList[index].category,
+                            categories = uiState.categories,
+                            onCategorySelected = {
+                                onCategorySelected(index, it)
+                            }
+                        )
+
+                        if (index == 0) {
+                            // カテゴリー編集ボタン
+                            IconButton(
+                                onClick = {
+                                    onCategoryEditClick()
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                                    contentDescription = "Edit Category"
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    onCategoryRefreshClick()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Update"
+                                )
+                            }
+
+                        }
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    CategoryDropDown(
-                        modifier = basicModifier,
-                        initialCategory = uiState.expenseEditList[index].category,
-                        categories = uiState.categories,
-                        onCategorySelected = {
-                            onCategorySelected(index, it)
-                        }
-                    )
-
-                    if (index == 0) {
-                        // カテゴリー編集ボタン
-                        IconButton(
-                            onClick = {
-                                onCategoryEditClick()
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
-                                contentDescription = "Edit Category"
-                            )
-                        }
-
-                        IconButton(
-                            onClick = {
-                                onCategoryRefreshClick()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Update"
-                            )
-                        }
-
-                    }
-                }
-
                 /* Note */
-
+                TextField(
+                    modifier = basicModifier,
+                    value = item.note ?: "",
+                    onValueChange = {
+                        onNoteChange(index,it)
+                    },
+                    label = { Text(text = "Note(空欄可)") },
+                    singleLine = false
+                )
 
                 /* 商品名 */
+                TextField(
+                    modifier = basicModifier,
+                    value = item.productName ?: "",
+                    onValueChange = {
+                        onProductNameChange(index,it)
+                    },
+                    label = { Text(text = "商品名(空欄可)") },
+                )
             }
 
             if (uiState.isShowCalculator) {
@@ -358,6 +392,9 @@ fun ExpenseAddEditScreen(
             }
 
             /* place */
+//            TextField(
+//
+//            )
         }
     }
 }
@@ -396,7 +433,9 @@ fun ExpenseAddEditScreenPreview() {
         onCalculatorDismiss = {},
         onCategorySelected = { _, _ -> },
         onCategoryEditClick = {},
-        onCategoryRefreshClick = {}
+        onCategoryRefreshClick = {},
+        onNoteChange = {_,_->},
+        onProductNameChange = {_,_->}
     )
 }
 
