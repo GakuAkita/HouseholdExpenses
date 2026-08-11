@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,6 +55,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -129,7 +132,12 @@ fun ExpenseAddEditScreenRoot(
         },
         onCalculatorDismiss = {
             viewModel.onCalculatorDismiss()
-        }
+        },
+        onCategorySelected = { index, category ->
+            viewModel.onCategorySelected(index, category)
+        },
+        onCategoryEditClick = {},
+        onCategoryRefreshClick = {}
     )
 }
 
@@ -150,7 +158,10 @@ fun ExpenseAddEditScreen(
     onTotalAmountClick: () -> Unit,
     onAmountClick: (Int) -> Unit,
     onCalculatorDecide: (String) -> Unit,
-    onCalculatorDismiss: () -> Unit
+    onCalculatorDismiss: () -> Unit,
+    onCategorySelected: (Int, Category) -> Unit,
+    onCategoryEditClick: () -> Unit,
+    onCategoryRefreshClick: () -> Unit
 ) {
 
     val basicModifier = remember { Modifier.width(260.dp) }
@@ -281,16 +292,44 @@ fun ExpenseAddEditScreen(
                     }
                 }
 
-                TextField(
-                    value = item.category?.name ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    enabled = false,
-                    label = { Text(text = "Category") },
-                    modifier = basicModifier.clickable {
-                    },
-                    colors = enabledTextFiledColorSet()
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    CategoryDropDown(
+                        modifier = basicModifier,
+                        initialCategory = uiState.expenseEditList[index].category,
+                        categories = uiState.categories,
+                        onCategorySelected = {
+                            onCategorySelected(index, it)
+                        }
+                    )
+
+                    if (index == 0) {
+                        // カテゴリー編集ボタン
+                        IconButton(
+                            onClick = {
+                                onCategoryEditClick()
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                                contentDescription = "Edit Category"
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                onCategoryRefreshClick()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Update"
+                            )
+                        }
+
+                    }
+                }
             }
 
             if (uiState.isShowCalculator) {
@@ -304,22 +343,6 @@ fun ExpenseAddEditScreen(
                             ?: 0L,
                         onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
                             onCalculatorDecide(it)
-//                            if (true/* 日本円。設定から制御できるように、、 */) {
-//                                val convertedVal = it.roundToLongOrNull()/* 自作 */
-//                                if (it != "" && convertedVal == null) {
-//                                    scope.launch {
-//                                        snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
-//                                    }
-//                                } else {
-//                                    Log.d(viewName, "selected index:${index}")
-//                                    showCalculator = false
-//                                    viewModel.updateExpenseAmountAtSelectedIndex(
-//                                        convertedVal
-//                                    )
-//                                }
-//                            } else {
-//                                /* ラウンドしない場合、、 */
-//                            }
                         }
                     )
                 }
@@ -359,7 +382,10 @@ fun ExpenseAddEditScreenPreview() {
         onTotalAmountClick = {},
         onAmountClick = {},
         onCalculatorDecide = {},
-        onCalculatorDismiss = {}
+        onCalculatorDismiss = {},
+        onCategorySelected = { _, _ -> },
+        onCategoryEditClick = {},
+        onCategoryRefreshClick = {}
     )
 }
 

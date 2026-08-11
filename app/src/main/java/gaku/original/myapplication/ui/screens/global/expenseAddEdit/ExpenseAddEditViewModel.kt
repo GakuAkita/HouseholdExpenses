@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
@@ -14,6 +15,7 @@ import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.utility.roundToLongOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
 import java.time.LocalDate
@@ -24,6 +26,7 @@ data class ExpenseAddEditUiState(
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
     val expenseEditList: List<ExpenseEditItem> = emptyList(),
+    val categories: List<Category> = emptyList(),
     val totalAmount: Long = 0L,
     val isShowCalculator: Boolean = false,
     val selectedIndex: Int? = null,/* this is used to show calculator*/
@@ -104,6 +107,23 @@ class ExpenseAddEditViewModel(
                     selectedTime = LocalTime.now(zoneId),
                     expenseEditList = listOf(ExpenseEditItem())
                 )
+            }
+        }
+
+        viewModelScope.launch {
+            try {
+                val categories = categoryRepository.getAllCategories()
+                _uiState.update {
+                    it.copy(
+                        categories = categories.values.toList()
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = "Failed to fetch categories.:${e.message}"
+                    )
+                }
             }
         }
     }
@@ -212,11 +232,16 @@ class ExpenseAddEditViewModel(
                     )
                 }
             } else {
+                /* Add One more expense */
                 val totalAmount = _uiState.value.expenseEditList[0].amount!!
                 _uiState.update {
                     it.copy(
                         isSplitInputEnabled = true,
-                        totalAmount = totalAmount
+                        totalAmount = totalAmount,
+                        expenseEditList = it.expenseEditList + ExpenseEditItem(
+                            amount = 0,
+                            category = null
+                        )
                     )
                 }
             }
@@ -269,6 +294,12 @@ class ExpenseAddEditViewModel(
                     totalAmount = amount
                 )
             } else {
+                /* In this case, calculate the last expense amount if split input is enabled */
+                if (_uiState.value.isSplitInputEnabled) {
+
+                } else {
+
+                }
                 it.copy(
                     expenseEditList = it.expenseEditList.toMutableList().apply {
                         this[index] = it.expenseEditList[index].copy(
@@ -278,7 +309,6 @@ class ExpenseAddEditViewModel(
                 )
             }
         }
-
         _uiState.update {
             it.copy(
                 selectedIndex = null,
@@ -292,6 +322,18 @@ class ExpenseAddEditViewModel(
             it.copy(
                 selectedIndex = null,
                 isShowCalculator = false
+            )
+        }
+    }
+
+    fun onCategorySelected(index: Int, category: Category?) {
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        category = category
+                    )
+                }
             )
         }
     }
