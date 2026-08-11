@@ -141,8 +141,12 @@ fun ExpenseAddEditScreenRoot(
         },
         onCategoryEditClick = {},
         onCategoryRefreshClick = {},
-        onNoteChange = {_,_->},
-        onProductNameChange = {_,_-> }
+        onNoteChange = { index, note ->
+            viewModel.onNoteChange(index, note)
+        },
+        onProductNameChange = { index, productName ->
+            viewModel.onProductNameChange(index, productName)
+        }
     )
 }
 
@@ -314,6 +318,8 @@ fun ExpenseAddEditScreen(
                         }
                     }
 
+                    RowSpace()
+
                     Row(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -352,27 +358,32 @@ fun ExpenseAddEditScreen(
 
                         }
                     }
-                }
-                /* Note */
-                TextField(
-                    modifier = basicModifier,
-                    value = item.note ?: "",
-                    onValueChange = {
-                        onNoteChange(index,it)
-                    },
-                    label = { Text(text = "Note(空欄可)") },
-                    singleLine = false
-                )
 
-                /* 商品名 */
-                TextField(
-                    modifier = basicModifier,
-                    value = item.productName ?: "",
-                    onValueChange = {
-                        onProductNameChange(index,it)
-                    },
-                    label = { Text(text = "商品名(空欄可)") },
-                )
+                    RowSpace()
+
+                    /* Note */
+                    TextField(
+                        modifier = basicModifier,
+                        value = item.note ?: "",
+                        onValueChange = {
+                            onNoteChange(index, it)
+                        },
+                        label = { Text(text = "Note(空欄可)") },
+                        singleLine = false
+                    )
+
+                    RowSpace()
+
+                    /* 商品名 */
+                    TextField(
+                        modifier = basicModifier,
+                        value = item.productName ?: "",
+                        onValueChange = {
+                            onProductNameChange(index, it)
+                        },
+                        label = { Text(text = "商品名(空欄可)") },
+                    )
+                }
             }
 
             if (uiState.isShowCalculator) {
@@ -392,9 +403,13 @@ fun ExpenseAddEditScreen(
             }
 
             /* place */
-//            TextField(
-//
-//            )
+            TextField(
+                modifier = basicModifier,
+                value = uiState.placeName ?:"",
+                onValueChange = {},
+                label = { Text(text = "Place(空欄可)") },
+            )
+
         }
     }
 }
@@ -434,8 +449,8 @@ fun ExpenseAddEditScreenPreview() {
         onCategorySelected = { _, _ -> },
         onCategoryEditClick = {},
         onCategoryRefreshClick = {},
-        onNoteChange = {_,_->},
-        onProductNameChange = {_,_->}
+        onNoteChange = { _, _ -> },
+        onProductNameChange = { _, _ -> }
     )
 }
 

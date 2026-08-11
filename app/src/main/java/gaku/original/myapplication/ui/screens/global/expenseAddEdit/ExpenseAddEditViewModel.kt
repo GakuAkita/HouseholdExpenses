@@ -37,7 +37,7 @@ data class ExpenseAddEditUiState(
     val isTimePickerVisible: Boolean = false,
     val isSplitInputEnabled: Boolean = false,
 
-    val place: String = "",
+    val placeName: String = "",
 )
 
 data class ExpenseEditItem(
@@ -353,6 +353,30 @@ class ExpenseAddEditViewModel(
                 expenseEditList = it.expenseEditList.toMutableList().apply {
                     this[index] = it.expenseEditList[index].copy(
                         category = category
+                    )
+                }
+            )
+        }
+    }
+
+    fun onNoteChange(index:Int,note:String){
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        note = note
+                    )
+                }
+            )
+        }
+    }
+
+    fun onProductNameChange(index:Int,productName:String){
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        productName = productName
                     )
                 }
             )
