@@ -211,7 +211,8 @@ class ExpenseAddEditViewModel(
             /* switched to off */
             _uiState.update {
                 it.copy(
-                    isSplitInputEnabled = false
+                    isSplitInputEnabled = false,
+                    expenseEditList = listOf(it.expenseEditList[0])/* Only head element remains */
                 )
             }
         } else {
@@ -295,11 +296,6 @@ class ExpenseAddEditViewModel(
                 )
             } else {
                 /* In this case, calculate the last expense amount if split input is enabled */
-                if (_uiState.value.isSplitInputEnabled) {
-
-                } else {
-
-                }
                 it.copy(
                     expenseEditList = it.expenseEditList.toMutableList().apply {
                         this[index] = it.expenseEditList[index].copy(
@@ -309,6 +305,24 @@ class ExpenseAddEditViewModel(
                 )
             }
         }
+        if (_uiState.value.isSplitInputEnabled && index != totalAmountIndex) {
+            val sumBeforeLast = _uiState.value.expenseEditList.dropLast(1).sumOf { it.amount ?: 0L }
+            var remaining = _uiState.value.totalAmount - sumBeforeLast
+            if (remaining < 0) {
+                remaining = 0
+            }
+            _uiState.update {
+                it.copy(
+                    expenseEditList = it.expenseEditList.toMutableList().apply {
+                        val size = this.size
+                        this[size - 1] = this[size - 1].copy(
+                            amount = remaining
+                        )
+                    }
+                )
+            }
+        }
+
         _uiState.update {
             it.copy(
                 selectedIndex = null,
