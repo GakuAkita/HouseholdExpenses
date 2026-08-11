@@ -8,8 +8,10 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.ui.screens.bottom.home.ExpenseItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
@@ -77,9 +79,16 @@ class ExpenseAddEditViewModel(
         val zoneId = appTimeZoneRepository.zoneId.value
         if (isEdit) {
             val expense = initialExpense
+            val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
+            val expenseItem = ExpenseEditItem(
+                amount = expense.amount,
+                category = expense.category
+            )
             _uiState.update {
                 it.copy(
-
+                    selectedDate = localDateTime?.toLocalDate(),
+                    selectedTime = localDateTime?.toLocalTime(),
+                    expenseEditList = listOf(expenseItem)
                 )
             }
         } else {
@@ -88,6 +97,7 @@ class ExpenseAddEditViewModel(
                 it.copy(
                     selectedDate = LocalDate.now(zoneId),
                     selectedTime = LocalTime.now(zoneId),
+                    expenseEditList = listOf(ExpenseEditItem())
                 )
             }
         }
