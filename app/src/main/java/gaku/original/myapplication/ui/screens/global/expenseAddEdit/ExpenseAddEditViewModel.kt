@@ -305,6 +305,8 @@ class ExpenseAddEditViewModel(
                 )
             }
         }
+
+        /* last amount is the remaining of the rest */
         if (_uiState.value.isSplitInputEnabled && index != totalAmountIndex) {
             val sumBeforeLast = _uiState.value.expenseEditList.dropLast(1).sumOf { it.amount ?: 0L }
             var remaining = _uiState.value.totalAmount - sumBeforeLast

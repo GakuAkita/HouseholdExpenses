@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
@@ -178,7 +180,9 @@ fun ExpenseAddEditScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
         ) {
 
             Row(
@@ -330,6 +334,11 @@ fun ExpenseAddEditScreen(
 
                     }
                 }
+
+                /* Note */
+
+
+                /* 商品名 */
             }
 
             if (uiState.isShowCalculator) {
@@ -347,6 +356,8 @@ fun ExpenseAddEditScreen(
                     )
                 }
             }
+
+            /* place */
         }
     }
 }
