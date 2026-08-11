@@ -11,7 +11,7 @@ import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneReposi
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
-import gaku.original.myapplication.ui.screens.bottom.home.ExpenseItem
+import gaku.original.myapplication.utility.roundToLongOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
@@ -24,6 +24,9 @@ data class ExpenseAddEditUiState(
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime? = null,
     val expenseEditList: List<ExpenseEditItem> = emptyList(),
+    val totalAmount: Long = 0L,
+    val isShowCalculator: Boolean = false,
+    val selectedIndex: Int? = null,/* this is used to show calculator*/
     val message: String? = null,
     val isLoading: Boolean = false,
     val isDatePickerVisible: Boolean = false,
@@ -42,6 +45,8 @@ class ExpenseAddEditViewModel(
     private val appTimeZoneRepository: AppTimeZoneRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
+    val totalAmountIndex = -1
+
     companion object {
         fun Factory(initialExpense: Expense?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -100,6 +105,14 @@ class ExpenseAddEditViewModel(
                     expenseEditList = listOf(ExpenseEditItem())
                 )
             }
+        }
+    }
+
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
         }
     }
 
@@ -174,11 +187,105 @@ class ExpenseAddEditViewModel(
         val currentStatus = _uiState.value.isSplitInputEnabled
 
         /* when switched to on, create the array  */
+        if (currentStatus) {
+            /* switched to off */
+            _uiState.update {
+                it.copy(
+                    isSplitInputEnabled = false
+                )
+            }
+        } else {
+            /* switched to on */
+            if (_uiState.value.expenseEditList[0].amount == null ||
+                _uiState.value.expenseEditList[0].amount == 0L
+            ) {
+                /* any value should be input beforehand */
+                _uiState.update {
+                    it.copy(
+                        message = "Unable to turn on split input. Please input the amount first."
+                    )
+                }
+            } else if (_uiState.value.expenseEditList.size != 1) {
+                _uiState.update {
+                    it.copy(
+                        message = "Expense should be always only one. Something wrong. Please contact the developer"
+                    )
+                }
+            } else {
+                val totalAmount = _uiState.value.expenseEditList[0].amount!!
+                _uiState.update {
+                    it.copy(
+                        isSplitInputEnabled = true,
+                        totalAmount = totalAmount
+                    )
+                }
+            }
+        }
+    }
 
-        /* when switched to off, clear the list */
+    fun onTotalAmountClick() {
         _uiState.update {
             it.copy(
-                isSplitInputEnabled = !currentStatus
+                selectedIndex = totalAmountIndex,/* Define total amount's index as -1 */
+                isShowCalculator = true
+            )
+        }
+    }
+
+    fun onAmountClick(
+        index: Int
+    ) {
+        _uiState.update {
+            it.copy(
+                selectedIndex = index,
+                isShowCalculator = true
+            )
+        }
+    }
+
+    fun onCalculatorDecide(value: String) {
+        if (value.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    message = "Value is empty."
+                )
+            }
+            return
+        }
+        Timber.d("value:$value")
+        val amount = value.roundToLongOrNull()
+        if (amount == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Unable to read the value. It might be too big."
+                )
+            }
+            return
+        }
+        val index = _uiState.value.selectedIndex!!
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        amount = amount
+                    )
+                }
+            )
+        }
+
+        _uiState.update {
+            it.copy(
+                selectedIndex = null,
+                isShowCalculator = false
+            )
+        }
+    }
+
+    fun onCalculatorDismiss() {
+        _uiState.update {
+            it.copy(
+                selectedIndex = null,
+                isShowCalculator = false
             )
         }
     }

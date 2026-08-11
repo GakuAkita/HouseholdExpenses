@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,6 +31,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
@@ -55,6 +59,7 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
+import gaku.original.myapplication.utility.roundToLongOrNull
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -83,7 +88,8 @@ fun ExpenseAddEditScreenRoot(
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(it, actionLabel = "OK")
+            viewModel.onMessageShown()
         }
     }
 
@@ -113,6 +119,18 @@ fun ExpenseAddEditScreenRoot(
         },
         onSwitchClick = {
             viewModel.onSwitchClick()
+        },
+        onTotalAmountClick = {
+            viewModel.onTotalAmountClick()
+        },
+        onAmountClick = {
+            viewModel.onAmountClick(it)
+        },
+        onCalculatorDecide={
+            viewModel.onCalculatorDecide(it)
+        },
+        onCalculatorDismiss = {
+            viewModel.onCalculatorDismiss()
         }
     )
 }
@@ -129,14 +147,21 @@ fun ExpenseAddEditScreen(
     onTimeFieldClick: () -> Unit,
     onTimePickerDismiss: () -> Unit,
     onTimeSelected: (LocalTime) -> Unit,
-    onSwitchClick: ()->Unit
+    onSwitchClick: () -> Unit,
+    onTotalAmountClick: () -> Unit,
+    onAmountClick: (Int) -> Unit,
+    onCalculatorDecide:(String)->Unit,
+    onCalculatorDismiss: () -> Unit
 ) {
 
     val basicModifier = remember { Modifier.width(260.dp) }
+
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     Scaffold(
         topBar = {
             TopBarView(
-                title = if(uiState.isEdit) "Edit" else "Add",
+                title = if (uiState.isEdit) "Edit" else "Add",
                 showBackButton = true,
                 onBackNavClicked = { onBackNavClick() })
         },
@@ -204,9 +229,17 @@ fun ExpenseAddEditScreen(
 
             if (uiState.isSplitInputEnabled) {
                 /* show total amount */
-//                TextField(
-//
-//                )
+                TextField(
+                    modifier = basicModifier.clickable{
+                        onTotalAmountClick()
+                    },
+                    value = uiState.totalAmount.toString(),
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    label = { Text("Total amount") },
+                    colors = enabledTextFiledColorSet(),
+                )
             }
 
             uiState.expenseEditList.forEachIndexed { index, item ->
@@ -226,6 +259,7 @@ fun ExpenseAddEditScreen(
                             } else {
                                 Modifier.clickable {
                                     /* open calculator. */
+                                    onAmountClick(index)
                                 }
                             }
                         ),
@@ -254,11 +288,41 @@ fun ExpenseAddEditScreen(
                     readOnly = true,
                     enabled = false,
                     label = { Text(text = "Category") },
-                    modifier = basicModifier.clickable{
-
+                    modifier = basicModifier.clickable {
                     },
                     colors = enabledTextFiledColorSet()
                 )
+            }
+
+            if (uiState.isShowCalculator) {
+                /* show Calculator */
+                ModalBottomSheet(
+                    onDismissRequest = { onCalculatorDismiss() },
+                    sheetState = bottomSheetState
+                ) {
+                    CalculatorUI(
+                        initialValue = uiState.expenseEditList[uiState.selectedIndex!!].amount ?: 0L,
+                        onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
+                            onCalculatorDecide(it)
+//                            if (true/* 日本円。設定から制御できるように、、 */) {
+//                                val convertedVal = it.roundToLongOrNull()/* 自作 */
+//                                if (it != "" && convertedVal == null) {
+//                                    scope.launch {
+//                                        snackBarHostState.showSnackbar("数値が大きすぎます。これ以上入力できません")
+//                                    }
+//                                } else {
+//                                    Log.d(viewName, "selected index:${index}")
+//                                    showCalculator = false
+//                                    viewModel.updateExpenseAmountAtSelectedIndex(
+//                                        convertedVal
+//                                    )
+//                                }
+//                            } else {
+//                                /* ラウンドしない場合、、 */
+//                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -274,11 +338,11 @@ fun ExpenseAddEditScreenPreview() {
             expenseEditList = listOf(
                 ExpenseEditItem(
                     amount = 1000,
-                    category = Category(name="Food")
+                    category = Category(name = "Food")
                 ),
                 ExpenseEditItem(
                     amount = 2000,
-                    category = Category(name="Waste")
+                    category = Category(name = "Waste")
                 )
             ),
             isSplitInputEnabled = true
@@ -291,7 +355,11 @@ fun ExpenseAddEditScreenPreview() {
         onTimeFieldClick = {},
         onTimePickerDismiss = {},
         onTimeSelected = {},
-        onSwitchClick = {}
+        onSwitchClick = {},
+        onTotalAmountClick = {},
+        onAmountClick = {},
+        onCalculatorDecide = {},
+        onCalculatorDismiss = {}
     )
 }
 
