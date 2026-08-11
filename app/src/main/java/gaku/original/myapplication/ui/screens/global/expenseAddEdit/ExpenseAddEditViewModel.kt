@@ -264,13 +264,19 @@ class ExpenseAddEditViewModel(
         }
         val index = _uiState.value.selectedIndex!!
         _uiState.update {
-            it.copy(
-                expenseEditList = it.expenseEditList.toMutableList().apply {
-                    this[index] = it.expenseEditList[index].copy(
-                        amount = amount
-                    )
-                }
-            )
+            if (index == totalAmountIndex) {
+                it.copy(
+                    totalAmount = amount
+                )
+            } else {
+                it.copy(
+                    expenseEditList = it.expenseEditList.toMutableList().apply {
+                        this[index] = it.expenseEditList[index].copy(
+                            amount = amount
+                        )
+                    }
+                )
+            }
         }
 
         _uiState.update {

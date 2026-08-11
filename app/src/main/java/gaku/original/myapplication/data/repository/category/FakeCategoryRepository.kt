@@ -22,4 +22,12 @@ class FakeCategoryRepository : CategoryRepository {
     override fun saveCategory(category: Category) {
 
     }
+
+    override fun updateCategory(category: Category) {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteCategory(categoryId: String) {
+        TODO("Not yet implemented")
+    }
 }

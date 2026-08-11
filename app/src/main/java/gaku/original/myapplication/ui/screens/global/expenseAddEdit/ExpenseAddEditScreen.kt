@@ -1,7 +1,6 @@
 package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +48,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
@@ -59,7 +57,6 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
-import gaku.original.myapplication.utility.roundToLongOrNull
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -96,6 +93,7 @@ fun ExpenseAddEditScreenRoot(
     ExpenseAddEditScreen(
         uiState,
         snackbarHostState,
+        totalAmountIndex = viewModel.totalAmountIndex,
         onBackNavClick = {
             navHostController.popBackStack()
         },
@@ -126,7 +124,7 @@ fun ExpenseAddEditScreenRoot(
         onAmountClick = {
             viewModel.onAmountClick(it)
         },
-        onCalculatorDecide={
+        onCalculatorDecide = {
             viewModel.onCalculatorDecide(it)
         },
         onCalculatorDismiss = {
@@ -140,6 +138,7 @@ fun ExpenseAddEditScreenRoot(
 fun ExpenseAddEditScreen(
     uiState: ExpenseAddEditUiState,
     snackbarHostState: SnackbarHostState,
+    totalAmountIndex: Int = -1,
     onBackNavClick: () -> Unit,
     onDateFieldClick: () -> Unit,
     onDateDismiss: () -> Unit,
@@ -150,7 +149,7 @@ fun ExpenseAddEditScreen(
     onSwitchClick: () -> Unit,
     onTotalAmountClick: () -> Unit,
     onAmountClick: (Int) -> Unit,
-    onCalculatorDecide:(String)->Unit,
+    onCalculatorDecide: (String) -> Unit,
     onCalculatorDismiss: () -> Unit
 ) {
 
@@ -230,7 +229,7 @@ fun ExpenseAddEditScreen(
             if (uiState.isSplitInputEnabled) {
                 /* show total amount */
                 TextField(
-                    modifier = basicModifier.clickable{
+                    modifier = basicModifier.clickable {
                         onTotalAmountClick()
                     },
                     value = uiState.totalAmount.toString(),
@@ -301,7 +300,8 @@ fun ExpenseAddEditScreen(
                     sheetState = bottomSheetState
                 ) {
                     CalculatorUI(
-                        initialValue = uiState.expenseEditList[uiState.selectedIndex!!].amount ?: 0L,
+                        initialValue = if (uiState.selectedIndex == totalAmountIndex) uiState.totalAmount else uiState.expenseEditList[uiState.selectedIndex!!].amount
+                            ?: 0L,
                         onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
                             onCalculatorDecide(it)
 //                            if (true/* 日本円。設定から制御できるように、、 */) {
