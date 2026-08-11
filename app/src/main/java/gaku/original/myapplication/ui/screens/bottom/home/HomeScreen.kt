@@ -51,8 +51,8 @@ import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.viewModel.main.ExpenseListViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
@@ -90,6 +90,23 @@ fun HomeScreenRoot(
         onMonthChanged = {
             viewModel.onMonthChanged(it)
         },
+        onExpenseClick = {
+            val ret = viewModel.onExpenseClick(it)
+            when (ret) {
+                is AppResult.Failure -> {
+                    /* snackbar is triggered through uiState */
+                    Timber.d("Failed to start editing expense:${it}")
+                }
+
+                is AppResult.Success -> {
+                    rootNavController.navigate(
+                        MainGraph.Global.ExpenseAddEdit(
+                            ret.value
+                        )
+                    )
+                }
+            }
+        },
         onFABClick = {
             // Honestly, I just want to pass null.
             // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
@@ -106,6 +123,7 @@ fun HomeScreen(
     uiState: HomeUiState,
     isWide: Boolean = false,
     onMonthChanged: (YearMonth) -> Unit,
+    onExpenseClick: (String?) -> Unit,
     onFABClick: () -> Unit
 ) {
 
@@ -154,7 +172,10 @@ fun HomeScreen(
                 LazyExpensesColumn(
                     uiState = uiState,
                     lazyLisState = lazyLisState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    onExpenseClick = {
+                        onExpenseClick(it)
+                    }
                 )
             }
         } else {
@@ -170,7 +191,10 @@ fun HomeScreen(
                 LazyExpensesColumn(
                     uiState = uiState,
                     lazyLisState = lazyLisState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    onExpenseClick = {
+                        onExpenseClick(it)
+                    }
                 )
             }
         }
@@ -232,6 +256,7 @@ fun HomeScreenPreview() {
     HomeScreen(
         uiState = uiState,
         onMonthChanged = {},
+        onExpenseClick = {},
         onFABClick = {}
     )
 }
@@ -286,7 +311,8 @@ fun HomeHorizontalCalendar(
 fun LazyExpensesColumn(
     uiState: HomeUiState,
     modifier: Modifier = Modifier,
-    lazyLisState: LazyListState
+    lazyLisState: LazyListState,
+    onExpenseClick: (String?) -> Unit
 ) {
     LazyColumnScrollbar(
         modifier = modifier,
@@ -307,6 +333,7 @@ fun LazyExpensesColumn(
                     expenseUi = expense,
                     onEdit = {
                         /* idだけ渡してAdd/Editする */
+                        onExpenseClick(expense.id)
                     },
                 )
             }

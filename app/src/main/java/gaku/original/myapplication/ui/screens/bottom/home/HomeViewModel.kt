@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -38,8 +40,15 @@ data class HomeUiState(
     val selectedMonth: YearMonth = YearMonth.now(),
     val shownExpenses: List<ExpenseUi> = emptyList(),
     val monthlyTotal: Long = 0L,
-    val dailyAmounts: Map<LocalDate,Long> = emptyMap()
+    val dailyAmounts: Map<LocalDate, Long> = emptyMap()
 )
+
+sealed interface ExpenseEditError : AppError {
+    data object IdEmpty : ExpenseEditError {
+        override val message: String
+            get() = "id is empty"
+    }
+}
 
 class HomeViewModel(
     private val expenseRepository: ExpenseRepository,
@@ -92,10 +101,10 @@ class HomeViewModel(
         }.map { it.toUi(zoneId) }
 
         /* calculate statistics and each day amount */
-        val monthlyTotal = expenseUiList.sumOf { it.amount?:0L }
+        val monthlyTotal = expenseUiList.sumOf { it.amount ?: 0L }
         val dailyAmounts = expenseUiList.groupBy { it.datetime!!.toLocalDate() }
-            .mapValues { (_,expenses)->
-                expenses.sumOf { it.amount?:0L }
+            .mapValues { (_, expenses) ->
+                expenses.sumOf { it.amount ?: 0L }
             }
         _uiState.update {
             it.copy(
@@ -129,10 +138,25 @@ class HomeViewModel(
             val toMonth = twoDaysBeforeEnd?.atZone(ZoneId.of("UTC"))?.monthValue
 
             if (_uiState.value.selectedMonth.monthValue < fromMonth!! ||
-                _uiState.value.selectedMonth.monthValue > toMonth!!) {
+                _uiState.value.selectedMonth.monthValue > toMonth!!
+            ) {
                 refreshExpenses(_uiState.value.selectedMonth)
             }
         }
+    }
+
+    fun onExpenseClick(id: String?): AppResult<Expense?, ExpenseEditError> {
+        if (id == null || cachedExpenses[id] == null) {
+            _uiState.update {
+                it.copy(
+                    message = "id should not be null. This is a coding error"
+                )
+            }
+            return AppResult.Failure(ExpenseEditError.IdEmpty)
+        }
+
+        val expense = cachedExpenses[id]
+        return AppResult.Success(expense)
     }
 
 

@@ -136,7 +136,7 @@ fun ExpenseAddEditScreen(
     Scaffold(
         topBar = {
             TopBarView(
-                title = if(uiState.isEdit) "Add" else "Edit",
+                title = if(uiState.isEdit) "Edit" else "Add",
                 showBackButton = true,
                 onBackNavClicked = { onBackNavClick() })
         },
