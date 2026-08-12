@@ -103,14 +103,14 @@ fun ExpenseAddEditScreenRoot(
     LaunchedEffect(uiState.isSaveDone) {
         if (uiState.isSaveDone) {
             navHostController.popBackStack()
-            snackbarHostState.showSnackbar("Save success!", duration = SnackbarDuration.Short)
+            snackbarHostState.showSnackbar("Save success!")
         }
     }
 
     LaunchedEffect(uiState.isDeleteDone) {
         if (uiState.isDeleteDone) {
             navHostController.popBackStack()
-            snackbarHostState.showSnackbar("Deleted!", duration = SnackbarDuration.Short)
+            snackbarHostState.showSnackbar("Deleted!")
         }
     }
 
@@ -459,7 +459,9 @@ fun ExpenseAddEditScreen(
             )
 
             if (uiState.isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(16.dp)
+                )
             } else {
                 Column(
 
@@ -514,12 +516,14 @@ fun ExpenseAddEditScreenPreview() {
                     amount = 1000,
                     category = Category(name = "Food")
                 ),
-                ExpenseEditItem(
-                    amount = 2000,
-                    category = Category(name = "Waste")
-                )
+//                ExpenseEditItem(
+//                    amount = 2000,
+//                    category = Category(name = "Waste")
+//                )
             ),
-            isSplitInputEnabled = false
+            isSplitInputEnabled = false,
+            isLoading = true,
+            isEdit = true
         ),
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
