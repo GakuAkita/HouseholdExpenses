@@ -549,7 +549,8 @@ class ExpenseAddEditViewModel(
 
             _uiState.update {
                 it.copy(
-                    isSaveDone = true
+                    isSaveDone = true,
+                    message = "Expense Saved"
                 )
             }
         } catch (e: Exception) {
@@ -596,7 +597,8 @@ class ExpenseAddEditViewModel(
                 expenseRepository.removeExpense(id)
                 _uiState.update {
                     it.copy(
-                        isDeleteDone = true
+                        isDeleteDone = true,
+                        message = "Expense Deleted"
                     )
                 }
             } catch (e: Exception) {

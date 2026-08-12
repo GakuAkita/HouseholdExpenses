@@ -50,6 +50,7 @@ fun CategoryEditScreenRoot(
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
+            snackbarHostState.showSnackbar(it, actionLabel = "OK")
         }
     }
 

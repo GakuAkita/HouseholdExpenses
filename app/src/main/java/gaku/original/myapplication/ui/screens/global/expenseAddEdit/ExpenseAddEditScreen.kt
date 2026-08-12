@@ -103,14 +103,14 @@ fun ExpenseAddEditScreenRoot(
     LaunchedEffect(uiState.isSaveDone) {
         if (uiState.isSaveDone) {
             navHostController.popBackStack()
-            snackbarHostState.showSnackbar("Save success!")
+            //snackbarHostState.showSnackbar("Save success!")
         }
     }
 
     LaunchedEffect(uiState.isDeleteDone) {
         if (uiState.isDeleteDone) {
             navHostController.popBackStack()
-            snackbarHostState.showSnackbar("Deleted!")
+            //snackbarHostState.showSnackbar("Deleted!")
         }
     }
 
