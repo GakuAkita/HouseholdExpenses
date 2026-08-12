@@ -123,7 +123,7 @@ fun CategoryEditScreenPreview() {
             ),
             Category(
                 id ="3",
-                name ="aa.bbbbbb"
+                name ="aa.bbbbbbccccccccccddddddd"
             ),
             Category(
                 id="4",

@@ -12,7 +12,23 @@ class FakeCategoryRepository : CategoryRepository {
         "2" to Category(
             id = "2",
             name = "交通費"
-        )
+        ),
+        "3" to Category(
+            id = "3",
+            name = "交通費2"
+        ),
+        "4" to Category(
+            id = "4",
+            name = "交通費4"
+        ),
+        "5" to Category(
+            id = "5",
+            name = "交通費5"
+        ),
+        "6" to Category(
+            id = "6",
+            name = "交通費6"
+        ),
     )
 
     override fun getAllCategories(): Map<String, Category> {

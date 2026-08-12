@@ -37,6 +37,9 @@ class CategoryEditViewModel(
     }
 
     init {
-
+        val categories = categoryRepository.getAllCategories()
+        _uiState.value = _uiState.value.copy(
+            categories = categories.values.toList()
+        )
     }
 }
