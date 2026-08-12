@@ -11,6 +11,7 @@ import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -22,6 +23,7 @@ import timber.log.Timber
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 
 data class ExpenseAddEditUiState(
     val isEdit: Boolean = false,
@@ -93,6 +95,8 @@ class ExpenseAddEditViewModel(
 ) : ViewModel() {
     val totalAmountIndex = -1
 
+    val zoneId: ZoneId = appTimeZoneRepository.zoneId.value
+
     companion object {
         fun Factory(initialExpense: Expense?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -127,7 +131,6 @@ class ExpenseAddEditViewModel(
 
         /* based on the selected timezone, decide initial Date and Time */
         /* Only when it is ADD!! */
-        val zoneId = appTimeZoneRepository.zoneId.value
         if (isEdit) {
             val expense = initialExpense
             val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
@@ -199,7 +202,7 @@ class ExpenseAddEditViewModel(
         /* first accept it as local date in the selected timezone */
         /* when save it to the database, converted to UTC */
         val localDate = Instant.ofEpochMilli(dateMillis)
-            .atZone(appTimeZoneRepository.zoneId.value).toLocalDate()
+            .atZone(zoneId).toLocalDate()
         _uiState.update {
             it.copy(
                 selectedDate = localDate,
@@ -421,7 +424,7 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    private fun validateOnSave(): AppResult<Unit, ExpenseInputError> {
+    private fun validateExpenseInput(): AppResult<Unit, ExpenseInputError> {
         if (_uiState.value.selectedDate == null) {
             return AppResult.Failure(ExpenseInputError.DateEmpty)
         }
@@ -459,6 +462,49 @@ class ExpenseAddEditViewModel(
         return AppResult.Success(Unit)
     }
 
+    /* When this function is called, uiState should be validated. */
+    private fun generateExpense(): List<Expense> {
+        val state = _uiState.value
+
+        val localDateTime = state.selectedDate!!.atTime(state.selectedTime!!)
+        val datetime = localDateTime.toIsoUtcString(zoneId)
+
+        return state.expenseEditList.mapIndexed { index, item ->
+            if (state.isEdit) {
+                if (index == 0) {
+                    initialExpense!!.copy(
+                        datetime = datetime,
+                        amount = item.amount,
+                        category = item.category,
+                        note = item.note,
+                        itemName = item.productName,
+                        storeName = state.placeName
+                    )
+                } else {
+                    /* This is the new expense */
+                    initialExpense!!.copy(
+                        id = null,
+                        datetime = datetime,
+                        amount = item.amount,
+                        category = item.category,
+                        note = item.note,
+                        itemName = item.productName,
+                        storeName = state.placeName
+                    )
+                }
+            } else {
+                Expense(
+                    id = null,
+                    datetime = datetime,
+                    amount = item.amount,
+                    category = item.category,
+                    note = item.note,
+                    storeName = item.productName
+                )
+            }
+        }
+    }
+
     fun onSaveClick() {
         try {
             _uiState.update {
@@ -466,7 +512,7 @@ class ExpenseAddEditViewModel(
                     isLoading = true
                 )
             }
-            val validate = validateOnSave()
+            val validate = validateExpenseInput()
             if (validate is AppResult.Failure) {
                 _uiState.update {
                     it.copy(
@@ -474,6 +520,17 @@ class ExpenseAddEditViewModel(
                     )
                 }
                 return
+            }
+
+            viewModelScope.launch {
+                val expenses = generateExpense()
+                for (expense in expenses) {
+                    if (expense.id == null) {
+                        expenseRepository.addExpense(expense)
+                    } else {
+                        expenseRepository.updateExpense(expense)
+                    }
+                }
             }
 
             _uiState.update {
@@ -490,9 +547,9 @@ class ExpenseAddEditViewModel(
         } finally {
             _uiState.update {
                 /* if isSaveDone, don't reverse Loading status. */
-                if(it.isSaveDone){
+                if (it.isSaveDone) {
                     it
-                }else{
+                } else {
                     it.copy(
                         isLoading = false
                     )
