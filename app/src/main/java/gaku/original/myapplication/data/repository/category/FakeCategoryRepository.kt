@@ -1,6 +1,9 @@
 package gaku.original.myapplication.data.repository.category
 
 import gaku.original.myapplication.data.dataClass.Category
+import kotlinx.coroutines.flow.MutableStateFlow
+import java.util.UUID
+import kotlin.uuid.Uuid
 
 class FakeCategoryRepository : CategoryRepository {
 
@@ -31,19 +34,30 @@ class FakeCategoryRepository : CategoryRepository {
         ),
     )
 
-    override fun getAllCategories(): Map<String, Category> {
-        return sampleCategories
+    private val _categories = MutableStateFlow<Map<String,Category>>(emptyMap())
+    val categories get() = _categories
+
+    init{
+        _categories.value = sampleCategories
     }
 
-    override fun saveCategory(category: Category) {
+    override fun getAllCategories(): Map<String, Category> {
+        return _categories.value
+    }
 
+    override fun addCategory(category: Category) {
+        val newCategory = category.copy(
+            id = UUID.randomUUID().toString(),
+            timestamp = System.currentTimeMillis()
+        )
+        _categories.value += (newCategory.id!! to newCategory)
     }
 
     override fun updateCategory(category: Category) {
-        TODO("Not yet implemented")
+        _categories.value += (category.id!! to category)
     }
 
     override fun deleteCategory(categoryId: String) {
-        TODO("Not yet implemented")
+        _categories.value -= categoryId
     }
 }

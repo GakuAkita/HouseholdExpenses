@@ -6,7 +6,7 @@ interface CategoryRepository {
 
     fun getAllCategories():Map<String, Category>
 
-    fun saveCategory(category: Category)
+    fun addCategory(category: Category)
 
     fun updateCategory(category: Category)
 

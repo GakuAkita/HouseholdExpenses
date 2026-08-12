@@ -76,7 +76,9 @@ fun CategoryEditScreenRoot(
         },
         onSaveClick = {},
         onDeleteClick = {},
-        onDeleteIconClick = {}
+        onDeleteIconClick = {
+            viewModel.onDeleteIconClick(it)
+        }
     )
 }
 
@@ -145,6 +147,11 @@ fun CategoryEditScreen(
                     },
                     onDismiss = {
                         onEditDialogDismiss()
+                    },
+                    errorMessage = uiState.messageInDialog,
+                    onValueChange = {
+                        /* erase the message in the dialog */
+
                     }
                 )
             }
@@ -417,6 +424,8 @@ fun CategoryAddEditDialog(
     category: Category,
     onSave: (category: Category) -> Unit,
     onDismiss: () -> Unit,
+    errorMessage: String? = null,
+    onValueChange:(String)->Unit = {}
 ) {
     var newCategory by remember { mutableStateOf(category) }
 
@@ -470,10 +479,15 @@ fun CategoryAddEditDialog(
                 OutlinedTextField(
                     value = newCategory.name ?: "",
                     onValueChange = {
+                        onValueChange(it)
                         newCategory = newCategory.copy(name = it)
                     },
                     singleLine = true
                 )
+                if(errorMessage != null)
+                {
+                    Text(errorMessage)
+                }
             }
         },
         properties = DialogProperties(
