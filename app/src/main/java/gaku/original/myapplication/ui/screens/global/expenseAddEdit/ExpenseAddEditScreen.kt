@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,6 +19,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -96,6 +100,20 @@ fun ExpenseAddEditScreenRoot(
         }
     }
 
+    LaunchedEffect(uiState.isSaveDone) {
+        if (uiState.isSaveDone) {
+            navHostController.popBackStack()
+            snackbarHostState.showSnackbar("Save success!", duration = SnackbarDuration.Short)
+        }
+    }
+
+    LaunchedEffect(uiState.isDeleteDone) {
+        if (uiState.isDeleteDone) {
+            navHostController.popBackStack()
+            snackbarHostState.showSnackbar("Deleted!", duration = SnackbarDuration.Short)
+        }
+    }
+
     ExpenseAddEditScreen(
         uiState,
         snackbarHostState,
@@ -146,7 +164,11 @@ fun ExpenseAddEditScreenRoot(
         },
         onProductNameChange = { index, productName ->
             viewModel.onProductNameChange(index, productName)
-        }
+        },
+        onSaveClick = {
+            viewModel.onSaveClick()
+        },
+        onDeleteClick = {}
     )
 }
 
@@ -172,7 +194,9 @@ fun ExpenseAddEditScreen(
     onCategoryEditClick: () -> Unit,
     onCategoryRefreshClick: () -> Unit,
     onNoteChange: (Int, String) -> Unit,
-    onProductNameChange: (Int, String) -> Unit
+    onProductNameChange: (Int, String) -> Unit,
+    onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
 
     val basicModifier = remember { Modifier.width(260.dp) }
@@ -191,11 +215,18 @@ fun ExpenseAddEditScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center
         ) {
 
+            /*************************************************/
+            /* Date and Time */
+            /*************************************************/
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 4.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 TextField(
@@ -253,9 +284,11 @@ fun ExpenseAddEditScreen(
             if (uiState.isSplitInputEnabled) {
                 /* show total amount */
                 TextField(
-                    modifier = basicModifier.clickable {
-                        onTotalAmountClick()
-                    },
+                    modifier = basicModifier
+                        .clickable {
+                            onTotalAmountClick()
+                        }
+                        .padding(horizontal = 2.dp, vertical = 4.dp),
                     value = uiState.totalAmount.toString(),
                     onValueChange = {},
                     readOnly = true,
@@ -270,23 +303,27 @@ fun ExpenseAddEditScreen(
                     index == uiState.expenseEditList.size - 1 &&
                             uiState.isSplitInputEnabled &&
                             index != 0
-
                 Column(
-                    modifier = Modifier.then(
-                        if (uiState.isSplitInputEnabled) {
-                            Modifier.border(
-                                1.dp,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        } else {
-                            Modifier
-                        }
-                    )
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
+                        .then(
+                            if (uiState.isSplitInputEnabled) {
+                                Modifier.border(
+                                    1.dp,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            } else {
+                                Modifier
+                            }
+                        )
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        /*************************************************/
+                        /* Amount */
+                        /*************************************************/
                         TextField(
                             value = "${item.amount ?: ""}",
                             modifier = basicModifier.then(
@@ -297,7 +334,7 @@ fun ExpenseAddEditScreen(
                                         /* open calculator. */
                                         onAmountClick(index)
                                     }
-                                }
+                                }.padding(4.dp)
                             ),
                             onValueChange = {},
                             readOnly = true,
@@ -318,13 +355,11 @@ fun ExpenseAddEditScreen(
                         }
                     }
 
-                    RowSpace()
-
                     Row(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         CategoryDropDown(
-                            modifier = basicModifier,
+                            modifier = basicModifier.padding(4.dp),
                             initialCategory = uiState.expenseEditList[index].category,
                             categories = uiState.categories,
                             onCategorySelected = {
@@ -333,7 +368,7 @@ fun ExpenseAddEditScreen(
                         )
 
                         if (index == 0) {
-                            // カテゴリー編集ボタン
+                            // Category Edit Button
                             IconButton(
                                 onClick = {
                                     onCategoryEditClick()
@@ -359,11 +394,9 @@ fun ExpenseAddEditScreen(
                         }
                     }
 
-                    RowSpace()
-
                     /* Note */
                     TextField(
-                        modifier = basicModifier,
+                        modifier = basicModifier.padding(4.dp),
                         value = item.note ?: "",
                         onValueChange = {
                             onNoteChange(index, it)
@@ -372,17 +405,30 @@ fun ExpenseAddEditScreen(
                         singleLine = false
                     )
 
-                    RowSpace()
-
-                    /* 商品名 */
+                    /*****************************************************/
+                    /* Product Name */
+                    /*****************************************************/
                     TextField(
-                        modifier = basicModifier,
+                        modifier = basicModifier.padding(4.dp),
                         value = item.productName ?: "",
                         onValueChange = {
                             onProductNameChange(index, it)
                         },
                         label = { Text(text = "商品名(空欄可)") },
                     )
+                }
+
+                if (isLastElement) {
+                    Row(
+                        modifier = basicModifier,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        IconButton(
+                            onClick = {}
+                        ) {
+
+                        }
+                    }
                 }
             }
 
@@ -402,14 +448,56 @@ fun ExpenseAddEditScreen(
                 }
             }
 
-            /* place */
+            /*****************************************************/
+            /* Place Name */
+            /*****************************************************/
             TextField(
-                modifier = basicModifier,
-                value = uiState.placeName ?:"",
+                modifier = basicModifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                value = uiState.placeName,
                 onValueChange = {},
                 label = { Text(text = "Place(空欄可)") },
             )
 
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Column(
+
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .widthIn(max = 300.dp)
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        onClick = {
+                            onSaveClick()
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text("Save")
+                    }
+
+                    if (uiState.isEdit) {
+                        Button(
+                            modifier = Modifier
+                                .widthIn(max = 140.dp)
+                                .padding(8.dp),
+                            onClick = {
+                                onDeleteClick()
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -431,7 +519,7 @@ fun ExpenseAddEditScreenPreview() {
                     category = Category(name = "Waste")
                 )
             ),
-            isSplitInputEnabled = true
+            isSplitInputEnabled = false
         ),
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
@@ -450,7 +538,9 @@ fun ExpenseAddEditScreenPreview() {
         onCategoryEditClick = {},
         onCategoryRefreshClick = {},
         onNoteChange = { _, _ -> },
-        onProductNameChange = { _, _ -> }
+        onProductNameChange = { _, _ -> },
+        onSaveClick = {},
+        onDeleteClick = {}
     )
 }
 

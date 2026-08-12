@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -38,6 +40,9 @@ data class ExpenseAddEditUiState(
     val isSplitInputEnabled: Boolean = false,
 
     val placeName: String = "",
+
+    val isSaveDone: Boolean = false,
+    val isDeleteDone: Boolean = false,
 )
 
 data class ExpenseEditItem(
@@ -46,6 +51,39 @@ data class ExpenseEditItem(
     val note: String? = null,
     val productName: String? = null
 )
+
+sealed interface ExpenseInputError : AppError {
+    data object DateEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Date is empty"
+    }
+
+    data object TimeEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Time is empty"
+    }
+
+    data object AmountNegative : ExpenseInputError {
+        override val message: String
+            get() = "Amount is negative"
+    }
+
+    data object AmountEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Amount is empty"
+    }
+
+    data object CategoryEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Category is empty"
+    }
+
+    data class TotalExpenseNotMatch(val amountInput: Long, val amountCalc: Long) :
+        ExpenseInputError {
+        override val message: String
+            get() = "Total amount not match. Input:$amountInput, Calc:$amountCalc"
+    }
+}
 
 class ExpenseAddEditViewModel(
     private val initialExpense: Expense?,
@@ -359,7 +397,7 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onNoteChange(index:Int,note:String){
+    fun onNoteChange(index: Int, note: String) {
         _uiState.update {
             it.copy(
                 expenseEditList = it.expenseEditList.toMutableList().apply {
@@ -371,7 +409,7 @@ class ExpenseAddEditViewModel(
         }
     }
 
-    fun onProductNameChange(index:Int,productName:String){
+    fun onProductNameChange(index: Int, productName: String) {
         _uiState.update {
             it.copy(
                 expenseEditList = it.expenseEditList.toMutableList().apply {
@@ -380,6 +418,86 @@ class ExpenseAddEditViewModel(
                     )
                 }
             )
+        }
+    }
+
+    private fun validateOnSave(): AppResult<Unit, ExpenseInputError> {
+        if (_uiState.value.selectedDate == null) {
+            return AppResult.Failure(ExpenseInputError.DateEmpty)
+        }
+        if (_uiState.value.selectedTime == null) {
+            return AppResult.Failure(ExpenseInputError.TimeEmpty)
+        }
+
+        val expenseList = _uiState.value.expenseEditList
+        for (expense in expenseList) {
+            if (expense.amount == null) {
+                return AppResult.Failure(ExpenseInputError.AmountEmpty)
+            }
+
+            if (expense.amount < 0) {
+                return AppResult.Failure(ExpenseInputError.AmountNegative)
+            }
+
+            if (expense.category == null) {
+                return AppResult.Failure(ExpenseInputError.CategoryEmpty)
+            }
+        }
+
+        if (expenseList.size > 1) {
+            val totalAmountCalc = expenseList.sumOf { it.amount ?: 0L }
+            if (totalAmountCalc != _uiState.value.totalAmount) {
+                return AppResult.Failure(
+                    ExpenseInputError.TotalExpenseNotMatch(
+                        _uiState.value.totalAmount,
+                        totalAmountCalc
+                    )
+                )
+            }
+        }
+
+        return AppResult.Success(Unit)
+    }
+
+    fun onSaveClick() {
+        try {
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+            val validate = validateOnSave()
+            if (validate is AppResult.Failure) {
+                _uiState.update {
+                    it.copy(
+                        message = validate.error.message
+                    )
+                }
+                return
+            }
+
+            _uiState.update {
+                it.copy(
+                    isSaveDone = true
+                )
+            }
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    message = e.message
+                )
+            }
+        } finally {
+            _uiState.update {
+                /* if isSaveDone, don't reverse Loading status. */
+                if(it.isSaveDone){
+                    it
+                }else{
+                    it.copy(
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 
