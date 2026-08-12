@@ -74,8 +74,12 @@ fun CategoryEditScreenRoot(
         onDeleteDialogDismiss = {
             viewModel.closeDeleteDialog()
         },
-        onSaveClick = {},
-        onDeleteClick = {},
+        onSaveClick = {
+            viewModel.onSave(it)
+        },
+        onDeleteClick = {
+            //viewModel
+        },
         onDeleteIconClick = {
             viewModel.onDeleteIconClick(it)
         }

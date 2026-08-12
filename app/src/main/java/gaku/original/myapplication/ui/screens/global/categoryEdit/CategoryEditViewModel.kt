@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,18 @@ data class CategoryEditUiState(
     val selectedCategory: Category? = null,
     val messageInDialog: String? = null
 )
+
+sealed interface CategoryInputError: AppError{
+    data object EmptyName: CategoryInputError{
+        override val message: String
+            get() = "Category name is empty"
+    }
+
+    data object DuplicateName: CategoryInputError{
+        override val message: String
+            get() = "Category name is already used"
+    }
+}
 
 class CategoryEditViewModel(
     private val categoryRepository: CategoryRepository
@@ -48,6 +61,16 @@ class CategoryEditViewModel(
         _uiState.value = _uiState.value.copy(
             categories = categories.values.toList()
         )
+
+        viewModelScope.launch {
+            categoryRepository.categories.collect {categories->
+                _uiState.update {
+                    it.copy(
+                        categories = categories.values.toList()
+                    )
+                }
+            }
+        }
     }
 
     fun onCategorySelected(category: Category) {
@@ -68,7 +91,7 @@ class CategoryEditViewModel(
         }
     }
 
-    fun onDeleteIconClick(category: Category){
+    fun onDeleteIconClick(category: Category) {
         _uiState.update {
             it.copy(
                 selectedCategory = category,
@@ -77,10 +100,12 @@ class CategoryEditViewModel(
         }
     }
 
-    fun onSave(category:Category){
-        if(category.name == null ||
-            category.name.isEmpty()){
+    fun onSave(category: Category) {
+        if (category.name == null ||
+            category.name.isEmpty()
+        ) {
             /* if I need to add more conditions, define AppError using sealed interface */
+            /* ダブりチェックが必要 */
             _uiState.update {
                 it.copy(
                     messageInDialog = "Input category name"
@@ -90,32 +115,56 @@ class CategoryEditViewModel(
         }
 
         viewModelScope.launch {
-            try{
+            try {
                 _uiState.update {
                     it.copy(
                         isLoading = true
                     )
                 }
-                if(category.id == null){
+                if (category.id == null) {
                     /* Add new category */
                     categoryRepository.addCategory(category)
-                }else{
+                } else {
                     /* update category */
                     categoryRepository.updateCategory(category)
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         message = e.message
                     )
                 }
-            }finally{
+            } finally {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         isShowEditDialog = false
                     )
                 }
+            }
+        }
+    }
+
+    fun onDelete(category: Category) {
+        try {
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+            categoryRepository.deleteCategory(category.id!!)
+            closeDeleteDialog()
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    message = e.message
+                )
+            }
+        } finally {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                )
             }
         }
     }

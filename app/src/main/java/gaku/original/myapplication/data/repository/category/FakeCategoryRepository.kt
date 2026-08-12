@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.repository.category
 
 import gaku.original.myapplication.data.dataClass.Category
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 import kotlin.uuid.Uuid
 
@@ -35,7 +36,7 @@ class FakeCategoryRepository : CategoryRepository {
     )
 
     private val _categories = MutableStateFlow<Map<String,Category>>(emptyMap())
-    val categories get() = _categories
+    override val categories: StateFlow<Map<String, Category>> get() = _categories
 
     init{
         _categories.value = sampleCategories
