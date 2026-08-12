@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
@@ -157,7 +158,9 @@ fun ExpenseAddEditScreenRoot(
         onCategorySelected = { index, category ->
             viewModel.onCategorySelected(index, category)
         },
-        onCategoryEditClick = {},
+        onCategoryEditClick = {
+            navHostController.navigate(MainGraph.Global.CategoryAddEdit)
+        },
         onCategoryRefreshClick = {},
         onNoteChange = { index, note ->
             viewModel.onNoteChange(index, note)

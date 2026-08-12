@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-class CategoryEditViewModel @Inject constructor(
-    private val expenseSharedViewModel: ExpenseSharedViewModel,
-) : ViewModel() {
+//@HiltViewModel
+//class CategoryEditViewModel @Inject constructor(
+//    private val expenseSharedViewModel: ExpenseSharedViewModel,
+//) : ViewModel() {
 //    val className = this::class.simpleName ?: "UnableToGetClassName"
 //
 //    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
@@ -51,4 +51,4 @@ class CategoryEditViewModel @Inject constructor(
 //            callback(ret)
 //        }
 //    }
-}
+//}

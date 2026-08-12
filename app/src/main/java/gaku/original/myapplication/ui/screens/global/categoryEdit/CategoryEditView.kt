@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,12 +38,11 @@ import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.main.CategoryEditViewModel
 
 @Composable
 fun CategoryEditScreenRoot(
     navHostController: NavHostController,
-    viewModel: CategoryAddEditViewModel = viewModel(factory = CategoryAddEditViewModel.Factory)
+    viewModel: CategoryEditViewModel = viewModel(factory = CategoryEditViewModel.Factory)
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -56,14 +56,16 @@ fun CategoryEditScreenRoot(
 
     CategoryEditScreen(
         uiState,
-        snackbarHostState
+        snackbarHostState,
+        onBackNavClicked = { navHostController.popBackStack() }
     )
 }
 
 @Composable
 fun CategoryEditScreen(
-    uiState: CategoryAddEditUiState,
-    snackbarHostState: SnackbarHostState
+    uiState: CategoryEditUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackNavClicked: () -> Unit,
 ){
 
     Scaffold(
@@ -72,7 +74,7 @@ fun CategoryEditScreen(
                 "Category Edit",
                 showBackButton = true,
                 onBackNavClicked = {
-
+                    onBackNavClicked()
                 }
             )
         },
@@ -81,10 +83,25 @@ fun CategoryEditScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-
+            Button(
+                onClick = {}
+            ) {
+                Text("Save")
+            }
         }
     }
+}
 
+@Preview
+@Composable
+fun CategoryEditScreenPreview(){
+    val uiState = CategoryEditUiState()
+
+    CategoryEditScreen(
+        uiState,
+        SnackbarHostState(),
+        onBackNavClicked = {}
+    )
 }
 
 @Composable

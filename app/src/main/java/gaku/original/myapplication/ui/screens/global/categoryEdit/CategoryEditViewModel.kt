@@ -9,16 +9,16 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 
-data class CategoryAddEditUiState(
+data class CategoryEditUiState(
     val message: String? = null,
     val isLoading: Boolean = false,
 )
 
-class CategoryAddEditViewModel(
+class CategoryEditViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CategoryAddEditUiState())
+    private val _uiState = MutableStateFlow(CategoryEditUiState())
     val uiState get() = _uiState
 
     companion object {
@@ -27,7 +27,7 @@ class CategoryAddEditViewModel(
                 val app = (this[APPLICATION_KEY]) as MyApplication
                 val container = app.appContainer
                 val session = container.sessionContainer!!
-                CategoryAddEditViewModel(
+                CategoryEditViewModel(
                     categoryRepository = session.categoryRepository
                 )
             }
