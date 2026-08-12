@@ -6,12 +6,14 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 
 data class CategoryEditUiState(
     val message: String? = null,
     val isLoading: Boolean = false,
+    val categories: List<Category> = emptyList()
 )
 
 class CategoryEditViewModel(

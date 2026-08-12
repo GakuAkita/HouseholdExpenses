@@ -493,6 +493,7 @@ fun ExpenseAddEditScreen(
                                 .widthIn(max = 140.dp)
                                 .padding(8.dp),
                             onClick = {
+                                /* use popup */
                                 onDeleteClick()
                             },
                             colors = ButtonDefaults.textButtonColors(

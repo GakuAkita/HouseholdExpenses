@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -66,8 +69,7 @@ fun CategoryEditScreen(
     uiState: CategoryEditUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClicked: () -> Unit,
-){
-
+) {
     Scaffold(
         topBar = {
             TopBarView(
@@ -79,10 +81,24 @@ fun CategoryEditScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding->
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 150.dp)
+            ) {
+                items(uiState.categories) {
+                    CategoryItem(
+                        category = it,
+                        onClick = {},
+                        onDelete = {}
+                    )
+                }
+            }
+
             Button(
                 onClick = {}
             ) {
@@ -94,8 +110,27 @@ fun CategoryEditScreen(
 
 @Preview
 @Composable
-fun CategoryEditScreenPreview(){
-    val uiState = CategoryEditUiState()
+fun CategoryEditScreenPreview() {
+    val uiState = CategoryEditUiState(
+        categories = listOf(
+            Category(
+                id = "1",
+                name = "Food"
+            ),
+            Category(
+                id ="2",
+                name ="Waste"
+            ),
+            Category(
+                id ="3",
+                name ="aa.bbbbbb"
+            ),
+            Category(
+                id="4",
+                name ="bb"
+            )
+        )
+    )
 
     CategoryEditScreen(
         uiState,
