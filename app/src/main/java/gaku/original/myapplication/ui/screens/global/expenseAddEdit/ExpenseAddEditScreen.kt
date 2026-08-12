@@ -168,7 +168,9 @@ fun ExpenseAddEditScreenRoot(
         onSaveClick = {
             viewModel.onSaveClick()
         },
-        onDeleteClick = {}
+        onDeleteClick = {
+            viewModel.onDeleteClick()
+        }
     )
 }
 

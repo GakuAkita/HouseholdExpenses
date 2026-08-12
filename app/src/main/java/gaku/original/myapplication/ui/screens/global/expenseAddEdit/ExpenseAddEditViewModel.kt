@@ -324,7 +324,7 @@ class ExpenseAddEditViewModel(
             }
             return
         }
-        Timber.d("value:$value")
+        //Timber.d("value:$value")
         val amount = value.roundToLongOrNull()
         if (amount == null) {
             _uiState.update {
@@ -353,7 +353,7 @@ class ExpenseAddEditViewModel(
         }
 
         /* last amount is the remaining of the rest */
-        if (_uiState.value.isSplitInputEnabled && index != totalAmountIndex) {
+        if (_uiState.value.isSplitInputEnabled) {
             val sumBeforeLast = _uiState.value.expenseEditList.dropLast(1).sumOf { it.amount ?: 0L }
             var remaining = _uiState.value.totalAmount - sumBeforeLast
             if (remaining < 0) {
@@ -523,12 +523,26 @@ class ExpenseAddEditViewModel(
             }
 
             viewModelScope.launch {
-                val expenses = generateExpense()
-                for (expense in expenses) {
-                    if (expense.id == null) {
-                        expenseRepository.addExpense(expense)
-                    } else {
-                        expenseRepository.updateExpense(expense)
+                try {
+                    val expenses = generateExpense()
+                    for (expense in expenses) {
+                        if (expense.id == null) {
+                            expenseRepository.addExpense(expense)
+                        } else {
+                            expenseRepository.updateExpense(expense)
+                        }
+                    }
+                    _uiState.update {
+                        it.copy(
+                            isSaveDone = true
+                        )
+                    }
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            message = e.message
+                        )
                     }
                 }
             }
@@ -552,6 +566,44 @@ class ExpenseAddEditViewModel(
                 } else {
                     it.copy(
                         isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun onDeleteClick() {
+        if (!_uiState.value.isEdit ||
+            initialExpense?.id == null
+        ) {
+            _uiState.update {
+                it.copy(
+                    message = "Coding Error: Delete should not exist when add."
+                )
+            }
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isLoading = true
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val id = initialExpense.id!!
+                expenseRepository.removeExpense(id)
+                _uiState.update {
+                    it.copy(
+                        isDeleteDone = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = e.message
                     )
                 }
             }

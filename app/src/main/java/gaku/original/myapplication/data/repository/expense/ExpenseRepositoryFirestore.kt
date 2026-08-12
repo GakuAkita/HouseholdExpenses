@@ -28,7 +28,7 @@ class ExpenseRepositoryFirestore: ExpenseRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun removeExpense(expense: Expense) {
+    override suspend fun removeExpense(id: String) {
         TODO("Not yet implemented")
     }
 }

@@ -20,5 +20,5 @@ interface ExpenseRepository {
 
     suspend fun updateExpense(expense: Expense): Expense
 
-    suspend fun removeExpense(expense: Expense)
+    suspend fun removeExpense(id: String)
 }

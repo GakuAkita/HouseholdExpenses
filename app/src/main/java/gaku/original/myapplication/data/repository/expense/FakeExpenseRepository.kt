@@ -56,7 +56,7 @@ class FakeExpenseRepository : ExpenseRepository {
         return expense
     }
 
-    override suspend fun removeExpense(expense: Expense) {
-        _expenses.value -= expense.id!!
+    override suspend fun removeExpense(id: String) {
+        _expenses.value -= id
     }
 }
