@@ -9,11 +9,15 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 data class CategoryEditUiState(
     val message: String? = null,
     val isLoading: Boolean = false,
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+    val isShowEditDialog: Boolean = false,
+    val isDeleteShowDialog: Boolean = false,
+    val selectedCategory: Category? = null
 )
 
 class CategoryEditViewModel(
@@ -41,5 +45,39 @@ class CategoryEditViewModel(
         _uiState.value = _uiState.value.copy(
             categories = categories.values.toList()
         )
+    }
+
+    fun onCategorySelected(category: Category) {
+        _uiState.update {
+            it.copy(
+                selectedCategory = category,
+                isShowEditDialog = true
+            )
+        }
+    }
+
+    fun onCategoryAddClick() {
+        _uiState.update {
+            it.copy(
+                selectedCategory = Category(id = null, name = null),
+                isShowEditDialog = true
+            )
+        }
+    }
+
+    fun closeEditDialog() {
+        _uiState.update {
+            it.copy(
+                isShowEditDialog = false
+            )
+        }
+    }
+
+    fun closeDeleteDialog() {
+        _uiState.update {
+            it.copy(
+                isDeleteShowDialog = false
+            )
+        }
     }
 }

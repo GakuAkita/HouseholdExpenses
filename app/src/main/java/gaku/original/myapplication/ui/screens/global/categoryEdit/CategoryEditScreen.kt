@@ -39,6 +39,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
+import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.TopBarView
 
@@ -60,7 +61,22 @@ fun CategoryEditScreenRoot(
     CategoryEditScreen(
         uiState,
         snackbarHostState,
-        onBackNavClicked = { navHostController.popBackStack() }
+        onBackNavClicked = { navHostController.popBackStack() },
+        onCategorySelected = {
+            viewModel.onCategorySelected(it)
+        },
+        onCategoryAddClick = {
+            viewModel.onCategoryAddClick()
+        },
+        onEditDialogDismiss = {
+            viewModel.closeEditDialog()
+        },
+        onDeleteDialogDismiss = {
+            viewModel.closeDeleteDialog()
+        },
+        onSaveClick = {},
+        onDeleteClick = {},
+        onDeleteIconClick = {}
     )
 }
 
@@ -69,6 +85,13 @@ fun CategoryEditScreen(
     uiState: CategoryEditUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClicked: () -> Unit,
+    onCategorySelected: (Category) -> Unit,
+    onDeleteIconClick: (Category) -> Unit,
+    onCategoryAddClick:()->Unit,
+    onEditDialogDismiss:()->Unit,
+    onDeleteDialogDismiss:()->Unit,
+    onSaveClick:(Category)->Unit,
+    onDeleteClick:(Category)->Unit
 ) {
     Scaffold(
         topBar = {
@@ -93,16 +116,49 @@ fun CategoryEditScreen(
                 items(uiState.categories) {
                     CategoryItem(
                         category = it,
-                        onClick = {},
-                        onDelete = {}
+                        onClick = {
+                            onCategorySelected(it)
+                        },
+                        onDelete = {
+                            onDeleteIconClick(it)
+                        }
                     )
                 }
             }
 
             Button(
-                onClick = {}
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 100.dp, vertical = 16.dp),
+                onClick = {
+                    onCategoryAddClick()
+                }
             ) {
-                Text("Save")
+                Text("Add Category")
+            }
+
+            if (uiState.isShowEditDialog) {
+                CategoryAddEditDialog(
+                    category = uiState.selectedCategory!!,
+                    onSave = {
+                        onSaveClick(it)
+                    },
+                    onDismiss = {
+                        onEditDialogDismiss()
+                    }
+                )
+            }
+
+            if (uiState.isDeleteShowDialog) {
+                CategoryRemoveConfirmDialog(
+                    category = uiState.selectedCategory!!,
+                    onOK = {
+                        onDeleteClick(it)
+                    },
+                    onDismiss = {
+                        onDeleteDialogDismiss()
+                    }
+                )
             }
         }
     }
@@ -118,16 +174,16 @@ fun CategoryEditScreenPreview() {
                 name = "Food"
             ),
             Category(
-                id ="2",
-                name ="Waste"
+                id = "2",
+                name = "Waste"
             ),
             Category(
-                id ="3",
-                name ="aa.bbbbbbccccccccccddddddd"
+                id = "3",
+                name = "aa.bbbbbbccccccccccddddddd"
             ),
             Category(
-                id="4",
-                name ="bb"
+                id = "4",
+                name = "bb"
             )
         )
     )
@@ -135,7 +191,14 @@ fun CategoryEditScreenPreview() {
     CategoryEditScreen(
         uiState,
         SnackbarHostState(),
-        onBackNavClicked = {}
+        onBackNavClicked = {},
+        onCategorySelected = {},
+        onDeleteIconClick = {},
+        onCategoryAddClick = {},
+        onEditDialogDismiss = {},
+        onDeleteDialogDismiss = {},
+        onSaveClick = {},
+        onDeleteClick = {}
     )
 }
 
