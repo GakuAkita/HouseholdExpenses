@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -133,8 +135,16 @@ fun RepeatAddScreen(
                 Text("These expenses are automatically added on the first day of each month.")
             }
 
-            if (uiState.showAddExpenseConfirmDialog) {
-
+            LazyColumn() {
+                itemsIndexed(
+                    uiState.repeatAdds
+                ) { index, repeatAdd ->
+                    RepeatAddItem(
+                        repeatAdd = repeatAdd,
+                        onEdit = {},
+                        onDelete = {}
+                    )
+                }
             }
         }
     }

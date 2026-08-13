@@ -26,7 +26,7 @@ class FakeRepeatAddRepository : RepeatAddRepository {
         )
     )
 
-    override suspend fun getRepeatAdd(): Map<String, RepeatAdd> {
+    override suspend fun getAllRepeatAdds(): Map<String, RepeatAdd> {
         return sampleRepeatAdd
     }
 
