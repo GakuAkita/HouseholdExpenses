@@ -50,5 +50,34 @@ fun NavGraphBuilder.mainGraph(
         composable<MainGraph.Global.CategoryAssignmentEdit> {
 
         }
+
+        /* -------------- Setting ------------------ */
+        composable<MainGraph.SettingMenu.UserInfo> {
+
+        }
+
+        composable<MainGraph.SettingMenu.TimeZone> {
+
+        }
+
+        composable<MainGraph.SettingMenu.Categories> {
+
+        }
+
+        composable<MainGraph.SettingMenu.RepeatAdd> {
+
+        }
+
+        composable<MainGraph.SettingMenu.MailboxExtraction> {
+
+        }
+
+        composable<MainGraph.SettingMenu.PayPayReceiptOCRSetting> {
+
+        }
+
+        composable<MainGraph.SettingMenu.AppVersion> {
+
+        }
     }
 }

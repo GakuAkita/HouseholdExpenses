@@ -30,7 +30,7 @@ import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.home.HomeViewModel
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingScreenRoot
-import timber.log.Timber
+import gaku.original.myapplication.ui.screens.bottom.setting.SettingViewModel
 
 @Composable
 fun MainFrame(
@@ -112,8 +112,8 @@ fun MainFrame(
             navController = bottomNavController,
             startDestination = MainGraph.Bottom.Home
         ) {
-            composable<MainGraph.Bottom.Home> { backStackEntry->
-                val parentEntry = remember(backStackEntry){
+            composable<MainGraph.Bottom.Home> { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
                     rootNavController.getBackStackEntry(MainGraph)
                 }
                 val viewModel = viewModel<HomeViewModel>(
@@ -129,9 +129,18 @@ fun MainFrame(
             }
             composable<MainGraph.Bottom.Statistics> {
             }
-            composable<MainGraph.Bottom.Setting> {
+            composable<MainGraph.Bottom.Setting> { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    rootNavController.getBackStackEntry(MainGraph)
+                }
+                val viewModel = viewModel<SettingViewModel>(
+                    viewModelStoreOwner = parentEntry,
+                    factory = SettingViewModel.Factory
+                )
+
                 SettingScreenRoot(
-                    rootNavController = rootNavController
+                    rootNavController = rootNavController,
+                    viewModel = viewModel
                 )
             }
         }

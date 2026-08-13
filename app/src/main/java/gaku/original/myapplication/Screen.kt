@@ -47,13 +47,20 @@ data object MainGraph {
         data object UserInfo : SettingMenu
 
         @Serializable
+        data object TimeZone: SettingMenu
+
+        @Serializable
+        data object Categories: SettingMenu{
+        }
+
+            @Serializable
         data object RepeatAdd : SettingMenu
 
         @Serializable
         data object AppSettings : SettingMenu
 
         @Serializable
-        data object Version : SettingMenu
+        data object AppVersion : SettingMenu
 
         @Serializable
         data object MailboxExtraction : SettingMenu

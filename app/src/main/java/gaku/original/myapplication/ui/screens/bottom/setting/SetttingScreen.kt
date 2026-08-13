@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,20 +21,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
-import gaku.original.myapplication.ui.common.BottomBarView
-import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.MainGraph
 
 @Composable
 fun SettingScreenRoot(
     rootNavController: NavHostController,
     viewModel: SettingViewModel = viewModel(factory = SettingViewModel.Factory)
 ) {
+    fun navigateToSettingMenu(route: MainGraph.SettingMenu) {
+        rootNavController.navigate(route)
+    }
+
     val uiState by viewModel.uiState.collectAsState()
 
     val snackBarHostState = LocalSnackBarHostState.current
@@ -51,27 +50,69 @@ fun SettingScreenRoot(
 
     SettingScreen(
         uiState,
-        snackBarHostState,
-        onLogoutClick = {}
+        onMenuClick = {
+            navigateToSettingMenu(it)
+        },
+        onSignOutClick = {
+            viewModel.onSignOutClick()
+        }
     )
 }
 
 @Composable
 fun SettingScreen(
     uiState: SettingUiState,
-    snackbarHostState: SnackbarHostState,
-    onLogoutClick:()->Unit
+    onMenuClick: (MainGraph.SettingMenu) -> Unit,
+    onSignOutClick: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
 
+        SettingRowWithNavigation(
+            label = "User Information",
+            route = MainGraph.SettingMenu.UserInfo,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
+            label = "Timezone Setting",
+            route = MainGraph.SettingMenu.TimeZone,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
+            label = "Categories",
+            route = MainGraph.SettingMenu.Categories,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
+            label = "Repeat Add",
+            route = MainGraph.SettingMenu.RepeatAdd,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
+            label = "Mailbox Extraction",
+            route = MainGraph.SettingMenu.MailboxExtraction,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
+            label = "App Version",
+            route = MainGraph.SettingMenu.AppVersion,
+            onMenuClick = onMenuClick
+        )
 
         Button(
-            onClick ={
-                onLogoutClick()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            onClick = {
+                onSignOutClick()
             }
-        ){
+        ) {
             Text("Logout")
         }
     }
@@ -160,27 +201,25 @@ fun SettingScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun SettingScreenPreview(){
+fun SettingScreenPreview() {
     val uiState = SettingUiState()
 
     SettingScreen(
         uiState,
-        SnackbarHostState(),
-        onLogoutClick = {}
+        onMenuClick = {},
+        onSignOutClick = {}
     )
 }
 
 @Composable
 fun SettingRowWithNavigation(
     label: String,
-    navController: NavHostController,
-    route: String,
+    route: MainGraph.SettingMenu,
+    onMenuClick: (MainGraph.SettingMenu) -> Unit,
 ) {
     SettingRow(
         onClick = {
-            navController.navigate(route) {
-                launchSingleTop = true
-            }
+            onMenuClick(route)
         }
     ) {
         Text(text = label, modifier = Modifier.padding(start = 10.dp))
@@ -195,19 +234,19 @@ fun SettingRow(
     content: @Composable RowScope.() -> Unit // RowScope を適用
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .height(50.dp)
+            .fillMaxWidth()
             .padding(horizontal = 10.dp)
             .border(
                 1.dp,
                 borderColor, // Composable 関数内ならOK
                 shape = RoundedCornerShape(8.dp)
             )
-            .fillMaxWidth()
             .clickable {
                 onClick()
             },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         content()
     }
