@@ -2,12 +2,14 @@ package gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -65,7 +67,9 @@ fun TimeZoneScreen(
     onBackNavClick: () -> Unit,
     onTimeZoneSelected: (TimeZone) -> Unit
 ) {
-
+    /**
+     * ZoneId.SystemDefault() should be added so that the user can select.
+     */
     Scaffold(
         topBar = {
             TopBarView(
@@ -79,7 +83,8 @@ fun TimeZoneScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.Center
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth()
@@ -89,6 +94,7 @@ fun TimeZoneScreen(
             }
 
             TimeZoneDropdown(
+                modifier = Modifier.widthIn(min = 200.dp),
                 selectedOption = uiState.selectedTimeZone,
                 onOptionSelected = {
                     onTimeZoneSelected(it)
@@ -112,62 +118,6 @@ fun TimeZoneScreenPreview() {
     )
 }
 
-
-//@Composable
-//fun AppSettingsView(
-//    viewModel: AppSettingsViewModel = hiltViewModel(),
-//    navController: NavController
-//) {
-//    var expanded by remember { mutableStateOf(false) }
-//
-//    val zoneId by AppTimeZone.zoneIdFlow.collectAsState()
-//
-//    // 現在のZoneIdに一致するTimeZoneOptionを取得（なければJAPANをデフォルト）a
-//    var selectedOption by remember(zoneId) {
-//        mutableStateOf(TimeZoneOption.entries.find { it.id == zoneId.id } ?: TimeZoneOption.JAPAN)
-//    }
-//
-//    val scope = rememberCoroutineScope()
-//    val snackBarHostState = remember {
-//        SnackbarHostState()
-//    }
-//
-//    Scaffold(
-//        topBar = {
-//            TopBarView(
-//                "タイムゾーン設定",
-//                onBackNavClicked = { navController.popBackStack() },
-//                showBackButton = true,
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-//    ) { innerPadding ->
-//        Column(
-//            modifier = Modifier.padding(innerPadding)
-//        ) {
-//            Text("現在の設定:${zoneId}")
-//
-//            TimeZoneDropdown(
-//                selectedOption = selectedOption,
-//                onOptionSelected = { option ->
-//                    selectedOption = option
-//                    AppTimeZone.updateStrZoneId(option.id)  // 選択されたタイムゾーンIDを更新
-//                    viewModel.setUserTimeZone(option.id) { statusInfo ->
-//                        if (statusInfo.status != FuncStatus.SUCCESS) {
-//                            scope.launch {
-//                                snackBarHostState.showSnackbar(
-//                                    "タイムゾーンの設定に失敗しました: ${statusInfo.errorMessage}\n再度選択してください"
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            )
-//
-//        }
-//    }
-//}
-
 @Composable
 fun TimeZoneDropdown(
     modifier: Modifier = Modifier,
@@ -188,7 +138,7 @@ fun TimeZoneDropdown(
                 )
                 .padding(12.dp)
         ) {
-            Text(text = "${selectedOption.label} ${selectedOption.id}")
+            Text(text = selectedOption.label)
         }
 
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {

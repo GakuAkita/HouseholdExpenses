@@ -6,12 +6,12 @@ import java.time.Instant
 import java.time.ZoneId
 
 class FakeAppTimeZoneRepository: AppTimeZoneRepository{
-    val _zoneId = MutableStateFlow(ZoneId.of("Asia/Tokyo"))
+    val _zoneId = MutableStateFlow(ZoneId.systemDefault())
     override val zoneId: StateFlow<ZoneId>
         get() = _zoneId
 
     override fun startListening() {
-        _zoneId.value = ZoneId.of("Asia/Tokyo")
+
     }
 
     override fun stopListening() {
