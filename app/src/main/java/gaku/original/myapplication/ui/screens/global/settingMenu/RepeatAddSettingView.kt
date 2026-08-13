@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu
+package gaku.original.myapplication.ui.screens.global.settingMenu
 
 import android.content.Context
 import android.util.Log

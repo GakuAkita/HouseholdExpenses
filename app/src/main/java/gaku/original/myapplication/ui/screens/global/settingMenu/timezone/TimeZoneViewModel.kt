@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone
+package gaku.original.myapplication.ui.screens.global.settingMenu.timezone
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone
+package gaku.original.myapplication.ui.screens.global.settingMenu.timezone
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

@@ -9,13 +9,13 @@ import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
-import gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone.TimeZoneScreenRoot
-import gaku.original.myapplication.ui.screens.bottom.setting.menu.userInfo.UserInfoScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import kotlin.reflect.typeOf
-import kotlin.to
 
 fun NavGraphBuilder.mainGraph(
     navController: NavHostController
@@ -67,7 +67,10 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.Categories> {
-
+            /* Same screen, but different route. */
+            CategoryEditScreenRoot(
+                navHostController = navController
+            )
         }
 
         composable<MainGraph.SettingMenu.RepeatAdd> {
@@ -83,7 +86,7 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.AppVersion> {
-
+            VersionScreen(navController)
         }
     }
 }

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu
+package gaku.original.myapplication.ui.screens.global.settingMenu
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel

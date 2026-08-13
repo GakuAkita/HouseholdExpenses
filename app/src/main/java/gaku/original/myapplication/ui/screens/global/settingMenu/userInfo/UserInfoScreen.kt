@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu.userInfo
+package gaku.original.myapplication.ui.screens.global.settingMenu.userInfo
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
