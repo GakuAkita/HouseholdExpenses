@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu
+package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd
 
 import android.content.Context
 import android.util.Log
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -48,7 +52,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
@@ -58,14 +65,67 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.defaultFrequency
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.DialWithDialog
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.getLastDayOfMonth
-import gaku.original.myapplication.viewModel.settings.RepeatAddViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalTime
+
+
+@Composable
+fun RepeatAddScreenRoot(
+    viewModel: RepeatAddViewModel = viewModel(factory = RepeatAddViewModel.Factory),
+    navHostController: NavHostController
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackBarHostState.current
+
+    RepeatAddScreen(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onBackNavClick = {
+            navHostController.popBackStack()
+        }
+    )
+}
+
+@Composable
+fun RepeatAddScreen(
+    uiState: RepeatAddUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackNavClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopBarView(
+                title = "Repeat Add",
+                onBackNavClicked = onBackNavClick,
+                showBackButton = true
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+                Text("毎月1日に自動で追加されます")
+            }
+        }
+    }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -559,7 +619,8 @@ fun RepeatAddEditDialog(
                          * @FIXME 関数の実行を1回だけにするような書き方ができる気がするので余裕があったら直そう。
                          */
                         //ここで、選択された内容に応じて表示内容を変える
-                        FrequencyTextField(newRepeatAdd.frequencyInfo,
+                        FrequencyTextField(
+                            newRepeatAdd.frequencyInfo,
                             callback = {
                                 newRepeatAdd = newRepeatAdd.copy(frequencyInfo = it)
                                 LogAkitaDebug(

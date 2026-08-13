@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RepeatAddViewModel @Inject constructor(
+class _RepeatAddViewModel @Inject constructor(
     private val expenseSharedViewModel: ExpenseSharedViewModel,
     private val repeatAddUseCase: RepeatAddUseCase
 ) : ViewModel() {

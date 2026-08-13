@@ -9,12 +9,13 @@ import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
-import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
-import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
-import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
 import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.mainGraph(
@@ -74,7 +75,9 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.RepeatAdd> {
-
+            RepeatAddScreenRoot(
+                navHostController = navController
+            )
         }
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {
