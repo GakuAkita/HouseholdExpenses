@@ -41,7 +41,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.EmailTemplateType
@@ -252,7 +251,7 @@ fun MailboxExtractionView(
                 var execTimeStr: String? = null
                 if (timestamp != null && timestamp > 0L) {
                     val isoStr =
-                        AppTimeZone.convertUnixTimestampToCurrentTimeInZoneIsoStr(timestamp)
+                        TODO()
                     execTimeStr = isoStr?.substringBefore('.') ?: "時刻取得失敗"
                 }
                 Text("最終実行時間 : ${if (execTimeStr == null) "未実行" else execTimeStr}")

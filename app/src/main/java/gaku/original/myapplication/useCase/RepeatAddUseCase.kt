@@ -1,6 +1,5 @@
 package gaku.original.myapplication.useCase
 
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.getDaysInMonthByFrequency
@@ -118,8 +117,9 @@ class RepeatAddUseCase @Inject constructor(
              */
             val daysList = getDaysInMonthByFrequency(repeatAdd.frequencyInfo)
             /* 今日の日時の翌日でフィルターを掛けたい */
-            val today = AppTimeZone.getCurrentTimeInZone()
-            val tomorrowMidnight = today.toLocalDate().plusDays(1).atStartOfDay()
+            val today = TODO()
+            //val tomorrowMidnight = today.toLocalDate().plusDays(1).atStartOfDay()
+            val tomorrowMidnight = TODO()
 
             val addDays = daysList.filter { !it.isBefore(tomorrowMidnight) }
 
@@ -131,7 +131,7 @@ class RepeatAddUseCase @Inject constructor(
 
             for ((index, day) in addDays.withIndex()) {
                 /* このdayはTimeZoneのdayだから、ISO文字列に変える必要がある */
-                val isoStr = AppTimeZone.localDateTimeToIsoString(day)
+                val isoStr = TODO()
                 val expenseToAdd = expenseTemplate.copy(datetime = isoStr)
 
 //                val stat = expenseRepository.addExpense(expenseToAdd)

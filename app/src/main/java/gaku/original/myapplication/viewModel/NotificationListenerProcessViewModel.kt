@@ -3,7 +3,6 @@ package gaku.original.myapplication.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.AppPackageNames
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
@@ -86,8 +85,9 @@ class NotificationListenerProcessViewModel @Inject constructor(
                  * Notificationのtimestampを時刻に変換する
                  */
                 val timestamp = data.timestamp
-                val datetimeStr =
-                    AppTimeZone.convertUnixTimestampToCurrentTimeInZoneIsoStr(timestamp)
+//                val datetimeStr =
+//                    AppTimeZone.convertUnixTimestampToCurrentTimeInZoneIsoStr(timestamp)
+                val datetimeStr = TODO()
                 if (datetimeStr == null) {
                     return FuncResultWithData.Failure.GenericFailure(
                         status = FuncStatus.FAILED,

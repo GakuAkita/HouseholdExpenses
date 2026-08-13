@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.ocr
 
+import android.R.attr.timeZone
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,7 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -182,7 +182,7 @@ fun OCRView(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val timeZone = AppTimeZone.isoStringToLocalDateTime(extractedExpense.datetime)
+                val timeZone = TODO()
                 Text("日付: ${timeZone?.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))}")
                 Text("金額: ${extractedExpense.amount}")
                 Text("店名: ${extractedExpense.storeName}")

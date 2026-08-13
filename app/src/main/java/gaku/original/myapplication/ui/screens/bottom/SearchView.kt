@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
@@ -604,7 +603,7 @@ fun SearchedExpenseItem(
             .clickable { onClick(expense) }
             .padding(10.dp)
     ) {
-        val localDateTime: LocalDateTime? = AppTimeZone.isoStringToLocalDateTime(expense.datetime)
+        val localDateTime: LocalDateTime? = TODO()
         if (localDateTime == null) {
             Text(modifier = Modifier.weight(1f), text = "datetime error", fontSize = fontSize)
         } else {
