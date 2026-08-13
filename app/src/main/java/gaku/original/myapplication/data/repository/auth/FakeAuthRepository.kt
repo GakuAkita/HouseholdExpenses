@@ -6,18 +6,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
-import kotlin.time.Duration
 
-class FakeAuthRepository: AuthRepository {
+class FakeAuthRepository : AuthRepository {
     private val appUser = AppUser(
-        id ="sample",
+        id = "sample",
         email = "g@gmail.com"
     )
+
+    override val user: AppUser?
+        get() {
+            if (_authState.value is AuthState.LoggedIn) {
+                return (authState.value as AuthState.LoggedIn).user
+            }
+            return null
+        }
+
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     override val authState: StateFlow<AuthState>
-        get ()=_authState
+        get() = _authState
 
-    init{
+    init {
         Timber.d("Created: ${hashCode()}")
         _authState.value = AuthState.LoggedIn(appUser)
     }
