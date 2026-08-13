@@ -78,6 +78,7 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.RepeatAdd.Screen> {
+            /* RepeatAddViewModel is shared with RepeatAdd.Dialog */
             RepeatAddScreenRoot(
                 navHostController = navController
             )

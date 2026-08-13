@@ -59,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
@@ -91,7 +92,11 @@ fun RepeatAddScreenRoot(
         snackbarHostState = snackbarHostState,
         onBackNavClick = {
             navHostController.popBackStack()
-        }
+        },
+        onRepeatAddEdit = {
+            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog)
+        },
+        onRepeatAddDelete = {}
     )
 }
 
@@ -99,7 +104,9 @@ fun RepeatAddScreenRoot(
 fun RepeatAddScreen(
     uiState: RepeatAddUiState,
     snackbarHostState: SnackbarHostState,
-    onBackNavClick: () -> Unit
+    onBackNavClick: () -> Unit,
+    onRepeatAddEdit: (RepeatAdd) -> Unit,
+    onRepeatAddDelete: (RepeatAdd) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -141,8 +148,12 @@ fun RepeatAddScreen(
                 ) { index, repeatAdd ->
                     RepeatAddItem(
                         repeatAdd = repeatAdd,
-                        onEdit = {},
-                        onDelete = {}
+                        onEdit = {
+                            onRepeatAddEdit(repeatAdd)
+                        },
+                        onDelete = {
+                            onRepeatAddDelete(repeatAdd)
+                        }
                     )
                 }
             }
@@ -158,7 +169,9 @@ fun RepeatAddScreenPreview() {
     RepeatAddScreen(
         uiState,
         snackbarHostState = SnackbarHostState(),
-        onBackNavClick = {}
+        onBackNavClick = {},
+        onRepeatAddEdit = {},
+        onRepeatAddDelete = {}
     )
 }
 

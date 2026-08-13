@@ -50,11 +50,11 @@ class RepeatAddViewModel(
                         isLoading = true
                     )
                 }
-                val repeatAdds = repeatAddRepository.getRepeatAdd()
+                val repeatAdds = repeatAddRepository.getAllRepeatAdds()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        repeatAdds = repeatAdds
+                        repeatAdds = repeatAdds.values.toList()
                     )
                 }
             }catch (e:Exception){
