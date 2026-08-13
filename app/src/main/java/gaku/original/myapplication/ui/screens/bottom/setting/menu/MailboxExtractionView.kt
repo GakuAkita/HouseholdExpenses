@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu
 
 import android.content.Context
 import android.content.Intent
@@ -288,7 +288,7 @@ fun MailboxExtractionView(
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     CircularProgressIndicator(modifier = Modifier.padding(16.dp))
                 }

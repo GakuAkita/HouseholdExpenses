@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

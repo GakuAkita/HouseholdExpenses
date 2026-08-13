@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings
+package gaku.original.myapplication.ui.screens.bottom.setting
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,44 +11,71 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
-fun SettingsView(
-    navController: NavHostController
+fun SettingScreenRoot(
+    rootNavController: NavHostController,
+    viewModel: SettingViewModel = viewModel(factory = SettingViewModel.Factory)
 ) {
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        topBar = {
-            TopBarView("SettingsView")
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { BottomBarView(navController) }
-    ) { innerPadding ->
-        val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    val snackBarHostState = LocalSnackBarHostState.current
+
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackBarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
+
+    SettingScreen(
+        uiState,
+        snackBarHostState,
+        onLogoutClick = {}
+    )
+}
+
+@Composable
+fun SettingScreen(
+    uiState: SettingUiState,
+    snackbarHostState: SnackbarHostState,
+    onLogoutClick:()->Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ){
+
+
+        Button(
+            onClick ={
+                onLogoutClick()
+            }
+        ){
+            Text("Logout")
+        }
+    }
+
 //            SettingRowWithNavigation(
 //                label = "ユーザー情報",
 //                navController = navController,
@@ -129,8 +156,18 @@ fun SettingsView(
 //            ) {
 //                Text("LogOut")
 //            }
-        }
-    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingScreenPreview(){
+    val uiState = SettingUiState()
+
+    SettingScreen(
+        uiState,
+        SnackbarHostState(),
+        onLogoutClick = {}
+    )
 }
 
 @Composable

@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,18 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
-fun VersionView(
+fun UserInfoView(
+    //viewModel: AuthManagerViewModel = hiltViewModel(),
     navController: NavController
 ) {
     Scaffold(
         topBar = {
             TopBarView(
-                "バージョン情報",
+                "ユーザー情報",
                 onBackNavClicked = { navController.popBackStack() },
                 showBackButton = true,
             )
@@ -40,16 +40,9 @@ fun VersionView(
                 .padding(horizontal = 10.dp)
         ) {
             Row {
-                Text("バージョン名: ")
-                Text("${BuildConfig.VERSION_NAME}")
-            }
-            Row(
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("バージョンコード: ")
-                Text("${BuildConfig.VERSION_CODE}")
+                Text("Email:")
+                //Text("${viewModel.email}")
             }
         }
     }
 }
-

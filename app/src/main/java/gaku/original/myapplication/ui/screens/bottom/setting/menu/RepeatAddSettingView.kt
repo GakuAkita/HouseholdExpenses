@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu
 
 import android.content.Context
 import android.util.Log
@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues

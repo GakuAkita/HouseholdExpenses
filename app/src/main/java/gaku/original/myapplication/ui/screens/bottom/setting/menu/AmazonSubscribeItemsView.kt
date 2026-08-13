@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.settings.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -273,7 +275,7 @@ private fun AmazonSubscribeItemsInfoCard() {
                     text = "Amazonから届く「次回の配達」メールから商品名を自動抽出して追加しています。定期便キャンセルメールが届いた場合は、ここから自動的に削除されます。したがって、自分でこのページを触る必要はありません。\n\nしかし、稀にキャンセルメールが届いても削除されないケースもあります。その場合は、各アイテムのゴミ箱アイコンから手動で削除してください。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp)
+                    lineHeight = TextUnit(16f, TextUnitType.Sp)
                 )
             }
         }
