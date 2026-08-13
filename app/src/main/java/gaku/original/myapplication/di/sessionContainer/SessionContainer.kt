@@ -3,6 +3,7 @@ package gaku.original.myapplication.di.sessionContainer
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 
 interface SessionContainer {
     val expenseRepository: ExpenseRepository
@@ -10,4 +11,6 @@ interface SessionContainer {
     val categoryRepository: CategoryRepository
 
     val appTimeZoneRepository: AppTimeZoneRepository
+
+    val repeatAddRepository: RepeatAddRepository
 }

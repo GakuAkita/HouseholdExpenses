@@ -2,10 +2,16 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.edit
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
 
 @Composable
-fun RepeatAddEditDialogRoot(){
+fun RepeatAddEditDialogRoot(
+    navHostController: NavHostController
+){
 
+    RepeatAddEditDialog(
+
+    )
 }
 
 @Composable

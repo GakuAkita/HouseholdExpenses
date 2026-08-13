@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import gaku.original.myapplication.data.dataClass.RepeatAdd
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +13,7 @@ import timber.log.Timber
 data class RepeatAddUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val showAddEditDialog: Boolean = false,
-    val showAddExpenseConfirmDialog:Boolean = false
+    val repeatAdds: List<RepeatAdd> = emptyList()
 )
 
 class RepeatAddViewModel(

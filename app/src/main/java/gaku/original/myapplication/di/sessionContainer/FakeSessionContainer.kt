@@ -6,6 +6,8 @@ import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.category.FakeCategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.expense.FakeExpenseRepository
+import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
+import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 
 class FakeSessionContainer : SessionContainer {
 
@@ -14,4 +16,6 @@ class FakeSessionContainer : SessionContainer {
     override val categoryRepository: CategoryRepository = FakeCategoryRepository()
 
     override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository()
+
+    override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository()
 }
