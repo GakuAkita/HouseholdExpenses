@@ -84,7 +84,7 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<MainGraph.SettingMenu.RepeatAdd.Dialog> {
+        dialog<MainGraph.SettingMenu.RepeatAdd.Dialog> {
             RepeatAddEditDialogRoot(
                 navHostController = navController
             )
