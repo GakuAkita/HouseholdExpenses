@@ -32,7 +32,6 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.Constants.TimeZoneOption
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.AppSettingsViewModel
 import kotlinx.coroutines.launch
@@ -101,93 +100,93 @@ fun TimeZoneScreenPreview() {
 }
 
 
-@Composable
-fun AppSettingsView(
-    viewModel: AppSettingsViewModel = hiltViewModel(),
-    navController: NavController
-) {
-    var expanded by remember { mutableStateOf(false) }
+//@Composable
+//fun AppSettingsView(
+//    viewModel: AppSettingsViewModel = hiltViewModel(),
+//    navController: NavController
+//) {
+//    var expanded by remember { mutableStateOf(false) }
+//
+//    val zoneId by AppTimeZone.zoneIdFlow.collectAsState()
+//
+//    // 現在のZoneIdに一致するTimeZoneOptionを取得（なければJAPANをデフォルト）a
+//    var selectedOption by remember(zoneId) {
+//        mutableStateOf(TimeZoneOption.entries.find { it.id == zoneId.id } ?: TimeZoneOption.JAPAN)
+//    }
+//
+//    val scope = rememberCoroutineScope()
+//    val snackBarHostState = remember {
+//        SnackbarHostState()
+//    }
+//
+//    Scaffold(
+//        topBar = {
+//            TopBarView(
+//                "タイムゾーン設定",
+//                onBackNavClicked = { navController.popBackStack() },
+//                showBackButton = true,
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+//    ) { innerPadding ->
+//        Column(
+//            modifier = Modifier.padding(innerPadding)
+//        ) {
+//            Text("現在の設定:${zoneId}")
+//
+//            TimeZoneDropdown(
+//                selectedOption = selectedOption,
+//                onOptionSelected = { option ->
+//                    selectedOption = option
+//                    AppTimeZone.updateStrZoneId(option.id)  // 選択されたタイムゾーンIDを更新
+//                    viewModel.setUserTimeZone(option.id) { statusInfo ->
+//                        if (statusInfo.status != FuncStatus.SUCCESS) {
+//                            scope.launch {
+//                                snackBarHostState.showSnackbar(
+//                                    "タイムゾーンの設定に失敗しました: ${statusInfo.errorMessage}\n再度選択してください"
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            )
+//
+//        }
+//    }
+//}
 
-    val zoneId by AppTimeZone.zoneIdFlow.collectAsState()
-
-    // 現在のZoneIdに一致するTimeZoneOptionを取得（なければJAPANをデフォルト）a
-    var selectedOption by remember(zoneId) {
-        mutableStateOf(TimeZoneOption.entries.find { it.id == zoneId.id } ?: TimeZoneOption.JAPAN)
-    }
-
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember {
-        SnackbarHostState()
-    }
-
-    Scaffold(
-        topBar = {
-            TopBarView(
-                "タイムゾーン設定",
-                onBackNavClicked = { navController.popBackStack() },
-                showBackButton = true,
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            Text("現在の設定:${zoneId}")
-
-            TimeZoneDropdown(
-                selectedOption = selectedOption,
-                onOptionSelected = { option ->
-                    selectedOption = option
-                    AppTimeZone.updateStrZoneId(option.id)  // 選択されたタイムゾーンIDを更新
-                    viewModel.setUserTimeZone(option.id) { statusInfo ->
-                        if (statusInfo.status != FuncStatus.SUCCESS) {
-                            scope.launch {
-                                snackBarHostState.showSnackbar(
-                                    "タイムゾーンの設定に失敗しました: ${statusInfo.errorMessage}\n再度選択してください"
-                                )
-                            }
-                        }
-                    }
-                }
-            )
-
-        }
-    }
-}
-
-@Composable
-fun TimeZoneDropdown(
-    selectedOption: TimeZoneOption,
-    onOptionSelected: (TimeZoneOption) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clickable { expanded = true }
-                .border(
-                    1.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(12.dp)
-        ) {
-            Text(text = "${selectedOption.label} ${selectedOption.id}")
-        }
-
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            TimeZoneOption.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text("${option.label} ${option.id}") },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
+//@Composable
+//fun TimeZoneDropdown(
+//    selectedOption: TimeZoneOption,
+//    onOptionSelected: (TimeZoneOption) -> Unit
+//) {
+//    var expanded by remember { mutableStateOf(false) }
+//
+//    Box {
+//        Box(
+//            modifier = Modifier
+//                .padding(horizontal = 16.dp, vertical = 8.dp)
+//                .clickable { expanded = true }
+//                .border(
+//                    1.dp,
+//                    color = MaterialTheme.colorScheme.primary,
+//                    shape = RoundedCornerShape(8.dp)
+//                )
+//                .padding(12.dp)
+//        ) {
+//            Text(text = "${selectedOption.label} ${selectedOption.id}")
+//        }
+//
+//        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+//            TimeZoneOption.entries.forEach { option ->
+//                DropdownMenuItem(
+//                    text = { Text("${option.label} ${option.id}") },
+//                    onClick = {
+//                        onOptionSelected(option)
+//                        expanded = false
+//                    }
+//                )
+//            }
+//        }
+//    }
+//}

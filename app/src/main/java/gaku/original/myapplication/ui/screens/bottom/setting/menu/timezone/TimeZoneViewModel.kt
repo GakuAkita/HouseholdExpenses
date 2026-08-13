@@ -12,7 +12,8 @@ import timber.log.Timber
 
 data class TimeZoneUiState(
     val isLoading: Boolean = false,
-    val message:String? = null
+    val message:String? = null,
+
 )
 
 class TimeZoneViewModel(
