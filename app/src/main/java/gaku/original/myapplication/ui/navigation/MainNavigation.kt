@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
+import gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone.TimeZoneScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.menu.userInfo.UserInfoScreenRoot
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
@@ -60,7 +61,9 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.TimeZone> {
-
+            TimeZoneScreenRoot(
+                navHostController = navController
+            )
         }
 
         composable<MainGraph.SettingMenu.Categories> {

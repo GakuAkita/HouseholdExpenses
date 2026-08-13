@@ -18,14 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
-import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
 fun UserInfoScreenRoot(
     navHostController: NavHostController,
     viewModel: UserInfoViewModel = viewModel(factory = UserInfoViewModel.Factory)
-){
+) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
 
@@ -49,12 +48,12 @@ fun UserInfoScreenRoot(
 fun UserInfoScreen(
     uiState: UserInfoUiState,
     snackbarHostState: SnackbarHostState,
-    onBackNavClick:()->Unit
+    onBackNavClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopBarView(
-                "ユーザー情報",
+                title = "User information",
                 onBackNavClicked = { onBackNavClick() },
                 showBackButton = true,
             )
@@ -83,7 +82,7 @@ fun UserInfoScreen(
 
 @Preview
 @Composable
-fun UserInfoScreenPreview(){
+fun UserInfoScreenPreview() {
 
     val uiState = UserInfoUiState()
 

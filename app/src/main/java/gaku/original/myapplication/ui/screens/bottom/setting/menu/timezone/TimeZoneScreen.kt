@@ -1,9 +1,10 @@
-package gaku.original.myapplication.ui.screens.bottom.setting.menu
+package gaku.original.myapplication.ui.screens.bottom.setting.menu.timezone
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
@@ -14,6 +15,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,16 +23,83 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.Constants.TimeZoneOption
-import gaku.original.myapplication.ui.common.BottomBarView
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.AppSettingsViewModel
 import kotlinx.coroutines.launch
+
+@Composable
+fun TimeZoneScreenRoot(
+    viewModel: TimeZoneViewModel = viewModel(factory = TimeZoneViewModel.Factory),
+    navHostController: NavHostController
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackBarHostState = LocalSnackBarHostState.current
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackBarHostState.showSnackbar(it)
+            //viewModel.onMessageShown()
+        }
+    }
+
+    TimeZoneScreen(
+        uiState,
+        snackBarHostState,
+        onBackNavClick = {
+            navHostController.popBackStack()
+        }
+    )
+}
+
+@Composable
+fun TimeZoneScreen(
+    uiState: TimeZoneUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackNavClick: () -> Unit
+) {
+
+    Scaffold(
+        topBar = {
+            TopBarView(
+                title = "TimeZone",
+                onBackNavClicked = { onBackNavClick() },
+                showBackButton = true,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+
+        }
+    }
+}
+
+@Preview
+@Composable
+fun TimeZoneScreenPreview() {
+
+    val uiState = TimeZoneUiState()
+
+    TimeZoneScreen(
+        uiState,
+        snackbarHostState = SnackbarHostState(),
+        onBackNavClick = {}
+    )
+}
+
 
 @Composable
 fun AppSettingsView(
@@ -60,7 +129,6 @@ fun AppSettingsView(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
