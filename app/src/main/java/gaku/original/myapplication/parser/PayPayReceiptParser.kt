@@ -3,13 +3,14 @@ package gaku.original.myapplication.parser
 import android.util.Log
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.Text.TextBlock
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.utility.LogAkitaDebug
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class PayPayReceiptOCRParser(
@@ -163,7 +164,7 @@ class PayPayReceiptOCRParser(
             val normalized = jaDate.replace("\\s+".toRegex(), "") // スペース削除
             val formatter = DateTimeFormatter.ofPattern("yyyy年M月d日H時m分")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            return AppTimeZone.localDateTimeToIsoString(localDateTime)
+            return TODO()
         }
 
         // 英数字形式：yyyy/M/d H:m（スペース有無や時刻くっつき対応）
@@ -175,7 +176,7 @@ class PayPayReceiptOCRParser(
                 .trim()
             val formatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            return AppTimeZone.localDateTimeToIsoString(localDateTime)
+            return TODO()
         }
 
         // どちらにもマッチしなかった場合

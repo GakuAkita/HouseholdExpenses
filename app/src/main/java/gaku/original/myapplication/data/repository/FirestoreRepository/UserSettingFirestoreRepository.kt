@@ -3,7 +3,6 @@ package gaku.original.myapplication.data.repository.FirestoreRepository
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.FirestoreReference
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
@@ -148,7 +147,7 @@ class UserSettingsFirestoreRepository @Inject constructor(
          * 毎回ApptimeZone.update..って書くのはだるい。
          * 責務の分離的には本当はよくないけど
          */
-        AppTimeZone.updateStrZoneId(userPreferences.timeZone)
+        //AppTimeZone.updateStrZoneId(userPreferences.timeZone)
         val result = FuncResultWithData.Success(
             userPreferences.timeZone
         )

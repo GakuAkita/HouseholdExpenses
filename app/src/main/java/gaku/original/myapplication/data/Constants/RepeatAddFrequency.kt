@@ -1,6 +1,5 @@
 package gaku.original.myapplication.data.Constants
 
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.dataClass.Frequency
 import java.time.LocalDateTime
 
@@ -49,7 +48,7 @@ enum class DayOfWeek(val value: Int, val label: String) {
  */
 fun getDaysInMonthByFrequency(
     frequencySetting: Frequency,
-    baseTime: LocalDateTime = AppTimeZone.getCurrentTimeInZone()
+    baseTime: LocalDateTime = LocalDateTime.now()
 ): List<LocalDateTime> {
     val year = baseTime.year
     val month = baseTime.month

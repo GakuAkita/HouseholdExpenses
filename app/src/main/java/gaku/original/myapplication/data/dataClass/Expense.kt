@@ -2,11 +2,13 @@ package gaku.original.myapplication.data.dataClass
 
 import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.utility.separateStringByBars
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Serializable
 @Parcelize
@@ -43,7 +45,8 @@ val defaultCategory = Category(
 fun getDefaultExpense(): Expense {
     return Expense(
         id = null,
-        datetime = AppTimeZone.getCurrentTimeInUTCString(),
+        /* This should not be used... */
+        datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo")),
         amount = null,
         category = null,
         note = null,
