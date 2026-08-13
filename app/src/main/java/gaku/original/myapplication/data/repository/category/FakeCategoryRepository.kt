@@ -42,11 +42,11 @@ class FakeCategoryRepository : CategoryRepository {
         _categories.value = sampleCategories
     }
 
-    override fun getAllCategories(): Map<String, Category> {
+    override suspend fun getAllCategories(): Map<String, Category> {
         return _categories.value
     }
 
-    override fun addCategory(category: Category) {
+    override suspend fun addCategory(category: Category) {
         val newCategory = category.copy(
             id = UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis()
@@ -54,11 +54,11 @@ class FakeCategoryRepository : CategoryRepository {
         _categories.value += (newCategory.id!! to newCategory)
     }
 
-    override fun updateCategory(category: Category) {
+    override suspend fun updateCategory(category: Category) {
         _categories.value += (category.id!! to category)
     }
 
-    override fun deleteCategory(categoryId: String) {
+    override suspend fun deleteCategory(categoryId: String) {
         _categories.value -= categoryId
     }
 }

@@ -8,11 +8,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 data class CategoryEditUiState(
     val message: String? = null,
@@ -57,10 +59,10 @@ class CategoryEditViewModel(
     }
 
     init {
-        val categories = categoryRepository.getAllCategories()
-        _uiState.value = _uiState.value.copy(
-            categories = categories.values.toList()
-        )
+//        val categories = categoryRepository.getAllCategories()
+//        _uiState.value = _uiState.value.copy(
+//            categories = categories.values.toList()
+//        )
 
         viewModelScope.launch {
             categoryRepository.categories.collect {categories->
@@ -100,20 +102,20 @@ class CategoryEditViewModel(
         }
     }
 
-    fun onSave(category: Category) {
-        if (category.name == null ||
-            category.name.isEmpty()
-        ) {
-            /* if I need to add more conditions, define AppError using sealed interface */
-            /* ダブりチェックが必要 */
-            _uiState.update {
-                it.copy(
-                    messageInDialog = "Input category name"
-                )
-            }
-            return
+    private suspend fun validateCategory(category: Category): AppResult<Unit, CategoryInputError> {
+        if(category.name == null ||
+            category.name.isEmpty()){
+            return AppResult.Failure(CategoryInputError.EmptyName)
         }
 
+        val allCategories = categoryRepository.getAllCategories()
+        if(allCategories.values.any{it.name == category.name}){
+            return AppResult.Failure(CategoryInputError.DuplicateName)
+        }
+        return AppResult.Success(Unit)
+    }
+
+    fun onSave(category: Category) {
         viewModelScope.launch {
             try {
                 _uiState.update {
@@ -121,12 +123,35 @@ class CategoryEditViewModel(
                         isLoading = true
                     )
                 }
+
+                val validateRet = validateCategory(category)
+                when(validateRet){
+                    is AppResult.Failure ->{
+                        _uiState.update {
+                            it.copy(
+                                message = validateRet.error.message
+                            )
+                        }
+                        return@launch
+                    }
+
+                    is AppResult.Success->{
+                        Timber.d("Category(${category.name}) validated.")
+                    }
+                }
+
                 if (category.id == null) {
                     /* Add new category */
                     categoryRepository.addCategory(category)
                 } else {
                     /* update category */
                     categoryRepository.updateCategory(category)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        isShowEditDialog = false
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -138,7 +163,6 @@ class CategoryEditViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        isShowEditDialog = false
                     )
                 }
             }
@@ -146,25 +170,27 @@ class CategoryEditViewModel(
     }
 
     fun onDelete(category: Category) {
-        try {
-            _uiState.update {
-                it.copy(
-                    isLoading = true
-                )
-            }
-            categoryRepository.deleteCategory(category.id!!)
-            closeDeleteDialog()
-        } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    message = e.message
-                )
-            }
-        } finally {
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                )
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                categoryRepository.deleteCategory(category.id!!)
+                closeDeleteDialog()
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            } finally {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                    )
+                }
             }
         }
     }

@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.StateFlow
 interface CategoryRepository {
 
     val categories: StateFlow<Map<String, Category>>
-    fun getAllCategories():Map<String, Category>
+    suspend fun getAllCategories():Map<String, Category>
 
-    fun addCategory(category: Category)
+    suspend fun addCategory(category: Category)
 
-    fun updateCategory(category: Category)
+    suspend fun updateCategory(category: Category)
 
-    fun deleteCategory(categoryId:String)
+    suspend fun deleteCategory(categoryId:String)
 }
