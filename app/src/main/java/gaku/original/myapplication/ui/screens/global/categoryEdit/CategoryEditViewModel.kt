@@ -129,7 +129,7 @@ class CategoryEditViewModel(
                     is AppResult.Failure ->{
                         _uiState.update {
                             it.copy(
-                                message = validateRet.error.message
+                                messageInDialog = validateRet.error.message
                             )
                         }
                         return@launch
@@ -166,6 +166,14 @@ class CategoryEditViewModel(
                     )
                 }
             }
+        }
+    }
+
+    fun eraseDialogMessage(){
+        _uiState.update {
+            it.copy(
+                messageInDialog = null
+            )
         }
     }
 

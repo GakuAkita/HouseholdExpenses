@@ -14,6 +14,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -78,10 +79,13 @@ fun CategoryEditScreenRoot(
             viewModel.onSave(it)
         },
         onDeleteClick = {
-            //viewModel
+            viewModel.onDelete(it)
         },
         onDeleteIconClick = {
             viewModel.onDeleteIconClick(it)
+        },
+        onCategoryNameChange = {
+            viewModel.eraseDialogMessage()
         }
     )
 }
@@ -97,7 +101,8 @@ fun CategoryEditScreen(
     onEditDialogDismiss:()->Unit,
     onDeleteDialogDismiss:()->Unit,
     onSaveClick:(Category)->Unit,
-    onDeleteClick:(Category)->Unit
+    onDeleteClick:(Category)->Unit,
+    onCategoryNameChange:(String)->Unit/* used to change erase the dialog message */
 ) {
     Scaffold(
         topBar = {
@@ -155,7 +160,7 @@ fun CategoryEditScreen(
                     errorMessage = uiState.messageInDialog,
                     onValueChange = {
                         /* erase the message in the dialog */
-
+                        onCategoryNameChange(it)
                     }
                 )
             }
@@ -209,7 +214,8 @@ fun CategoryEditScreenPreview() {
         onEditDialogDismiss = {},
         onDeleteDialogDismiss = {},
         onSaveClick = {},
-        onDeleteClick = {}
+        onDeleteClick = {},
+        onCategoryNameChange = {}
     )
 }
 
@@ -490,7 +496,7 @@ fun CategoryAddEditDialog(
                 )
                 if(errorMessage != null)
                 {
-                    Text(errorMessage)
+                    Text(errorMessage, color = MaterialTheme.colorScheme.error)
                 }
             }
         },
