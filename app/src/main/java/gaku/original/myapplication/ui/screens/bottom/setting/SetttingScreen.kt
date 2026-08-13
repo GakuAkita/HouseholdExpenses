@@ -89,7 +89,7 @@ fun SettingScreen(
 
         SettingRowWithNavigation(
             label = "Repeat Add",
-            route = MainGraph.SettingMenu.RepeatAdd,
+            route = MainGraph.SettingMenu.RepeatAdd.Screen,
             onMenuClick = onMenuClick
         )
 

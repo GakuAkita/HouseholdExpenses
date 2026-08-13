@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -123,8 +124,32 @@ fun RepeatAddScreen(
             ) {
                 Text("毎月1日に自動で追加されます")
             }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+                Text("These expenses are automatically added on the first day of each month.")
+            }
+
+            if (uiState.showAddExpenseConfirmDialog) {
+
+            }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RepeatAddScreenPreview() {
+    val uiState = RepeatAddUiState()
+
+    RepeatAddScreen(
+        uiState,
+        snackbarHostState = SnackbarHostState(),
+        onBackNavClick = {}
+    )
 }
 
 

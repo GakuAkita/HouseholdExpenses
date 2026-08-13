@@ -47,14 +47,19 @@ data object MainGraph {
         data object UserInfo : SettingMenu
 
         @Serializable
-        data object TimeZone: SettingMenu
+        data object TimeZone : SettingMenu
 
         @Serializable
-        data object Categories: SettingMenu{
+        data object Categories : SettingMenu {
         }
 
+        sealed interface RepeatAdd : SettingMenu {
             @Serializable
-        data object RepeatAdd : SettingMenu
+            data object Screen: RepeatAdd
+
+            @Serializable
+            data object Dialog: RepeatAdd
+        }
 
         @Serializable
         data object AppSettings : SettingMenu

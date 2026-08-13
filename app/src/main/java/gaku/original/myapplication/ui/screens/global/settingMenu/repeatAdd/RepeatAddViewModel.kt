@@ -11,7 +11,9 @@ import timber.log.Timber
 
 data class RepeatAddUiState(
     val isLoading: Boolean = false,
-    val message: String? = null
+    val message: String? = null,
+    val showAddEditDialog: Boolean = false,
+    val showAddExpenseConfirmDialog:Boolean = false
 )
 
 class RepeatAddViewModel(

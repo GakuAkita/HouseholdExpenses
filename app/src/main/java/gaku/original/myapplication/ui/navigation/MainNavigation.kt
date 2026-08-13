@@ -4,6 +4,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
@@ -13,6 +14,8 @@ import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditSc
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialog
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialogRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
@@ -74,11 +77,18 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<MainGraph.SettingMenu.RepeatAdd> {
+        composable<MainGraph.SettingMenu.RepeatAdd.Screen> {
             RepeatAddScreenRoot(
                 navHostController = navController
             )
         }
+
+        composable<MainGraph.SettingMenu.RepeatAdd.Dialog> {
+            RepeatAddEditDialogRoot(
+
+            )
+        }
+
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {
 
