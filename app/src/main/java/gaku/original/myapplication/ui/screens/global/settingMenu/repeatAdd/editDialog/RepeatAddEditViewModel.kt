@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ data class RepeatAddEditDialogState(
 )
 
 class RepeatAddEditViewModel(
+    private val initialRepeatAdd: RepeatAdd? = null,
     private val repeatAddRepository: RepeatAddRepository
 ) : ViewModel() {
 
@@ -25,12 +27,13 @@ class RepeatAddEditViewModel(
     val uiState: StateFlow<RepeatAddEditDialogState> = _uiState.asStateFlow()
 
     companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(repeatAdd: RepeatAdd?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as MyApplication
                 val container = app.appContainer
                 val session = container.sessionContainer!!
                 RepeatAddEditViewModel(
+                    repeatAdd,
                     session.repeatAddRepository
                 )
             }

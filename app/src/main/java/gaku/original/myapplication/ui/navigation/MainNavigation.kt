@@ -15,8 +15,8 @@ import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditSc
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
-import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialog
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialogRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditViewModel
 import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
@@ -78,17 +78,20 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<MainGraph.SettingMenu.RepeatAdd.Screen> {
+        composable<MainGraph.SettingMenu.IRepeatAdd.Screen> {
             /* RepeatAddViewModel is shared with RepeatAdd.Dialog */
             RepeatAddScreenRoot(
                 navHostController = navController
             )
         }
 
-        dialog<MainGraph.SettingMenu.RepeatAdd.Dialog>(
+        dialog<MainGraph.SettingMenu.IRepeatAdd.Dialog>(
             typeMap = mapOf(typeOf<RepeatAdd?>() to nullableNavTypeOf<RepeatAdd>())
-        ) {
+        ) { backStackEntry ->
+            val repeatAdd =
+                backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.Dialog>().repeatAdd
             RepeatAddEditDialogRoot(
+                viewModel = viewModel(factory = RepeatAddEditViewModel.Factory(repeatAdd)),
                 navHostController = navController
             )
         }

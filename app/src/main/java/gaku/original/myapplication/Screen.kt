@@ -1,6 +1,7 @@
 package gaku.original.myapplication
 
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.RepeatAdd
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -53,12 +54,13 @@ data object MainGraph {
         data object Categories : SettingMenu {
         }
 
-        sealed interface RepeatAdd : SettingMenu {
+        sealed interface IRepeatAdd : SettingMenu {
             @Serializable
-            data object Screen : RepeatAdd
+            data object Screen : IRepeatAdd
 
             @Serializable
-            data class Dialog(val repeatAdd: RepeatAdd? = null) : RepeatAdd
+            data class Dialog(val repeatAdd: RepeatAdd? = null) :
+                IRepeatAdd
         }
 
         @Serializable

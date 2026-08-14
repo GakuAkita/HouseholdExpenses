@@ -94,11 +94,11 @@ fun RepeatAddScreenRoot(
             navHostController.popBackStack()
         },
         onRepeatAddEdit = { it ->
-            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog(it))
+            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
         },
         onRepeatAddDelete = {},
         onRepeatAddAddClick = {
-            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog(null))
+            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(null))
         }
     )
 }
@@ -164,7 +164,7 @@ fun RepeatAddScreen(
 
             Button(
                 onClick = {
-
+                    onRepeatAddAddClick()
                 }
             ) {
                 Text("Add RepeatAdd")
