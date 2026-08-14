@@ -2,11 +2,15 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.Center
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -20,13 +24,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.InitialCategories.categories
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 
 @Composable
 fun RepeatAddEditDialogRoot(
@@ -36,13 +42,15 @@ fun RepeatAddEditDialogRoot(
     val uiState by viewModel.uiState.collectAsState()
 
     RepeatAddEditDialog(
-        uiState
+        uiState,
+        onRepeatFrequencyClick = {}
     )
 }
 
 @Composable
 fun RepeatAddEditDialog(
-    uiState: RepeatAddEditDialogState
+    uiState: RepeatAddEditDialogState,
+    onRepeatFrequencyClick: (RepeatFrequency) -> Unit
 ) {
     var frequencyExpanded by remember { mutableStateOf(false) }
 
@@ -57,7 +65,7 @@ fun RepeatAddEditDialog(
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.primary
-            ),
+            ).verticalScroll(rememberScrollState()),
         verticalArrangement = Center
     ) {
         TextField(
@@ -100,55 +108,36 @@ fun RepeatAddEditDialog(
             Text("Frequency")
         }
 
-        DropdownMenu(
-            expanded = frequencyExpanded,
-            onDismissRequest = {
-                frequencyExpanded = false
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    frequencyExpanded = true
+                }) {
+            TextField(
+                value = uiState.frequency?.toDisplayName() ?: "",
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text("Frequency") },
+                colors = enabledTextFiledColorSet()
+            )
+            DropdownMenu(
+                expanded = frequencyExpanded,
+                onDismissRequest = {
+                    frequencyExpanded = false
+                }
+            ) {
+                RepeatFrequency.types.forEach { freq ->
+                    RepeatFrequencyDropDownMenuItem(
+                        freq
+                    ) {
+                        onRepeatFrequencyClick(it)
+                        frequencyExpanded = false
+                    }
+                }
             }
-        ) {
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.EveryYear(
-                    0, 0, 0, 0
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.EveryMonth(
-                    0, 0, 0
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.Weekdays(
-                    0, 0,
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.Weekends(
-                    0, 0
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.Everyday(
-                    0, 0
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.Weekdays(
-                    0, 0
-                )
-            ) { }
-
-            RepeatFrequencyDropDownMenuItem(
-                RepeatFrequency.Weekends(
-                    0, 0
-                )
-            ) { }
         }
-
 
         Row(
             modifier = Modifier
@@ -176,7 +165,8 @@ fun RepeatAddEditDialogPreview() {
     val uiState = RepeatAddEditDialogState()
 
     RepeatAddEditDialog(
-        uiState
+        uiState,
+        onRepeatFrequencyClick = {}
     )
 }
 

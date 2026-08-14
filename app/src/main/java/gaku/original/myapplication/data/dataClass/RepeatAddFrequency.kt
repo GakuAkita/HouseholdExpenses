@@ -1,7 +1,6 @@
-package gaku.original.myapplication.data.Constants
+package gaku.original.myapplication.data.dataClass
 
 import android.os.Parcelable
-import gaku.original.myapplication.data.dataClass.Frequency
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
@@ -11,39 +10,52 @@ import java.time.LocalDateTime
 sealed interface RepeatFrequency : Parcelable {
 
     data class EveryYear(
-        val month: Int,
-        val day: Int,
-        val hour: Int,
-        val minute: Int
+        val month: Int = 1,
+        val day: Int = 1,
+        val hour: Int = 0,
+        val minute: Int = 0
     ) : RepeatFrequency
 
     data class EveryMonth(
-        val day: Int,
-        val hour: Int,
-        val minute: Int
+        val day: Int = 1,
+        val hour: Int = 1,
+        val minute: Int = 1
     ) : RepeatFrequency
 
     data class EveryWeek(
-        val dayOfWeek: List<DayOfWeek>,
-        val hour: Int,
-        val minute: Int
+        val dayOfWeek: List<DayOfWeek> = emptyList(),
+        val hour: Int = 0,
+        val minute: Int = 0
     ) : RepeatFrequency
 
     data class Weekdays(
-        val hour: Int,
-        val minute: Int
+        val hour: Int = 0,
+        val minute: Int = 0
     ) : RepeatFrequency
 
     data class Weekends(
-        val hour: Int,
-        val minute: Int
+        val hour: Int = 0,
+        val minute: Int = 0
     ) : RepeatFrequency
 
     data class Everyday(
-        val hour: Int,
-        val minute: Int
+        val hour: Int = 0,
+        val minute: Int = 0
     ) : RepeatFrequency
+
+    companion object{
+        val types = listOf(
+            EveryYear(),
+            EveryMonth(),
+            EveryWeek(),
+            Weekdays(),
+            Weekends(),
+            Everyday()
+        )
+    }
+
 }
+
 
 //object RepeatFrequency {
 //    const val EVERY_YEAR = "every_year"

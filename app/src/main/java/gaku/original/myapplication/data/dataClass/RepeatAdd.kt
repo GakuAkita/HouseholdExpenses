@@ -1,7 +1,6 @@
 package gaku.original.myapplication.data.dataClass
 
 import android.os.Parcelable
-import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Interface.CommonProperty
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable

@@ -1,9 +1,7 @@
 package gaku.original.myapplication.useCase
 
-import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.Constants.getDaysInMonthByFrequency
-import gaku.original.myapplication.data.FuncResultWithData
+import gaku.original.myapplication.data.dataClass.getDaysInMonthByFrequency
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
@@ -19,44 +17,44 @@ class RepeatAddUseCase @Inject constructor(
 ) {
     //新しいRepeatAddにちゃんと値が入っているかチェックする
     fun checkNewRepeatAddValid(newRepeatAdd: RepeatAdd): String {
-        if (newRepeatAdd.expense.amount == null || newRepeatAdd.expense.amount == 0L) {
-            return "expense amount is empty or 0"
-        } else if (newRepeatAdd.expense.category == null) {
-            return "expense category is empty"
-        } else if (newRepeatAdd.frequencyInfo.frequency == null) {
-            return "frequency is empty"
-        }
+//        if (newRepeatAdd.expense.amount == null || newRepeatAdd.expense.amount == 0L) {
+//            return "expense amount is empty or 0"
+//        } else if (newRepeatAdd.expense.category == null) {
+//            return "expense category is empty"
+//        } else if (newRepeatAdd.frequencyInfo.frequency == null) {
+//            return "frequency is empty"
+//        }
+//
+//        val frequencyInfo = newRepeatAdd.frequencyInfo
+//        val frequency = frequencyInfo.frequency
+//
+//        //各頻度ごとに該当するフィールドのチェックを追加
+//        if (frequency == RepeatFrequency.EVERY_YEAR) {
+//            if (frequencyInfo.month == null) return "month is empty"
+//        }
+//
+//        if (frequency == RepeatFrequency.EVERY_YEAR ||
+//            frequency == RepeatFrequency.EVERY_MONTH
+//        ) {
+//            if (frequencyInfo.day == null) return "day is empty"
+//        }
+//
+//        if (frequency == RepeatFrequency.EVERY_WEEK) {
+//            if (frequencyInfo.dayOfWeek == null) return "day of week is empty"
+//        }
+//
+//        if (frequency == RepeatFrequency.EVERY_YEAR ||
+//            frequency == RepeatFrequency.EVERY_MONTH ||
+//            frequency == RepeatFrequency.EVERY_WEEK ||
+//            frequency == RepeatFrequency.WEEKENDS ||
+//            frequency == RepeatFrequency.WEEKDAYS ||
+//            frequency == RepeatFrequency.EVERYDAY
+//        ) {
+//            if (frequencyInfo.hour == null) return "hour is empty"
+//            if (frequencyInfo.minute == null) return "minute is empty"
+//        }
 
-        val frequencyInfo = newRepeatAdd.frequencyInfo
-        val frequency = frequencyInfo.frequency
-
-        //各頻度ごとに該当するフィールドのチェックを追加
-        if (frequency == RepeatFrequency.EVERY_YEAR) {
-            if (frequencyInfo.month == null) return "month is empty"
-        }
-
-        if (frequency == RepeatFrequency.EVERY_YEAR ||
-            frequency == RepeatFrequency.EVERY_MONTH
-        ) {
-            if (frequencyInfo.day == null) return "day is empty"
-        }
-
-        if (frequency == RepeatFrequency.EVERY_WEEK) {
-            if (frequencyInfo.dayOfWeek == null) return "day of week is empty"
-        }
-
-        if (frequency == RepeatFrequency.EVERY_YEAR ||
-            frequency == RepeatFrequency.EVERY_MONTH ||
-            frequency == RepeatFrequency.EVERY_WEEK ||
-            frequency == RepeatFrequency.WEEKENDS ||
-            frequency == RepeatFrequency.WEEKDAYS ||
-            frequency == RepeatFrequency.EVERYDAY
-        ) {
-            if (frequencyInfo.hour == null) return "hour is empty"
-            if (frequencyInfo.minute == null) return "minute is empty"
-        }
-
-        return ""
+        return TODO()
     }
 
 //    suspend fun addRepeatAdd(
@@ -115,7 +113,7 @@ class RepeatAddUseCase @Inject constructor(
              * frequencyのデータから今月分の日付全部抽出して、
              * その後、今日以降のものをフィルターすればいいか
              */
-            val daysList = getDaysInMonthByFrequency(repeatAdd.frequencyInfo)
+            val daysList = getDaysInMonthByFrequency(TODO())
             /* 今日の日時の翌日でフィルターを掛けたい */
             val today = TODO()
             //val tomorrowMidnight = today.toLocalDate().plusDays(1).atStartOfDay()

@@ -7,9 +7,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.Constants.RepeatFrequency
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
