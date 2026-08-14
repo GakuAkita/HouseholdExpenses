@@ -55,10 +55,10 @@ data object MainGraph {
 
         sealed interface RepeatAdd : SettingMenu {
             @Serializable
-            data object Screen: RepeatAdd
+            data object Screen : RepeatAdd
 
             @Serializable
-            data object Dialog: RepeatAdd
+            data class Dialog(val repeatAdd: RepeatAdd? = null) : RepeatAdd
         }
 
         @Serializable

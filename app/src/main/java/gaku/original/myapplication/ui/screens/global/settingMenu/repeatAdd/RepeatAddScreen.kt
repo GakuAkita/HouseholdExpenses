@@ -93,10 +93,13 @@ fun RepeatAddScreenRoot(
         onBackNavClick = {
             navHostController.popBackStack()
         },
-        onRepeatAddEdit = {
-            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog)
+        onRepeatAddEdit = { it ->
+            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog(it))
         },
-        onRepeatAddDelete = {}
+        onRepeatAddDelete = {},
+        onRepeatAddAddClick = {
+            navHostController.navigate(MainGraph.SettingMenu.RepeatAdd.Dialog(null))
+        }
     )
 }
 
@@ -106,7 +109,8 @@ fun RepeatAddScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
     onRepeatAddEdit: (RepeatAdd) -> Unit,
-    onRepeatAddDelete: (RepeatAdd) -> Unit
+    onRepeatAddDelete: (RepeatAdd) -> Unit,
+    onRepeatAddAddClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -157,6 +161,14 @@ fun RepeatAddScreen(
                     )
                 }
             }
+
+            Button(
+                onClick = {
+
+                }
+            ) {
+                Text("Add RepeatAdd")
+            }
         }
     }
 }
@@ -171,7 +183,8 @@ fun RepeatAddScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onRepeatAddEdit = {},
-        onRepeatAddDelete = {}
+        onRepeatAddDelete = {},
+        onRepeatAddAddClick = {}
     )
 }
 

@@ -9,6 +9,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
@@ -84,7 +85,9 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        dialog<MainGraph.SettingMenu.RepeatAdd.Dialog> {
+        dialog<MainGraph.SettingMenu.RepeatAdd.Dialog>(
+            typeMap = mapOf(typeOf<RepeatAdd?>() to nullableNavTypeOf<RepeatAdd>())
+        ) {
             RepeatAddEditDialogRoot(
                 navHostController = navController
             )
