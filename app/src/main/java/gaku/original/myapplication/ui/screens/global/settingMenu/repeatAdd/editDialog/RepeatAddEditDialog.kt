@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.data.dataClass.InitialCategories.categories
+import gaku.original.myapplication.ui.common.CategoryDropDown
 
 @Composable
 fun RepeatAddEditDialogRoot(
@@ -41,13 +45,54 @@ fun RepeatAddEditDialog(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(
                     alpha = 0.6f
                 )
-            ).border(
+            )
+            .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.primary
             ),
         verticalArrangement = Center
     ) {
-        Text("aa")
+        TextField(
+            value = "${uiState.amount ?: ""}",
+            onValueChange = {
+
+            },
+            label = { Text("Amount(yen)") }
+        )
+
+        CategoryDropDown(
+            initialCategory = uiState.category,
+            categories = categories,
+            onCategorySelected = {
+
+            }
+        )
+
+        TextField(
+            value = uiState.note ?: "",
+            onValueChange = {
+
+            },
+            label = { Text("Note") }
+        )
+
+        TextField(
+            value = uiState.itemName ?: "",
+            onValueChange = {},
+            label = { Text("Item name") }
+        )
+
+        TextField(
+            value = uiState.storeName ?: "",
+            onValueChange = {},
+            label = { Text("Store name") }
+        )
+
+        Row{
+            Text("Frequency")
+        }
+
+
     }
 }
 

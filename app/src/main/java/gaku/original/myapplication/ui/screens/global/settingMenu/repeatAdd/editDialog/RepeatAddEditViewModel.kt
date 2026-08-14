@@ -3,17 +3,20 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 data class RepeatAddEditDialogState(
@@ -24,12 +27,14 @@ data class RepeatAddEditDialogState(
     val itemName: String? = null,
     val storeName: String? = null,
     val category: Category? = null,
-    val frequency: Frequency? = null
+    val frequency: Frequency? = null,
+    val categories: List<Category> = emptyList()
 )
 
 class RepeatAddEditViewModel(
     private val initialRepeatAdd: RepeatAdd? = null,
-    private val repeatAddRepository: RepeatAddRepository
+    private val repeatAddRepository: RepeatAddRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RepeatAddEditDialogState())
@@ -43,7 +48,8 @@ class RepeatAddEditViewModel(
                 val session = container.sessionContainer!!
                 RepeatAddEditViewModel(
                     repeatAdd,
-                    session.repeatAddRepository
+                    session.repeatAddRepository,
+                    session.categoryRepository
                 )
             }
         }
@@ -52,6 +58,16 @@ class RepeatAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+
+        viewModelScope.launch {
+            categoryRepository.categories.collect { categories ->
+                _uiState.update {
+                    it.copy(
+                        categories = categories.values.toList()
+                    )
+                }
+            }
+        }
 
         if (initialRepeatAdd == null) {
             //新規追加
