@@ -42,6 +42,7 @@ import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
@@ -521,13 +522,12 @@ fun CategoryRemoveConfirmDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
+                CancelButton(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     onClick = { onDismiss() }
-                ) {
-                    Text("Cancel")
-                }
+                )
+
                 Button(
                     modifier = Modifier
                         .padding(end = 10.dp),

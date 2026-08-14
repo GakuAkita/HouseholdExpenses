@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.data.dataClass.InitialCategories.categories
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -47,9 +47,12 @@ fun RepeatAddEditDialogRoot(
         onAmountChange = {
             viewModel.onAmountChange(it)
         },
+        onCategorySelected = {},
         onRepeatFrequencySelected = {
             viewModel.onRepeatFrequencySelected(it)
-        }
+        },
+        onSaveClick = {},
+        onCancelClick = {}
     )
 }
 
@@ -57,7 +60,10 @@ fun RepeatAddEditDialogRoot(
 fun RepeatAddEditDialog(
     uiState: RepeatAddEditDialogState,
     onAmountChange: (String) -> Unit,
-    onRepeatFrequencySelected: (RepeatFrequency) -> Unit
+    onCategorySelected: (Category?) -> Unit,
+    onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
+    onSaveClick: () -> Unit,
+    onCancelClick: () -> Unit
 ) {
     var frequencyExpanded by remember { mutableStateOf(false) }
 
@@ -92,7 +98,7 @@ fun RepeatAddEditDialog(
 
         CategoryDropDown(
             initialCategory = uiState.category,
-            categories = categories,
+            categories = uiState.categories,
             onCategorySelected = {
 
             }
@@ -159,7 +165,8 @@ fun RepeatAddEditDialog(
                 .padding(20.dp)
         ) {
             Button(
-                onClick = {}
+                onClick = {},
+                //colors = ButtonDefaults
             ) {
                 Text("Cancel")
             }
@@ -181,7 +188,10 @@ fun RepeatAddEditDialogPreview() {
     RepeatAddEditDialog(
         uiState,
         onAmountChange = {},
-        onRepeatFrequencySelected = {}
+        onCategorySelected = {},
+        onRepeatFrequencySelected = {},
+        onSaveClick = {},
+        onCancelClick = {}
     )
 }
 
