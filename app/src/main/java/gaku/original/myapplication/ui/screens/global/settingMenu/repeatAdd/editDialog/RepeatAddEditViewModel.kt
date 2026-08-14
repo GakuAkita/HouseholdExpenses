@@ -116,6 +116,38 @@ class RepeatAddEditViewModel(
         }
     }
 
+    fun onCategorySelected(category: Category?) {
+        _uiState.update {
+            it.copy(
+                category = category
+            )
+        }
+    }
+
+    fun onNoteChange(note: String?) {
+        _uiState.update {
+            it.copy(
+                note = note
+            )
+        }
+    }
+
+    fun onItemNameChange(itemName: String?) {
+        _uiState.update {
+            it.copy(
+                itemName = itemName
+            )
+        }
+    }
+
+    fun onStoreNameChange(storeName: String?) {
+        _uiState.update {
+            it.copy(
+                storeName = storeName
+            )
+        }
+    }
+
     fun onRepeatFrequencySelected(
         freq: RepeatFrequency
     ) {

@@ -48,7 +48,18 @@ fun RepeatAddEditDialogRoot(
         onAmountChange = {
             viewModel.onAmountChange(it)
         },
-        onCategorySelected = {},
+        onCategorySelected = {
+            viewModel.onCategorySelected(it)
+        },
+        onNoteChange = {
+            viewModel.onNoteChange(it)
+        },
+        onItemNameChange = {
+            viewModel.onItemNameChange(it)
+        },
+        onStoreNameChange = {
+            viewModel.onStoreNameChange(it)
+        },
         onRepeatFrequencySelected = {
             viewModel.onRepeatFrequencySelected(it)
         },
@@ -66,6 +77,9 @@ fun RepeatAddEditDialog(
     uiState: RepeatAddEditDialogState,
     onAmountChange: (String) -> Unit,
     onCategorySelected: (Category?) -> Unit,
+    onNoteChange: (String?) -> Unit,
+    onItemNameChange: (String?) -> Unit,
+    onStoreNameChange: (String?) -> Unit,
     onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -112,20 +126,24 @@ fun RepeatAddEditDialog(
         TextField(
             value = uiState.note ?: "",
             onValueChange = {
-
+                onNoteChange(it)
             },
             label = { Text("Note") }
         )
 
         TextField(
             value = uiState.itemName ?: "",
-            onValueChange = {},
+            onValueChange = {
+                onItemNameChange(it)
+            },
             label = { Text("Item name") }
         )
 
         TextField(
             value = uiState.storeName ?: "",
-            onValueChange = {},
+            onValueChange = {
+                onStoreNameChange(it)
+            },
             label = { Text("Store name") }
         )
 
@@ -195,6 +213,9 @@ fun RepeatAddEditDialogPreview() {
         uiState,
         onAmountChange = {},
         onCategorySelected = {},
+        onNoteChange = {},
+        onItemNameChange = {},
+        onStoreNameChange = {},
         onRepeatFrequencySelected = {},
         onSaveClick = {},
         onCancelClick = {}
