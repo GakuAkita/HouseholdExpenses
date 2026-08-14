@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.navigation
 
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -86,7 +87,10 @@ fun NavGraphBuilder.mainGraph(
         }
 
         dialog<MainGraph.SettingMenu.IRepeatAdd.Dialog>(
-            typeMap = mapOf(typeOf<RepeatAdd?>() to nullableNavTypeOf<RepeatAdd>())
+            typeMap = mapOf(typeOf<RepeatAdd?>() to nullableNavTypeOf<RepeatAdd>()),
+            dialogProperties = DialogProperties(
+                dismissOnClickOutside = false
+            )
         ) { backStackEntry ->
             val repeatAdd =
                 backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.Dialog>().repeatAdd

@@ -10,8 +10,8 @@ import kotlinx.serialization.Serializable
 data class RepeatAdd(
     override var id: String? = null,
     override var timestamp: Long? = null,/* When this RepeatAdd was registered */
-    val expense: Expense = getDefaultExpense(),
-    val frequencyInfo: Frequency = defaultFrequency,
+    val expense: Expense = Expense(),
+    val frequencyInfo: Frequency = Frequency(),
     /* everyday? weekly? monthly? yearly? */
     /**
      * everyday:何時？

@@ -6,16 +6,25 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
-    val message: String? = null
+    val message: String? = null,
+    val amount: Long? = null,
+    val note: String? = null,
+    val itemName: String? = null,
+    val storeName: String? = null,
+    val category: Category? = null,
+    val frequency: Frequency? = null
 )
 
 class RepeatAddEditViewModel(
@@ -43,6 +52,30 @@ class RepeatAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+
+        if (initialRepeatAdd == null) {
+            //新規追加
+            _uiState.update {
+                it.copy(
+                    amount = 0L,
+                    note = null,
+                    itemName = null,
+                    storeName = null,
+                    category = null,
+                    frequency = null
+                )
+            }
+        } else {
+            //編集
+            _uiState.update {
+                it.copy(
+                    amount = initialRepeatAdd.expense.amount,
+                    note = initialRepeatAdd.expense.note,
+                    itemName = initialRepeatAdd.expense.itemName,
+                    storeName = initialRepeatAdd.expense.storeName,
+                )
+            }
+        }
     }
 
     override fun onCleared() {

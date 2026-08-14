@@ -1,7 +1,7 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +20,7 @@ import androidx.navigation.NavHostController
 @Composable
 fun RepeatAddEditDialogRoot(
     navHostController: NavHostController,
-    viewModel: RepeatAddEditViewModel = viewModel(factory = RepeatAddEditViewModel.Factory)
+    viewModel: RepeatAddEditViewModel = viewModel(factory = RepeatAddEditViewModel.Factory(null))
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -39,12 +39,15 @@ fun RepeatAddEditDialog(
             .heightIn(min = 200.dp)
             .background(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(
-                    alpha = 0.5f
+                    alpha = 0.6f
                 )
+            ).border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary
             ),
         verticalArrangement = Center
     ) {
-            Text("aa")
+        Text("aa")
     }
 }
 

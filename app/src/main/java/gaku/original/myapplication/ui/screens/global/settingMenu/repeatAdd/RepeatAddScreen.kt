@@ -64,6 +64,7 @@ import gaku.original.myapplication.data.Constants.DayOfWeek
 import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.Constants.getRepeatFrequencyValues
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.defaultFrequency
@@ -163,6 +164,9 @@ fun RepeatAddScreen(
             }
 
             Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 20.dp),
                 onClick = {
                     onRepeatAddAddClick()
                 }
@@ -176,7 +180,16 @@ fun RepeatAddScreen(
 @Preview(showBackground = true)
 @Composable
 fun RepeatAddScreenPreview() {
-    val uiState = RepeatAddUiState()
+    val uiState = RepeatAddUiState(
+        repeatAdds = listOf(
+            RepeatAdd(
+                id = "1",
+                expense = Expense(
+                    amount = 200L
+                )
+            )
+        )
+    )
 
     RepeatAddScreen(
         uiState,
