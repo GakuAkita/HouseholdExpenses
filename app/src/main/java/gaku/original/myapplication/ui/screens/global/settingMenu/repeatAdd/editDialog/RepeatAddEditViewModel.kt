@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
@@ -94,6 +94,35 @@ class RepeatAddEditViewModel(
                     storeName = initialRepeatAdd.expense.storeName,
                 )
             }
+        }
+    }
+
+    fun onAmountChange(text: String) {
+        if (text.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    amount = null
+                )
+            }
+        } else {
+            val amount = text.toLongOrNull()
+            if (amount != null) {
+                _uiState.update {
+                    it.copy(
+                        amount = text.toLongOrNull()
+                    )
+                }
+            }
+        }
+    }
+
+    fun onRepeatFrequencySelected(
+        freq: RepeatFrequency
+    ) {
+        _uiState.update {
+            it.copy(
+                frequency = freq
+            )
         }
     }
 
