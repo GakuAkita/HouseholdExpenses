@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.InitialCategories.categories
 import gaku.original.myapplication.ui.common.CategoryDropDown
 
@@ -99,14 +100,53 @@ fun RepeatAddEditDialog(
             Text("Frequency")
         }
 
-        //DropdownMenu() { }
         DropdownMenu(
             expanded = frequencyExpanded,
             onDismissRequest = {
                 frequencyExpanded = false
             }
         ) {
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.EveryYear(
+                    0, 0, 0, 0
+                )
+            ) { }
 
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.EveryMonth(
+                    0, 0, 0
+                )
+            ) { }
+
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.Weekdays(
+                    0, 0,
+                )
+            ) { }
+
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.Weekends(
+                    0, 0
+                )
+            ) { }
+
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.Everyday(
+                    0, 0
+                )
+            ) { }
+
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.Weekdays(
+                    0, 0
+                )
+            ) { }
+
+            RepeatFrequencyDropDownMenuItem(
+                RepeatFrequency.Weekends(
+                    0, 0
+                )
+            ) { }
         }
 
 
@@ -137,5 +177,27 @@ fun RepeatAddEditDialogPreview() {
 
     RepeatAddEditDialog(
         uiState
+    )
+}
+
+fun RepeatFrequency.toDisplayName(): String =
+    when (this) {
+        is RepeatFrequency.EveryYear -> "Every year"
+        is RepeatFrequency.EveryMonth -> "Every month"
+        is RepeatFrequency.EveryWeek -> "Every week"
+        is RepeatFrequency.Weekdays -> "Weekdays"
+        is RepeatFrequency.Weekends -> "Weekends"
+        is RepeatFrequency.Everyday -> "Everyday"
+    }
+
+@Composable
+fun RepeatFrequencyDropDownMenuItem(freq: RepeatFrequency, onClick: (RepeatFrequency) -> Unit) {
+    DropdownMenuItem(
+        text = {
+            Text(freq.toDisplayName())
+        },
+        onClick = {
+            onClick(freq)
+        }
     )
 }

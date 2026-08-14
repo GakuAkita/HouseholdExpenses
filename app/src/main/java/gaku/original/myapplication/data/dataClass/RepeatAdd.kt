@@ -53,5 +53,5 @@ val defaultRepeatAdd = RepeatAdd(
         datetime = null,
         timestamp = null
     ),
-    frequencyInfo = defaultFrequency,
+    frequencyInfo = null,
 )

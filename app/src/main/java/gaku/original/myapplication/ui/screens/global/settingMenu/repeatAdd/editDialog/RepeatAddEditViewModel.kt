@@ -7,9 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.Constants.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Frequency
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,14 +29,15 @@ data class RepeatAddEditDialogState(
     val itemName: String? = null,
     val storeName: String? = null,
     val category: Category? = null,
-    val frequency: Frequency? = null,
+    val frequency: RepeatFrequency? = null,
     val categories: List<Category> = emptyList()
 )
 
 class RepeatAddEditViewModel(
     private val initialRepeatAdd: RepeatAdd? = null,
     private val repeatAddRepository: RepeatAddRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val appTimeZoneRepository: AppTimeZoneRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RepeatAddEditDialogState())
@@ -49,7 +52,8 @@ class RepeatAddEditViewModel(
                 RepeatAddEditViewModel(
                     repeatAdd,
                     session.repeatAddRepository,
-                    session.categoryRepository
+                    session.categoryRepository,
+                    session.appTimeZoneRepository
                 )
             }
         }
@@ -73,7 +77,7 @@ class RepeatAddEditViewModel(
             //新規追加
             _uiState.update {
                 it.copy(
-                    amount = 0L,
+                    amount = null,
                     note = null,
                     itemName = null,
                     storeName = null,
