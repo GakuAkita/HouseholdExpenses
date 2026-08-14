@@ -449,13 +449,12 @@ fun CategoryAddEditDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
+                CancelButton(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     onClick = { onDismiss() }
-                ) {
-                    Text("Cancel")
-                }
+                )
+
                 Button(
                     modifier = Modifier
                         .padding(end = 10.dp),

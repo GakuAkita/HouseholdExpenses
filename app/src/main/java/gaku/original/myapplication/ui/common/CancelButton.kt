@@ -16,8 +16,8 @@ fun CancelButton(
         modifier = modifier,
         onClick = onClick,
         colors = ButtonDefaults.buttonColors().copy(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
         )
     ) {
         Text("Cancel")

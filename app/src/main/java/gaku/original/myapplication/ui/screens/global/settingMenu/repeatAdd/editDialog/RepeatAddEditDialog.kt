@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
+import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 
@@ -51,8 +52,12 @@ fun RepeatAddEditDialogRoot(
         onRepeatFrequencySelected = {
             viewModel.onRepeatFrequencySelected(it)
         },
-        onSaveClick = {},
-        onCancelClick = {}
+        onSaveClick = {
+
+        },
+        onCancelClick = {
+            navHostController.popBackStack()
+        }
     )
 }
 
@@ -100,7 +105,7 @@ fun RepeatAddEditDialog(
             initialCategory = uiState.category,
             categories = uiState.categories,
             onCategorySelected = {
-
+                onCategorySelected(it)
             }
         )
 
@@ -164,15 +169,16 @@ fun RepeatAddEditDialog(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            Button(
-                onClick = {},
-                //colors = ButtonDefaults
-            ) {
-                Text("Cancel")
-            }
+            CancelButton(
+                onClick = {
+                    onCancelClick()
+                }
+            )
 
             Button(
-                onClick = {}
+                onClick = {
+                    onSaveClick()
+                }
             ) {
                 Text("Save")
             }
