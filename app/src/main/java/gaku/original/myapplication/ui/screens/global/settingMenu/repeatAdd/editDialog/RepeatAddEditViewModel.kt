@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
@@ -40,8 +41,46 @@ data class RepeatAddEditDialogState(
     val minute: Int? = null
 )
 
-data class RepeatAddError : AppError {
+sealed interface RepeatAddInputError : AppError {
+    data object AmountEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Amount is empty"
+    }
 
+    data object AmountNegative : RepeatAddInputError {
+        override val message: String
+            get() = "Amount is negative"
+    }
+
+    data object CategoryEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Category is empty"
+    }
+
+    data object FrequencyEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Frequency is empty"
+    }
+
+    data object MonthEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Month is empty"
+    }
+
+    data object DayEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Day is empty"
+    }
+
+    data object HourEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Hour is empty"
+    }
+
+    data object MinuteEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "Minute is empty"
+    }
 }
 
 class RepeatAddEditViewModel(
@@ -292,6 +331,54 @@ class RepeatAddEditViewModel(
                 )
             }
         }
+    }
+
+    fun validateRepeatAddInput(): AppResult<Unit, RepeatAddInputError> {
+        if (_uiState.value.amount == null) {
+            return AppResult.Failure(RepeatAddInputError.AmountEmpty)
+        }
+
+        if (_uiState.value.amount!! <= 0) {
+            return AppResult.Failure(RepeatAddInputError.AmountNegative)
+        }
+
+        if (_uiState.value.category == null) {
+            return AppResult.Failure(RepeatAddInputError.CategoryEmpty)
+        }
+
+        if (_uiState.value.frequency == null) {
+            return AppResult.Failure(RepeatAddInputError.FrequencyEmpty)
+        }
+
+        val frequency = _uiState.value.frequency!!
+        when (frequency) {
+            is RepeatFrequency.EveryYear -> {
+
+            }
+
+            is RepeatFrequency.EveryMonth -> {
+
+            }
+
+            is RepeatFrequency.EveryWeek -> {
+
+            }
+
+            is RepeatFrequency.Weekdays,
+            is RepeatFrequency.Weekends,
+            is RepeatFrequency.Everyday -> {
+                /* nothing to check additinally */
+            }
+        }
+
+        if (_uiState.value.hour == null) {
+            return AppResult.Failure(RepeatAddInputError.HourEmpty)
+        }
+
+        if (_uiState.value.minute == null) {
+            return AppResult.Failure(RepeatAddInputError.MinuteEmpty)
+        }
+        return AppResult.Success(Unit)
     }
 
     fun onSaveClick() {
