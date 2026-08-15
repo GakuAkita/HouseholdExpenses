@@ -165,6 +165,18 @@ class RepeatAddEditViewModel(
         }
     }
 
+    fun onDayChange(day: String) {
+
+    }
+
+    fun onHourChange(hour: String) {
+
+    }
+
+    fun onMinuteChange(minute: String) {
+
+    }
+
     override fun onCleared() {
         Timber.d("Cleared. ${hashCode()}")
         super.onCleared()
