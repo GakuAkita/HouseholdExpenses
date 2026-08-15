@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
@@ -38,6 +39,10 @@ data class RepeatAddEditDialogState(
     val hour: Int? = null,
     val minute: Int? = null
 )
+
+data class RepeatAddError : AppError {
+
+}
 
 class RepeatAddEditViewModel(
     private val initialRepeatAdd: RepeatAdd? = null,
@@ -185,8 +190,8 @@ class RepeatAddEditViewModel(
             return
         } else if (monthInt !in 1..12) {
             return
-        }else{
-            /* if the day is not appropriate, fix it. */
+        } else {
+            /* if the day is not appropriate, automatically adjust it. */
             _uiState.update {
                 it.copy(
                     month = monthInt
