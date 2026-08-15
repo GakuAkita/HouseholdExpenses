@@ -313,6 +313,8 @@ fun RepeatAddEditDialogPreview() {
         onItemNameChange = {},
         onStoreNameChange = {},
         onRepeatFrequencySelected = {},
+        onHourChange = {},
+        onMinuteChange = {},
         onSaveClick = {},
         onCancelClick = {}
     )

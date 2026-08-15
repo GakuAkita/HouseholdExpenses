@@ -43,7 +43,7 @@ fun CategoryDropDown(
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
-    modifier: Modifier = Modifier.width(200.dp),
+    modifier: Modifier = Modifier.width(280.dp),
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
