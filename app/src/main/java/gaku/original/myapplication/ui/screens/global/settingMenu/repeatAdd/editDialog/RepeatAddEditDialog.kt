@@ -42,6 +42,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.IntegerTextField
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -147,7 +148,7 @@ fun RepeatAddEditDialog(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Center
         ) {
-            TextField(
+            IntegerTextField(
                 value = "${uiState.amount ?: ""}",
                 onValueChange = { text ->
                     /* filter only accept digits */
@@ -156,9 +157,6 @@ fun RepeatAddEditDialog(
                     }
                 },
                 label = { Text("Amount(yen)") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
             )
 
             CategoryDropDown(
@@ -243,7 +241,7 @@ fun RepeatAddEditDialog(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text("month")
-                                    TextField(
+                                    IntegerTextField(
                                         modifier = Modifier.width(frequencyValueWidth),
                                         value = "${uiState.month ?: ""}",
                                         onValueChange = {
@@ -257,7 +255,7 @@ fun RepeatAddEditDialog(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text("day")
-                                    TextField(
+                                    IntegerTextField(
                                         modifier = Modifier.width(frequencyValueWidth),
                                         value = "${uiState.day ?: ""}",
                                         onValueChange = {
@@ -275,7 +273,7 @@ fun RepeatAddEditDialog(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text("day")
-                                    TextField(
+                                    IntegerTextField(
                                         modifier = Modifier.width(frequencyValueWidth),
                                         value = "${uiState.day ?: ""}",
                                         onValueChange = {
@@ -324,7 +322,7 @@ fun RepeatAddEditDialog(
                         /* hour and minute always here */
                         Column {
                             Text("Hour")
-                            TextField(
+                            IntegerTextField(
                                 modifier = Modifier.width(frequencyValueWidth),
                                 value = "${uiState.hour ?: ""}",
                                 onValueChange = {
@@ -340,7 +338,7 @@ fun RepeatAddEditDialog(
                         )
                         Column {
                             Text("minute")
-                            TextField(
+                            IntegerTextField(
                                 modifier = Modifier.width(frequencyValueWidth),
                                 value = "${uiState.minute ?: ""}",
                                 onValueChange = {
