@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -42,7 +43,7 @@ fun CategoryDropDown(
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.width(200.dp),
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }

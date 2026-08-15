@@ -3,12 +3,14 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.edit
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.dataClass.Category
@@ -63,6 +66,12 @@ fun RepeatAddEditDialogRoot(
         onRepeatFrequencySelected = {
             viewModel.onRepeatFrequencySelected(it)
         },
+        onHourChange = {
+
+        },
+        onMinuteChange = {
+
+        },
         onSaveClick = {
 
         },
@@ -81,11 +90,14 @@ fun RepeatAddEditDialog(
     onItemNameChange: (String?) -> Unit,
     onStoreNameChange: (String?) -> Unit,
     onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
+    onHourChange: (String) -> Unit,
+    onMinuteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
     var frequencyExpanded by remember { mutableStateOf(false) }
 
+    val frequencyValueWidth = 40.dp
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,8 +132,9 @@ fun RepeatAddEditDialog(
             categories = uiState.categories,
             onCategorySelected = {
                 onCategorySelected(it)
-            }
-        )
+            },
+
+            )
 
         TextField(
             value = uiState.note ?: "",
@@ -182,19 +195,42 @@ fun RepeatAddEditDialog(
             }
         }
 
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             if (uiState.frequency != null) {
                 when (uiState.frequency) {
                     is RepeatFrequency.EveryYear -> {
-                        /* month,day,hour,minute */
+                        /* month,day */
+                        Row {
+                            TextField(
+                                modifier = Modifier.width(frequencyValueWidth),
+                                value = "${uiState.month ?: ""}",
+                                onValueChange = {}
+                            )
+
+                            TextField(
+                                modifier = Modifier.width(frequencyValueWidth),
+                                value = "${uiState.day ?: ""}",
+                                onValueChange = {}
+                            )
+                        }
                     }
 
                     is RepeatFrequency.EveryMonth -> {
                         /* day,hour,minute */
+                        Row {
+                            TextField(
+                                modifier = Modifier.width(20.dp),
+                                value = "${uiState.day ?: ""}",
+                                onValueChange = {}
+                            )
+                        }
                     }
 
                     is RepeatFrequency.EveryWeek -> {
-                        /* List<dayOfWeek>,hour,minute */
+                        /* List<dayOfWeek> */
                     }
 
 
@@ -207,7 +243,35 @@ fun RepeatAddEditDialog(
             }
 
             if (uiState.frequency != null) {
-                /* hour and minute always here */
+                Row {
+                    /* hour and minute always here */
+                    Column {
+                        Text("Hour")
+                        TextField(
+                            modifier = Modifier.width(frequencyValueWidth),
+                            value = "${uiState.hour ?: ""}",
+                            onValueChange = {
+
+                            }
+                        )
+                    }
+
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, start = 4.dp, end = 4.dp),
+                        text = ":",
+                        fontSize = 40.sp
+                    )
+                    Column {
+                        Text("minute")
+                        TextField(
+                            modifier = Modifier.width(frequencyValueWidth),
+                            value = "${uiState.minute ?: ""}",
+                            onValueChange = {
+
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -215,7 +279,7 @@ fun RepeatAddEditDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             CancelButton(
                 onClick = {
@@ -237,7 +301,9 @@ fun RepeatAddEditDialog(
 @Preview
 @Composable
 fun RepeatAddEditDialogPreview() {
-    val uiState = RepeatAddEditDialogState()
+    val uiState = RepeatAddEditDialogState(
+        frequency = RepeatFrequency.EveryYear()
+    )
 
     RepeatAddEditDialog(
         uiState,

@@ -33,6 +33,7 @@ data class RepeatAddEditDialogState(
     val categories: List<Category> = emptyList(),
 
     val month: Int? = null,
+    val day: Int? = null,
     val dayOfWeek: List<DayOfWeek>? = null,
     val hour: Int? = null,
     val minute: Int? = null
