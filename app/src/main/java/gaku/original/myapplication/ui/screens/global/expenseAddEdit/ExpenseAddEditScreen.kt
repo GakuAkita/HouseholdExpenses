@@ -435,6 +435,9 @@ fun ExpenseAddEditScreen(
                         }
                     }
                 }
+
+                /* Calculator can be here */
+                /* uiState.isShowCalculator && selectedIndex == index */
             }
 
             if (uiState.isShowCalculator) {

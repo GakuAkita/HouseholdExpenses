@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.DayOfWeek
 
 data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
@@ -29,7 +30,12 @@ data class RepeatAddEditDialogState(
     val storeName: String? = null,
     val category: Category? = null,
     val frequency: RepeatFrequency? = null,
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+
+    val month: Int? = null,
+    val dayOfWeek: List<DayOfWeek>? = null,
+    val hour: Int? = null,
+    val minute: Int? = null
 )
 
 class RepeatAddEditViewModel(

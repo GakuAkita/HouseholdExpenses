@@ -182,10 +182,40 @@ fun RepeatAddEditDialog(
             }
         }
 
+        Row(modifier = Modifier.fillMaxWidth()) {
+            if (uiState.frequency != null) {
+                when (uiState.frequency) {
+                    is RepeatFrequency.EveryYear -> {
+                        /* month,day,hour,minute */
+                    }
+
+                    is RepeatFrequency.EveryMonth -> {
+                        /* day,hour,minute */
+                    }
+
+                    is RepeatFrequency.EveryWeek -> {
+                        /* List<dayOfWeek>,hour,minute */
+                    }
+
+
+                    is RepeatFrequency.Weekdays,
+                    is RepeatFrequency.Weekends,
+                    is RepeatFrequency.Everyday -> {
+                        /* do nothing */
+                    }
+                }
+            }
+
+            if (uiState.frequency != null) {
+                /* hour and minute always here */
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(20.dp),
+
         ) {
             CancelButton(
                 onClick = {

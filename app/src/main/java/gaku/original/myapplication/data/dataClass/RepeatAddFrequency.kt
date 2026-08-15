@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.dataClass
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 
 @Serializable
@@ -80,19 +81,19 @@ sealed interface RepeatFrequency : Parcelable {
 //}
 
 /* dayOfWeek.valueで数値、dayOfWeek.labelで文字列がでる */
-enum class DayOfWeek(val value: Int, val label: String) {
-    SUN(0, "Sunday"),
-    MON(1, "Monday"),
-    TUE(2, "Tuesday"),
-    WED(3, "Wednesday"),
-    THU(4, "Thursday"),
-    FRI(5, "Friday"),
-    SAT(6, "Saturday");
-
-    companion object {
-        fun fromValue(value: Int): DayOfWeek? = entries.find { it.value == value }
-    }
-}
+//enum class DayOfWeek(val value: Int, val label: String) {
+//    SUN(0, "Sunday"),
+//    MON(1, "Monday"),
+//    TUE(2, "Tuesday"),
+//    WED(3, "Wednesday"),
+//    THU(4, "Thursday"),
+//    FRI(5, "Friday"),
+//    SAT(6, "Saturday");
+//
+//    companion object {
+//        fun fromValue(value: Int): DayOfWeek? = entries.find { it.value == value }
+//    }
+//}
 
 /**
  * RepeatAddの設定値を今のタイムゾーンとして日時を返す
