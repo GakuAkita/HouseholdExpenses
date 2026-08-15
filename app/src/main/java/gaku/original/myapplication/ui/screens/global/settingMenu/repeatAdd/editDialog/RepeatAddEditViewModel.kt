@@ -166,15 +166,97 @@ class RepeatAddEditViewModel(
     }
 
     fun onDayChange(day: String) {
+        if (day.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    day = null
+                )
+            }
+            return
+        }
 
+        val dayInt = day.toIntOrNull()
+        if (dayInt == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Bug: Unable to convert to Integer"
+                )
+            }
+            return
+        } else if (dayInt !in 1..31) {
+            return
+        } else {
+            _uiState.update {
+                it.copy(
+                    day = dayInt
+                )
+            }
+        }
     }
 
     fun onHourChange(hour: String) {
+        if (hour.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    hour = null
+                )
+            }
+            return
+        }
 
+        val hourInt = hour.toIntOrNull()
+        if (hourInt == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Bug: Unable to convert to Integer"
+                )
+            }
+            return
+        } else if (hourInt !in 0..23) {
+//            _uiState.update {
+//                it.copy(
+//                    message = "Bug: Hour must be between 0 and 23"
+//                )
+//            }
+            /* Out of range */
+            return
+        } else {
+            _uiState.update {
+                it.copy(
+                    hour = hourInt
+                )
+            }
+        }
     }
 
     fun onMinuteChange(minute: String) {
+        if (minute.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    minute = null
+                )
+            }
+            return
+        }
 
+        val minuteInt = minute.toIntOrNull()
+        if (minuteInt == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Bug: Unable to convert to integer"
+                )
+            }
+            return
+        } else if (minuteInt !in 0..59) {
+            /* Out of range */
+            return
+        } else {
+            _uiState.update {
+                it.copy(
+                    minute = minuteInt
+                )
+            }
+        }
     }
 
     fun onSaveClick() {
