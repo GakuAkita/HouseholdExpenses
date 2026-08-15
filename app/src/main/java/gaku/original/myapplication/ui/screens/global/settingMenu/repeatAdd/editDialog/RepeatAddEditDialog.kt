@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,11 +85,15 @@ fun RepeatAddEditDialogRoot(
         onRepeatFrequencySelected = {
             viewModel.onRepeatFrequencySelected(it)
         },
-        onMonthChange = {},
+        onMonthChange = {
+            viewModel.onMonthChange(it)
+        },
         onDayOfWeekChange = { dayOfWeek, status ->
             viewModel.onDayOfWeekChange(dayOfWeek, status)
         },
-        onDayChange = {},
+        onDayChange = {
+            viewModel.onDayChange(it)
+        },
         onHourChange = {
             viewModel.onHourChange(it)
         },
@@ -127,7 +129,7 @@ fun RepeatAddEditDialog(
 ) {
     var frequencyExpanded by remember { mutableStateOf(false) }
 
-    val frequencyValueWidth = 40.dp
+    val frequencyValueWidth = 56.dp
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -237,7 +239,7 @@ fun RepeatAddEditDialog(
                             /* month,day */
                             Row {
                                 Column(
-                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text("month")
@@ -251,7 +253,7 @@ fun RepeatAddEditDialog(
                                 }
 
                                 Column(
-                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text("day")
@@ -286,7 +288,9 @@ fun RepeatAddEditDialog(
 
                         is RepeatFrequency.EveryWeek -> {
                             /* List<dayOfWeek> */
-                            Column {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 DayOfWeek.entries.forEach {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
@@ -320,7 +324,9 @@ fun RepeatAddEditDialog(
                 if (uiState.frequency != null) {
                     Row {
                         /* hour and minute always here */
-                        Column {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text("Hour")
                             IntegerTextField(
                                 modifier = Modifier.width(frequencyValueWidth),
@@ -336,7 +342,9 @@ fun RepeatAddEditDialog(
                             text = ":",
                             fontSize = 40.sp
                         )
-                        Column {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text("minute")
                             IntegerTextField(
                                 modifier = Modifier.width(frequencyValueWidth),
@@ -383,7 +391,7 @@ fun RepeatAddEditDialog(
 @Composable
 fun RepeatAddEditDialogPreview() {
     val uiState = RepeatAddEditDialogState(
-        frequency = RepeatFrequency.EveryWeek(),
+        frequency = RepeatFrequency.EveryYear(),
         message = "Snackbar message"
     )
 

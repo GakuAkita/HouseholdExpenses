@@ -165,6 +165,36 @@ class RepeatAddEditViewModel(
         }
     }
 
+    fun onMonthChange(month: String) {
+        if (month.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    month = null
+                )
+            }
+            return
+        }
+
+        val monthInt = month.toIntOrNull()
+        if (monthInt == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Bug: Unable to convert to Integer"
+                )
+            }
+            return
+        } else if (monthInt !in 1..12) {
+            return
+        }else{
+            /* if the day is not appropriate, fix it. */
+            _uiState.update {
+                it.copy(
+                    month = monthInt
+                )
+            }
+        }
+    }
+
     fun onDayChange(day: String) {
         if (day.isEmpty()) {
             _uiState.update {
