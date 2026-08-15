@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -17,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -33,19 +32,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun RepeatAddEditDialogRoot(
@@ -53,16 +53,16 @@ fun RepeatAddEditDialogRoot(
     viewModel: RepeatAddEditViewModel = viewModel(factory = RepeatAddEditViewModel.Factory(null))
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     /* I still don't understand how snackbar works. What if I define SnackBarHostStae here? */
-    val snackbarHostState = LocalSnackBarHostState.current
+    //val snackbarHostState = LocalSnackBarHostState.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
-            /* Because this is dialog.. */
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            snackbarHostState.showSnackbar(it, actionLabel = "OK")
         }
+        viewModel.onMessageShown()
     }
 
     RepeatAddEditDialog(
@@ -87,6 +87,9 @@ fun RepeatAddEditDialogRoot(
             viewModel.onRepeatFrequencySelected(it)
         },
         onMonthChange = {},
+        onDayOfWeekChange = { dayOfWeek, status ->
+            viewModel.onDayOfWeekChange(dayOfWeek, status)
+        },
         onDayChange = {},
         onHourChange = {
             viewModel.onHourChange(it)
@@ -95,7 +98,7 @@ fun RepeatAddEditDialogRoot(
             viewModel.onMinuteChange(it)
         },
         onSaveClick = {
-
+            viewModel.onSaveClick()
         },
         onCancelClick = {
             navHostController.popBackStack()
@@ -115,6 +118,7 @@ fun RepeatAddEditDialog(
     onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
     onMonthChange: (String) -> Unit,
     onDayChange: (String) -> Unit,
+    onDayOfWeekChange: (DayOfWeek, Boolean) -> Unit,
     onHourChange: (String) -> Unit,
     onMinuteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
@@ -193,7 +197,7 @@ fun RepeatAddEditDialog(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp)
+                    .padding(top = 20.dp)
                     .clickable {
                         frequencyExpanded = true
                     }) {
@@ -226,7 +230,8 @@ fun RepeatAddEditDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 if (uiState.frequency != null) {
                     when (uiState.frequency) {
@@ -283,6 +288,26 @@ fun RepeatAddEditDialog(
 
                         is RepeatFrequency.EveryWeek -> {
                             /* List<dayOfWeek> */
+                            Column {
+                                DayOfWeek.entries.forEach {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = uiState.dayOfWeek.contains(it),
+                                            onCheckedChange = { status ->
+                                                onDayOfWeekChange(it, status)
+                                            }
+                                        )
+                                        Text(
+                                            it.getDisplayName(
+                                                TextStyle.SHORT,
+                                                Locale.ENGLISH
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                         }
 
 
@@ -350,7 +375,8 @@ fun RepeatAddEditDialog(
         }
 
         SnackbarHost(
-            hostState = snackbarHostState
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
@@ -359,7 +385,8 @@ fun RepeatAddEditDialog(
 @Composable
 fun RepeatAddEditDialogPreview() {
     val uiState = RepeatAddEditDialogState(
-        frequency = RepeatFrequency.EveryMonth()
+        frequency = RepeatFrequency.EveryWeek(),
+        message = "Snackbar message"
     )
 
     RepeatAddEditDialog(
@@ -372,6 +399,7 @@ fun RepeatAddEditDialogPreview() {
         onStoreNameChange = {},
         onRepeatFrequencySelected = {},
         onMonthChange = {},
+        onDayOfWeekChange = { _, _ -> },
         onDayChange = {},
         onHourChange = {},
         onMinuteChange = {},

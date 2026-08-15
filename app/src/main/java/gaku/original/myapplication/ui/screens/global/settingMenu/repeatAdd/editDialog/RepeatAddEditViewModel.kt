@@ -34,7 +34,7 @@ data class RepeatAddEditDialogState(
 
     val month: Int? = null,
     val day: Int? = null,
-    val dayOfWeek: List<DayOfWeek>? = null,
+    val dayOfWeek: List<DayOfWeek> = emptyList(),
     val hour: Int? = null,
     val minute: Int? = null
 )
@@ -175,6 +175,39 @@ class RepeatAddEditViewModel(
 
     fun onMinuteChange(minute: String) {
 
+    }
+
+    fun onSaveClick() {
+        _uiState.update {
+            it.copy(
+                message = "Saved!"
+            )
+        }
+    }
+
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
+        }
+    }
+
+    fun onDayOfWeekChange(dayOfWeek: DayOfWeek, status: Boolean) {
+        val current = _uiState.value.dayOfWeek
+        if (status) {
+            _uiState.update {
+                it.copy(
+                    dayOfWeek = current.plus(dayOfWeek)
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    dayOfWeek = current.minus(dayOfWeek)
+                )
+            }
+        }
     }
 
     override fun onCleared() {
