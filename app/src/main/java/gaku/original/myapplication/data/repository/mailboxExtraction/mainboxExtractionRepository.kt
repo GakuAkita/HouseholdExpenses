@@ -1,6 +1,6 @@
 package gaku.original.myapplication.data.repository.mailboxExtraction
 
-import gaku.original.myapplication.data.dataClass.EmailTemplateType
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 
 interface mainboxExtractionRepository {
 

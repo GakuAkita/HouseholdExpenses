@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.Interface.CommonProperty
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import gaku.original.myapplication.utility.separateStringByBars
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -84,7 +85,7 @@ fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, Strin
         2 -> {
             val mainType = convertGeneratedTypeToDisplay(parts[0])
             val subType =
-                if (mainType == GeneratedType.MAIL_EXTRACTION) convertNodeNameToMenuName(parts[1]) else ""
+                if (mainType == GeneratedType.MAIL_EXTRACTION) TODO() else ""
             mainType to subType
         }
 
@@ -111,7 +112,7 @@ fun convertGeneratedTypeToDefaultInstance(generatedType: String): EmailTemplateT
     when (mainType) {
         GeneratedType.MAIL_EXTRACTION -> {
             if (subType != null) {
-                instance = getEmailTemplateTypeByNodeName(subType)
+                instance = TODO()//getEmailTemplateTypeByNodeName(subType)
             }
             /* nodeNameに対応するinstanceを返す */
         }

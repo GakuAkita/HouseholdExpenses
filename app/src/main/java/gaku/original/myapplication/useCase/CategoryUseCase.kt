@@ -8,7 +8,6 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.getAllAssignments
-import gaku.original.myapplication.data.dataClass.getAllEmailTemplateTypes
 import gaku.original.myapplication.data.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.repository.FirestoreRepository.RepeatAddFirestoreRepository
 import gaku.original.myapplication.data.repository.LocalRepository.CategoryLocalRepository

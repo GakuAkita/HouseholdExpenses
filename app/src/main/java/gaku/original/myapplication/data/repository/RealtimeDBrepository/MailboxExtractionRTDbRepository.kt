@@ -6,9 +6,8 @@ import gaku.original.myapplication.RealtimeDbReference
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.dataClass.EmailTemplateType
-import gaku.original.myapplication.data.dataClass.MailboxExtractionLastExec
 import gaku.original.myapplication.data.mapFailure
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -17,6 +16,7 @@ import kotlinx.coroutines.withTimeout
 import setAnyDataToRTDb
 import updateAnyDataToRTDb
 import javax.inject.Inject
+import kotlin.jvm.java
 
 class MailboxExtractionRTDbRepository @Inject constructor(
     private val realtimeDbReference: RealtimeDbReference
@@ -63,7 +63,7 @@ class MailboxExtractionRTDbRepository @Inject constructor(
                     val snapshot = ref.get().await()
                     if (!snapshot.exists()) {
                         val result = FuncResultWithData.Success(
-                            data = setting.defaultInstance(),
+                            data = TODO(),//setting.defaultInstance(),
                             isEmpty = true
                         )
                         return@withContext result
@@ -130,45 +130,45 @@ class MailboxExtractionRTDbRepository @Inject constructor(
         }
     }
 
-    suspend fun getMailTypeLastExec(
-        type: EmailTemplateType
-    ): FuncResultWithData<MailboxExtractionLastExec> {
-        val funcName = ::getMailTypeLastExec.name
-        val refRet = realtimeDbReference.getMailboxExtractionLastExecRef(type)
-        if (refRet !is FuncResultWithData.Success) {
-            return refRet.mapFailure()
-        }
-        val ref = refRet.data
-
-        return try {
-            withTimeout(10000) {
-                withContext(Dispatchers.IO) {
-                    val snapshot = ref.get().await()
-                    if (!snapshot.exists()) {
-                        return@withContext FuncResultWithData.Success(
-                            data = MailboxExtractionLastExec(type.nodeName, 0L),
-                            isEmpty = true
-                        )
-                    }
-                    val data = snapshot.getValue(MailboxExtractionLastExec::class.java)
-                    if (data == null) {
-                        FuncResultWithData.Failure.GenericFailure(
-                            status = FuncStatus.FAILED,
-                            errorMessage = "Unable to convert data to MailboxExtractionLastExec"
-                        )
-                    } else {
-                        FuncResultWithData.Success(data = data)
-                    }
-                }
-            }
-        } catch (e: TimeoutCancellationException) {
-            Log.d(className, "${funcName} Timeout.")
-            FuncResultWithData.Failure.Timeout()
-        } catch (e: Exception) {
-            FuncResultWithData.Failure.GenericFailure(
-                status = FuncStatus.FAILED,
-                errorMessage = e.message ?: "Unknown error"
-            )
-        }
-    }
+//    suspend fun getMailTypeLastExec(
+//        type: EmailTemplateType
+//    ): FuncResultWithData<MailboxExtractionLastExec> {
+//        val funcName = ::getMailTypeLastExec.name
+//        val refRet = realtimeDbReference.getMailboxExtractionLastExecRef(type)
+//        if (refRet !is FuncResultWithData.Success) {
+//            return refRet.mapFailure()
+//        }
+//        val ref = refRet.data
+//
+//        return try {
+//            withTimeout(10000) {
+//                withContext(Dispatchers.IO) {
+//                    val snapshot = ref.get().await()
+//                    if (!snapshot.exists()) {
+//                        return@withContext FuncResultWithData.Success(
+//                            data = MailboxExtractionLastExec(type.nodeName, 0L),
+//                            isEmpty = true
+//                        )
+//                    }
+//                    val data = snapshot.getValue(MailboxExtractionLastExec::class.java)
+//                    if (data == null) {
+//                        FuncResultWithData.Failure.GenericFailure(
+//                            status = FuncStatus.FAILED,
+//                            errorMessage = "Unable to convert data to MailboxExtractionLastExec"
+//                        )
+//                    } else {
+//                        FuncResultWithData.Success(data = data)
+//                    }
+//                }
+//            }
+//        } catch (e: TimeoutCancellationException) {
+//            Log.d(className, "${funcName} Timeout.")
+//            FuncResultWithData.Failure.Timeout()
+//        } catch (e: Exception) {
+//            FuncResultWithData.Failure.GenericFailure(
+//                status = FuncStatus.FAILED,
+//                errorMessage = e.message ?: "Unknown error"
+//            )
+//        }
+//    }
 }
