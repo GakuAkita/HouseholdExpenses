@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,6 +45,7 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
+import timber.log.Timber
 
 
 @Composable
@@ -53,6 +56,12 @@ fun RepeatAddScreenRoot(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
 
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     RepeatAddScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
@@ -62,7 +71,10 @@ fun RepeatAddScreenRoot(
         onRepeatAddEdit = { it ->
             navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
         },
-        onRepeatAddDelete = {},
+        onRepeatAddDelete = {
+            Timber.d("Delete tapped??")
+            viewModel.onDeleteClick(it)
+        },
         onRepeatAddAddClick = {
             navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(null))
         }
@@ -111,32 +123,37 @@ fun RepeatAddScreen(
             ) {
                 Text("These expenses are automatically added on the first day of each month.")
             }
+            Text("Swipe to delete.")
 
-            LazyColumn() {
-                itemsIndexed(
-                    uiState.repeatAdds
-                ) { index, repeatAdd ->
-                    RepeatAddItem(
-                        repeatAdd = repeatAdd,
-                        onEdit = {
-                            onRepeatAddEdit(repeatAdd)
-                        },
-                        onDelete = {
-                            onRepeatAddDelete(repeatAdd)
-                        }
-                    )
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                LazyColumn() {
+                    itemsIndexed(
+                        uiState.repeatAdds
+                    ) { index, repeatAdd ->
+                        RepeatAddItem(
+                            repeatAdd = repeatAdd,
+                            onEdit = {
+                                onRepeatAddEdit(repeatAdd)
+                            },
+                            onDelete = {
+                                onRepeatAddDelete(repeatAdd)
+                            }
+                        )
+                    }
                 }
-            }
 
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 20.dp),
-                onClick = {
-                    onRepeatAddAddClick()
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp, vertical = 20.dp),
+                    onClick = {
+                        onRepeatAddAddClick()
+                    }
+                ) {
+                    Text("Add RepeatAdd")
                 }
-            ) {
-                Text("Add RepeatAdd")
             }
         }
     }

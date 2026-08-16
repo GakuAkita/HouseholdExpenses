@@ -1,8 +1,10 @@
 package gaku.original.myapplication.data.repository.repeatAdd
 
-import com.google.android.play.integrity.internal.q
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
 
 class FakeRepeatAddRepository : RepeatAddRepository {
@@ -25,6 +27,18 @@ class FakeRepeatAddRepository : RepeatAddRepository {
             )
         )
     )
+
+    private val _repeatAdds = MutableStateFlow<Map<String, RepeatAdd>>(emptyMap())
+    override val repeatAdds: StateFlow<Map<String,RepeatAdd>>
+        get() = _repeatAdds.asStateFlow()
+
+    override fun startListening() {
+
+    }
+
+    override fun stopListening() {
+
+    }
 
     override suspend fun getAllRepeatAdds(): Map<String, RepeatAdd> {
         return sampleRepeatAdd

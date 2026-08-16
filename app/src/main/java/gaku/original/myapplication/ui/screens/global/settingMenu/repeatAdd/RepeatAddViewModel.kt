@@ -43,8 +43,9 @@ class RepeatAddViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+
         viewModelScope.launch {
-            try{
+            try {
                 _uiState.update {
                     it.copy(
                         isLoading = true
@@ -57,9 +58,39 @@ class RepeatAddViewModel(
                         repeatAdds = repeatAdds.values.toList()
                     )
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
 
-            }finally {
+            } finally {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun onDeleteClick(repeatAdd: RepeatAdd) {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                repeatAddRepository.deleteRepeatAdd(repeatAdd.id!!)
+                _uiState.update {
+                    it.copy(
+                        message = "Deleted!"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            } finally {
                 _uiState.update {
                     it.copy(
                         isLoading = false
@@ -71,6 +102,7 @@ class RepeatAddViewModel(
 
     override fun onCleared() {
         Timber.d("Cleared. ${hashCode()}")
+        repeatAddRepository.stopListening()
         super.onCleared()
     }
 }
