@@ -6,7 +6,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.dataClass.EmailTemplateType
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import gaku.original.myapplication.utility.LogException
 import gaku.original.myapplication.utility.LogTimeout
 import gaku.original.myapplication.utility.sanitizeEmail
@@ -267,7 +267,7 @@ class RealtimeDbReference @Inject constructor(
         val baseRef = baseRefRet.data
 
         val result = FuncResultWithData.Success(
-            baseRef.child(type.nodeName)
+            baseRef.child(TODO())
         )
         return result
     }
@@ -325,7 +325,7 @@ class RealtimeDbReference @Inject constructor(
         val baseRef = baseRefRet.data
 
         val result = FuncResultWithData.Success(
-            baseRef.child("last_exec").child(type.nodeName)
+            baseRef.child("last_exec").child(TODO())
         )
 
         return result
