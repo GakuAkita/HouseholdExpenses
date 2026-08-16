@@ -29,6 +29,8 @@ import java.time.LocalDate
 data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
     val message: String? = null,
+    val isSaved: Boolean = false,
+
     val amount: Long? = null,
     val note: String? = null,
     val itemName: String? = null,
@@ -156,6 +158,8 @@ class RepeatAddEditViewModel(
                     note = initialRepeatAdd.expense.note,
                     itemName = initialRepeatAdd.expense.itemName,
                     storeName = initialRepeatAdd.expense.storeName,
+                    category = initialRepeatAdd.expense.category,
+                    frequency = initialRepeatAdd.frequencyInfo
                 )
             }
         }
@@ -349,12 +353,15 @@ class RepeatAddEditViewModel(
     fun onSaveClick() {
         viewModelScope.launch {
             try {
-                /* already validated. */
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
                 val current = _uiState.value
                 val ret = current.toRepeatAdd(initialRepeatAdd)
                 when (ret) {
                     is AppResult.Success -> {
-                        /* do nothing */
                         val newRepeatAdd = ret.value
                         if (newRepeatAdd.id == null) {
                             repeatAddRepository.addRepeatAdd(newRepeatAdd)
@@ -364,6 +371,7 @@ class RepeatAddEditViewModel(
                     }
 
                     is AppResult.Failure -> {
+                        /* Not validated! */
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -377,6 +385,7 @@ class RepeatAddEditViewModel(
                 _uiState.update {
                     it.copy(
                         message = "Saved!",
+                        isSaved = true
                     )
                 }
             } catch (e: Exception) {

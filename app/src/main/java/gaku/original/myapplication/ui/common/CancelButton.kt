@@ -10,7 +10,8 @@ import androidx.compose.ui.Modifier
 @Composable
 fun CancelButton(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     Button(
         modifier = modifier,
@@ -18,7 +19,8 @@ fun CancelButton(
         colors = ButtonDefaults.buttonColors().copy(
             containerColor = MaterialTheme.colorScheme.error,
             contentColor = MaterialTheme.colorScheme.onError
-        )
+        ),
+        enabled = enabled
     ) {
         Text("Cancel")
     }
