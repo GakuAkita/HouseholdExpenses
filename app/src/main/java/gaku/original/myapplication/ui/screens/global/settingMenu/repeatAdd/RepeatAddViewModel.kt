@@ -44,26 +44,20 @@ class RepeatAddViewModel(
     init {
         Timber.d("Created. ${hashCode()}")
 
+        repeatAddRepository.startListening()
         viewModelScope.launch {
             try {
-                _uiState.update {
-                    it.copy(
-                        isLoading = true
-                    )
-                }
-                val repeatAdds = repeatAddRepository.getAllRepeatAdds()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        repeatAdds = repeatAdds.values.toList()
-                    )
+                repeatAddRepository.repeatAdds.collect { data ->
+                    _uiState.update {
+                        it.copy(
+                            repeatAdds = data.values.toList()
+                        )
+                    }
                 }
             } catch (e: Exception) {
-
-            } finally {
                 _uiState.update {
                     it.copy(
-                        isLoading = false
+                        message = e.message
                     )
                 }
             }

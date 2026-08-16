@@ -29,11 +29,11 @@ class FakeRepeatAddRepository : RepeatAddRepository {
     )
 
     private val _repeatAdds = MutableStateFlow<Map<String, RepeatAdd>>(emptyMap())
-    override val repeatAdds: StateFlow<Map<String,RepeatAdd>>
+    override val repeatAdds: StateFlow<Map<String, RepeatAdd>>
         get() = _repeatAdds.asStateFlow()
 
     override fun startListening() {
-
+        _repeatAdds.value = sampleRepeatAdd
     }
 
     override fun stopListening() {
@@ -49,16 +49,19 @@ class FakeRepeatAddRepository : RepeatAddRepository {
             id = UUID.randomUUID().toString()
         )
         sampleRepeatAdd += (newRepeatAdd.id!! to newRepeatAdd)
+        _repeatAdds.value = sampleRepeatAdd
         return newRepeatAdd
     }
 
     override suspend fun updateRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
         sampleRepeatAdd += (repeatAdd.id!! to repeatAdd)
+        _repeatAdds.value = sampleRepeatAdd
         return repeatAdd
     }
 
     override suspend fun deleteRepeatAdd(id: String) {
         sampleRepeatAdd -= id
+        _repeatAdds.value = sampleRepeatAdd
         return
     }
 }
