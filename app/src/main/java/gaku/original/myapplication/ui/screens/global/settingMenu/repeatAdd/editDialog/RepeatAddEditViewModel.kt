@@ -10,8 +10,10 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
+import gaku.original.myapplication.data.dataClass.withTime
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.DayOfWeek
+import java.time.LocalDate
 
 data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
@@ -47,9 +50,9 @@ sealed interface RepeatAddInputError : AppError {
             get() = "Amount is empty"
     }
 
-    data object AmountNegative : RepeatAddInputError {
+    data object AmountZeroOrNegative : RepeatAddInputError {
         override val message: String
-            get() = "Amount is negative"
+            get() = "Amount is 0 or negative"
     }
 
     data object CategoryEmpty : RepeatAddInputError {
@@ -70,6 +73,16 @@ sealed interface RepeatAddInputError : AppError {
     data object DayEmpty : RepeatAddInputError {
         override val message: String
             get() = "Day is empty"
+    }
+
+    data class DateNotExist(val date: String) : RepeatAddInputError {
+        override val message: String
+            get() = "date:$date doesn't exist"
+    }
+
+    data object DayOfWeekEmpty : RepeatAddInputError {
+        override val message: String
+            get() = "No day of the week is selected. Please select at least one."
     }
 
     data object HourEmpty : RepeatAddInputError {
@@ -333,59 +346,47 @@ class RepeatAddEditViewModel(
         }
     }
 
-    fun validateRepeatAddInput(): AppResult<Unit, RepeatAddInputError> {
-        if (_uiState.value.amount == null) {
-            return AppResult.Failure(RepeatAddInputError.AmountEmpty)
-        }
-
-        if (_uiState.value.amount!! <= 0) {
-            return AppResult.Failure(RepeatAddInputError.AmountNegative)
-        }
-
-        if (_uiState.value.category == null) {
-            return AppResult.Failure(RepeatAddInputError.CategoryEmpty)
-        }
-
-        if (_uiState.value.frequency == null) {
-            return AppResult.Failure(RepeatAddInputError.FrequencyEmpty)
-        }
-
-        val frequency = _uiState.value.frequency!!
-        when (frequency) {
-            is RepeatFrequency.EveryYear -> {
-
-            }
-
-            is RepeatFrequency.EveryMonth -> {
-
-            }
-
-            is RepeatFrequency.EveryWeek -> {
-
-            }
-
-            is RepeatFrequency.Weekdays,
-            is RepeatFrequency.Weekends,
-            is RepeatFrequency.Everyday -> {
-                /* nothing to check additinally */
-            }
-        }
-
-        if (_uiState.value.hour == null) {
-            return AppResult.Failure(RepeatAddInputError.HourEmpty)
-        }
-
-        if (_uiState.value.minute == null) {
-            return AppResult.Failure(RepeatAddInputError.MinuteEmpty)
-        }
-        return AppResult.Success(Unit)
-    }
-
     fun onSaveClick() {
-        _uiState.update {
-            it.copy(
-                message = "Saved!"
-            )
+        viewModelScope.launch {
+            try {
+                /* already validated. */
+                val current = _uiState.value
+                val ret = current.toRepeatAdd(initialRepeatAdd)
+                when (ret) {
+                    is AppResult.Success -> {
+                        /* do nothing */
+                        val newRepeatAdd = ret.value
+                        if (newRepeatAdd.id == null) {
+                            repeatAddRepository.addRepeatAdd(newRepeatAdd)
+                        } else {
+                            repeatAddRepository.updateRepeatAdd(newRepeatAdd)
+                        }
+                    }
+
+                    is AppResult.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                message = ret.error.message
+                            )
+                        }
+                        return@launch
+                    }
+                }
+
+                _uiState.update {
+                    it.copy(
+                        message = "Saved!",
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.toString(),
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 
@@ -418,4 +419,107 @@ class RepeatAddEditViewModel(
         Timber.d("Cleared. ${hashCode()}")
         super.onCleared()
     }
+}
+
+/* initial contains id or other properties */
+fun RepeatAddEditDialogState.toRepeatAdd(initial: RepeatAdd?): AppResult<RepeatAdd, RepeatAddInputError> {
+    if (amount == null) {
+        return AppResult.Failure(RepeatAddInputError.AmountEmpty)
+    }
+
+    if (amount <= 0) {
+        return AppResult.Failure(RepeatAddInputError.AmountZeroOrNegative)
+    }
+
+    if (category == null) {
+        return AppResult.Failure(RepeatAddInputError.CategoryEmpty)
+    }
+
+    if (frequency == null) {
+        return AppResult.Failure(RepeatAddInputError.FrequencyEmpty)
+    }
+
+    if (hour == null) {
+        return AppResult.Failure(RepeatAddInputError.HourEmpty)
+    }
+
+    if (minute == null) {
+        return AppResult.Failure(RepeatAddInputError.MinuteEmpty)
+    }
+
+    var frequency = frequency.withTime(hour, minute)
+    when (frequency) {
+        is RepeatFrequency.EveryYear -> {
+            if (month == null) {
+                return AppResult.Failure(RepeatAddInputError.MonthEmpty)
+            }
+
+            if (day == null) {
+                return AppResult.Failure(RepeatAddInputError.DayEmpty)
+            }
+
+            /* check if the date exists. */
+            /* for example, "4/31" doesn't exist even though it can be input. */
+            val isExist = try {
+                /* Leap year is not allowed! */
+                LocalDate.of(2025, month, day)
+                true
+            } catch (e: Exception) {
+                false
+            }
+            if (!isExist) {
+                return AppResult.Failure(RepeatAddInputError.DateNotExist("${month}/${day}"))
+            }
+
+            frequency = frequency.copy(
+                month = month,
+                day = day,
+            )
+        }
+
+        is RepeatFrequency.EveryMonth -> {
+            if (day == null) {
+                return AppResult.Failure(RepeatAddInputError.DayEmpty)
+            }
+
+            frequency = frequency.copy(
+                day = day,
+            )
+        }
+
+        is RepeatFrequency.EveryWeek -> {
+            if (dayOfWeek.isEmpty()) {
+                return AppResult.Failure(RepeatAddInputError.DayOfWeekEmpty)
+            }
+
+            frequency = frequency.copy(
+                dayOfWeek = dayOfWeek,
+            )
+        }
+
+        is RepeatFrequency.Weekdays,
+        is RepeatFrequency.Weekends,
+        is RepeatFrequency.Everyday -> {
+            /* nothing to check in addition to the hour and minute*/
+        }
+    }
+
+    var newRepeatAdd = if (initial == null) RepeatAdd() else initial
+
+    /* these are common parameters */
+    newRepeatAdd = newRepeatAdd.copy(
+        expense = Expense(
+            id = null,
+            datetime = null,
+            amount = amount,
+            category = category,
+            note = note,
+            itemName = itemName,
+            storeName = storeName
+        ),
+        frequencyInfo = frequency
+    )
+
+    Timber.d("newRepeatAdd: ${newRepeatAdd}")
+    return AppResult.Success(newRepeatAdd)
 }

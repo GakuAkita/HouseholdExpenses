@@ -9,7 +9,6 @@ import java.time.LocalDateTime
 @Serializable
 @Parcelize
 sealed interface RepeatFrequency : Parcelable {
-
     data class EveryYear(
         val month: Int = 1,
         val day: Int = 1,
@@ -44,7 +43,7 @@ sealed interface RepeatFrequency : Parcelable {
         val minute: Int = 0
     ) : RepeatFrequency
 
-    companion object{
+    companion object {
         val types = listOf(
             EveryYear(),
             EveryMonth(),
@@ -54,7 +53,17 @@ sealed interface RepeatFrequency : Parcelable {
             Everyday()
         )
     }
+}
 
+fun RepeatFrequency.withTime(hour: Int, minute: Int): RepeatFrequency {
+    return when (this) {
+        is RepeatFrequency.EveryYear -> this.copy(hour = hour, minute = minute)
+        is RepeatFrequency.EveryMonth -> this.copy(hour = hour, minute = minute)
+        is RepeatFrequency.EveryWeek -> this.copy(hour = hour, minute = minute)
+        is RepeatFrequency.Weekdays -> this.copy(hour = hour, minute = minute)
+        is RepeatFrequency.Weekends -> this.copy(hour = hour, minute = minute)
+        is RepeatFrequency.Everyday -> this.copy(hour = hour, minute = minute)
+    }
 }
 
 
