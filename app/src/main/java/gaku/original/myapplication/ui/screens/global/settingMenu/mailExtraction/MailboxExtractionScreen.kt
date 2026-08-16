@@ -1,7 +1,9 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,21 +11,28 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.data.Interface.HasCategoryId
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 
 val EmailTemplateType.displayName: String
@@ -64,9 +73,11 @@ fun MailboxExtractionScreenRoot(
     MailboxExtractionScreen(
         uiState,
         snackbarHostState,
-        onBackNavClicked = {
+        onBackNavClick = {
             navHostController.popBackStack()
-        }
+        },
+        onGmailConnectClick = {},
+        onEnableClick = {}
     )
 }
 
@@ -74,7 +85,9 @@ fun MailboxExtractionScreenRoot(
 fun MailboxExtractionScreen(
     uiState: MailboxExtractionUiState,
     snackbarHostState: SnackbarHostState,
-    onBackNavClicked: () -> Unit
+    onBackNavClick: () -> Unit,
+    onGmailConnectClick: () -> Unit,
+    onEnableClick: (EmailTemplateType) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -82,7 +95,7 @@ fun MailboxExtractionScreen(
                 title = "Mailbox Connection",
                 showBackButton = true,
                 onBackNavClicked = {
-                    onBackNavClicked()
+                    onBackNavClick()
                 }
             )
         },
@@ -104,18 +117,78 @@ fun MailboxExtractionScreen(
                 ) {
                     Button(
                         onClick = {
-
+                            onGmailConnectClick()
                         }
                     ) {
-                        Text("Activate Gmail API")
+                        if (uiState.isGmailConnected) {
+                            Text("Connect Gmail. (Already done)")
+                        } else {
+                            Text("Connect Gmail")
+                        }
                     }
                 }
-                uiState.emailTemplateStates.forEach {
-                    it
-//                    when (it) {
-//                        is EmailTemplateType.RakutenPay -> {
-//                        }
-//                    }
+
+                if (uiState.isGmailConnected) {
+                    uiState.emailTemplateStates.forEach { type ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)
+                                .border(
+                                    1.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight(),
+                                ) {
+                                    Text(type.displayName)
+                                }
+
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        modifier = Modifier.padding(4.dp),
+                                        text = "Enable:"
+                                    )
+                                    Switch(
+                                        checked = type.enabled,
+                                        onCheckedChange = {
+                                            onEnableClick(type)
+                                        }
+                                    )
+                                }
+                            }
+
+                            Row(
+
+                            ) {
+                                if (type is HasCategoryId) {
+                                    CategoryDropDown(
+                                        initialCategory = Category(
+                                            id = type.categoryId,
+                                        ),
+                                        nullOption = true,
+                                        categories = uiState.categories,
+                                        onCategorySelected = {
+
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                    }
                 }
             }
         }
@@ -125,11 +198,15 @@ fun MailboxExtractionScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MailboxExtractionScreenPreview() {
-    val uiState = MailboxExtractionUiState()
+    val uiState = MailboxExtractionUiState(
+        isGmailConnected = true
+    )
     MailboxExtractionScreen(
         uiState,
         snackbarHostState = SnackbarHostState(),
-        onBackNavClicked = {}
+        onBackNavClick = {},
+        onGmailConnectClick = {},
+        onEnableClick = {}
     )
 }
 

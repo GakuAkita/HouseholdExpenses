@@ -3,30 +3,30 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 import EmailProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.BuildConfig
+import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
-import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.collections.toMutableMap
 
 data class MailboxExtractionUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
+    val isGmailConnected: Boolean = false,
+
+    val categories: List<Category> = emptyList(),
 
     val rakutenPay: EmailTemplateType.RakutenPay = EmailTemplateType.RakutenPay(
         enabled = false
@@ -96,7 +96,7 @@ sealed interface EmailTemplateType {
 }
 
 class MailboxExtractionViewModel(
-    //private val
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MailboxExtractionUiState())
     val uiState: StateFlow<MailboxExtractionUiState> get() = _uiState
@@ -104,7 +104,12 @@ class MailboxExtractionViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                MailboxExtractionViewModel()
+                val app = this[APPLICATION_KEY] as MyApplication
+                val container = app.appContainer
+                val session = container.sessionContainer!!
+                MailboxExtractionViewModel(
+                    session.categoryRepository
+                )
             }
         }
     }
