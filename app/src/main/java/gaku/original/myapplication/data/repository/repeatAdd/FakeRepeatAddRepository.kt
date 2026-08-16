@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.repository.repeatAdd
 
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,10 +42,12 @@ class FakeRepeatAddRepository : RepeatAddRepository {
     }
 
     override suspend fun getAllRepeatAdds(): Map<String, RepeatAdd> {
+        delay(2000)
         return sampleRepeatAdd
     }
 
     override suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
+        delay(2000)
         val newRepeatAdd = repeatAdd.copy(
             id = UUID.randomUUID().toString()
         )
@@ -54,12 +57,14 @@ class FakeRepeatAddRepository : RepeatAddRepository {
     }
 
     override suspend fun updateRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
+        delay(2000)
         sampleRepeatAdd += (repeatAdd.id!! to repeatAdd)
         _repeatAdds.value = sampleRepeatAdd
         return repeatAdd
     }
 
     override suspend fun deleteRepeatAdd(id: String) {
+        delay(2000)
         sampleRepeatAdd -= id
         _repeatAdds.value = sampleRepeatAdd
         return
