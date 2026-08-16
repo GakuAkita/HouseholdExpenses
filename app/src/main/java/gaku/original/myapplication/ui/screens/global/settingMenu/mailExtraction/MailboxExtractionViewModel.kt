@@ -1,7 +1,10 @@
-package gaku.original.myapplication.viewModel.settings
+package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
@@ -18,7 +21,92 @@ import gaku.original.myapplication.utility.LogAkitaDebug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
+
+data class MailboxExtractionUiState(
+    val isLoading: Boolean = false,
+    val message: String? = null,
+
+    val rakutenPay: EmailTemplateTypeUiState.RakutenPay = EmailTemplateTypeUiState.RakutenPay(
+        enabled = false
+    ),
+    val amazonKindle: EmailTemplateTypeUiState.AmazonKindle = EmailTemplateTypeUiState.AmazonKindle(
+        enabled = false
+    ),
+    val amazonItem: EmailTemplateTypeUiState.AmazonItem = EmailTemplateTypeUiState.AmazonItem(
+        enabled = false
+    ),
+    val amazonSubscribe: EmailTemplateTypeUiState.AmazonSubscribe = EmailTemplateTypeUiState.AmazonSubscribe(
+        enabled = false
+    ),
+    val shikokuElectricPower: EmailTemplateTypeUiState.ShikokuElectricPower = EmailTemplateTypeUiState.ShikokuElectricPower(
+        enabled = false
+    ),
+    val udemy: EmailTemplateTypeUiState.Udemy = EmailTemplateTypeUiState.Udemy(
+        enabled = false
+    ),
+    val rakutenCardETC: EmailTemplateTypeUiState.RakutenCardETC = EmailTemplateTypeUiState.RakutenCardETC(
+        enabled = false
+    )
+)
+
+sealed interface EmailTemplateTypeUiState {
+    val enabled: Boolean
+
+    data class RakutenPay(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class AmazonKindle(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class AmazonItem(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class AmazonSubscribe(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class ShikokuElectricPower(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class Udemy(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+
+    data class RakutenCardETC(
+        override val enabled: Boolean = false
+    ) : EmailTemplateTypeUiState
+}
+
+class MailboxExtractionViewModel(
+    //private val
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(MailboxExtractionUiState())
+    val uiState: StateFlow<MailboxExtractionUiState> get() = _uiState
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                MailboxExtractionViewModel()
+            }
+        }
+    }
+
+    init {
+        Timber.d("Created. ${hashCode()}")
+    }
+
+    override fun onCleared() {
+        Timber.d("Cleared. ${hashCode()}")
+        super.onCleared()
+    }
+}
+
 
 data class EmailTemplateSettingState(
     val type: EmailTemplateType,/* これは変えない */
@@ -31,7 +119,7 @@ data class EmailTemplateSettingState(
 
 
 @HiltViewModel
-class MailboxExtractionViewModel @Inject constructor(
+class _MailboxExtractionViewModel @Inject constructor(
     private val firebaseAuthRepository: FirebaseAuthRepository,
     private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
     private val categoryUseCase: CategoryUseCase
