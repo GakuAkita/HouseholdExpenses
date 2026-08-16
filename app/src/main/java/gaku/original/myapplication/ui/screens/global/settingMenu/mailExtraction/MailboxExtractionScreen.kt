@@ -20,18 +20,18 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.ui.common.TopBarView
 
-val EmailTemplateTypeUiState.displayName: String
+val EmailTemplateType.displayName: String
     get() = when (this) {
-        is EmailTemplateTypeUiState.RakutenPay -> "Rakuten Pay"
-        is EmailTemplateTypeUiState.AmazonKindle -> "Amazon Kindle"
-        is EmailTemplateTypeUiState.AmazonItem -> "Amazon Item"
-        is EmailTemplateTypeUiState.AmazonSubscribe -> "Amazon Subscribe"
-        is EmailTemplateTypeUiState.ShikokuElectricPower -> "Shikoku Electric Power"
-        is EmailTemplateTypeUiState.Udemy -> "Udemy"
-        is EmailTemplateTypeUiState.RakutenCardETC -> "Rakuten Card ETC"
+        is EmailTemplateType.RakutenPay -> "Rakuten Pay"
+        is EmailTemplateType.AmazonKindle -> "Amazon Kindle"
+        is EmailTemplateType.AmazonItem -> "Amazon Item"
+        is EmailTemplateType.AmazonSubscribe -> "Amazon Subscribe"
+        is EmailTemplateType.ShikokuElectricPower -> "Shikoku Electric Power"
+        is EmailTemplateType.Udemy -> "Udemy"
+        is EmailTemplateType.RakutenCardETC -> "Rakuten Card ETC"
     }
 
-val MailboxExtractionUiState.emailTemplateStates: List<EmailTemplateTypeUiState>
+val MailboxExtractionUiState.emailTemplateStates: List<EmailTemplateType>
     get() = listOf(
         rakutenPay,
         amazonKindle,
@@ -92,7 +92,13 @@ fun MailboxExtractionScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-
+                uiState.emailTemplateStates.forEach {
+                    it
+//                    when (it) {
+//                        is EmailTemplateType.RakutenPay -> {
+//                        }
+//                    }
+                }
             }
         }
     }
