@@ -156,6 +156,15 @@ class MailboxExtractionViewModel(
                 )
             }
         }
+
+        viewModelScope.launch {
+            val categories = categoryRepository.getAllCategories()
+            _uiState.update {
+                it.copy(
+                    categories = categories.values.toList()
+                )
+            }
+        }
     }
 
     override fun onCleared() {

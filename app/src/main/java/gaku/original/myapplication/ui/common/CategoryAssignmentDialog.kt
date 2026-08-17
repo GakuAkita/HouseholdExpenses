@@ -95,7 +95,10 @@ fun CategoryDropDown(
             }
 
             // 現在選択されているカテゴリーが削除されたカテゴリーの場合は表示
-            if (selectedCategory != null && selectedCategory !in categories) {
+            if (selectedCategory != null &&
+                selectedCategory !in categories &&
+                selectedCategory?.name != null/* when nullOption is true, this exists in options which should be avoided. */
+            ) {
                 DropdownMenuItem(
                     text = {
                         Text(
