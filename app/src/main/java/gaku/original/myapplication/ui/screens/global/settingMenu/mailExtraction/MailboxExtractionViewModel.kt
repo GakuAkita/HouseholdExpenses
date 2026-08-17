@@ -4,6 +4,7 @@ import EmailProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,9 +16,12 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
+import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -28,27 +32,48 @@ data class MailboxExtractionUiState(
 
     val categories: List<Category> = emptyList(),
 
-    val rakutenPay: EmailTemplateType.RakutenPay = EmailTemplateType.RakutenPay(
-        enabled = false
-    ),
-    val amazonKindle: EmailTemplateType.AmazonKindle = EmailTemplateType.AmazonKindle(
-        enabled = false
-    ),
-    val amazonItem: EmailTemplateType.AmazonItem = EmailTemplateType.AmazonItem(
-        enabled = false
-    ),
-    val amazonSubscribe: EmailTemplateType.AmazonSubscribe = EmailTemplateType.AmazonSubscribe(
-        enabled = false
-    ),
-    val shikokuElectricPower: EmailTemplateType.ShikokuElectricPower = EmailTemplateType.ShikokuElectricPower(
-        enabled = false
-    ),
-    val udemy: EmailTemplateType.Udemy = EmailTemplateType.Udemy(
-        enabled = false
-    ),
+    val rakutenPay: EmailTemplateUiState<EmailTemplateType.RakutenPay> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.RakutenPay(
+                enabled = false
+            ),
+            isLoading = false
+        ),
+    val amazonKindle: EmailTemplateUiState<EmailTemplateType.AmazonKindle> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.AmazonKindle(enabled = false),
+            isLoading = false
+        ),
+    val amazonItem: EmailTemplateUiState<EmailTemplateType.AmazonItem> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.AmazonItem(enabled = false),
+            isLoading = false
+        ),
+    val amazonSubscribe: EmailTemplateUiState<EmailTemplateType.AmazonSubscribe> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.AmazonSubscribe(enabled = false),
+            isLoading = false
+        ),
+    val shikokuElectricPower: EmailTemplateUiState<EmailTemplateType.ShikokuElectricPower> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.ShikokuElectricPower(
+                enabled = false
+            ),
+            isLoading = false
+        ),
+    val udemy: EmailTemplateUiState<EmailTemplateType.Udemy> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.Udemy(enabled = false),
+            isLoading = false
+        ),
     val rakutenCardETC: EmailTemplateType.RakutenCardETC = EmailTemplateType.RakutenCardETC(
         enabled = false
     )
+)
+
+data class EmailTemplateUiState<T : EmailTemplateType>(
+    val type: T,
+    val isLoading: Boolean = false
 )
 
 sealed interface EmailTemplateType {
@@ -96,7 +121,8 @@ sealed interface EmailTemplateType {
 }
 
 class MailboxExtractionViewModel(
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val mailboxExtractionRepository: MailboxExtractionRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MailboxExtractionUiState())
     val uiState: StateFlow<MailboxExtractionUiState> get() = _uiState
@@ -108,7 +134,8 @@ class MailboxExtractionViewModel(
                 val container = app.appContainer
                 val session = container.sessionContainer!!
                 MailboxExtractionViewModel(
-                    session.categoryRepository
+                    session.categoryRepository,
+                    session.mailboxExtractionRepository
                 )
             }
         }
@@ -116,6 +143,15 @@ class MailboxExtractionViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
+
+        viewModelScope.launch {
+            val isGmailConnected = mailboxExtractionRepository.getIsGmailToken()
+            _uiState.update {
+                it.copy(
+                    isGmailConnected = isGmailConnected
+                )
+            }
+        }
     }
 
     override fun onCleared() {

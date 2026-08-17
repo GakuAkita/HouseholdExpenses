@@ -63,7 +63,7 @@ fun CategoryDropDown(
         modifier = modifier
     ) {
         TextField(
-            value = selectedCategory?.name ?: "カテゴリー選択",
+            value = selectedCategory?.name ?: "Select Category",
             onValueChange = {},
             readOnly = true,
             enabled = false,
