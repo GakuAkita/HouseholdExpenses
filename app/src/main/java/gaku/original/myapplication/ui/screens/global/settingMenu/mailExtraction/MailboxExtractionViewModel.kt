@@ -66,9 +66,13 @@ data class MailboxExtractionUiState(
             type = EmailTemplateType.Udemy(enabled = false),
             isLoading = false
         ),
-    val rakutenCardETC: EmailTemplateType.RakutenCardETC = EmailTemplateType.RakutenCardETC(
-        enabled = false
-    )
+    val rakutenCardETC: EmailTemplateUiState<EmailTemplateType.RakutenCardETC> =
+        EmailTemplateUiState(
+            type = EmailTemplateType.RakutenCardETC(
+                enabled = false
+            ),
+            isLoading = false
+        )
 )
 
 data class EmailTemplateUiState<T : EmailTemplateType>(

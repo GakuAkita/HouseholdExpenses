@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
+import android.R.attr.type
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,7 @@ val EmailTemplateType.displayName: String
         is EmailTemplateType.RakutenCardETC -> "Rakuten Card ETC"
     }
 
-val MailboxExtractionUiState.emailTemplateStates: List<EmailTemplateType>
+val MailboxExtractionUiState.emailTemplateUiStates: List<EmailTemplateUiState<out EmailTemplateType>>
     get() = listOf(
         rakutenPay,
         amazonKindle,
@@ -135,7 +136,7 @@ fun MailboxExtractionScreen(
                 }
 
                 if (uiState.isGmailConnected) {
-                    uiState.emailTemplateStates.forEach { type ->
+                    uiState.emailTemplateUiStates.forEach { typeUiState ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -156,7 +157,7 @@ fun MailboxExtractionScreen(
                                         .weight(1f)
                                         .fillMaxHeight(),
                                 ) {
-                                    Text(type.displayName)
+                                    Text(typeUiState.type.displayName)
                                 }
 
                                 Row(
@@ -168,29 +169,32 @@ fun MailboxExtractionScreen(
                                         text = "Enable:"
                                     )
                                     Switch(
-                                        checked = type.enabled,
+                                        checked = typeUiState.type.enabled,
                                         onCheckedChange = {
-                                            onEnableClick(type)
+                                            onEnableClick(typeUiState.type)
                                         },
+                                        enabled = !typeUiState.isLoading
                                     )
                                 }
                             }
 
-                            if (type is HasCategoryId) {
+                            if (typeUiState.type is HasCategoryId) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     CategoryDropDown(
                                         initialCategory = Category(
-                                            id = type.categoryId,
+                                            id = typeUiState.type.categoryId,
                                         ),
                                         nullOption = true,
                                         categories = uiState.categories,
                                         onCategorySelected = {
 
                                         },
-                                        modifier = Modifier.width(280.dp).padding(horizontal = 8.dp, vertical = 4.dp)
+                                        modifier = Modifier
+                                            .width(280.dp)
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
                             } else {
@@ -224,7 +228,13 @@ fun MailboxExtractionScreen(
 @Composable
 fun MailboxExtractionScreenPreview() {
     val uiState = MailboxExtractionUiState(
-        isGmailConnected = true
+        isGmailConnected = true,
+        rakutenPay = EmailTemplateUiState(
+            type = EmailTemplateType.RakutenPay(
+                enabled = false
+            ),
+            isLoading = true
+        )
     )
     MailboxExtractionScreen(
         uiState,
