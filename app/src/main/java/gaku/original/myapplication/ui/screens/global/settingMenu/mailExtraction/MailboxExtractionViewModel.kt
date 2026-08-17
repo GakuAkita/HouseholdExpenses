@@ -124,6 +124,31 @@ sealed interface EmailTemplateType {
     ) : EmailTemplateType, HasCategoryId
 }
 
+fun MailboxExtractionUiState.updateType(type: EmailTemplateType): MailboxExtractionUiState =
+    when (type) {
+        is EmailTemplateType.RakutenPay -> this.copy(rakutenPay = rakutenPay.copy(type = type))
+        is EmailTemplateType.AmazonKindle -> this.copy(amazonKindle = amazonKindle.copy(type = type))
+        is EmailTemplateType.AmazonItem -> this.copy(amazonItem = amazonItem.copy(type = type))
+        is EmailTemplateType.AmazonSubscribe -> this.copy(
+            amazonSubscribe = amazonSubscribe.copy(
+                type = type
+            )
+        )
+
+        is EmailTemplateType.ShikokuElectricPower -> this.copy(
+            shikokuElectricPower = shikokuElectricPower.copy(
+                type = type
+            )
+        )
+
+        is EmailTemplateType.Udemy -> this.copy(udemy = udemy.copy(type = type))
+        is EmailTemplateType.RakutenCardETC -> this.copy(
+            rakutenCardETC = rakutenCardETC.copy(
+                type = type
+            )
+        )
+    }
+
 class MailboxExtractionViewModel(
     private val categoryRepository: CategoryRepository,
     private val mailboxExtractionRepository: MailboxExtractionRepository
@@ -154,6 +179,14 @@ class MailboxExtractionViewModel(
                 it.copy(
                     isGmailConnected = isGmailConnected
                 )
+            }
+            if (isGmailConnected) {
+                val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
+                for (setting in currentSettings) {
+                    _uiState.value = _uiState.value.updateType(
+                        setting
+                    )
+                }
             }
         }
 
