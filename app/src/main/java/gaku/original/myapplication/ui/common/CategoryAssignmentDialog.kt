@@ -85,7 +85,7 @@ fun CategoryDropDown(
         ) {
             if (nullOption) {
                 DropdownMenuItem(
-                    text = { Text(text = "(null)") },
+                    text = { Text(text = "(null)", color = MaterialTheme.colorScheme.tertiary) },
                     onClick = {
                         selectedCategory = Category(id = null, name = null)
                         expanded = false
@@ -103,7 +103,7 @@ fun CategoryDropDown(
                     text = {
                         Text(
                             text = selectedCategory?.name ?: "不明なカテゴリー",
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = MaterialTheme.colorScheme.error
                         )
                     },
                     onClick = {
