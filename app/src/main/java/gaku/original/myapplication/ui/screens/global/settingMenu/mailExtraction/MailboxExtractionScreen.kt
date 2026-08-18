@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
-import android.R.attr.type
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,7 +83,9 @@ fun MailboxExtractionScreenRoot(
             navHostController.popBackStack()
         },
         onGmailConnectClick = {},
-        onEnableClick = {}
+        onSwitchClick = {},
+        onCategoryAssignmentClick = {},
+        onCategorySelect = { _, _ -> }
     )
 }
 
@@ -94,7 +95,9 @@ fun MailboxExtractionScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
     onGmailConnectClick: () -> Unit,
-    onEnableClick: (EmailTemplateType) -> Unit
+    onSwitchClick: (EmailTemplateType) -> Unit,
+    onCategoryAssignmentClick: () -> Unit,
+    onCategorySelect: (EmailTemplateType, String?) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -171,7 +174,7 @@ fun MailboxExtractionScreen(
                                     Switch(
                                         checked = typeUiState.type.enabled,
                                         onCheckedChange = {
-                                            onEnableClick(typeUiState.type)
+                                            onSwitchClick(typeUiState.type)
                                         },
                                         enabled = !typeUiState.isLoading
                                     )
@@ -189,8 +192,9 @@ fun MailboxExtractionScreen(
                                         ),
                                         nullOption = true,
                                         categories = uiState.categories,
-                                        onCategorySelected = {
-
+                                        onCategorySelected = { it ->
+                                            val categoryId = it.id
+                                            onCategorySelect(typeUiState.type, categoryId)
                                         },
                                         modifier = Modifier
                                             .width(280.dp)
@@ -204,7 +208,7 @@ fun MailboxExtractionScreen(
                                 ) {
                                     TextButton(
                                         onClick = {
-
+                                            onCategoryAssignmentClick()
                                         }
                                     ) {
                                         Text("Category Assignment")
@@ -241,7 +245,9 @@ fun MailboxExtractionScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onGmailConnectClick = {},
-        onEnableClick = {}
+        onEnableClick = {},
+        onCategoryAssignmentClick = {},
+        onCategorySelect = { _, _ -> }
     )
 }
 

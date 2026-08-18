@@ -124,30 +124,63 @@ sealed interface EmailTemplateType {
     ) : EmailTemplateType, HasCategoryId
 }
 
-fun MailboxExtractionUiState.updateType(type: EmailTemplateType): MailboxExtractionUiState =
-    when (type) {
-        is EmailTemplateType.RakutenPay -> this.copy(rakutenPay = rakutenPay.copy(type = type))
-        is EmailTemplateType.AmazonKindle -> this.copy(amazonKindle = amazonKindle.copy(type = type))
-        is EmailTemplateType.AmazonItem -> this.copy(amazonItem = amazonItem.copy(type = type))
+fun MailboxExtractionUiState.updateType(
+    type: EmailTemplateType,
+    isLoading: Boolean? = null
+): MailboxExtractionUiState {
+
+    /* if isLoading is null, use as it is */
+    val loadingState = if (isLoading == null) this.isLoading else isLoading
+
+    return when (type) {
+        is EmailTemplateType.RakutenPay -> this.copy(
+            rakutenPay = rakutenPay.copy(type = type),
+            isLoading = loadingState
+        )
+
+        is EmailTemplateType.AmazonKindle -> this.copy(
+            amazonKindle = amazonKindle.copy(
+                type = type,
+                isLoading = loadingState
+            )
+        )
+
+        is EmailTemplateType.AmazonItem -> this.copy(
+            amazonItem = amazonItem.copy(
+                type = type,
+                isLoading = loadingState
+            )
+        )
+
         is EmailTemplateType.AmazonSubscribe -> this.copy(
             amazonSubscribe = amazonSubscribe.copy(
-                type = type
+                type = type,
+                isLoading = loadingState
             )
         )
 
         is EmailTemplateType.ShikokuElectricPower -> this.copy(
             shikokuElectricPower = shikokuElectricPower.copy(
-                type = type
+                type = type,
+                isLoading = loadingState
             )
         )
 
-        is EmailTemplateType.Udemy -> this.copy(udemy = udemy.copy(type = type))
+        is EmailTemplateType.Udemy -> this.copy(
+            udemy = udemy.copy(
+                type = type,
+                isLoading = loadingState
+            )
+        )
+
         is EmailTemplateType.RakutenCardETC -> this.copy(
             rakutenCardETC = rakutenCardETC.copy(
-                type = type
+                type = type,
+                isLoading = loadingState
             )
         )
     }
+}
 
 class MailboxExtractionViewModel(
     private val categoryRepository: CategoryRepository,
@@ -197,6 +230,16 @@ class MailboxExtractionViewModel(
                     categories = categories.values.toList()
                 )
             }
+        }
+    }
+
+    fun onEnableClick(typeState: EmailTemplateType) {
+        try {
+
+        } catch (e: Exception) {
+
+        } finally {
+
         }
     }
 
