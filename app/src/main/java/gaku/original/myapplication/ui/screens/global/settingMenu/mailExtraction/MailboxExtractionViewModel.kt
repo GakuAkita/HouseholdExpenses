@@ -18,7 +18,6 @@ import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxE
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -265,13 +264,17 @@ class MailboxExtractionViewModel(
             } catch (e: Exception) {
                 _uiState.update {
                     it.updateEmailTemplate(
-                       typeState.copy(
-                           isLoading = false
-                       )
+                        typeState.copy(
+                            isLoading = false
+                        )
                     )
                 }
             }
         }
+    }
+
+    fun onCategorySelect(type: HasCategoryId<out EmailTemplateType>, categoryId: String?) {
+
     }
 
     override fun onCleared() {

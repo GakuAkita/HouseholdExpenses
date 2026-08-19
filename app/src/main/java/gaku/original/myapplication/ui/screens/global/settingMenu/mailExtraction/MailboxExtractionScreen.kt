@@ -41,16 +41,17 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.*
 
 val EmailTemplateType.displayName: String
     get() = when (this) {
-        is EmailTemplateType.RakutenPay -> "Rakuten Pay"
-        is EmailTemplateType.AmazonKindle -> "Amazon Kindle"
-        is EmailTemplateType.AmazonItem -> "Amazon Item"
-        is EmailTemplateType.AmazonSubscribe -> "Amazon Subscribe"
-        is EmailTemplateType.ShikokuElectricPower -> "Shikoku Electric Power"
-        is EmailTemplateType.Udemy -> "Udemy"
-        is EmailTemplateType.RakutenCardETC -> "Rakuten Card ETC"
+        is RakutenPay -> "Rakuten Pay"
+        is AmazonKindle -> "Amazon Kindle"
+        is AmazonItem -> "Amazon Item"
+        is AmazonSubscribe -> "Amazon Subscribe"
+        is ShikokuElectricPower -> "Shikoku Electric Power"
+        is Udemy -> "Udemy"
+        is RakutenCardETC -> "Rakuten Card ETC"
     }
 @Composable
 fun MailboxExtractionScreenRoot(
@@ -88,7 +89,7 @@ fun MailboxExtractionScreen(
     onGmailConnectClick: () -> Unit,
     onSwitchClick: (EmailTemplateUiState<EmailTemplateType>) -> Unit,
     onCategoryAssignmentClick: () -> Unit,
-    onCategorySelect: (EmailTemplateType, String?) -> Unit
+    onCategorySelect: (HasCategoryId<out EmailTemplateType>, String?) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -190,7 +191,10 @@ fun MailboxExtractionScreen(
                                         categories = uiState.categories,
                                         onCategorySelected = { it ->
                                             val categoryId = it.id
-                                            onCategorySelect(typeUiState.type, categoryId)
+                                            onCategorySelect(
+                                                typeUiState.type as HasCategoryId<out EmailTemplateType>,
+                                                categoryId
+                                            )
                                         },
                                         enabled = !typeUiState.isLoading,
                                         modifier = Modifier
@@ -232,28 +236,28 @@ fun MailboxExtractionScreenPreview() {
         isGmailConnected = true,
         emailTemplateTypeList = listOf(
             EmailTemplateUiState(
-                type = EmailTemplateType.RakutenPay(
+                type = RakutenPay(
                     enabled = true
                 ),
                 isLoading = true
             ),
             EmailTemplateUiState(
-                type = EmailTemplateType.AmazonKindle(
+                type = AmazonKindle(
                     enabled = false
                 )
             ),
             EmailTemplateUiState(
-                type = EmailTemplateType.AmazonItem(
+                type = AmazonItem(
                     enabled = false
                 )
             ),
             EmailTemplateUiState(
-                type = EmailTemplateType.AmazonSubscribe(
+                type = AmazonSubscribe(
                     enabled = false
                 )
             ),
             EmailTemplateUiState(
-                type = EmailTemplateType.ShikokuElectricPower(
+                type = ShikokuElectricPower(
                     enabled = false
                 )
             ),
