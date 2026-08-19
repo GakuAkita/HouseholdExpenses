@@ -36,7 +36,7 @@ data class MailboxExtractionUiState(
     val emailTemplateTypeList: List<EmailTemplateUiState<EmailTemplateType>> = listOf(
         EmailTemplateUiState(
             type = EmailTemplateType.RakutenPay(
-                enabled = true
+                enabled = false
             ),
             isLoading = false
         ),
@@ -254,7 +254,6 @@ class MailboxExtractionViewModel(
                 val newType = typeState.type.updateEnabled(!typeState.type.enabled)
                 mailboxExtractionRepository.saveMailTypeSetting(newType)
 
-                delay(5000)
                 _uiState.update {
                     it.updateEmailTemplate(
                         typeState.copy(

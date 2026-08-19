@@ -39,11 +39,12 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
  */
 @Composable
 fun CategoryDropDown(
+    modifier: Modifier = Modifier.width(280.dp),
     initialCategory: Category?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
-    modifier: Modifier = Modifier.width(280.dp),
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
@@ -56,6 +57,12 @@ fun CategoryDropDown(
                 val foundCategory = categories.find { it.id == initialCategory.id }
                 selectedCategory = foundCategory ?: initialCategory // 見つからない場合は元のカテゴリーを使用
             }
+        }
+    }
+
+    LaunchedEffect(enabled) {
+        if(!enabled){
+            expanded = false
         }
     }
 
@@ -76,7 +83,9 @@ fun CategoryDropDown(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    expanded = !expanded
+                    if(enabled){
+                        expanded = !expanded
+                    }
                 }
         )
         DropdownMenu(

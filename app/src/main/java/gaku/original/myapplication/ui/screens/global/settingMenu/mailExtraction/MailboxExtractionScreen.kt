@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -168,6 +169,11 @@ fun MailboxExtractionScreen(
                                         },
                                         enabled = !typeUiState.isLoading
                                     )
+                                    if(typeUiState.isLoading){
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
                                 }
                             }
 
@@ -186,6 +192,7 @@ fun MailboxExtractionScreen(
                                             val categoryId = it.id
                                             onCategorySelect(typeUiState.type, categoryId)
                                         },
+                                        enabled = !typeUiState.isLoading,
                                         modifier = Modifier
                                             .width(280.dp)
                                             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -227,7 +234,8 @@ fun MailboxExtractionScreenPreview() {
             EmailTemplateUiState(
                 type = EmailTemplateType.RakutenPay(
                     enabled = true
-                )
+                ),
+                isLoading = true
             ),
             EmailTemplateUiState(
                 type = EmailTemplateType.AmazonKindle(

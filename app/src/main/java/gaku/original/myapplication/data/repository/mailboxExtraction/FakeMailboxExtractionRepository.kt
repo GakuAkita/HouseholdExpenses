@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.repository.mailboxExtraction
 import EmailProvider
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
+import kotlinx.coroutines.delay
 
 class FakeMailboxExtractionRepository: MailboxExtractionRepository {
     override suspend fun getIsGmailToken(): Boolean {
@@ -16,7 +17,7 @@ class FakeMailboxExtractionRepository: MailboxExtractionRepository {
                 emailProvider = EmailProvider.GMAIL
             ),
             EmailTemplateType.AmazonKindle(
-                enabled = true,
+                enabled = false,
                 emailProvider = EmailProvider.GMAIL
             ),
             EmailTemplateType.AmazonItem(
@@ -43,6 +44,6 @@ class FakeMailboxExtractionRepository: MailboxExtractionRepository {
     }
 
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
-        TODO("Not yet implemented")
+        delay(5000)
     }
 }
