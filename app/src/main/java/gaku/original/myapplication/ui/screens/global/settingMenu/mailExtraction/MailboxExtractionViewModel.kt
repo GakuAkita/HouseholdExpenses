@@ -18,6 +18,7 @@ import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxE
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -32,48 +33,65 @@ data class MailboxExtractionUiState(
 
     val categories: List<Category> = emptyList(),
 
-    val rakutenPay: EmailTemplateUiState<EmailTemplateType.RakutenPay> =
+    val emailTemplateTypeList: List<EmailTemplateUiState<EmailTemplateType>> = listOf(
         EmailTemplateUiState(
             type = EmailTemplateType.RakutenPay(
+                enabled = true
+            ),
+            isLoading = false
+        ),
+        EmailTemplateUiState(
+            type = EmailTemplateType.AmazonKindle(
                 enabled = false
             ),
             isLoading = false
         ),
-    val amazonKindle: EmailTemplateUiState<EmailTemplateType.AmazonKindle> =
         EmailTemplateUiState(
-            type = EmailTemplateType.AmazonKindle(enabled = false),
+            type = EmailTemplateType.AmazonItem(
+                enabled = false
+            ),
             isLoading = false
         ),
-    val amazonItem: EmailTemplateUiState<EmailTemplateType.AmazonItem> =
         EmailTemplateUiState(
-            type = EmailTemplateType.AmazonItem(enabled = false),
+            type = EmailTemplateType.AmazonSubscribe(
+                enabled = false
+            ),
             isLoading = false
         ),
-    val amazonSubscribe: EmailTemplateUiState<EmailTemplateType.AmazonSubscribe> =
-        EmailTemplateUiState(
-            type = EmailTemplateType.AmazonSubscribe(enabled = false),
-            isLoading = false
-        ),
-    val shikokuElectricPower: EmailTemplateUiState<EmailTemplateType.ShikokuElectricPower> =
         EmailTemplateUiState(
             type = EmailTemplateType.ShikokuElectricPower(
                 enabled = false
             ),
             isLoading = false
         ),
-    val udemy: EmailTemplateUiState<EmailTemplateType.Udemy> =
         EmailTemplateUiState(
-            type = EmailTemplateType.Udemy(enabled = false),
+            type = EmailTemplateType.Udemy(
+                enabled = false
+            ),
             isLoading = false
         ),
-    val rakutenCardETC: EmailTemplateUiState<EmailTemplateType.RakutenCardETC> =
         EmailTemplateUiState(
             type = EmailTemplateType.RakutenCardETC(
                 enabled = false
             ),
             isLoading = false
         )
+    ),
 )
+
+fun MailboxExtractionUiState.updateEmailTemplate(
+    newState: EmailTemplateUiState<EmailTemplateType>
+): MailboxExtractionUiState {
+    return copy(
+        emailTemplateTypeList = emailTemplateTypeList.map { state ->
+            if (state.type::class == newState.type::class) {
+                newState
+            } else {
+                state
+            }
+        }
+    )
+}
 
 data class EmailTemplateUiState<T : EmailTemplateType>(
     val type: T,
@@ -84,101 +102,67 @@ sealed interface EmailTemplateType {
     val enabled: Boolean
     val emailProvider: EmailProvider/* This is not used yet. */
 
+    fun updateEnabled(enabled: Boolean): EmailTemplateType
+
     data class RakutenPay(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL
-    ) : EmailTemplateType
+    ) : EmailTemplateType {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+    }
 
     data class AmazonKindle(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         override val categoryId: String? = null
-    ) : EmailTemplateType, HasCategoryId
+    ) : EmailTemplateType, HasCategoryId<AmazonKindle> {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+        override fun updateCategoryId(newCategoryId: String?): AmazonKindle =
+            copy(categoryId = newCategoryId)
+    }
 
     data class AmazonItem(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
-    ) : EmailTemplateType
+    ) : EmailTemplateType {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+    }
 
     data class AmazonSubscribe(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL
-    ) : EmailTemplateType
+    ) : EmailTemplateType {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+    }
 
     data class ShikokuElectricPower(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         override val categoryId: String? = null
-    ) : EmailTemplateType, HasCategoryId
+    ) : EmailTemplateType, HasCategoryId<ShikokuElectricPower> {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+        override fun updateCategoryId(newCategoryId: String?): ShikokuElectricPower =
+            copy(categoryId = newCategoryId)
+    }
 
     data class Udemy(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         override val categoryId: String? = null
-    ) : EmailTemplateType, HasCategoryId
+    ) : EmailTemplateType, HasCategoryId<Udemy> {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+        override fun updateCategoryId(newCategoryId: String?): Udemy =
+            copy(categoryId = newCategoryId)
+    }
 
     data class RakutenCardETC(
         override val enabled: Boolean = false,
         override val emailProvider: EmailProvider = EmailProvider.GMAIL,
         override val categoryId: String? = null
-    ) : EmailTemplateType, HasCategoryId
-}
-
-fun MailboxExtractionUiState.updateType(
-    type: EmailTemplateType,
-    isLoading: Boolean? = null
-): MailboxExtractionUiState {
-
-    /* if isLoading is null, use as it is */
-    val loadingState = if (isLoading == null) this.isLoading else isLoading
-
-    return when (type) {
-        is EmailTemplateType.RakutenPay -> this.copy(
-            rakutenPay = rakutenPay.copy(type = type),
-            isLoading = loadingState
-        )
-
-        is EmailTemplateType.AmazonKindle -> this.copy(
-            amazonKindle = amazonKindle.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
-
-        is EmailTemplateType.AmazonItem -> this.copy(
-            amazonItem = amazonItem.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
-
-        is EmailTemplateType.AmazonSubscribe -> this.copy(
-            amazonSubscribe = amazonSubscribe.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
-
-        is EmailTemplateType.ShikokuElectricPower -> this.copy(
-            shikokuElectricPower = shikokuElectricPower.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
-
-        is EmailTemplateType.Udemy -> this.copy(
-            udemy = udemy.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
-
-        is EmailTemplateType.RakutenCardETC -> this.copy(
-            rakutenCardETC = rakutenCardETC.copy(
-                type = type,
-                isLoading = loadingState
-            )
-        )
+    ) : EmailTemplateType, HasCategoryId<RakutenCardETC> {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
+        override fun updateCategoryId(newCategoryId: String?): RakutenCardETC =
+            copy(categoryId = newCategoryId)
     }
 }
 
@@ -207,17 +191,40 @@ class MailboxExtractionViewModel(
         Timber.d("Created. ${hashCode()}")
 
         viewModelScope.launch {
-            val isGmailConnected = mailboxExtractionRepository.getIsGmailToken()
-            _uiState.update {
-                it.copy(
-                    isGmailConnected = isGmailConnected
-                )
-            }
-            if (isGmailConnected) {
-                val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
-                for (setting in currentSettings) {
-                    _uiState.value = _uiState.value.updateType(
-                        setting
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                val isGmailConnected = mailboxExtractionRepository.getIsGmailToken()
+                _uiState.update {
+                    it.copy(
+                        isGmailConnected = isGmailConnected
+                    )
+                }
+                if (isGmailConnected) {
+                    val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
+                    for (setting in currentSettings) {
+                        _uiState.update {
+                            _uiState.value.updateEmailTemplate(
+                                EmailTemplateUiState(
+                                    setting
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            } finally {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false
                     )
                 }
             }
@@ -233,13 +240,38 @@ class MailboxExtractionViewModel(
         }
     }
 
-    fun onEnableClick(typeState: EmailTemplateType) {
-        try {
+    fun onSwitchClick(typeState: EmailTemplateUiState<EmailTemplateType>) {
+        viewModelScope.launch {
+            try {
+                val loadingState = typeState.copy(
+                    isLoading = true
+                )
+                _uiState.update {
+                    it.updateEmailTemplate(loadingState)
+                }
 
-        } catch (e: Exception) {
+                /* enabled is reversed */
+                val newType = typeState.type.updateEnabled(!typeState.type.enabled)
+                mailboxExtractionRepository.saveMailTypeSetting(newType)
 
-        } finally {
-
+                delay(5000)
+                _uiState.update {
+                    it.updateEmailTemplate(
+                        typeState.copy(
+                            type = newType,/* already updated */
+                            isLoading = false
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.updateEmailTemplate(
+                       typeState.copy(
+                           isLoading = false
+                       )
+                    )
+                }
+            }
         }
     }
 

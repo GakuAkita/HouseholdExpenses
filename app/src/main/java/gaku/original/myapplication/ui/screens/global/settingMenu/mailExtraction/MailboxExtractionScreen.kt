@@ -51,18 +51,6 @@ val EmailTemplateType.displayName: String
         is EmailTemplateType.Udemy -> "Udemy"
         is EmailTemplateType.RakutenCardETC -> "Rakuten Card ETC"
     }
-
-val MailboxExtractionUiState.emailTemplateUiStates: List<EmailTemplateUiState<out EmailTemplateType>>
-    get() = listOf(
-        rakutenPay,
-        amazonKindle,
-        amazonItem,
-        amazonSubscribe,
-        shikokuElectricPower,
-        udemy,
-        rakutenCardETC
-    )
-
 @Composable
 fun MailboxExtractionScreenRoot(
     navHostController: NavHostController,
@@ -83,7 +71,9 @@ fun MailboxExtractionScreenRoot(
             navHostController.popBackStack()
         },
         onGmailConnectClick = {},
-        onSwitchClick = {},
+        onSwitchClick = {
+            viewModel.onSwitchClick(it)
+        },
         onCategoryAssignmentClick = {},
         onCategorySelect = { _, _ -> }
     )
@@ -95,7 +85,7 @@ fun MailboxExtractionScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
     onGmailConnectClick: () -> Unit,
-    onSwitchClick: (EmailTemplateType) -> Unit,
+    onSwitchClick: (EmailTemplateUiState<EmailTemplateType>) -> Unit,
     onCategoryAssignmentClick: () -> Unit,
     onCategorySelect: (EmailTemplateType, String?) -> Unit
 ) {
@@ -139,7 +129,7 @@ fun MailboxExtractionScreen(
                 }
 
                 if (uiState.isGmailConnected) {
-                    uiState.emailTemplateUiStates.forEach { typeUiState ->
+                    uiState.emailTemplateTypeList.forEach { typeUiState ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -174,14 +164,14 @@ fun MailboxExtractionScreen(
                                     Switch(
                                         checked = typeUiState.type.enabled,
                                         onCheckedChange = {
-                                            onSwitchClick(typeUiState.type)
+                                            onSwitchClick(typeUiState)
                                         },
                                         enabled = !typeUiState.isLoading
                                     )
                                 }
                             }
 
-                            if (typeUiState.type is HasCategoryId) {
+                            if (typeUiState.type is HasCategoryId<*>) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.End
@@ -233,11 +223,32 @@ fun MailboxExtractionScreen(
 fun MailboxExtractionScreenPreview() {
     val uiState = MailboxExtractionUiState(
         isGmailConnected = true,
-        rakutenPay = EmailTemplateUiState(
-            type = EmailTemplateType.RakutenPay(
-                enabled = false
+        emailTemplateTypeList = listOf(
+            EmailTemplateUiState(
+                type = EmailTemplateType.RakutenPay(
+                    enabled = true
+                )
             ),
-            isLoading = true
+            EmailTemplateUiState(
+                type = EmailTemplateType.AmazonKindle(
+                    enabled = false
+                )
+            ),
+            EmailTemplateUiState(
+                type = EmailTemplateType.AmazonItem(
+                    enabled = false
+                )
+            ),
+            EmailTemplateUiState(
+                type = EmailTemplateType.AmazonSubscribe(
+                    enabled = false
+                )
+            ),
+            EmailTemplateUiState(
+                type = EmailTemplateType.ShikokuElectricPower(
+                    enabled = false
+                )
+            ),
         )
     )
     MailboxExtractionScreen(
@@ -245,7 +256,7 @@ fun MailboxExtractionScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onGmailConnectClick = {},
-        onEnableClick = {},
+        onSwitchClick = {},
         onCategoryAssignmentClick = {},
         onCategorySelect = { _, _ -> }
     )
