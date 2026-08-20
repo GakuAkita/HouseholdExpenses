@@ -267,14 +267,20 @@ class MailboxExtractionViewModel(
                         typeState.copy(
                             isLoading = false
                         )
+                    ).copy(
+                        message = e.message
                     )
                 }
             }
         }
     }
 
-    fun onCategorySelect(type: HasCategoryId<out EmailTemplateType>, categoryId: String?) {
+    fun onCategorySelect(typeState: EmailTemplateUiState<EmailTemplateType>, categoryId: String?) {
+        try {
 
+        } catch (e: Exception) {
+
+        }
     }
 
     override fun onCleared() {

@@ -89,7 +89,7 @@ fun MailboxExtractionScreen(
     onGmailConnectClick: () -> Unit,
     onSwitchClick: (EmailTemplateUiState<EmailTemplateType>) -> Unit,
     onCategoryAssignmentClick: () -> Unit,
-    onCategorySelect: (HasCategoryId<out EmailTemplateType>, String?) -> Unit
+    onCategorySelect: (EmailTemplateUiState<EmailTemplateType>, String?) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -192,7 +192,7 @@ fun MailboxExtractionScreen(
                                         onCategorySelected = { it ->
                                             val categoryId = it.id
                                             onCategorySelect(
-                                                typeUiState.type as HasCategoryId<out EmailTemplateType>,
+                                                typeUiState,
                                                 categoryId
                                             )
                                         },
