@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
@@ -76,7 +77,9 @@ fun MailboxExtractionScreenRoot(
         onSwitchClick = {
             viewModel.onSwitchClick(it)
         },
-        onCategoryAssignmentClick = {},
+        onCategoryAssignmentClick = {
+            navHostController.navigate(MainGraph.Global.CategoryAssignment)
+        },
         onCategorySelect = { state, categoryId ->
             viewModel.onCategorySelect(state,categoryId)
         }
