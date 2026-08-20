@@ -6,7 +6,7 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.
 import kotlinx.coroutines.delay
 
 class FakeMailboxExtractionRepository: MailboxExtractionRepository {
-    override suspend fun getIsGmailToken(): Boolean {
+    override suspend fun getIsConnected(provider: EmailProvider): Boolean {
         return true
     }
 
