@@ -276,11 +276,36 @@ class MailboxExtractionViewModel(
     }
 
     fun onCategorySelect(typeState: EmailTemplateUiState<EmailTemplateType>, categoryId: String?) {
-        try {
+            viewModelScope.launch {
+                try {
+                    val loadingState = typeState.copy(isLoading = true)
+                    _uiState.update {
+                        it.updateEmailTemplate(loadingState)
+                    }
 
-        } catch (e: Exception) {
-
-        }
+                    val newType = typeState.type as HasCategoryId<*>
+                    val newTypeWithCategoryId = newType.updateCategoryId(categoryId) as EmailTemplateType
+                    mailboxExtractionRepository.saveMailTypeSetting(newTypeWithCategoryId)
+                    _uiState.update {
+                        it.updateEmailTemplate(
+                            newState = typeState.copy(
+                                type = newTypeWithCategoryId,
+                                isLoading = false
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.updateEmailTemplate(
+                            typeState.copy(
+                                isLoading = false
+                            )
+                        ).copy(
+                            message = e.message
+                        )
+                    }
+                }
+            }
     }
 
     override fun onCleared() {

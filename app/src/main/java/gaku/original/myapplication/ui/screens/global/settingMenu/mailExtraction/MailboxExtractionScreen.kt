@@ -77,7 +77,9 @@ fun MailboxExtractionScreenRoot(
             viewModel.onSwitchClick(it)
         },
         onCategoryAssignmentClick = {},
-        onCategorySelect = { _, _ -> }
+        onCategorySelect = { state, categoryId ->
+            viewModel.onCategorySelect(state,categoryId)
+        }
     )
 }
 
@@ -189,8 +191,8 @@ fun MailboxExtractionScreen(
                                         ),
                                         nullOption = true,
                                         categories = uiState.categories,
-                                        onCategorySelected = { it ->
-                                            val categoryId = it.id
+                                        onCategorySelected = { category ->
+                                            val categoryId = category.id
                                             onCategorySelect(
                                                 typeUiState,
                                                 categoryId
