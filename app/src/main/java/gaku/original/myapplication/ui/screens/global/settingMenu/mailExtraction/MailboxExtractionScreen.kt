@@ -73,7 +73,9 @@ fun MailboxExtractionScreenRoot(
         onBackNavClick = {
             navHostController.popBackStack()
         },
-        onGmailConnectClick = {},
+        onGmailConnectClick = {
+            viewModel.onGmailConnectClick()
+        },
         onSwitchClick = {
             viewModel.onSwitchClick(it)
         },

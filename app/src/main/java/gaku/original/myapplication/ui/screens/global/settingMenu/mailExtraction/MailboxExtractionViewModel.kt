@@ -196,7 +196,7 @@ class MailboxExtractionViewModel(
                         isLoading = true
                     )
                 }
-                val isGmailConnected = mailboxExtractionRepository.getIsGmailToken()
+                val isGmailConnected = mailboxExtractionRepository.getIsConnected(EmailProvider.GMAIL)
                 _uiState.update {
                     it.copy(
                         isGmailConnected = isGmailConnected
@@ -276,36 +276,45 @@ class MailboxExtractionViewModel(
     }
 
     fun onCategorySelect(typeState: EmailTemplateUiState<EmailTemplateType>, categoryId: String?) {
-            viewModelScope.launch {
-                try {
-                    val loadingState = typeState.copy(isLoading = true)
-                    _uiState.update {
-                        it.updateEmailTemplate(loadingState)
-                    }
+        viewModelScope.launch {
+            try {
+                val loadingState = typeState.copy(isLoading = true)
+                _uiState.update {
+                    it.updateEmailTemplate(loadingState)
+                }
 
-                    val newType = typeState.type as HasCategoryId<*>
-                    val newTypeWithCategoryId = newType.updateCategoryId(categoryId) as EmailTemplateType
-                    mailboxExtractionRepository.saveMailTypeSetting(newTypeWithCategoryId)
-                    _uiState.update {
-                        it.updateEmailTemplate(
-                            newState = typeState.copy(
-                                type = newTypeWithCategoryId,
-                                isLoading = false
-                            )
+                val newType = typeState.type as HasCategoryId<*>
+                val newTypeWithCategoryId =
+                    newType.updateCategoryId(categoryId) as EmailTemplateType
+                mailboxExtractionRepository.saveMailTypeSetting(newTypeWithCategoryId)
+                _uiState.update {
+                    it.updateEmailTemplate(
+                        newState = typeState.copy(
+                            type = newTypeWithCategoryId,
+                            isLoading = false
                         )
-                    }
-                } catch (e: Exception) {
-                    _uiState.update {
-                        it.updateEmailTemplate(
-                            typeState.copy(
-                                isLoading = false
-                            )
-                        ).copy(
-                            message = e.message
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.updateEmailTemplate(
+                        typeState.copy(
+                            isLoading = false
                         )
-                    }
+                    ).copy(
+                        message = e.message
+                    )
                 }
             }
+        }
+    }
+
+    /* I want to abstract this process in case that the user can connect to outlook or other mail services. */
+    /* I have no idea how to do that, so I just only implement for Gmail. */
+    fun onGmailConnectClick() {
+        viewModelScope.launch {
+
+        }
     }
 
     override fun onCleared() {
