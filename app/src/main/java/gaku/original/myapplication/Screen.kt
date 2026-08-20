@@ -87,7 +87,7 @@ data object MainGraph {
         data object CategoryAddEdit : Global
 
         @Serializable
-        data object CategoryAssignmentEdit : Global
+        data object CategoryAssignment : Global
     }
 }
 

@@ -12,6 +12,7 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
+import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
@@ -56,8 +57,8 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<MainGraph.Global.CategoryAssignmentEdit> {
-
+        composable<MainGraph.Global.CategoryAssignment> {
+            CategoryAssignmentScreenRoot()
         }
 
         /* -------------- Setting ------------------ */
@@ -100,7 +101,6 @@ fun NavGraphBuilder.mainGraph(
                 navHostController = navController
             )
         }
-
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {
             MailboxExtractionScreenRoot(

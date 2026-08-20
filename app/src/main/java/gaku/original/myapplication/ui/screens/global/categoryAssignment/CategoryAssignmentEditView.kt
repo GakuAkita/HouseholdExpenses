@@ -1,9 +1,28 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu
+package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
+
+@Composable
+fun CategoryAssignmentScreenRoot(
+
+){
+
+}
+
+@Composable
+fun CategoryAssignmentScreen(){
+
+}
+
+@Preview
+@Composable
+fun CategoryAssignmentScreenPreview(){
+
+}
 
 @Composable
 fun CategoryAssignmentEditView(
