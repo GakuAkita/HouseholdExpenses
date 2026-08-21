@@ -16,6 +16,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
+import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -167,7 +168,8 @@ sealed interface EmailTemplateType {
 
 class MailboxExtractionViewModel(
     private val categoryRepository: CategoryRepository,
-    private val mailboxExtractionRepository: MailboxExtractionRepository
+    private val mailboxExtractionRepository: MailboxExtractionRepository,
+    private val emailConnectionRepository: EmailConnectionRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MailboxExtractionUiState())
     val uiState: StateFlow<MailboxExtractionUiState> get() = _uiState
@@ -180,7 +182,8 @@ class MailboxExtractionViewModel(
                 val session = container.sessionContainer!!
                 MailboxExtractionViewModel(
                     session.categoryRepository,
-                    session.mailboxExtractionRepository
+                    session.mailboxExtractionRepository,
+                    session.emailConnectionRepository
                 )
             }
         }
@@ -196,7 +199,7 @@ class MailboxExtractionViewModel(
                         isLoading = true
                     )
                 }
-                val isGmailConnected = mailboxExtractionRepository.getIsConnected(EmailProvider.GMAIL)
+                val isGmailConnected = emailConnectionRepository.isConnected(EmailProvider.GMAIL)
                 _uiState.update {
                     it.copy(
                         isGmailConnected = isGmailConnected

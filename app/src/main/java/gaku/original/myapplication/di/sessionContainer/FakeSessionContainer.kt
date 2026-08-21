@@ -4,6 +4,8 @@ import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneReposi
 import gaku.original.myapplication.data.repository.appTimeZone.FakeAppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.category.FakeCategoryRepository
+import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
+import gaku.original.myapplication.data.repository.emailConnect.FakeEmailConnectionRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.expense.FakeExpenseRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.FakeMailboxExtractionRepository
@@ -23,4 +25,7 @@ class FakeSessionContainer : SessionContainer {
 
     override val mailboxExtractionRepository: MailboxExtractionRepository =
         FakeMailboxExtractionRepository()
+
+    override val emailConnectionRepository: EmailConnectionRepository =
+        FakeEmailConnectionRepository()
 }
