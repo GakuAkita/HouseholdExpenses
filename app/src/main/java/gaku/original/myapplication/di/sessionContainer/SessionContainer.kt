@@ -1,5 +1,6 @@
 package gaku.original.myapplication.di.sessionContainer
 
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
@@ -19,4 +20,6 @@ interface SessionContainer {
     val mailboxExtractionRepository: MailboxExtractionRepository
 
     val emailConnectionRepository: EmailConnectionRepository
+
+    val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 }

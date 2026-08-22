@@ -16,6 +16,8 @@ import gaku.original.myapplication.ui.screens.global.categoryAssignment.Category
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
+import gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem.AmazonSubscribeItemScreen
+import gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem.AmazonSubscribeItemScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.MailboxExtractionScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialogRoot
@@ -105,6 +107,12 @@ fun NavGraphBuilder.mainGraph(
         composable<MainGraph.SettingMenu.MailboxExtraction> {
             MailboxExtractionScreenRoot(
                 navHostController = navController
+            )
+        }
+
+        composable<MainGraph.SettingMenu.AmazonSubscribeItem> {
+            AmazonSubscribeItemScreenRoot(
+                navHostController = navController,
             )
         }
 

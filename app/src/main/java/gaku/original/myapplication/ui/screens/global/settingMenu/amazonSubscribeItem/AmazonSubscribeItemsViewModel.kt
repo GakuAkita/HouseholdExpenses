@@ -12,6 +12,7 @@ import gaku.original.myapplication.data.Constants.Status.LoadingStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.AmazonSubscribeItemsRTDbRepository
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,10 +20,13 @@ import timber.log.Timber
 import javax.inject.Inject
 
 data class AmazonSubscribeItemUiState(
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val amazonSubscribeItems: List<AmazonSubscribeItem> = emptyList(),
 )
 
-class AmazonSubscribeItemViewModel : ViewModel() {
+class AmazonSubscribeItemViewModel(
+    private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository =
+) : ViewModel() {
     private val _uiState = MutableStateFlow(AmazonSubscribeItemUiState())
     val uiState: StateFlow<AmazonSubscribeItemUiState> get() = _uiState
 
@@ -36,6 +40,7 @@ class AmazonSubscribeItemViewModel : ViewModel() {
 
     init {
         Timber.d("Created. ${hashCode()}")
+
     }
 
     override fun onCleared() {

@@ -1,5 +1,7 @@
 package gaku.original.myapplication.di.sessionContainer
 
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.FakeAppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
@@ -20,6 +22,7 @@ open class FakeSessionContainer(
     override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository(),
     override val mailboxExtractionRepository: MailboxExtractionRepository =
         FakeMailboxExtractionRepository(),
-    override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository()
+    override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository(),
+    override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository = FakeAmazonSubscribeItemRepository()
 ) : SessionContainer {
 }
