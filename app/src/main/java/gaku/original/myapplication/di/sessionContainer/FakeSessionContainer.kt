@@ -13,19 +13,13 @@ import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtr
 import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 
-class FakeSessionContainer : SessionContainer {
-
-    override val expenseRepository: ExpenseRepository = FakeExpenseRepository()
-
-    override val categoryRepository: CategoryRepository = FakeCategoryRepository()
-
-    override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository()
-
-    override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository()
-
+open class FakeSessionContainer(
+    override val expenseRepository: ExpenseRepository = FakeExpenseRepository(),
+    override val categoryRepository: CategoryRepository = FakeCategoryRepository(),
+    override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository(),
+    override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository(),
     override val mailboxExtractionRepository: MailboxExtractionRepository =
-        FakeMailboxExtractionRepository()
-
-    override val emailConnectionRepository: EmailConnectionRepository =
-        FakeEmailConnectionRepository()
+        FakeMailboxExtractionRepository(),
+    override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository()
+) : SessionContainer {
 }

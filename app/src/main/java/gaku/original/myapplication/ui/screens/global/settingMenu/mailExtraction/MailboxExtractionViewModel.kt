@@ -316,7 +316,7 @@ class MailboxExtractionViewModel(
     /* I have no idea how to do that, so I just only implement for Gmail. */
     fun onGmailConnectClick() {
         viewModelScope.launch {
-
+            emailConnectionRepository.connect(EmailProvider.GMAIL)
         }
     }
 

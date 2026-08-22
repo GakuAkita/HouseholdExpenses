@@ -1,11 +1,14 @@
 package gaku.original.myapplication.data.repository.emailConnect
 
 import EmailProvider
+import com.google.firebase.auth.FirebaseAuth
 
 
-class EmailConnectionRepositoryImpl: EmailConnectionRepository {
+class EmailConnectionRepositoryFirebase(
+    private val firebaseAuth: FirebaseAuth
+): EmailConnectionRepository {
     override suspend fun isConnected(provider: EmailProvider): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
     override suspend fun connect(provider: EmailProvider) {

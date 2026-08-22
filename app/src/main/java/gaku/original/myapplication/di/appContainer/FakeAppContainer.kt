@@ -5,9 +5,9 @@ import gaku.original.myapplication.data.repository.auth.FakeAuthRepository
 import gaku.original.myapplication.di.sessionContainer.FakeSessionContainer
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
 
-class FakeAppContainer: AppContainer() {
-
+class FakeAppContainer(
     override val authRepository: AuthRepository = FakeAuthRepository()
+): AppContainer() {
 
     override fun createSession() {
         _sessionContainer = FakeSessionContainer()
