@@ -59,6 +59,8 @@ class AmazonSubscribeItemViewModel(
                         isLoading = true
                     )
                 }
+                Timber.d("Loading AmazonSubscribeItems...")
+                throw Exception("Test Exception")
                 val mapData = amazonSubscribeItemRepository.getAllAmazonSubscribeItems()
                 _uiState.update {
                     it.copy(
@@ -72,6 +74,12 @@ class AmazonSubscribeItemViewModel(
                         isLoading = false
                     )
                 }
+                Timber.d("Cached Exception: ${e.message}")
+                _eventFlow.emit(
+                    AmazonSubscribeItemUiEffect.ShowSnackbar(
+                        message = e.message ?: "Unknown error"
+                    )
+                )
             }
         }
     }

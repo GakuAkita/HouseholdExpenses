@@ -51,6 +51,7 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.ui.common.TopBarView
 import kotlinx.coroutines.flow.collectLatest
+import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -64,8 +65,10 @@ fun AmazonSubscribeItemScreenRoot(
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collectLatest { event ->
+            Timber.d("event: $event")
             when (event) {
                 is AmazonSubscribeItemUiEffect.ShowSnackbar -> {
+                    Timber.d("ShowSnackbar: ${event.message}")
                     snackbarHostState.showSnackbar(
                         event.message,
                         actionLabel = "OK"
@@ -94,8 +97,10 @@ fun AmazonSubscribeItemScreen(
         topBar = {
             TopBarView(
                 title = "Amazon Subscribe item",
-                showBackButton = false,
-                onBackNavClicked = {}
+                showBackButton = true,
+                onBackNavClicked = {
+                    onBackNavClick()
+                }
             )
         },
         snackbarHost = {
@@ -109,7 +114,9 @@ fun AmazonSubscribeItemScreen(
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-
+            uiState.amazonSubscribeItems.forEach {
+                Text("${it.productName}")
+            }
         }
     }
 }

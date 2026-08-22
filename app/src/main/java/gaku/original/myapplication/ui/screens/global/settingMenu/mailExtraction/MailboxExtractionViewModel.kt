@@ -171,10 +171,6 @@ sealed interface EmailTemplateType {
 }
 
 sealed interface MailboxExtractionUiEffect {
-    data class ShowSnackbar(
-        val message: String
-    ) : MailboxExtractionUiEffect
-
     data class OpenUrl(
         val url: String
     ) : MailboxExtractionUiEffect
@@ -266,6 +262,14 @@ class MailboxExtractionViewModel(
                     categories = categories.values.toList()
                 )
             }
+        }
+    }
+
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
         }
     }
 

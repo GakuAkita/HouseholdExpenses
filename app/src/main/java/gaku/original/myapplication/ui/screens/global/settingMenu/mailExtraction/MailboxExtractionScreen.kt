@@ -83,9 +83,6 @@ fun MailboxExtractionScreenRoot(
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
-                is MailboxExtractionUiEffect.ShowSnackbar -> {
-                }
-
                 is MailboxExtractionUiEffect.OpenUrl -> {
                     val url = event.url
                     val intent = Intent(Intent.ACTION_VIEW, url.toUri())
@@ -113,6 +110,7 @@ fun MailboxExtractionScreenRoot(
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
             snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
         }
     }
     MailboxExtractionScreen(
