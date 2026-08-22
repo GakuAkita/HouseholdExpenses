@@ -1,7 +1,6 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -53,7 +53,6 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.ShikokuElectricPower
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.Udemy
 import kotlinx.coroutines.flow.collectLatest
-import androidx.core.net.toUri
 
 val EmailTemplateType.displayName: String
     get() = when (this) {
@@ -80,7 +79,6 @@ fun MailboxExtractionScreenRoot(
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is MailboxExtractionUiEffect.ShowSnackbar -> {
-
                 }
 
                 is MailboxExtractionUiEffect.OpenUrl -> {
@@ -91,6 +89,9 @@ fun MailboxExtractionScreenRoot(
             }
         }
     }
+
+    // https://developer.android.com/develop/ui/compose/side-effects?hl=ja#disposableeffect
+
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -148,7 +149,7 @@ fun MailboxExtractionScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (uiState.isLoading) {
+            if (uiState.isLoading || uiState.isWaitingForAuth) {
                 CircularProgressIndicator()
             } else {
                 Row(

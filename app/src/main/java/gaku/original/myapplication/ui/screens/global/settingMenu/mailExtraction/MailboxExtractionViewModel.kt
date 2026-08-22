@@ -33,6 +33,7 @@ data class MailboxExtractionUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
     val isGmailConnected: Boolean = false,
+    val isWaitingForAuth: Boolean = false,
 
     val categories: List<Category> = emptyList(),
 
@@ -207,6 +208,18 @@ class MailboxExtractionViewModel(
         }
     }
 
+    private suspend fun initializeGmailTemplates() {
+        val isGmailConnected = emailConnectionRepository.isConnected(EmailProvider.GMAIL)
+        _uiState.update {
+            it.copy(
+                isGmailConnected = isGmailConnected
+            )
+        }
+        if (isGmailConnected) {
+            fetchEmailTemplaSettings()
+        }
+    }
+
     private suspend fun fetchEmailTemplaSettings() {
         val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
         for (setting in currentSettings) {
@@ -230,15 +243,7 @@ class MailboxExtractionViewModel(
                         isLoading = true
                     )
                 }
-                val isGmailConnected = emailConnectionRepository.isConnected(EmailProvider.GMAIL)
-                _uiState.update {
-                    it.copy(
-                        isGmailConnected = isGmailConnected
-                    )
-                }
-                if (isGmailConnected) {
-                    fetchEmailTemplaSettings()
-                }
+                initializeGmailTemplates()
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -360,6 +365,12 @@ class MailboxExtractionViewModel(
                     /* With using DeepLink, I might be able to get the result of the user operation after opening the url. */
                     is EmailConnectionAction.OpenUrl -> {
                         val url = action.url
+                        _uiState.update {
+                            it.copy(
+                                isWaitingForAuth = true,
+                                isLoading = false
+                            )
+                        }
                         _eventFlow.emit(
                             MailboxExtractionUiEffect.OpenUrl(url)
                         )
@@ -372,6 +383,20 @@ class MailboxExtractionViewModel(
                         isLoading = false
                     )
                 }
+            }
+        }
+    }
+
+    /* When launches oauth url and goes back to this app, this app needs to check if token is saved.*/
+    fun onResume() {
+        if (!_uiState.value.isWaitingForAuth) return
+
+        viewModelScope.launch {
+            initializeGmailTemplates()
+            _uiState.update {
+                it.copy(
+                    isWaitingForAuth = false
+                )
             }
         }
     }
