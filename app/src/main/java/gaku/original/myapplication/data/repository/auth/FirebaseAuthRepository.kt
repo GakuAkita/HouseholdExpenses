@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthRepository(
-    private val firebaseAuth: FirebaseAuth,
-    private val googleCredentialProvider: GoogleCredentialProvider
+    private val firebaseAuth: FirebaseAuth
 ) : AuthRepository {
 
 
@@ -51,10 +50,7 @@ class FirebaseAuthRepository(
             }
 
             is SignInRequest.Google->{
-                val idToken = googleCredentialProvider.getIdToken()
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                firebaseAuth.signInWithCredential(credential).await()
-                firebaseAuth.currentUser
+                throw Exception("Bug: Google Sign In requires Activity-based Context")
             }
         }
 

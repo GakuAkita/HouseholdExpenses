@@ -13,8 +13,7 @@ class FirebaseAuthTestAppContainer(
 ): FakeAppContainer() {
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     override val authRepository: AuthRepository = FirebaseAuthRepository(
-        firebaseAuth = firebaseAuth,
-        googleCredentialProvider = GoogleCredentialProvider(context)
+        firebaseAuth = firebaseAuth
     )
 
     override fun createSession() {
