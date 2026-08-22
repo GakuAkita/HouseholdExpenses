@@ -6,5 +6,17 @@ import EmailProvider
 interface EmailConnectionRepository {
     suspend fun isConnected(provider:EmailProvider):Boolean
 
-    suspend fun connect(provider:EmailProvider)
+    suspend fun connect(provider:EmailProvider): EmailConnectionAction
+}
+
+
+/* Return what UI needs to do. */
+sealed interface EmailConnectionAction{
+    data object Connected: EmailConnectionAction
+
+    data class OpenUrl(
+        val url:String
+    ): EmailConnectionAction
+
+     //data object StartMicrosoftAuth:EmailConnectionAction
 }

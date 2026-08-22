@@ -16,6 +16,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
+import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionAction
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
@@ -316,7 +317,36 @@ class MailboxExtractionViewModel(
     /* I have no idea how to do that, so I just only implement for Gmail. */
     fun onGmailConnectClick() {
         viewModelScope.launch {
-            emailConnectionRepository.connect(EmailProvider.GMAIL)
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                val action = emailConnectionRepository.connect(EmailProvider.GMAIL)
+                when (action) {
+                    is EmailConnectionAction.Connected -> {
+                        _uiState.update {
+                            it.copy(
+                                message = "Gmail Connected!",
+                                isGmailConnected = true,
+                                isLoading = false
+                            )
+                        }
+                    }
+
+                    is EmailConnectionAction.OpenUrl -> {
+                        val url = action.url
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 
