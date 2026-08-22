@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,15 +22,19 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,8 +55,6 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.ui.common.TopBarView
-import kotlinx.coroutines.flow.collectLatest
-import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -63,18 +66,10 @@ fun AmazonSubscribeItemScreenRoot(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
 
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collectLatest { event ->
-            Timber.d("event: $event")
-            when (event) {
-                is AmazonSubscribeItemUiEffect.ShowSnackbar -> {
-                    Timber.d("ShowSnackbar: ${event.message}")
-                    snackbarHostState.showSnackbar(
-                        event.message,
-                        actionLabel = "OK"
-                    )
-                }
-            }
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
         }
     }
 
@@ -83,16 +78,26 @@ fun AmazonSubscribeItemScreenRoot(
         snackbarHostState = snackbarHostState,
         onBackNavClick = {
             navHostController.popBackStack()
+        },
+        onShowDisableItemsClick = {
+            viewModel.onShowDisabledItemsClick()
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AmazonSubscribeItemScreen(
     uiState: AmazonSubscribeItemUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
+    onShowDisableItemsClick: () -> Unit
 ) {
+
+    val enabledItems = uiState.amazonSubscribeItems.filter { it.enabled == true }
+    val disabledItems = uiState.amazonSubscribeItems.filter { it.enabled == false }
+
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     Scaffold(
         topBar = {
             TopBarView(
@@ -114,8 +119,71 @@ fun AmazonSubscribeItemScreen(
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            uiState.amazonSubscribeItems.forEach {
-                Text("${it.productName}")
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                AmazonSubscribeItemsInfoCard()
+                if (uiState.amazonSubscribeItems.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "定期便アイテムはありません",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "メールから自動的に追加されます",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                } else {
+                    enabledItems.forEach {
+                        AmazonSubscribeItemCard(
+                            item = it,
+                            onDeleteClick = {}
+                        )
+                    }
+
+                    DisabledItemsButton(
+                        disabledItemsCount = disabledItems.size,
+                        onClick = {
+                            onShowDisableItemsClick()
+                        }
+                    )
+
+                    if (uiState.isShowDisabledItems) {
+                        ModalBottomSheet(
+                            onDismissRequest = { onShowDisableItemsClick() },
+                            sheetState = bottomSheetState
+                        ) {
+                            DisabledItemsDialogContent(
+                                disabledItems = disabledItems,
+                                onRestoreClick = { item ->
+                                    /**/
+                                },
+                                onDismiss = {
+                                    onShowDisableItemsClick()
+                                }
+                            )
+                        }
+                    }
+
+                }
             }
         }
     }
@@ -124,12 +192,35 @@ fun AmazonSubscribeItemScreen(
 @Preview(showBackground = true)
 @Composable
 fun AmazonSubscribeItemScreenPreview() {
-    val uiState = AmazonSubscribeItemUiState()
+    val uiState = AmazonSubscribeItemUiState(
+        amazonSubscribeItems = listOf(
+            AmazonSubscribeItem(
+                id = "1",
+                productName = "商品名",
+                price = 100f,
+                quantity = 1
+            ),
+            AmazonSubscribeItem(
+                id = "2",
+                productName = "商品名2",
+                price = 200f,
+                quantity = 2
+            ),
+            AmazonSubscribeItem(
+                id = "2",
+                productName = "商品名2",
+                price = 200f,
+                quantity = 2,
+                enabled = false
+            )
+        )
+    )
 
     AmazonSubscribeItemScreen(
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),
-        onBackNavClick = {}
+        onBackNavClick = {},
+        onShowDisableItemsClick = {}
     )
 }
 
@@ -495,7 +586,7 @@ private fun DisabledItemsButton(
 
 @Composable
 private fun DisabledItemsDialogContent(
-    disabledItems: Map<String, AmazonSubscribeItem>,
+    disabledItems: List<AmazonSubscribeItem>,
     onRestoreClick: (AmazonSubscribeItem) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -539,7 +630,7 @@ private fun DisabledItemsDialogContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(disabledItems.toList()) { (_, item) ->
+                items(disabledItems){ item ->
                     DisabledItemInDialog(
                         item = item,
                         onRestoreClick = { onRestoreClick(it) }

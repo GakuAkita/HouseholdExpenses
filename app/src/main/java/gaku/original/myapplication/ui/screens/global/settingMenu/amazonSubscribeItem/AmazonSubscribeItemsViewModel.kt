@@ -19,23 +19,16 @@ import timber.log.Timber
 
 data class AmazonSubscribeItemUiState(
     val isLoading: Boolean = false,
+    val message: String? = null,
     val amazonSubscribeItems: List<AmazonSubscribeItem> = emptyList(),
+    val isShowDisabledItems: Boolean = false
 )
-
-sealed interface AmazonSubscribeItemUiEffect {
-    data class ShowSnackbar(
-        val message: String
-    ) : AmazonSubscribeItemUiEffect
-}
 
 class AmazonSubscribeItemViewModel(
     private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AmazonSubscribeItemUiState())
     val uiState: StateFlow<AmazonSubscribeItemUiState> get() = _uiState
-
-    private val _eventFlow = MutableSharedFlow<AmazonSubscribeItemUiEffect>()
-    val eventFlow get() = _eventFlow.asSharedFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -59,8 +52,6 @@ class AmazonSubscribeItemViewModel(
                         isLoading = true
                     )
                 }
-                Timber.d("Loading AmazonSubscribeItems...")
-                throw Exception("Test Exception")
                 val mapData = amazonSubscribeItemRepository.getAllAmazonSubscribeItems()
                 _uiState.update {
                     it.copy(
@@ -71,16 +62,28 @@ class AmazonSubscribeItemViewModel(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false
+                        isLoading = false,
+                        message = e.message
                     )
                 }
-                Timber.d("Cached Exception: ${e.message}")
-                _eventFlow.emit(
-                    AmazonSubscribeItemUiEffect.ShowSnackbar(
-                        message = e.message ?: "Unknown error"
-                    )
-                )
+
             }
+        }
+    }
+
+    fun onMessageShown(){
+        _uiState.update {
+            it.copy(
+                message = null
+            )
+        }
+    }
+
+    fun onShowDisabledItemsClick(){
+        _uiState.update {
+            it.copy(
+                isShowDisabledItems = !it.isShowDisabledItems
+            )
         }
     }
 
