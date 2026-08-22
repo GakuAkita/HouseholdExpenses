@@ -25,10 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,8 +47,10 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.ui.common.TopBarView
+import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -55,8 +60,24 @@ fun AmazonSubscribeItemScreenRoot(
     viewModel: AmazonSubscribeItemViewModel = viewModel(factory = AmazonSubscribeItemViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackBarHostState.current
+
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is AmazonSubscribeItemUiEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        event.message,
+                        actionLabel = "OK"
+                    )
+                }
+            }
+        }
+    }
+
     AmazonSubscribeItemScreen(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onBackNavClick = {
             navHostController.popBackStack()
         }
@@ -66,6 +87,7 @@ fun AmazonSubscribeItemScreenRoot(
 @Composable
 fun AmazonSubscribeItemScreen(
     uiState: AmazonSubscribeItemUiState,
+    snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
 ) {
     Scaffold(
@@ -74,6 +96,11 @@ fun AmazonSubscribeItemScreen(
                 title = "Amazon Subscribe item",
                 showBackButton = false,
                 onBackNavClicked = {}
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState
             )
         }
     ) { innerPadding ->
@@ -94,6 +121,7 @@ fun AmazonSubscribeItemScreenPreview() {
 
     AmazonSubscribeItemScreen(
         uiState = uiState,
+        snackbarHostState = SnackbarHostState(),
         onBackNavClick = {}
     )
 }

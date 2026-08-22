@@ -18,6 +18,7 @@ import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -55,7 +56,7 @@ class HomeViewModel(
     private val appTimeZoneRepository: AppTimeZoneRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState
+    val uiState get() = _uiState.asStateFlow()
 
     private var lastQuery = ExpenseQuery()
     private var cachedExpenses = emptyMap<String, Expense>()

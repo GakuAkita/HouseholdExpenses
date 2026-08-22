@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -23,7 +24,7 @@ class SettingViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingUiState())
-    val uiState get() = _uiState
+    val uiState get() = _uiState.asStateFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

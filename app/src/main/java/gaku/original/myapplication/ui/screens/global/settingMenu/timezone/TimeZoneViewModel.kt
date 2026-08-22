@@ -10,6 +10,7 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.Constants.TimeZone
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -24,7 +25,7 @@ class TimeZoneViewModel(
     private val appTimeZoneRepository: AppTimeZoneRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimeZoneUiState())
-    val uiState get() = _uiState
+    val uiState get() = _uiState.asStateFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

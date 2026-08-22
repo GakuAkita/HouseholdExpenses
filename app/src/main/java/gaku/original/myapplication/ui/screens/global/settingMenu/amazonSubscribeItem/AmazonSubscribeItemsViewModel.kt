@@ -1,46 +1,79 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import dagger.hilt.android.lifecycle.HiltViewModel
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.FuncResultWithData
+import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
-import gaku.original.myapplication.data.repository.RealtimeDBrepository.AmazonSubscribeItemsRTDbRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 data class AmazonSubscribeItemUiState(
     val isLoading: Boolean = false,
     val amazonSubscribeItems: List<AmazonSubscribeItem> = emptyList(),
 )
 
+sealed interface AmazonSubscribeItemUiEffect {
+    data class ShowSnackbar(
+        val message: String
+    ) : AmazonSubscribeItemUiEffect
+}
+
 class AmazonSubscribeItemViewModel(
-    private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository =
+    private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AmazonSubscribeItemUiState())
     val uiState: StateFlow<AmazonSubscribeItemUiState> get() = _uiState
 
+    private val _eventFlow = MutableSharedFlow<AmazonSubscribeItemUiEffect>()
+    val eventFlow get() = _eventFlow.asSharedFlow()
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                AmazonSubscribeItemViewModel()
+                val app = this[APPLICATION_KEY] as MyApplication
+                val container = app.appContainer
+                val session = container.sessionContainer!!
+                AmazonSubscribeItemViewModel(
+                    amazonSubscribeItemRepository = session.amazonSubscribeItemRepository
+                )
             }
         }
     }
 
     init {
         Timber.d("Created. ${hashCode()}")
-
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                val mapData = amazonSubscribeItemRepository.getAllAmazonSubscribeItems()
+                _uiState.update {
+                    it.copy(
+                        amazonSubscribeItems = mapData.values.toList(),
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false
+                    )
+                }
+            }
+        }
     }
 
     override fun onCleared() {

@@ -12,6 +12,7 @@ import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,7 +44,7 @@ class CategoryEditViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryEditUiState())
-    val uiState get() = _uiState
+    val uiState get() = _uiState.asStateFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

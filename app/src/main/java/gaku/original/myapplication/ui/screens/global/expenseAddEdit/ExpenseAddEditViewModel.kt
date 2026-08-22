@@ -17,6 +17,7 @@ import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.utility.roundToLongOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -117,7 +118,7 @@ class ExpenseAddEditViewModel(
     }
 
     private val _uiState = MutableStateFlow(ExpenseAddEditUiState())
-    val uiState: MutableStateFlow<ExpenseAddEditUiState> get() = _uiState
+    val uiState get() = _uiState.asStateFlow()
 
 
     init {
