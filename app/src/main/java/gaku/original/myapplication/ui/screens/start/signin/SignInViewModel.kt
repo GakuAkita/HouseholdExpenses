@@ -29,9 +29,7 @@ sealed interface SignInMethod {
         val password: String
     ) : SignInMethod
 
-    data class Google(
-        val idToken: String
-    ) : SignInMethod
+    data object Google: SignInMethod
 }
 
 class SignInViewModel(

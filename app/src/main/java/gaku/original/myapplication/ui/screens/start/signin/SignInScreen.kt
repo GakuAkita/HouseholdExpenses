@@ -3,12 +3,14 @@ package gaku.original.myapplication.ui.screens.start.signin
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -64,7 +66,7 @@ fun SignInScreenRoot(
         isSignIn = isSignIn,
         isGoogleOnly = isGoogleOnly,
         onGoogleClick = {
-
+            viewModel.signInWithGoogle()
         },
         onBackNavClick = {
             navController.popBackStack()
@@ -279,8 +281,8 @@ fun SignInScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-                IconButton(
-                    onClick = {
+                Box(
+                    modifier = Modifier.clickable{
                         /* Googleでログイン */
                         /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
 //                            authViewModel.viewModelScope.launch {
@@ -298,13 +300,11 @@ fun SignInScreen(
 //                                authViewModel.signInWithGoogleIdToken(idToken)
 //                            }
                         onGoogleClick()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp)
+                    }.padding(vertical = 20.dp),
                 ) {
                     /* 広げないとめっちゃ小さくなる */
                     Image(
+                        modifier = Modifier.widthIn(max=200.dp),
                         painter = painterResource(id = R.drawable.android_light_sq_si_4x),
                         contentDescription = "Google Sign In",
                     )

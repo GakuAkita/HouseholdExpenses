@@ -1,17 +1,22 @@
 package gaku.original.myapplication.data.repository.auth
 
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
+import gaku.original.myapplication.ui.screens.start.signin.GoogleCredentialProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthRepository(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val googleCredentialProvider: GoogleCredentialProvider
 ) : AuthRepository {
 
 
@@ -46,7 +51,8 @@ class FirebaseAuthRepository(
             }
 
             is SignInRequest.Google->{
-                val credential = GoogleAuthProvider.getCredential(request.idToken, null)
+                val idToken = googleCredentialProvider.getIdToken()
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
                 firebaseAuth.signInWithCredential(credential).await()
                 firebaseAuth.currentUser
             }
