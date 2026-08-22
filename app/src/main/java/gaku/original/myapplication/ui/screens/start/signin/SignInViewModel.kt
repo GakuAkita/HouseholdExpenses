@@ -23,14 +23,14 @@ data class SignInUiState(
     val password: String = "",
 )
 
-sealed interface SignInMethod {
-    data class Email(
-        val email: String,
-        val password: String
-    ) : SignInMethod
-
-    data object Google: SignInMethod
-}
+//sealed interface SignInMethod {
+//    data class Email(
+//        val email: String,
+//        val password: String
+//    ) : SignInMethod
+//
+//    data object Google: SignInMethod
+//}
 
 class SignInViewModel(
     private val authRepository: AuthRepository
@@ -105,7 +105,7 @@ class SignInViewModel(
 
     fun signInWithGoogle() {
         viewModelScope.launch {
-
+            authRepository.signIn(SignInRequest.Google)
         }
     }
 //    suspend fun signIn(

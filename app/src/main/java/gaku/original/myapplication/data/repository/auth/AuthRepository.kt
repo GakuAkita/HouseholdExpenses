@@ -9,9 +9,7 @@ sealed interface SignInRequest {
         val password: String
     ) : SignInRequest
 
-    data class Google(
-        val idToken: String
-    ) : SignInRequest
+    data object Google: SignInRequest
 }
 
 sealed interface SignUpRequest {
