@@ -12,7 +12,7 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import dagger.hilt.components.SingletonComponent
 import gaku.original.myapplication.data.local.AppDatabase
 import gaku.original.myapplication.data.local.dao.CategoryDao
-import gaku.original.myapplication.data.repository.FirebaseAuthRepository
+import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.FirestoreRepository.CategoryFirestoreRepository
 import gaku.original.myapplication.data.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.repository.FirestoreRepository.RepeatAddFirestoreRepository

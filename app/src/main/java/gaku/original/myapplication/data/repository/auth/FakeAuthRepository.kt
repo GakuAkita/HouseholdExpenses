@@ -1,5 +1,8 @@
 package gaku.original.myapplication.data.repository.auth
 
+import AuthRepository
+import SignInRequest
+import SignUpRequest
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
 import kotlinx.coroutines.delay
@@ -12,14 +15,6 @@ class FakeAuthRepository : AuthRepository {
         id = "sample",
         email = "g@gmail.com"
     )
-
-    override val user: AppUser?
-        get() {
-            if (_authState.value is AuthState.LoggedIn) {
-                return (authState.value as AuthState.LoggedIn).user
-            }
-            return null
-        }
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     override val authState: StateFlow<AuthState>

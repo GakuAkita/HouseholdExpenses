@@ -1,4 +1,3 @@
-package gaku.original.myapplication.data.repository.auth
 
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
@@ -24,8 +23,6 @@ sealed interface SignUpRequest {
 
 interface AuthRepository {
     val authState: StateFlow<AuthState>
-
-    val user: AppUser?
 
     suspend fun signIn(
         request: SignInRequest

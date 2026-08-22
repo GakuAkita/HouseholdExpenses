@@ -13,7 +13,7 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.repository.FirebaseAuthRepository
+import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionAction
@@ -190,6 +190,19 @@ class MailboxExtractionViewModel(
         }
     }
 
+    private suspend fun fetchEmailTemplaSettings(){
+        val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
+        for (setting in currentSettings) {
+            _uiState.update {
+                _uiState.value.updateEmailTemplate(
+                    EmailTemplateUiState(
+                        setting
+                    )
+                )
+            }
+        }
+    }
+
     init {
         Timber.d("Created. ${hashCode()}")
 
@@ -207,16 +220,7 @@ class MailboxExtractionViewModel(
                     )
                 }
                 if (isGmailConnected) {
-                    val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
-                    for (setting in currentSettings) {
-                        _uiState.update {
-                            _uiState.value.updateEmailTemplate(
-                                EmailTemplateUiState(
-                                    setting
-                                )
-                            )
-                        }
-                    }
+                    fetchEmailTemplaSettings()
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -326,6 +330,7 @@ class MailboxExtractionViewModel(
                 val action = emailConnectionRepository.connect(EmailProvider.GMAIL)
                 when (action) {
                     is EmailConnectionAction.Connected -> {
+                        fetchEmailTemplaSettings()
                         _uiState.update {
                             it.copy(
                                 message = "Gmail Connected!",
