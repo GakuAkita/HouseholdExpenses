@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepositoryFirebase
 import gaku.original.myapplication.di.sessionContainer.FakeSessionContainer
+import gaku.original.myapplication.di.sessionContainer.SessionContainer
 import gaku.original.myapplication.ui.screens.start.signin.GoogleCredentialProvider
 
 class FirebaseAuthTestAppContainer: FakeAppContainer() {
@@ -14,8 +15,8 @@ class FirebaseAuthTestAppContainer: FakeAppContainer() {
         firebaseAuth = firebaseAuth
     )
 
-    override fun createSession() {
-        _sessionContainer = FakeSessionContainer(
+    override fun createSessionContainer(): SessionContainer {
+        return FakeSessionContainer(
             emailConnectionRepository = EmailConnectionRepositoryFirebase(
                 firebaseAuth
             )

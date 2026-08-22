@@ -9,12 +9,16 @@ abstract class AppContainer {
 
     // Subclass can assign SessionContainer to _sessionContainer
     // because it is protected, not private
-    protected var _sessionContainer: SessionContainer? = null
+    private var _sessionContainer: SessionContainer? = null
 
     val sessionContainer: SessionContainer?
         get() = _sessionContainer
 
-    abstract fun createSession()
+    protected abstract fun createSessionContainer(): SessionContainer
+
+    fun createSession(){
+        _sessionContainer = createSessionContainer()
+    }
 
     fun clearSession(){
         _sessionContainer = null
