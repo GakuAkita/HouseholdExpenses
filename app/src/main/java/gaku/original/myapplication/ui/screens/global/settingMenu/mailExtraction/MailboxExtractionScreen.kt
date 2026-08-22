@@ -1,5 +1,7 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,7 +45,15 @@ import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.*
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonItem
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonKindle
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonSubscribe
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.RakutenCardETC
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.RakutenPay
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.ShikokuElectricPower
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.Udemy
+import kotlinx.coroutines.flow.collectLatest
+import androidx.core.net.toUri
 
 val EmailTemplateType.displayName: String
     get() = when (this) {
@@ -54,6 +65,7 @@ val EmailTemplateType.displayName: String
         is Udemy -> "Udemy"
         is RakutenCardETC -> "Rakuten Card ETC"
     }
+
 @Composable
 fun MailboxExtractionScreenRoot(
     navHostController: NavHostController,
@@ -61,6 +73,24 @@ fun MailboxExtractionScreenRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
+
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is MailboxExtractionUiEffect.ShowSnackbar -> {
+
+                }
+
+                is MailboxExtractionUiEffect.OpenUrl -> {
+                    val url = event.url
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    context.startActivity(intent)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -83,7 +113,7 @@ fun MailboxExtractionScreenRoot(
             navHostController.navigate(MainGraph.Global.CategoryAssignment)
         },
         onCategorySelect = { state, categoryId ->
-            viewModel.onCategorySelect(state,categoryId)
+            viewModel.onCategorySelect(state, categoryId)
         }
     )
 }
@@ -177,7 +207,7 @@ fun MailboxExtractionScreen(
                                         },
                                         enabled = !typeUiState.isLoading
                                     )
-                                    if(typeUiState.isLoading){
+                                    if (typeUiState.isLoading) {
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(24.dp)
                                         )

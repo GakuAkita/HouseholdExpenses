@@ -13,15 +13,17 @@ import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.RealtimeDBrepository.MailboxExtractionRTDbRepository
+import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionAction
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.useCase.CategoryUseCase
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -167,6 +169,16 @@ sealed interface EmailTemplateType {
     }
 }
 
+sealed interface MailboxExtractionUiEffect {
+    data class ShowSnackbar(
+        val message: String
+    ) : MailboxExtractionUiEffect
+
+    data class OpenUrl(
+        val url: String
+    ) : MailboxExtractionUiEffect
+}
+
 class MailboxExtractionViewModel(
     private val categoryRepository: CategoryRepository,
     private val mailboxExtractionRepository: MailboxExtractionRepository,
@@ -174,6 +186,11 @@ class MailboxExtractionViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MailboxExtractionUiState())
     val uiState: StateFlow<MailboxExtractionUiState> get() = _uiState
+
+    //https://stackoverflow.com/questions/66162586/the-main-difference-between-sharedflow-and-stateflow
+    // https://qiita.com/void_takazu/items/64acfdc96170f8df49f0#32-sharedflow%E3%81%AE%E8%BF%BD%E5%8A%A0%E3%81%A8%E3%82%AB%E3%83%97%E3%82%BB%E3%83%AB%E5%8C%96
+    private val _eventFlow = MutableSharedFlow<MailboxExtractionUiEffect>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -190,7 +207,7 @@ class MailboxExtractionViewModel(
         }
     }
 
-    private suspend fun fetchEmailTemplaSettings(){
+    private suspend fun fetchEmailTemplaSettings() {
         val currentSettings = mailboxExtractionRepository.getAllMailTypeSetting()
         for (setting in currentSettings) {
             _uiState.update {
@@ -340,8 +357,12 @@ class MailboxExtractionViewModel(
                         }
                     }
 
+                    /* With using DeepLink, I might be able to get the result of the user operation after opening the url. */
                     is EmailConnectionAction.OpenUrl -> {
                         val url = action.url
+                        _eventFlow.emit(
+                            MailboxExtractionUiEffect.OpenUrl(url)
+                        )
                     }
                 }
             } catch (e: Exception) {
