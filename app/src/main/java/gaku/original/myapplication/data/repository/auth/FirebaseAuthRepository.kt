@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.auth
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
@@ -12,6 +13,10 @@ import kotlinx.coroutines.tasks.await
 class FirebaseAuthRepository(
     private val firebaseAuth: FirebaseAuth
 ) : AuthRepository {
+
+
+    override val user: AppUser?
+        get() = firebaseAuth.currentUser?.toAppUser()
     private var _authState: MutableStateFlow<AuthState> = MutableStateFlow(AuthState.Loading)
 
     override val authState: StateFlow<AuthState>
@@ -24,10 +29,7 @@ class FirebaseAuthRepository(
                     AuthState.LoggedOut
                 }else{
                     AuthState.LoggedIn(
-                        AppUser(
-                            id = instance.currentUser!!.uid,
-                            email = instance.currentUser!!.email
-                        )
+                        instance.currentUser!!.toAppUser()
                     )
                 }
             }
@@ -50,10 +52,7 @@ class FirebaseAuthRepository(
             }
         }
 
-        return AppUser(
-            id = user!!.uid,
-            email = user.email
-        )
+        return user!!.toAppUser()
     }
 
     override suspend fun signUp(request: SignUpRequest): AppUser {
@@ -66,15 +65,19 @@ class FirebaseAuthRepository(
             }
         }
 
-        return AppUser(
-            id = user!!.uid,
-            email = user.email
-        )
+        return user!!.toAppUser()
     }
 
     override suspend fun signOut() {
         firebaseAuth.signOut()
     }
+}
+
+fun FirebaseUser.toAppUser():AppUser{
+    return AppUser(
+        id = this.uid,
+        email = this.email
+    )
 }
 
 //class FirebaseAuthRepository @Inject constructor(

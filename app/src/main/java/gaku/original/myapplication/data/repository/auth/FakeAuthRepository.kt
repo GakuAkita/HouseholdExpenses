@@ -8,6 +8,15 @@ import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 
 class FakeAuthRepository : AuthRepository {
+
+    override val user: AppUser?
+        get() {
+            if (_authState.value is AuthState.LoggedIn) {
+                return (authState.value as AuthState.LoggedIn).user
+            }
+            return null
+        }
+
     private val appUser = AppUser(
         id = "sample",
         email = "g@gmail.com"

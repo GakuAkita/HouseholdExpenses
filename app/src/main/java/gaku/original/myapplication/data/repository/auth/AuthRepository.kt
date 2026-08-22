@@ -22,6 +22,9 @@ sealed interface SignUpRequest {
 }
 
 interface AuthRepository {
+
+    val user: AppUser?
+
     val authState: StateFlow<AuthState>
 
     suspend fun signIn(
