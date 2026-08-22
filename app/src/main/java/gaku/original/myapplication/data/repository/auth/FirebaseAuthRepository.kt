@@ -1,14 +1,18 @@
 package gaku.original.myapplication.data.repository.auth
 
+import android.app.Activity
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
-import gaku.original.myapplication.ui.screens.start.signin.GoogleCredentialProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -16,8 +20,7 @@ import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthRepository(
     private val firebaseAuth: FirebaseAuth
-) : AuthRepository {
-
+) : AuthRepository, GoogleSignIn {
 
     override val user: AppUser?
         get() = firebaseAuth.currentUser?.toAppUser()
@@ -31,7 +34,7 @@ class FirebaseAuthRepository(
             _authState.update {
                 if (instance.currentUser == null) {
                     AuthState.LoggedOut
-                }else{
+                } else {
                     AuthState.LoggedIn(
                         instance.currentUser!!.toAppUser()
                     )
@@ -41,15 +44,15 @@ class FirebaseAuthRepository(
     }
 
     override suspend fun signIn(request: SignInRequest): AppUser {
-        val user = when(request){
-            is SignInRequest.Email->{
+        val user = when (request) {
+            is SignInRequest.Email -> {
                 firebaseAuth.signInWithEmailAndPassword(
                     request.email,
                     request.password
                 ).await().user
             }
 
-            is SignInRequest.Google->{
+            is SignInRequest.Google -> {
                 throw Exception("Bug: Google Sign In requires Activity-based Context")
             }
         }
@@ -57,9 +60,38 @@ class FirebaseAuthRepository(
         return user!!.toAppUser()
     }
 
+    override suspend fun signInWithGoogle(activity: Activity): AppUser {
+        val credentialManager = CredentialManager.create(activity)
+
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+            .setFilterByAuthorizedAccounts(false) // falseで全アカウント表示
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        val result = credentialManager.getCredential(activity, request)
+        val credential = result.credential
+
+        if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            // Create Google ID Token
+            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+            val gCredential =
+                GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+
+            firebaseAuth.signInWithCredential(gCredential).await()
+            return firebaseAuth.currentUser!!.toAppUser()
+        } else {
+            throw Exception("Credential is not of type Google ID!")
+        }
+
+    }
+
     override suspend fun signUp(request: SignUpRequest): AppUser {
-        val user = when(request){
-            is SignUpRequest.Email->{
+        val user = when (request) {
+            is SignUpRequest.Email -> {
                 firebaseAuth.createUserWithEmailAndPassword(
                     request.email,
                     request.password
@@ -75,7 +107,7 @@ class FirebaseAuthRepository(
     }
 }
 
-fun FirebaseUser.toAppUser():AppUser{
+fun FirebaseUser.toAppUser(): AppUser {
     return AppUser(
         id = this.uid,
         email = this.email
