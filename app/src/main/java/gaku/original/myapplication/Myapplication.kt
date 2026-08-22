@@ -19,7 +19,7 @@ class MyApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        appContainer = FirebaseAuthTestAppContainer()
+        appContainer = FakeAppContainer()
 
         Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }

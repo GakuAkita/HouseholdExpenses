@@ -1,11 +1,10 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu
+package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,28 +14,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,199 +38,247 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import gaku.original.myapplication.data.Constants.Status.LoadingStatus
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.viewModel.settings.AmazonSubscribeItemsViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AmazonSubscribeItemsView(
-    viewModel: AmazonSubscribeItemsViewModel = hiltViewModel(),
-    navController: NavController
+fun AmazonSubscribeItemScreenRoot(
+    navHostController: NavHostController,
+    viewModel: AmazonSubscribeItemViewModel = viewModel(factory = AmazonSubscribeItemViewModel.Factory)
 ) {
-    // ViewModelの状態を監視
-    val loadingStatus by viewModel.loadingStatus.collectAsState()
-    val amazonSubscribeItems by viewModel.amazonSubscribeItems.collectAsState()
-    val disabledAmazonSubscribeItems by viewModel.disabledAmazonSubscribeItems.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    
-    // 削除済みアイテムダイアログの状態
-    var showDisabledItemsDialog by remember { mutableStateOf(false) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    // エラーが発生した場合の処理
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            // エラーメッセージを表示（Snackbarなど）
-            // ここでエラーをクリアすることも可能
-            // viewModel.clearError()
+    val uiState by viewModel.uiState.collectAsState()
+    AmazonSubscribeItemScreen(
+        uiState = uiState,
+        onBackNavClick = {
+            navHostController.popBackStack()
         }
-    }
+    )
+}
 
+@Composable
+fun AmazonSubscribeItemScreen(
+    uiState: AmazonSubscribeItemUiState,
+    onBackNavClick: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopBarView(
-                "Amazon定期便アイテム",
-                showBackButton = true,
-                onBackNavClicked = { navController.popBackStack() }
+                title = "Amazon Subscribe item",
+                showBackButton = false,
+                onBackNavClicked = {}
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            when (loadingStatus) {
-                LoadingStatus.IDLE, LoadingStatus.LOADING -> {
-                    // ローディング表示
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                        Text("Amazon定期便アイテムを読み込み中...")
-                    }
-                }
 
-                LoadingStatus.SUCCESS -> {
-                    // データ表示
-                    if (amazonSubscribeItems.isEmpty() && disabledAmazonSubscribeItems.isEmpty()) {
-                        // 空の状態の改善
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "定期便アイテムはありません",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "メールから自動的に追加されます",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            // 注意書き
-                            item {
-                                AmazonSubscribeItemsInfoCard()
-                            }
-                            
-                            // 削除済みアイテム表示ボタン
-                            if (disabledAmazonSubscribeItems.isNotEmpty()) {
-                                item {
-                                    DisabledItemsButton(
-                                        disabledItemsCount = disabledAmazonSubscribeItems.size,
-                                        onClick = { showDisabledItemsDialog = true }
-                                    )
-                                }
-                            }
-                            
-                            // 有効なアイテムのみを表示
-                            items(amazonSubscribeItems.toList()) { (_, item) ->
-                                AmazonSubscribeItemCard(
-                                    item = item,
-                                    onDeleteClick = { viewModel.disableItem(it) }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                LoadingStatus.ERROR -> {
-                    // エラー表示
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("エラーが発生しました")
-                        Text(
-                            text = errorMessage ?: "不明なエラー",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.refresh() }
-                        ) {
-                            Text("再読み込み")
-                        }
-                    }
-                }
-
-                LoadingStatus.TIMEOUT -> {
-                    // タイムアウト表示
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("タイムアウトしました")
-                        Text(
-                            text = "ネットワーク接続を確認して再度お試しください",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.refresh() }
-                        ) {
-                            Text("再読み込み")
-                        }
-                    }
-                }
-
-                else -> {
-                    Text("不明な状態です")
-                }
-            }
-        }
-        
-        // 削除済みアイテムダイアログ
-        if (showDisabledItemsDialog) {
-            ModalBottomSheet(
-                onDismissRequest = { showDisabledItemsDialog = false },
-                sheetState = bottomSheetState
-            ) {
-                DisabledItemsDialogContent(
-                    disabledItems = disabledAmazonSubscribeItems,
-                    onRestoreClick = { item ->
-                        viewModel.enableItem(item)
-                    },
-                    onDismiss = { showDisabledItemsDialog = false }
-                )
-            }
         }
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun AmazonSubscribeItemScreenPreview() {
+    val uiState = AmazonSubscribeItemUiState()
+
+    AmazonSubscribeItemScreen(
+        uiState = uiState,
+        onBackNavClick = {}
+    )
+}
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun AmazonSubscribeItemsView(
+//    viewModel: AmazonSubscribeItemsViewModel = hiltViewModel(),
+//    navController: NavController
+//) {
+//    // ViewModelの状態を監視
+//    val loadingStatus by viewModel.loadingStatus.collectAsState()
+//    val amazonSubscribeItems by viewModel.amazonSubscribeItems.collectAsState()
+//    val disabledAmazonSubscribeItems by viewModel.disabledAmazonSubscribeItems.collectAsState()
+//    val errorMessage by viewModel.errorMessage.collectAsState()
+//
+//    // 削除済みアイテムダイアログの状態
+//    var showDisabledItemsDialog by remember { mutableStateOf(false) }
+//    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+//
+//    // エラーが発生した場合の処理
+//    LaunchedEffect(errorMessage) {
+//        errorMessage?.let {
+//            // エラーメッセージを表示（Snackbarなど）
+//            // ここでエラーをクリアすることも可能
+//            // viewModel.clearError()
+//        }
+//    }
+//
+//    Scaffold(
+//        topBar = {
+//            TopBarView(
+//                "Amazon定期便アイテム",
+//                showBackButton = true,
+//                onBackNavClicked = { navController.popBackStack() }
+//            )
+//        },
+//    ) { innerPadding ->
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//        ) {
+//            when (loadingStatus) {
+//                LoadingStatus.IDLE, LoadingStatus.LOADING -> {
+//                    // ローディング表示
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        CircularProgressIndicator()
+//                        Text("Amazon定期便アイテムを読み込み中...")
+//                    }
+//                }
+//
+//                LoadingStatus.SUCCESS -> {
+//                    // データ表示
+//                    if (amazonSubscribeItems.isEmpty() && disabledAmazonSubscribeItems.isEmpty()) {
+//                        // 空の状態の改善
+//                        Column(
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                                .padding(32.dp),
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            verticalArrangement = Arrangement.Center
+//                        ) {
+//                            Icon(
+//                                imageVector = Icons.Default.ShoppingCart,
+//                                contentDescription = null,
+//                                modifier = Modifier.size(64.dp),
+//                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+//                            )
+//                            Spacer(modifier = Modifier.height(16.dp))
+//                            Text(
+//                                text = "定期便アイテムはありません",
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                color = MaterialTheme.colorScheme.onSurfaceVariant
+//                            )
+//                            Spacer(modifier = Modifier.height(8.dp))
+//                            Text(
+//                                text = "メールから自動的に追加されます",
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+//                            )
+//                        }
+//                    } else {
+//                        LazyColumn(
+//                            modifier = Modifier.fillMaxSize(),
+//                            contentPadding = PaddingValues(16.dp),
+//                            verticalArrangement = Arrangement.spacedBy(12.dp)
+//                        ) {
+//                            // 注意書き
+//                            item {
+//                                AmazonSubscribeItemsInfoCard()
+//                            }
+//
+//                            // 削除済みアイテム表示ボタン
+//                            if (disabledAmazonSubscribeItems.isNotEmpty()) {
+//                                item {
+//                                    DisabledItemsButton(
+//                                        disabledItemsCount = disabledAmazonSubscribeItems.size,
+//                                        onClick = { showDisabledItemsDialog = true }
+//                                    )
+//                                }
+//                            }
+//
+//                            // 有効なアイテムのみを表示
+//                            items(amazonSubscribeItems.toList()) { (_, item) ->
+//                                AmazonSubscribeItemCard(
+//                                    item = item,
+//                                    onDeleteClick = { viewModel.disableItem(it) }
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                LoadingStatus.ERROR -> {
+//                    // エラー表示
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text("エラーが発生しました")
+//                        Text(
+//                            text = errorMessage ?: "不明なエラー",
+//                            modifier = Modifier.padding(vertical = 8.dp)
+//                        )
+//                        Button(
+//                            onClick = { viewModel.refresh() }
+//                        ) {
+//                            Text("再読み込み")
+//                        }
+//                    }
+//                }
+//
+//                LoadingStatus.TIMEOUT -> {
+//                    // タイムアウト表示
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        Text("タイムアウトしました")
+//                        Text(
+//                            text = "ネットワーク接続を確認して再度お試しください",
+//                            modifier = Modifier.padding(vertical = 8.dp)
+//                        )
+//                        Button(
+//                            onClick = { viewModel.refresh() }
+//                        ) {
+//                            Text("再読み込み")
+//                        }
+//                    }
+//                }
+//
+//                else -> {
+//                    Text("不明な状態です")
+//                }
+//            }
+//        }
+//
+//        // 削除済みアイテムダイアログ
+//        if (showDisabledItemsDialog) {
+//            ModalBottomSheet(
+//                onDismissRequest = { showDisabledItemsDialog = false },
+//                sheetState = bottomSheetState
+//            ) {
+//                DisabledItemsDialogContent(
+//                    disabledItems = disabledAmazonSubscribeItems,
+//                    onRestoreClick = { item ->
+//                        viewModel.enableItem(item)
+//                    },
+//                    onDismiss = { showDisabledItemsDialog = false }
+//                )
+//            }
+//        }
+//    }
+//}
+
 @Composable
 private fun AmazonSubscribeItemsInfoCard() {
     var isExpanded by remember { mutableStateOf(false) }
-    
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -268,7 +308,7 @@ private fun AmazonSubscribeItemsInfoCard() {
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -350,7 +390,7 @@ private fun AmazonSubscribeItemCard(
                     )
                 }
             }
-            
+
             // 削除ボタン
             IconButton(
                 onClick = {
@@ -444,9 +484,9 @@ private fun DisabledItemsDialogContent(
                 Text("閉じる")
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         if (disabledItems.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -543,7 +583,7 @@ private fun DisabledItemInDialog(
                     )
                 }
             }
-            
+
             // 復元ボタン
             IconButton(
                 onClick = {

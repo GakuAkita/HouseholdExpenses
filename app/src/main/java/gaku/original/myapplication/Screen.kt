@@ -64,6 +64,9 @@ data object MainGraph {
         }
 
         @Serializable
+        data object AmazonSubscribeItem : SettingMenu
+
+        @Serializable
         data object AppSettings : SettingMenu
 
         @Serializable

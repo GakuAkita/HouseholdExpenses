@@ -100,6 +100,12 @@ fun SettingScreen(
         )
 
         SettingRowWithNavigation(
+            label = "Amazon Subscribe Item",
+            route = MainGraph.SettingMenu.AmazonSubscribeItem,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
             label = "App Version",
             route = MainGraph.SettingMenu.AppVersion,
             onMenuClick = onMenuClick
