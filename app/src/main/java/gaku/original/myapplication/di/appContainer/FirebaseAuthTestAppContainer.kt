@@ -8,9 +8,7 @@ import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionR
 import gaku.original.myapplication.di.sessionContainer.FakeSessionContainer
 import gaku.original.myapplication.ui.screens.start.signin.GoogleCredentialProvider
 
-class FirebaseAuthTestAppContainer(
-    private val context: Context
-): FakeAppContainer() {
+class FirebaseAuthTestAppContainer: FakeAppContainer() {
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     override val authRepository: AuthRepository = FirebaseAuthRepository(
         firebaseAuth = firebaseAuth
