@@ -1,8 +1,5 @@
 package gaku.original.myapplication.data.repository.auth
 
-import AuthRepository
-import SignInRequest
-import SignUpRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import gaku.original.myapplication.domain.AppUser

@@ -1,4 +1,4 @@
-
+package gaku.original.myapplication.data.repository.auth
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
 import kotlinx.coroutines.flow.StateFlow

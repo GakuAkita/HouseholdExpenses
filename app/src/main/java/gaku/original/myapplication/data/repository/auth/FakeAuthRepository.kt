@@ -1,8 +1,5 @@
 package gaku.original.myapplication.data.repository.auth
 
-import AuthRepository
-import SignInRequest
-import SignUpRequest
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
 import kotlinx.coroutines.delay
