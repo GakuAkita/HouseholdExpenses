@@ -389,8 +389,10 @@ class MailboxExtractionViewModel(
 
     /* When launches oauth url and goes back to this app, this app needs to check if token is saved.*/
     fun onResume() {
+        Timber.d("Triggered OnResume")
         if (!_uiState.value.isWaitingForAuth) return
 
+        Timber.d("Checking if token is saved. OnResume")
         viewModelScope.launch {
             initializeGmailTemplates()
             _uiState.update {
