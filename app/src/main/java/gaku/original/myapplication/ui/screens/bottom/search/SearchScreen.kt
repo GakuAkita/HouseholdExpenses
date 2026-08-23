@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.bottom
+package gaku.original.myapplication.ui.screens.bottom.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
