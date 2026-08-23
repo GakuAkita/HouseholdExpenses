@@ -111,6 +111,12 @@ fun SettingScreen(
             onMenuClick = onMenuClick
         )
 
+//        SettingRowWithNavigation(
+//            label = "Notification Listener Setting",
+//            route = MainGraph.SettingMenu.NotificationListenerSetting,
+//            onMenuClick = onMenuClick
+//        )
+
         SettingRowWithNavigation(
             label = "App Version",
             route = MainGraph.SettingMenu.AppVersion,

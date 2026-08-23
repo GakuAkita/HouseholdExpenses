@@ -122,6 +122,10 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
+        composable<MainGraph.SettingMenu.NotificationListenerSetting>{
+            
+        }
+
         composable<MainGraph.SettingMenu.AppVersion> {
             VersionScreen(navController)
         }
