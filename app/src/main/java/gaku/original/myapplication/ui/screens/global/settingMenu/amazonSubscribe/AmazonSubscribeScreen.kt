@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem
+package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribe
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,9 +59,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
-fun AmazonSubscribeItemScreenRoot(
+fun AmazonSubscribeScreenRoot(
     navHostController: NavHostController,
-    viewModel: AmazonSubscribeItemViewModel = viewModel(factory = AmazonSubscribeItemViewModel.Factory)
+    viewModel: AmazonSubscribeViewModel = viewModel(factory = AmazonSubscribeViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
@@ -73,7 +73,7 @@ fun AmazonSubscribeItemScreenRoot(
         }
     }
 
-    AmazonSubscribeItemScreen(
+    AmazonSubscribeScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
         onBackNavClick = {
@@ -81,21 +81,29 @@ fun AmazonSubscribeItemScreenRoot(
         },
         onShowDisableItemsClick = {
             viewModel.onShowDisabledItemsClick()
+        },
+        onDeleteClick = {
+
+        },
+        onRestoreClick = {
+
         }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AmazonSubscribeItemScreen(
-    uiState: AmazonSubscribeItemUiState,
+fun AmazonSubscribeScreen(
+    uiState: AmazonSubscribeUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
-    onShowDisableItemsClick: () -> Unit
+    onShowDisableItemsClick: () -> Unit,
+    onDeleteClick: (AmazonSubscribeItemUiState) -> Unit,/* Technically, this is to disable */
+    onRestoreClick: (AmazonSubscribeItemUiState) -> Unit
 ) {
 
-    val enabledItems = uiState.amazonSubscribeItems.filter { it.enabled == true }
-    val disabledItems = uiState.amazonSubscribeItems.filter { it.enabled == false }
+    val enabledItems = uiState.amazonSubscribeItems.filter { it.subscribeItem.enabled == true }
+    val disabledItems = uiState.amazonSubscribeItems.filter { it.subscribeItem.enabled == false }
 
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     Scaffold(
@@ -124,7 +132,18 @@ fun AmazonSubscribeItemScreen(
                 CircularProgressIndicator()
             } else {
                 AmazonSubscribeItemsInfoCard()
-                if (uiState.amazonSubscribeItems.isEmpty()) {
+                if (uiState.isLoadError) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "There was a loading error. Please go back and reopen.",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else if (uiState.amazonSubscribeItems.isEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -154,8 +173,10 @@ fun AmazonSubscribeItemScreen(
                 } else {
                     enabledItems.forEach {
                         AmazonSubscribeItemCard(
-                            item = it,
-                            onDeleteClick = {}
+                            itemUiState = it,
+                            onDeleteClick = {
+                                onDeleteClick(it)
+                            }
                         )
                     }
 
@@ -173,8 +194,8 @@ fun AmazonSubscribeItemScreen(
                         ) {
                             DisabledItemsDialogContent(
                                 disabledItems = disabledItems,
-                                onRestoreClick = { item ->
-                                    /**/
+                                onRestoreClick = { itemUiState ->
+                                    onRestoreClick(itemUiState)
                                 },
                                 onDismiss = {
                                     onShowDisableItemsClick()
@@ -192,35 +213,45 @@ fun AmazonSubscribeItemScreen(
 @Preview(showBackground = true)
 @Composable
 fun AmazonSubscribeItemScreenPreview() {
-    val uiState = AmazonSubscribeItemUiState(
+    val uiState = AmazonSubscribeUiState(
         amazonSubscribeItems = listOf(
-            AmazonSubscribeItem(
-                id = "1",
-                productName = "商品名",
-                price = 100f,
-                quantity = 1
+            AmazonSubscribeItemUiState(
+                subscribeItem = AmazonSubscribeItem(
+                    id = "1",
+                    productName = "商品名",
+                    price = 100f,
+                    quantity = 1
+                )
             ),
-            AmazonSubscribeItem(
-                id = "2",
-                productName = "商品名2",
-                price = 200f,
-                quantity = 2
+            AmazonSubscribeItemUiState(
+                subscribeItem = AmazonSubscribeItem(
+                    id = "2",
+                    productName = "商品名2",
+                    price = 200f,
+                    quantity = 2
+                )
             ),
-            AmazonSubscribeItem(
-                id = "2",
-                productName = "商品名2",
-                price = 200f,
-                quantity = 2,
-                enabled = false
+            AmazonSubscribeItemUiState(
+                subscribeItem = AmazonSubscribeItem(
+                    id = "3",
+                    productName = "商品名3",
+                    price = 200f,
+                    quantity = 2,
+                    enabled = false
+                )
             )
-        )
+        ),
+        isShowDisabledItems = false,
+        isLoadError = true
     )
 
-    AmazonSubscribeItemScreen(
+    AmazonSubscribeScreen(
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
-        onShowDisableItemsClick = {}
+        onShowDisableItemsClick = {},
+        onDeleteClick = {},
+        onRestoreClick = {}
     )
 }
 
@@ -450,11 +481,11 @@ private fun AmazonSubscribeItemsInfoCard() {
 
 @Composable
 private fun AmazonSubscribeItemCard(
-    item: AmazonSubscribeItem,
-    onDeleteClick: (AmazonSubscribeItem) -> Unit
+    itemUiState: AmazonSubscribeItemUiState,
+    onDeleteClick: (AmazonSubscribeItemUiState) -> Unit
 ) {
     val numberFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN)
-    val formattedPrice = numberFormat.format((item.price ?: 0f).toDouble())
+    val formattedPrice = numberFormat.format((itemUiState.subscribeItem.price ?: 0f).toDouble())
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -485,7 +516,7 @@ private fun AmazonSubscribeItemCard(
             ) {
                 // 商品名
                 Text(
-                    text = item.productName ?: "(商品名不明)",
+                    text = itemUiState.subscribeItem.productName ?: "(商品名不明)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -502,7 +533,7 @@ private fun AmazonSubscribeItemCard(
                 ) {
                     // 数量
                     Text(
-                        text = "数量: ${item.quantity ?: 1}",
+                        text = "数量: ${itemUiState.subscribeItem.quantity ?: 1}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -520,7 +551,7 @@ private fun AmazonSubscribeItemCard(
             // 削除ボタン
             IconButton(
                 onClick = {
-                    onDeleteClick(item)
+                    onDeleteClick(itemUiState)
                 }
             ) {
                 Icon(
@@ -586,8 +617,8 @@ private fun DisabledItemsButton(
 
 @Composable
 private fun DisabledItemsDialogContent(
-    disabledItems: List<AmazonSubscribeItem>,
-    onRestoreClick: (AmazonSubscribeItem) -> Unit,
+    disabledItems: List<AmazonSubscribeItemUiState>,
+    onRestoreClick: (AmazonSubscribeItemUiState) -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -630,9 +661,9 @@ private fun DisabledItemsDialogContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(disabledItems){ item ->
+                items(disabledItems) { itemUiState ->
                     DisabledItemInDialog(
-                        item = item,
+                        itemUiState = itemUiState,
                         onRestoreClick = { onRestoreClick(it) }
                     )
                 }
@@ -643,11 +674,11 @@ private fun DisabledItemsDialogContent(
 
 @Composable
 private fun DisabledItemInDialog(
-    item: AmazonSubscribeItem,
-    onRestoreClick: (AmazonSubscribeItem) -> Unit
+    itemUiState: AmazonSubscribeItemUiState,
+    onRestoreClick: (AmazonSubscribeItemUiState) -> Unit
 ) {
     val numberFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN)
-    val formattedPrice = numberFormat.format((item.price ?: 0f).toDouble())
+    val formattedPrice = numberFormat.format((itemUiState.subscribeItem.price ?: 0f).toDouble())
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -678,7 +709,7 @@ private fun DisabledItemInDialog(
             ) {
                 // 商品名
                 Text(
-                    text = item.productName ?: "(商品名不明)",
+                    text = itemUiState.subscribeItem.productName ?: "(商品名不明)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -695,7 +726,7 @@ private fun DisabledItemInDialog(
                 ) {
                     // 数量
                     Text(
-                        text = "数量: ${item.quantity ?: 1}",
+                        text = "数量: ${itemUiState.subscribeItem.quantity ?: 1}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -713,7 +744,7 @@ private fun DisabledItemInDialog(
             // 復元ボタン
             IconButton(
                 onClick = {
-                    onRestoreClick(item)
+                    onRestoreClick(itemUiState)
                 }
             ) {
                 Icon(

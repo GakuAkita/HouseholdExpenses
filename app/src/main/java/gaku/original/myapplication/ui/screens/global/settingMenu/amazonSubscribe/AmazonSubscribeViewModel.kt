@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribeItem
+package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribe
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,26 +9,30 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-data class AmazonSubscribeItemUiState(
+data class AmazonSubscribeUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val amazonSubscribeItems: List<AmazonSubscribeItem> = emptyList(),
-    val isShowDisabledItems: Boolean = false
+    val amazonSubscribeItems: List<AmazonSubscribeItemUiState> = emptyList(),
+    val isShowDisabledItems: Boolean = false,
+    val isLoadError: Boolean = false
 )
 
-class AmazonSubscribeItemViewModel(
+data class AmazonSubscribeItemUiState(
+    val subscribeItem: AmazonSubscribeItem,
+    val isLoading: Boolean = false
+)
+
+class AmazonSubscribeViewModel(
     private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(AmazonSubscribeItemUiState())
-    val uiState: StateFlow<AmazonSubscribeItemUiState> get() = _uiState
+    private val _uiState = MutableStateFlow(AmazonSubscribeUiState())
+    val uiState: StateFlow<AmazonSubscribeUiState> get() = _uiState
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -36,7 +40,7 @@ class AmazonSubscribeItemViewModel(
                 val app = this[APPLICATION_KEY] as MyApplication
                 val container = app.appContainer
                 val session = container.sessionContainer!!
-                AmazonSubscribeItemViewModel(
+                AmazonSubscribeViewModel(
                     amazonSubscribeItemRepository = session.amazonSubscribeItemRepository
                 )
             }
@@ -55,7 +59,12 @@ class AmazonSubscribeItemViewModel(
                 val mapData = amazonSubscribeItemRepository.getAllAmazonSubscribeItems()
                 _uiState.update {
                     it.copy(
-                        amazonSubscribeItems = mapData.values.toList(),
+                        amazonSubscribeItems = mapData.values.map { it ->
+                            AmazonSubscribeItemUiState(
+                                subscribeItem = it,
+                                isLoading = false
+                            )
+                        },
                         isLoading = false
                     )
                 }
@@ -63,7 +72,8 @@ class AmazonSubscribeItemViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        message = e.message
+                        message = e.message,
+                        isLoadError = true
                     )
                 }
 
@@ -71,7 +81,7 @@ class AmazonSubscribeItemViewModel(
         }
     }
 
-    fun onMessageShown(){
+    fun onMessageShown() {
         _uiState.update {
             it.copy(
                 message = null
@@ -79,12 +89,16 @@ class AmazonSubscribeItemViewModel(
         }
     }
 
-    fun onShowDisabledItemsClick(){
+    fun onShowDisabledItemsClick() {
         _uiState.update {
             it.copy(
                 isShowDisabledItems = !it.isShowDisabledItems
             )
         }
+    }
+
+    fun onDisableClick() {
+
     }
 
     override fun onCleared() {
