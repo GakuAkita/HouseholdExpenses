@@ -2,9 +2,14 @@ package gaku.original.myapplication.di.appContainer
 
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
+import timber.log.Timber
 
 abstract class AppContainer {
     abstract val authRepository: AuthRepository
+
+    init {
+        Timber.d("AppContainer init:${hashCode()}")
+    }
 
 
     // Subclass can assign SessionContainer to _sessionContainer
@@ -16,11 +21,11 @@ abstract class AppContainer {
 
     protected abstract fun createSessionContainer(): SessionContainer
 
-    fun createSession(){
+    fun createSession() {
         _sessionContainer = createSessionContainer()
     }
 
-    fun clearSession(){
+    fun clearSession() {
         _sessionContainer = null
     }
 }

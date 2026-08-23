@@ -1,5 +1,7 @@
 package gaku.original.myapplication
 
+import android.app.ComponentCaller
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,12 +17,12 @@ import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.data.Constants.createAllNotificationChannelsWithRemove
 import gaku.original.myapplication.ui.navigation.RootNavigation
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
-import gaku.original.myapplication.utility.LogAkitaDebug
 import timber.log.Timber
 
 val LocalSnackBarHostState = compositionLocalOf<SnackbarHostState> {
     error("SnackbarHostState state should be initialized at runtime")
 }
+
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
 //    private val sharedImageViewModel: SharedImageViewModel by viewModels()
@@ -65,6 +67,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    // https://zenn.dev/1stscratch/articles/1ea5e38cb9252c
+    override fun onNewIntent(intent: Intent?) {
+        Timber.d("onNewIntent() called.")
+        super.onNewIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        Timber.d("onNewIntent() called. 22")
+        super.onNewIntent(intent, caller)
     }
 
     /**
