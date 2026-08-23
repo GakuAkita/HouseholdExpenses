@@ -220,8 +220,10 @@ fun AmazonSubscribeItemScreenPreview() {
                     id = "1",
                     productName = "商品名",
                     price = 100f,
-                    quantity = 1
-                )
+                    quantity = 1,
+                    enabled = true
+                ),
+                isLoading = true
             ),
             AmazonSubscribeItemUiState(
                 subscribeItem = AmazonSubscribeItem(
@@ -238,11 +240,11 @@ fun AmazonSubscribeItemScreenPreview() {
                     price = 200f,
                     quantity = 2,
                     enabled = false
-                )
+                ),
+                isLoading = true
             )
         ),
         isShowDisabledItems = false,
-        isLoadError = true
     )
 
     AmazonSubscribeScreen(
@@ -548,17 +550,23 @@ private fun AmazonSubscribeItemCard(
                 }
             }
 
-            // 削除ボタン
-            IconButton(
-                onClick = {
-                    onDeleteClick(itemUiState)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "削除",
-                    tint = MaterialTheme.colorScheme.error
+            if (itemUiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
                 )
+            } else {
+                // 削除ボタン
+                IconButton(
+                    onClick = {
+                        onDeleteClick(itemUiState)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "削除",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
@@ -741,17 +749,23 @@ private fun DisabledItemInDialog(
                 }
             }
 
-            // 復元ボタン
-            IconButton(
-                onClick = {
-                    onRestoreClick(itemUiState)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "復元",
-                    tint = MaterialTheme.colorScheme.primary
+            if (itemUiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
                 )
+            } else {
+                // 復元ボタン
+                IconButton(
+                    onClick = {
+                        onRestoreClick(itemUiState)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "復元",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
