@@ -4,13 +4,15 @@ import kotlinx.coroutines.delay
 
 class FakePayPayReceiptRepository: PayPayReceiptRepository {
 
-    override suspend fun getMaskTopRatio(): Float? {
-        delay(3000)
-        return null
+    var setting: PayPayReceiptOCRSetting = PayPayReceiptOCRSetting(null, null)
+
+    override suspend fun getOCRSetting(): PayPayReceiptOCRSetting {
+        delay(1000)
+        return setting
     }
 
-    override suspend fun getMaskLeftRatio(): Float? {
-        delay(3000)
-        return null
+    override suspend fun saveOCRSetting(setting: PayPayReceiptOCRSetting) {
+        delay(1000)
+        this.setting = setting
     }
 }

@@ -18,6 +18,7 @@ import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEd
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
 import gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribe.AmazonSubscribeScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.MailboxExtractionScreenRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.paypayReceiptReader.PayPayReceiptReaderScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialogRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditViewModel
@@ -116,7 +117,9 @@ fun NavGraphBuilder.mainGraph(
         }
 
         composable<MainGraph.SettingMenu.PayPayReceiptOCRSetting> {
-
+            PayPayReceiptReaderScreenRoot(
+                navHostController = navController
+            )
         }
 
         composable<MainGraph.SettingMenu.AppVersion> {

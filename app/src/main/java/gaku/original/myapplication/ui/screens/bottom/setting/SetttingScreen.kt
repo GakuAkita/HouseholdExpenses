@@ -106,6 +106,12 @@ fun SettingScreen(
         )
 
         SettingRowWithNavigation(
+            label = "PayPay Receipt Reader",
+            route = MainGraph.SettingMenu.PayPayReceiptOCRSetting,
+            onMenuClick = onMenuClick
+        )
+
+        SettingRowWithNavigation(
             label = "App Version",
             route = MainGraph.SettingMenu.AppVersion,
             onMenuClick = onMenuClick

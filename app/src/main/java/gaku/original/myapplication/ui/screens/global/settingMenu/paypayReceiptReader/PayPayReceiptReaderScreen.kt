@@ -1,15 +1,19 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.paypayReceiptReader
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,7 +32,7 @@ fun PayPayReceiptReaderScreenRoot(
     val snackbarHostState = LocalSnackBarHostState.current
 
     LaunchedEffect(uiState.message) {
-        uiState.message?.let{
+        uiState.message?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.onMessageShown()
         }
@@ -39,6 +43,9 @@ fun PayPayReceiptReaderScreenRoot(
         snackbarHostState,
         onBackNavClick = {
             navHostController.popBackStack()
+        },
+        onResetClick = {
+            viewModel.resetSetting()
         }
     )
 }
@@ -48,6 +55,7 @@ fun PayPayReceiptReaderScreen(
     uiState: PayPayReceiptReaderUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
+    onResetClick: () -> Unit
 ) {
 
     Scaffold(
@@ -67,9 +75,25 @@ fun PayPayReceiptReaderScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
         ) {
-
+            if (uiState.topRatio == null || uiState.leftRatio == null) {
+                Text("Masking Setting is not done.")
+                Text("When you use PayPay Receipt Reader function, you need to set masking setting.")
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            onResetClick()
+                        }
+                    ) {
+                        Text("Ratio Reset")
+                    }
+                }
+            }
         }
     }
 }
@@ -77,11 +101,18 @@ fun PayPayReceiptReaderScreen(
 @Preview(showBackground = true)
 @Composable
 fun PayPayReceiptReaderScreenPreview() {
-    val uiState = PayPayReceiptReaderUiState()
+    val uiState = PayPayReceiptReaderUiState(
+        isLoading = false,
+        message = null,
+        topRatio = 0.1f,
+        leftRatio = 0.2f,
+        isLoadError = false
+    )
     PayPayReceiptReaderScreen(
         uiState,
         SnackbarHostState(),
-        onBackNavClick = {}
+        onBackNavClick = {},
+        onResetClick = {}
     )
 }
 
