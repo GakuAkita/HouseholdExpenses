@@ -83,10 +83,10 @@ fun AmazonSubscribeScreenRoot(
             viewModel.onShowDisabledItemsClick()
         },
         onDeleteClick = {
-
+            viewModel.onDeleteClick(it)
         },
         onRestoreClick = {
-
+            viewModel.onRestoreClick(it)
         }
     )
 }

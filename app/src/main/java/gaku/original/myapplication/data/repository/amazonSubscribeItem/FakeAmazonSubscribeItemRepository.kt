@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.amazonSubscribeItem
 
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
+import kotlinx.coroutines.delay
 
 class FakeAmazonSubscribeItemRepository: AmazonSubscribeItemRepository {
     var samples = mapOf(
@@ -86,5 +87,14 @@ class FakeAmazonSubscribeItemRepository: AmazonSubscribeItemRepository {
 
     override suspend fun getAllAmazonSubscribeItems(): Map<String, AmazonSubscribeItem> {
         return samples
+    }
+
+    override suspend fun updateAmazonSubscribeItem(
+        item: AmazonSubscribeItem
+    ) {
+        delay(3000)
+        samples = samples.toMutableMap().apply {
+            this[item.id!!] = item
+        }
     }
 }

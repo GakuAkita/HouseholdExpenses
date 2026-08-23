@@ -28,6 +28,23 @@ data class AmazonSubscribeItemUiState(
     val isLoading: Boolean = false
 )
 
+fun AmazonSubscribeUiState.updateItem(newState: AmazonSubscribeItemUiState): AmazonSubscribeUiState {
+    for (item in amazonSubscribeItems) {
+        if (item.subscribeItem.id == newState.subscribeItem.id) {
+            return this.copy(
+                amazonSubscribeItems = amazonSubscribeItems.map {
+                    if (it.subscribeItem.id == newState.subscribeItem.id) {
+                        newState
+                    } else {
+                        it
+                    }
+                }
+            )
+        }
+    }
+    throw Exception("Unable to find subscribe item to update.")
+}
+
 class AmazonSubscribeViewModel(
     private val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 ) : ViewModel() {
@@ -97,8 +114,55 @@ class AmazonSubscribeViewModel(
         }
     }
 
-    fun onDisableClick() {
+    private suspend fun EnableItem(itemUiState: AmazonSubscribeItemUiState, enabled: Boolean) {
+        try {
+            val loadingState = itemUiState.copy(
+                isLoading = true
+            )
+            _uiState.update {
+                it.updateItem(loadingState)
+            }
 
+            val newItem = itemUiState.subscribeItem.copy(
+                enabled = enabled
+            )
+
+            amazonSubscribeItemRepository.updateAmazonSubscribeItem(newItem)
+
+            /* Loading has ended and state was updated */
+            _uiState.update {
+                it.updateItem(
+                    itemUiState.copy(
+                        subscribeItem = newItem,
+                        isLoading = false
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            /* Failed */
+            _uiState.update {
+                it.updateItem(
+                    itemUiState.copy(
+                        isLoading = false
+                    )
+                ).copy(
+                    message = e.message
+                )
+            }
+        }
+    }
+
+    /* This is technically to disable. */
+    fun onDeleteClick(itemUiState: AmazonSubscribeItemUiState) {
+        viewModelScope.launch {
+            EnableItem(itemUiState, false)
+        }
+    }
+
+    fun onRestoreClick(itemUiState: AmazonSubscribeItemUiState) {
+        viewModelScope.launch {
+            EnableItem(itemUiState, true)
+        }
     }
 
     override fun onCleared() {
