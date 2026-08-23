@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.repository
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import androidx.core.content.edit
 
 class SharedPreferencesRepository @Inject constructor(
     @ApplicationContext private val context: Context
@@ -23,7 +24,7 @@ class SharedPreferencesRepository @Inject constructor(
 
     // ----- Float -----
     fun getFloat(key: String, default: Float = 0f): Float = prefs.getFloat(key, default)
-    fun setFloat(key: String, value: Float) = prefs.edit().putFloat(key, value).apply()
+    fun setFloat(key: String, value: Float) = prefs.edit { putFloat(key, value) }
 
     // ----- Boolean -----
     fun getBoolean(key: String, default: Boolean = false): Boolean = prefs.getBoolean(key, default)
