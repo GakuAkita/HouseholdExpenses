@@ -28,10 +28,7 @@ fun VersionScreen(
                 showBackButton = true,
             )
         },
-
-        bottomBar = { BottomBarView(navController) }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
