@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.global.settingMenu
+package gaku.original.myapplication.ui.screens.global.settingMenu.notificationListener
 
 import android.content.Context
 import android.content.Intent
