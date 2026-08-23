@@ -1,5 +1,6 @@
 package gaku.original.myapplication.shareReceiver
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -104,6 +105,21 @@ class ShareReceiverActivity : ComponentActivity() {
 //            finish()
 //            return
 //        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        Timber.d("ShareReceiverActivity onNewIntent")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Timber.d("ShareReceiverActivity started")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Timber.d("ShareReceiverActivity stopped")
     }
 
     override fun onDestroy() {
