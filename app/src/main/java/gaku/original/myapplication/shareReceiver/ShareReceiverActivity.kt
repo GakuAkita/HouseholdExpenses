@@ -1,12 +1,18 @@
 package gaku.original.myapplication.shareReceiver
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import timber.log.Timber
@@ -20,10 +26,29 @@ class ShareReceiverActivity : ComponentActivity() {
             HouseholdExpensesTheme(
                 darkTheme = true
             ) {
-                Column(
+                val data: Uri? = intent?.data
+
+                val flag = remember { mutableStateOf(false) }
+                Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Text("I'm Gaku. I came from heaven")
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text("I'm Gaku. I came from heaven.identity=${System.identityHashCode(this)}")
+
+                        Button(
+                            onClick = {
+                                flag.value = true
+                            }
+                        ) {
+                            if (flag.value) {
+                                Text("I'm clicked")
+                            } else {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -114,12 +139,12 @@ class ShareReceiverActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        Timber.d("ShareReceiverActivity started")
+        Timber.d("ShareReceiverActivity started.${hashCode()}")
     }
 
     override fun onStop() {
         super.onStop()
-        Timber.d("ShareReceiverActivity stopped")
+        Timber.d("ShareReceiverActivity stopped.")
     }
 
     override fun onDestroy() {
@@ -128,4 +153,36 @@ class ShareReceiverActivity : ComponentActivity() {
     }
 }
 
+fun Intent.toSharedData(): SharedData {
+    val senderPackage: String? = when {
+        this.getStringExtra(Intent.EXTRA_PACKAGE_NAME) != null ->
+            this.getStringExtra(Intent.EXTRA_PACKAGE_NAME)
+
+        this.`package` != null ->
+            this.`package`
+
+        else -> null
+    }
+
+    if (this.action == Intent.ACTION_SEND && this.type?.startsWith("image/") == true) {
+        return SharedData.Image(
+            senderPackage,
+            this.data
+        )
+    }
+    return SharedData.Unknown(senderPackage)
+}
+
+sealed interface SharedData {
+    val packageName: String?
+
+    data class Image(
+        override val packageName: String?,
+        val imageUri: Uri?
+    ) : SharedData
+
+    data class Unknown(
+        override val packageName: String?
+    ) : SharedData
+}
 
