@@ -2,6 +2,7 @@ package gaku.original.myapplication
 
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.shareReceiver.SharedData
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -51,8 +52,7 @@ data object MainGraph {
         data object TimeZone : SettingMenu
 
         @Serializable
-        data object Categories : SettingMenu {
-        }
+        data object Categories : SettingMenu
 
         sealed interface IRepeatAdd : SettingMenu {
             @Serializable
@@ -91,6 +91,14 @@ data object MainGraph {
 
         @Serializable
         data object CategoryAssignment : Global
+    }
+}
+
+@Serializable
+data object SharedReceiverGraph {
+    sealed interface SharedReceiver : Screen {
+        @Serializable
+        data class Entry(val data: SharedData) : SharedReceiver
     }
 }
 
