@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
 import gaku.original.myapplication.SharedData
 import gaku.original.myapplication.ui.common.TopBarView
 
@@ -46,6 +47,10 @@ fun ShareReceiverScreen(
 
             if (uiState.sharedData is SharedData.Image) {
                 Text("${uiState.sharedData.imageUri}")
+                AsyncImage(
+                    model = uiState.sharedData.imageUri,
+                    contentDescription = null
+                )
             }
         }
     }

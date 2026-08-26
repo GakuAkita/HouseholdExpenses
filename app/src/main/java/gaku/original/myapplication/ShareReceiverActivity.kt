@@ -1,6 +1,7 @@
 package gaku.original.myapplication
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import androidx.activity.ComponentActivity
@@ -17,6 +18,7 @@ import gaku.original.myapplication.ui.navigation.navTypeOf
 import gaku.original.myapplication.ui.screens.receiver.ShareReceiverScreenRoot
 import gaku.original.myapplication.ui.screens.receiver.ShareReceiverViewModel
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
+import gaku.original.myapplication.utility.getParcelableExtraCompat
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import timber.log.Timber
@@ -33,14 +35,16 @@ class ShareReceiverActivity : ComponentActivity() {
             ) {
                 val navController = rememberNavController()
 
-                Timber.d("callingPackage = ${callingPackage}")
-                Timber.d("referrer = ${referrer}")
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = SharedReceiverGraph.SharedReceiver.Entry(intent.toSharedData())
+                        startDestination = SharedReceiverGraph.SharedReceiver.Entry(
+                            intent.toSharedData(
+                                referrer?.toString()
+                            )
+                        )
                     ) {
                         composable<SharedReceiverGraph.SharedReceiver.Entry>(
                             typeMap = mapOf(typeOf<SharedData>() to navTypeOf<SharedData>())
@@ -59,30 +63,6 @@ class ShareReceiverActivity : ComponentActivity() {
                 }
             }
         }
-
-//        /**
-//         * パッケージが取れていない！！
-//         */
-//        val senderPackage: String? = when {
-//            intent.getStringExtra(Intent.EXTRA_PACKAGE_NAME) != null ->
-//                intent.getStringExtra(Intent.EXTRA_PACKAGE_NAME)
-//
-//            intent.`package` != null ->
-//                intent.`package`
-//
-//            callingPackage != null ->
-//                callingPackage
-//
-//            referrer != null ->
-//                referrer?.host
-//
-//            else -> null
-//        }
-//
-//        val allowedPackages = listOf(
-//            AppPackageNames.PAYPAY,
-//        )
-//
 //        if (senderPackage in allowedPackages) {
 //            Toast.makeText(this, "Accepted ${senderPackage}", Toast.LENGTH_SHORT).show()
 //        } else {
@@ -160,8 +140,13 @@ class ShareReceiverActivity : ComponentActivity() {
     }
 }
 
-fun Intent.toSharedData(): SharedData {
+fun Intent.toSharedData(
+    referrer: String? = null
+): SharedData {
     val senderPackage: String? = when {
+        referrer != null ->
+            referrer
+
         this.getStringExtra(Intent.EXTRA_PACKAGE_NAME) != null ->
             this.getStringExtra(Intent.EXTRA_PACKAGE_NAME)
 
@@ -170,14 +155,11 @@ fun Intent.toSharedData(): SharedData {
 
         else -> null
     }
-    Timber.d("senderPackage:$senderPackage")
 
-    Timber.d("action:${this.action} type:${this.type} data:${this.data.toString()}")
-
-    if (this.action == Intent.ACTION_SEND && this.type?.startsWith("image/") == true) {
+    if (this.type?.startsWith("image/") == true) {
         return SharedData.Image(
             senderPackage,
-            this.data.toString()
+            this.getParcelableExtraCompat<Uri>(Intent.EXTRA_STREAM).toString()
         )
     }
     return SharedData.Unknown(senderPackage)

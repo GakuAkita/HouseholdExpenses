@@ -32,6 +32,9 @@ class ShareReceiverViewModel(
 
     init {
         Timber.d("init() called.${hashCode()}")
+        _uiState.value = ShareReceiverUiState(
+            sharedData
+        )
     }
 
     override fun onCleared() {

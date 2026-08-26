@@ -2,10 +2,13 @@ package gaku.original.myapplication.di.appContainer
 
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
+import gaku.original.myapplication.service.ocr.OcrService
 import timber.log.Timber
 
 abstract class AppContainer {
     abstract val authRepository: AuthRepository
+
+    abstract val ocrService: OcrService
 
     init {
         Timber.d("AppContainer init:${hashCode()}")
