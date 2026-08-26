@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
@@ -14,7 +15,7 @@ data class ShareReceiverUiState(
 )
 
 class ShareReceiverViewModel(
-    private val sharedData: SharedData
+    private val sharedData: SharedData,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShareReceiverUiState())
@@ -37,8 +38,16 @@ class ShareReceiverViewModel(
         )
     }
 
+    suspend fun readImage(image: Uri) {
+
+    }
+
     override fun onCleared() {
         Timber.d("onCleared() called.${hashCode()}")
         super.onCleared()
     }
+}
+
+sealed interface SentData {
+    data class Expense(val datetime: String, val amount: Long) : SentData
 }
