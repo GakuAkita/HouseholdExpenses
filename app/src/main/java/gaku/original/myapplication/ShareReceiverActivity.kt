@@ -1,21 +1,26 @@
-package gaku.original.myapplication.shareReceiver
+package gaku.original.myapplication
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import gaku.original.myapplication.ui.navigation.navTypeOf
+import gaku.original.myapplication.ui.screens.receiver.ShareReceiverScreenRoot
+import gaku.original.myapplication.ui.screens.receiver.ShareReceiverViewModel
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import timber.log.Timber
+import kotlin.reflect.typeOf
 
 // https://developer.android.com/training/basics/intents/filters
 class ShareReceiverActivity : ComponentActivity() {
@@ -26,27 +31,29 @@ class ShareReceiverActivity : ComponentActivity() {
             HouseholdExpensesTheme(
                 darkTheme = true
             ) {
-                val data: Uri? = intent?.data
+                val navController = rememberNavController()
 
-                val flag = remember { mutableStateOf(false) }
+                Timber.d("callingPackage = ${callingPackage}")
+                Timber.d("referrer = ${referrer}")
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                    NavHost(
+                        navController = navController,
+                        startDestination = SharedReceiverGraph.SharedReceiver.Entry(intent.toSharedData())
                     ) {
-                        Text("I'm Gaku. I came from heaven.identity=${System.identityHashCode(this)}")
-
-                        Button(
-                            onClick = {
-                                flag.value = true
-                            }
-                        ) {
-                            if (flag.value) {
-                                Text("I'm clicked")
-                            } else {
-                                CircularProgressIndicator()
-                            }
+                        composable<SharedReceiverGraph.SharedReceiver.Entry>(
+                            typeMap = mapOf(typeOf<SharedData>() to navTypeOf<SharedData>())
+                        ) { backStackEntry ->
+                            val sharedData =
+                                backStackEntry.toRoute<SharedReceiverGraph.SharedReceiver.Entry>().data
+                            ShareReceiverScreenRoot(
+                                viewModel = viewModel(
+                                    factory = ShareReceiverViewModel.Factory(
+                                        sharedData
+                                    )
+                                )
+                            )
                         }
                     }
                 }
@@ -163,26 +170,35 @@ fun Intent.toSharedData(): SharedData {
 
         else -> null
     }
+    Timber.d("senderPackage:$senderPackage")
+
+    Timber.d("action:${this.action} type:${this.type} data:${this.data.toString()}")
 
     if (this.action == Intent.ACTION_SEND && this.type?.startsWith("image/") == true) {
         return SharedData.Image(
             senderPackage,
-            this.data
+            this.data.toString()
         )
     }
     return SharedData.Unknown(senderPackage)
 }
 
-sealed interface SharedData {
+@Serializable
+@Parcelize
+sealed interface SharedData : Parcelable {
     val packageName: String?
 
+    @Serializable
+    @Parcelize
     data class Image(
         override val packageName: String?,
-        val imageUri: Uri?
-    ) : SharedData
+        val imageUri: String?
+    ) : SharedData, Parcelable
 
+    @Serializable
+    @Parcelize
     data class Unknown(
         override val packageName: String?
-    ) : SharedData
+    ) : SharedData, Parcelable
 }
 

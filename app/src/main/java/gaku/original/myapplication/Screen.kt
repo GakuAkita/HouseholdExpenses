@@ -2,7 +2,6 @@ package gaku.original.myapplication
 
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.shareReceiver.SharedData
 import kotlinx.serialization.Serializable
 
 @Serializable
