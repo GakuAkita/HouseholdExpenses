@@ -153,8 +153,7 @@ class OCRViewModel @Inject constructor(
         /* あらかじめロゴの部分を削っておく */
         val leftRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
         val topRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
-        val masked = maskBitmapTopLeftArea(
-            bitmap,
+        val masked = bitmap.maskBitmapTopLeftArea(
             widthPercent = leftRatio,
             heightPercent = topRatio
         )

@@ -15,7 +15,7 @@ data class ShareReceiverUiState(
 )
 
 class ShareReceiverViewModel(
-    private val sharedData: SharedData,
+    private val sharedData: SharedData
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShareReceiverUiState())
@@ -49,5 +49,5 @@ class ShareReceiverViewModel(
 }
 
 sealed interface SentData {
-    data class Expense(val datetime: String, val amount: Long) : SentData
+    data class Expense(val datetime: String?, val amount: Long?, val storeName: String?) : SentData
 }
