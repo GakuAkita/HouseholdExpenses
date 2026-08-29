@@ -9,12 +9,14 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
 import gaku.original.myapplication.ui.screens.receiver.SentData
 import timber.log.Timber
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class PayPayReceiptExtractor(
@@ -59,7 +61,7 @@ class PayPayReceiptExtractor(
 
         /* get datetime first */
         var dtIndex: Int = 0
-        var datetime: LocalDateTime? = null
+        var datetime: String? = null
         val storeNamePart = StringBuilder()
         for (i in lines.indices) {
             datetime = extractDate(lines[i])
@@ -84,6 +86,8 @@ class PayPayReceiptExtractor(
             }
         }
 
+        /* Honestly, lines should be checked when it fails to create Expense */
+        /* This should be written in the log and not necessarily shown to the user */
         return AppResult.Success(
             ExtractedData(
                 sentData = SentData.Expense(
@@ -96,7 +100,8 @@ class PayPayReceiptExtractor(
         )
     }
 
-    private fun extractDate(text: String): LocalDateTime? {
+    /* This time is always system default zoneid */
+    private fun extractDate(text: String): String? {
         // OCRのノイズ対策：B時を時に置換、全角スペースや複数スペースを削除
         val processedT = text.replace("B時", "時").replace("\\s+".toRegex(), " ").trim()
 
@@ -106,7 +111,7 @@ class PayPayReceiptExtractor(
             val normalized = jaDate.replace("\\s+".toRegex(), "") // スペース削除
             val formatter = DateTimeFormatter.ofPattern("yyyy年M月d日H時m分")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            return localDateTime
+            return localDateTime.toIsoUtcString(ZoneId.systemDefault())
         }
 
         // 英数字形式：yyyy/M/d H:m（スペース有無や時刻くっつき対応）
@@ -118,7 +123,7 @@ class PayPayReceiptExtractor(
                 .trim()
             val formatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            return localDateTime
+            return localDateTime.toIsoUtcString(ZoneId.systemDefault())
         }
 
         // どちらにもマッチしなかった場合

@@ -56,7 +56,8 @@ class ShareReceiverActivity : ComponentActivity() {
                                     factory = ShareReceiverViewModel.Factory(
                                         sharedData
                                     )
-                                )
+                                ),
+                                navController
                             )
                         }
                     }

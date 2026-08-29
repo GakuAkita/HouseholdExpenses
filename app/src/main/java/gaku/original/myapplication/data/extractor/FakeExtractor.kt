@@ -16,7 +16,7 @@ class FakeExtractor : Extractor {
                     amount = 1000,
                     storeName = "fake store"
                 ),
-                bitmap = fakeBitmap
+                bitmap = null
             )
         )
     }

@@ -46,9 +46,12 @@ fun ShareReceiverScreenRoot(
         when (val sentData = uiState.sentData) {
             is SentData.Expense -> {
                 if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
-                    val intent = Intent(context, MainActivity::class.java).apply {
+                    val mainIntent = Intent(context, MainActivity::class.java).apply {
                         putExtra("", sentData)
                     }
+                    context.startActivity(
+                        mainIntent
+                    )
                 }
             }
 

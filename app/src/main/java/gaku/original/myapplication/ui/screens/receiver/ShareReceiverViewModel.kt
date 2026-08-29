@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.screens.receiver
 
-import android.graphics.Bitmap
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,8 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import timber.log.Timber
-import java.time.LocalDateTime
 
 data class ShareReceiverUiState(
     val sentData: SentData? = null,
@@ -140,11 +139,12 @@ class ShareReceiverViewModel(
     }
 }
 
+@Serializable
 sealed interface SentData {
+    @Serializable
     data class Expense(
-        val datetime: LocalDateTime?,
+        val datetime: String?,
         val amount: Long?,
         val storeName: String?,
-        val bitmap: Bitmap? = null
     ) : SentData
 }
