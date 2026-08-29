@@ -21,7 +21,6 @@ import gaku.original.myapplication.data.extractor.maskBitmapArea
 import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.data.repository.PrefKeys
 import gaku.original.myapplication.data.repository.SharedPreferencesRepository
-import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.utility.loadBitmapFromUri
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
@@ -115,22 +114,6 @@ class OCRViewModel @Inject constructor(
 //                )
                 val exclusionRatio = 0.28f
                 /* ここでPayPayの読み込み行うか */
-                val paypayParser = PayPayReceiptOCRParser(result.data?.text)
-                val imageWidth = result.data?.imageWidth ?: 0
-                val paypayResult = paypayParser.parse(
-                    exclusionRatioFromScreenLeft = exclusionRatio,
-                    imageWidth = imageWidth
-                )
-                if (paypayResult is FuncResultWithData.Success) {
-                    _extractedExpense.value = paypayResult.data
-                } else if (paypayResult is FuncResultWithData.Warning) {
-                    _extractedExpense.value = paypayResult.data
-                }
-                Log.d(
-                    className,
-                    "Created Expense: ${_extractedExpense.value}　paypayParse result:${paypayResult.toFuncStatusInfo()}"
-                )
-                callback(paypayResult.toFuncStatusInfo())
             } else {
                 callback(result.toFuncStatusInfo())
             }

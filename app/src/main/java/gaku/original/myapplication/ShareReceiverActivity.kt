@@ -57,7 +57,10 @@ class ShareReceiverActivity : ComponentActivity() {
                                         sharedData
                                     )
                                 ),
-                                navController
+                                navController,
+                                onComplete = {
+                                    finish()
+                                }
                             )
                         }
                     }

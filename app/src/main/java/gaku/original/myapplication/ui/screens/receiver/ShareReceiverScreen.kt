@@ -30,7 +30,8 @@ import java.time.ZoneId
 
 @Composable
 fun ShareReceiverScreenRoot(
-    viewModel: ShareReceiverViewModel, navHostController: NavHostController
+    viewModel: ShareReceiverViewModel, navHostController: NavHostController,
+    onComplete: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -50,10 +51,12 @@ fun ShareReceiverScreenRoot(
                 if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
                         putExtra("aa", sentData)
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }
                     context.startActivity(
                         mainIntent
                     )
+                    onComplete()
                 }
             }
 
