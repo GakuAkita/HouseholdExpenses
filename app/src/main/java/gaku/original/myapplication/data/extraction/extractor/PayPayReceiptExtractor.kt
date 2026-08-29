@@ -8,16 +8,18 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.repository.maskConfigRepository.MaskConfig
 import gaku.original.myapplication.data.repository.maskConfigRepository.MaskConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
+import gaku.original.myapplication.ui.screens.receiver.SentData
 
 class PayPayReceiptExtractor(
-    private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */,
+    private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */
     private val maskConfigRepository: MaskConfigRepository,
     private val ocrService: OcrService
 ) : Extractor {
-    override suspend fun extract(image: Uri) {
+    override suspend fun extract(image: Uri): AppResult<SentData.Expense, ExtractorError> {
         val bitmap: Bitmap = context.contentResolver.openInputStream(image)?.use { stream ->
             BitmapFactory.decodeStream(stream)
         } ?: throw Exception("Failed to open input stream")
@@ -28,11 +30,28 @@ class PayPayReceiptExtractor(
         }
 
         if (config.widthPercent == null || config.heightPercent == null) {
-
+            return AppResult.Failure(ExtractorError.MaskNotSetError)
         }
 
         /* Mask the image */
-        val maskedBitmap = bitmap.maskBitmapArea(config.leftPercent, 30f)
+        val maskedBitmap = bitmap.maskBitmapArea(
+            config.widthPercent,
+            config.heightPercent,
+            leftPercent = 0.0,
+            topPercent = 0.0
+        )
+
+        val ocrResult = ocrService.runOcr(maskedBitmap)
+
+        /* Parse here */
+
+        return AppResult.Success(
+            SentData.Expense(
+                datetime = null,
+                amount = null,
+                storeName = null
+            )
+        )
     }
 }
 

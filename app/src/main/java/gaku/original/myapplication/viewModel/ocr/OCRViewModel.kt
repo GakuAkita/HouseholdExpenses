@@ -17,12 +17,12 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
+import gaku.original.myapplication.data.extraction.extractor.maskBitmapArea
 import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.data.repository.PrefKeys
 import gaku.original.myapplication.data.repository.SharedPreferencesRepository
 import gaku.original.myapplication.parser.PayPayReceiptOCRParser
 import gaku.original.myapplication.utility.loadBitmapFromUri
-import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,9 +153,9 @@ class OCRViewModel @Inject constructor(
         /* あらかじめロゴの部分を削っておく */
         val leftRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
         val topRatio = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
-        val masked = bitmap.maskBitmapTopLeftArea(
-            widthPercent = leftRatio,
-            heightPercent = topRatio
+        val masked = bitmap.maskBitmapArea(
+            widthPercent = leftRatio.toDouble(),
+            heightPercent = topRatio.toDouble()
         )
         /* マスクしたbitmapをUI上に表示する */
         _maskedBitmap.value = masked

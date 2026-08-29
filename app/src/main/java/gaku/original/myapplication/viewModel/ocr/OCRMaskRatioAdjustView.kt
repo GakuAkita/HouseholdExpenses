@@ -10,9 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.SharedImageData
-import gaku.original.myapplication.data.repository.SharedPreferencesRepository
+import gaku.original.myapplication.data.extraction.extractor.maskBitmapTopLeftArea
 import gaku.original.myapplication.utility.loadBitmapFromUri
-import gaku.original.myapplication.utility.maskBitmapTopLeftArea
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,8 +70,8 @@ class OCRMaskRatioAdjustViewModel @Inject constructor(
          */
         val maskedBitmap = maskBitmapTopLeftArea(
             source = bitmap,
-            widthPercent = _leftRatio.value,
-            heightPercent = _topRatio.value,
+            widthPercent = _leftRatio.value.toDouble(),
+            heightPercent = _topRatio.value.toDouble(),
         )
 
         return FuncResultWithData.Success(
