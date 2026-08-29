@@ -1,5 +1,7 @@
 package gaku.original.myapplication.di.sessionContainer
 
+import gaku.original.myapplication.data.extraction.extractor.Extractor
+import gaku.original.myapplication.data.extraction.extractor.FakeExtractor
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -27,4 +29,5 @@ open class FakeSessionContainer(
     override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository(),
     override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository = FakeAmazonSubscribeItemRepository(),
     override val payPayReceiptConfigRepository: PayPayReceiptConfigRepository = FakePayPayReceiptConfigRepository(),
+    override val payPayReceiptExtractor: Extractor = FakeExtractor()
 ) : SessionContainer

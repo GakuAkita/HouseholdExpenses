@@ -1,5 +1,6 @@
 package gaku.original.myapplication.di.sessionContainer
 
+import gaku.original.myapplication.data.extraction.extractor.Extractor
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
@@ -25,4 +26,6 @@ interface SessionContainer {
     val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 
     val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
+
+    val payPayReceiptExtractor: Extractor
 }
