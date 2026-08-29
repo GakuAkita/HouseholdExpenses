@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
 import gaku.original.myapplication.SharedData
 import gaku.original.myapplication.ui.common.TopBarView
+import java.time.LocalDateTime
 
 @Composable
 fun ShareReceiverScreenRoot(
@@ -46,11 +47,20 @@ fun ShareReceiverScreen(
 
             Text("${uiState.sharedData?.packageName}")
 
-            uiState.maskedBitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Masked image"
-                )
+            uiState.sentData?.let {
+                when (it) {
+                    is SentData.Expense -> {
+                        Text("${it.datetime}")
+                        Text("${it.amount}")
+                        Text("${it.storeName}")
+                        it.bitmap?.let { bitmap ->
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "masked image"
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -65,7 +75,11 @@ fun ShareReceiverScreenPreview() {
             "jp.ne.paypay.android",
             "https://example.com/image.jpg"
         ),
-        maskedBitmap = null
+        sentData = SentData.Expense(
+            datetime = LocalDateTime.now(),
+            amount = 1000,
+            storeName = "fake store"
+        )
     )
     ShareReceiverScreen(
         uiState

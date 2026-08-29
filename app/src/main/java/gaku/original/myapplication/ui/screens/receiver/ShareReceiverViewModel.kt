@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 
 data class ShareReceiverUiState(
     val sharedData: SharedData? = null,
-    val maskedBitmap: Bitmap? = null,
+    val sentData: SentData? = null,
     val isLoading: Boolean = false
 )
 
@@ -87,7 +87,7 @@ class ShareReceiverViewModel(
                             is SentData.Expense -> {
                                 _uiState.update {
                                     it.copy(
-                                        maskedBitmap = data.bitmap
+                                        sentData = data
                                     )
                                 }
                             }
