@@ -2,10 +2,8 @@ package gaku.original.myapplication
 
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
 import gaku.original.myapplication.di.appContainer.AppContainer
 import gaku.original.myapplication.di.appContainer.FakeAppContainer
-import gaku.original.myapplication.di.appContainer.FirebaseAuthTestAppContainer
 import timber.log.Timber
 
 class MyApplication : Application() {
@@ -19,7 +17,7 @@ class MyApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        appContainer = FakeAppContainer()
+        appContainer = FakeAppContainer(this)
 
         Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }

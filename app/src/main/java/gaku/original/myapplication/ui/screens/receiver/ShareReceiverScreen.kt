@@ -46,9 +46,9 @@ fun ShareReceiverScreen(
             Text("${uiState.sharedData?.packageName}")
 
             if (uiState.sharedData is SharedData.Image) {
-                Text("${uiState.sharedData.imageUri}")
+                Text("${uiState.sharedData.imagePath}")
                 AsyncImage(
-                    model = uiState.sharedData.imageUri,
+                    model = uiState.sharedData.imagePath,
                     contentDescription = null
                 )
             }

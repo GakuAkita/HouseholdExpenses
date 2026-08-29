@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -63,9 +64,14 @@ class ShareReceiverViewModel(
                 if (packageName == null) {
                     throw Exception("Package name is null")
                 }
+                val imageUri = sharedData.imagePath
+                if (imageUri == null) {
+                    throw Exception("Image path is null")
+                }
 
                 if (packageName.contains("jp.co.pay.android")) {
                     /* PayPay */
+                    val data = paypayExtractor.extract(imageUri.toUri())
                 } else {
                     /* エラー */
                 }

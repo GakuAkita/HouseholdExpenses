@@ -174,7 +174,7 @@ sealed interface SharedData : Parcelable {
     @Parcelize
     data class Image(
         override val packageName: String?,
-        val imageUri: String?
+        val imagePath: String?
     ) : SharedData, Parcelable
 
     @Serializable
