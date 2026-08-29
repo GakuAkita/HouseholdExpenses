@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,14 +25,25 @@ fun ShareReceiverScreenRoot(
     viewModel: ShareReceiverViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
+
     ShareReceiverScreen(
-        uiState
+        uiState,
+        snackbarHostState
     )
 }
 
 @Composable
 fun ShareReceiverScreen(
-    uiState: ShareReceiverUiState
+    uiState: ShareReceiverUiState,
+    snackbarHostState: SnackbarHostState
 ) {
 
     Scaffold(
@@ -36,6 +51,9 @@ fun ShareReceiverScreen(
             TopBarView(
                 title = "Received Data",
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
         }
     ) { innerPadding ->
         Column(
@@ -82,6 +100,7 @@ fun ShareReceiverScreenPreview() {
         )
     )
     ShareReceiverScreen(
-        uiState
+        uiState,
+        SnackbarHostState()
     )
 }

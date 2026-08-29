@@ -23,7 +23,8 @@ import java.time.LocalDateTime
 data class ShareReceiverUiState(
     val sharedData: SharedData? = null,
     val sentData: SentData? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val message: String? = null
 )
 
 class ShareReceiverViewModel(
@@ -49,6 +50,14 @@ class ShareReceiverViewModel(
         }
     }
 
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
+        }
+    }
+
     init {
         Timber.d("init() called.${hashCode()}")
         _uiState.value = ShareReceiverUiState(
@@ -57,10 +66,26 @@ class ShareReceiverViewModel(
 
         viewModelScope.launch {
             try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
                 Timber.d("analyzeSharedData() called.")
                 analyzeSharedData(sharedData)
             } catch (e: Exception) {
                 Timber.e(e)
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            } finally {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -99,7 +124,11 @@ class ShareReceiverViewModel(
                     }
                 } else {
                     /* エラー */
-                    Timber.d("Nothing")
+                    _uiState.update {
+                        it.copy(
+                            message = "This package is not supported"
+                        )
+                    }
                 }
             }
 
