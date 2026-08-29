@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDateTime
 
 data class ShareReceiverUiState(
     val sharedData: SharedData? = null,
@@ -117,7 +118,7 @@ class ShareReceiverViewModel(
 
 sealed interface SentData {
     data class Expense(
-        val datetime: String?,
+        val datetime: LocalDateTime?,
         val amount: Long?,
         val storeName: String?,
         val bitmap: Bitmap? = null

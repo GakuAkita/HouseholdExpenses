@@ -9,8 +9,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import gaku.original.myapplication.common.AppResult
-import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
@@ -22,7 +20,6 @@ import java.time.format.DateTimeFormatter
 class PayPayReceiptExtractor(
     private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */
     private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
-    private val appTimeZoneRepository: AppTimeZoneRepository,
     private val ocrService: OcrService
 ) : Extractor {
     override suspend fun extract(image: Uri): AppResult<SentData.Expense, ExtractorError> {
@@ -62,11 +59,11 @@ class PayPayReceiptExtractor(
 
         /* get datetime first */
         var dtIndex: Int = 0
-        var datetimeStr: String? = null
+        var datetime: LocalDateTime? = null
         val storeNamePart = StringBuilder()
         for (i in lines.indices) {
-            datetimeStr = extractDate(lines[i])
-            if (datetimeStr != null) {
+            datetime = extractDate(lines[i])
+            if (datetime != null) {
                 dtIndex = i
                 break
             }
@@ -89,7 +86,7 @@ class PayPayReceiptExtractor(
 
         return AppResult.Success(
             SentData.Expense(
-                datetime = datetimeStr,
+                datetime = datetime,
                 amount = amount,
                 storeName = storeName,
                 bitmap = maskedBitmap
@@ -97,7 +94,7 @@ class PayPayReceiptExtractor(
         )
     }
 
-    private fun extractDate(text: String): String? {
+    private fun extractDate(text: String): LocalDateTime? {
         // OCRのノイズ対策：B時を時に置換、全角スペースや複数スペースを削除
         val processedT = text.replace("B時", "時").replace("\\s+".toRegex(), " ").trim()
 
@@ -107,8 +104,7 @@ class PayPayReceiptExtractor(
             val normalized = jaDate.replace("\\s+".toRegex(), "") // スペース削除
             val formatter = DateTimeFormatter.ofPattern("yyyy年M月d日H時m分")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            val dateTimeStr = localDateTime.toIsoUtcString(appTimeZoneRepository.zoneId.value)
-            return dateTimeStr
+            return localDateTime
         }
 
         // 英数字形式：yyyy/M/d H:m（スペース有無や時刻くっつき対応）
@@ -120,8 +116,7 @@ class PayPayReceiptExtractor(
                 .trim()
             val formatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m")
             val localDateTime = LocalDateTime.parse(normalized, formatter)
-            val datetimeTimeStr = localDateTime.toIsoUtcString(appTimeZoneRepository.zoneId.value)
-            return datetimeTimeStr
+            return localDateTime
         }
 
         // どちらにもマッチしなかった場合

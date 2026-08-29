@@ -28,7 +28,6 @@ open class FakeAppContainer(
             payPayReceiptExtractor = PayPayReceiptExtractor(
                 context = context,
                 paypayReceiptConfigRepository = payPayReceiptConfigRepository,
-                appTimeZoneRepository = appTimeZoneRepository,
                 ocrService = ocrService
             )
         )
