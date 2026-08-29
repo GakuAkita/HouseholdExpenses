@@ -14,4 +14,9 @@ sealed interface ExtractorError : AppError {
         override val message: String
             get() = "Mask setting is not set."
     }
+
+    data object NoStringFoundError : ExtractorError {
+        override val message: String
+            get() = "No string found."
+    }
 }
