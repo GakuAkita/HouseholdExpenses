@@ -1,9 +1,12 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -13,19 +16,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import gaku.original.myapplication.SharedData
+import androidx.navigation.NavHostController
+import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.ui.common.TopBarView
 import java.time.LocalDateTime
 
 @Composable
 fun ShareReceiverScreenRoot(
-    viewModel: ShareReceiverViewModel
+    viewModel: ShareReceiverViewModel, navHostController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -34,48 +42,65 @@ fun ShareReceiverScreenRoot(
         }
     }
 
+    LaunchedEffect(uiState.sentData) {
+        when (val sentData = uiState.sentData) {
+            is SentData.Expense -> {
+                if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        putExtra("", sentData)
+                    }
+                }
+            }
+
+            null -> {/* Do nothing */
+            }
+        }
+    }
+
     ShareReceiverScreen(
-        uiState,
-        snackbarHostState
+        uiState, snackbarHostState
     )
 }
 
 @Composable
 fun ShareReceiverScreen(
-    uiState: ShareReceiverUiState,
-    snackbarHostState: SnackbarHostState
+    uiState: ShareReceiverUiState, snackbarHostState: SnackbarHostState
 ) {
 
-    Scaffold(
-        topBar = {
-            TopBarView(
-                title = "Received Data",
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        }
-    ) { innerPadding ->
+    Scaffold(topBar = {
+        TopBarView(
+            title = "Received Data",
+        )
+    }, snackbarHost = {
+        SnackbarHost(snackbarHostState)
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Text("Received data is here")
-
-            Text("${uiState.sharedData?.packageName}")
-
-            uiState.sentData?.let {
-                when (it) {
-                    is SentData.Expense -> {
-                        Text("${it.datetime}")
-                        Text("${it.amount}")
-                        Text("${it.storeName}")
-                        it.bitmap?.let { bitmap ->
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "masked image"
-                            )
+            if (uiState.isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Text("Received data is here")
+                uiState.sentData?.let {
+                    when (it) {
+                        is SentData.Expense -> {
+                            Text("${it.datetime}")
+                            Text("${it.amount}")
+                            Text("${it.storeName}")
+                            it.bitmap?.let { bitmap ->
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "masked image"
+                                )
+                            }
                         }
                     }
                 }
@@ -89,18 +114,11 @@ fun ShareReceiverScreen(
 @Composable
 fun ShareReceiverScreenPreview() {
     val uiState = ShareReceiverUiState(
-        sharedData = SharedData.Image(
-            "jp.ne.paypay.android",
-            "https://example.com/image.jpg"
-        ),
-        sentData = SentData.Expense(
-            datetime = LocalDateTime.now(),
-            amount = 1000,
-            storeName = "fake store"
+        isLoading = true, sentData = SentData.Expense(
+            datetime = LocalDateTime.now(), amount = 1000, storeName = "fake store"
         )
     )
     ShareReceiverScreen(
-        uiState,
-        SnackbarHostState()
+        uiState, SnackbarHostState()
     )
 }

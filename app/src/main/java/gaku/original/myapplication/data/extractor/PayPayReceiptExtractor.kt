@@ -22,7 +22,7 @@ class PayPayReceiptExtractor(
     private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
     private val ocrService: OcrService
 ) : Extractor {
-    override suspend fun extract(image: Uri): AppResult<SentData.Expense, ExtractorError> {
+    override suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError> {
         val bitmap: Bitmap = context.contentResolver.openInputStream(image)?.use { stream ->
             BitmapFactory.decodeStream(stream)
         } ?: throw Exception("Failed to open input stream")
@@ -85,10 +85,12 @@ class PayPayReceiptExtractor(
         }
 
         return AppResult.Success(
-            SentData.Expense(
-                datetime = datetime,
-                amount = amount,
-                storeName = storeName,
+            ExtractedData(
+                sentData = SentData.Expense(
+                    datetime = datetime,
+                    amount = amount,
+                    storeName = storeName
+                ),
                 bitmap = maskedBitmap
             )
         )

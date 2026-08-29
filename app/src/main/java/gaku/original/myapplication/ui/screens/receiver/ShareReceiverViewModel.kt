@@ -21,7 +21,6 @@ import timber.log.Timber
 import java.time.LocalDateTime
 
 data class ShareReceiverUiState(
-    val sharedData: SharedData? = null,
     val sentData: SentData? = null,
     val isLoading: Boolean = false,
     val message: String? = null
@@ -60,10 +59,6 @@ class ShareReceiverViewModel(
 
     init {
         Timber.d("init() called.${hashCode()}")
-        _uiState.value = ShareReceiverUiState(
-            sharedData
-        )
-
         viewModelScope.launch {
             try {
                 _uiState.update {
@@ -108,7 +103,7 @@ class ShareReceiverViewModel(
                     val result = paypayExtractor.extract(imageUri.toUri())
                     if (result is AppResult.Success) {
                         Timber.d("${result.value}")
-                        when (val data = result.value) {
+                        when (val data = result.value.sentData) {
                             is SentData.Expense -> {
                                 _uiState.update {
                                     it.copy(

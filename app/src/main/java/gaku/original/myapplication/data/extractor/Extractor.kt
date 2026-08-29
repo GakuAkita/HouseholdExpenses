@@ -1,12 +1,13 @@
 package gaku.original.myapplication.data.extractor
 
+import android.graphics.Bitmap
 import android.net.Uri
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.ui.screens.receiver.SentData
 
 interface Extractor {
-    suspend fun extract(image: Uri): AppResult<SentData, ExtractorError>
+    suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError>
 }
 
 sealed interface ExtractorError : AppError {
@@ -20,3 +21,8 @@ sealed interface ExtractorError : AppError {
             get() = "No string found."
     }
 }
+
+data class ExtractedData(
+    val sentData: SentData,
+    val bitmap: Bitmap?
+)

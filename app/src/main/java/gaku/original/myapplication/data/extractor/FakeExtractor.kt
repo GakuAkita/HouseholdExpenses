@@ -7,13 +7,16 @@ import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 
 class FakeExtractor : Extractor {
-    override suspend fun extract(image: Uri): AppResult<SentData, ExtractorError> {
+    override suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError> {
         delay(1000)
         return AppResult.Success(
-            SentData.Expense(
-                datetime = LocalDateTime.now(),
-                amount = 1000,
-                storeName = "fake store"
+            ExtractedData(
+                sentData = SentData.Expense(
+                    datetime = LocalDateTime.now(),
+                    amount = 1000,
+                    storeName = "fake store"
+                ),
+                bitmap = fakeBitmap
             )
         )
     }
