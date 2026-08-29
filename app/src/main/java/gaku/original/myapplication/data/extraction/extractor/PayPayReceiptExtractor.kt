@@ -9,14 +9,14 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import gaku.original.myapplication.common.AppResult
-import gaku.original.myapplication.data.repository.maskConfigRepository.MaskConfig
-import gaku.original.myapplication.data.repository.maskConfigRepository.MaskConfigRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
 import gaku.original.myapplication.ui.screens.receiver.SentData
 
 class PayPayReceiptExtractor(
     private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */
-    private val maskConfigRepository: MaskConfigRepository,
+    private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
     private val ocrService: OcrService
 ) : Extractor {
     override suspend fun extract(image: Uri): AppResult<SentData.Expense, ExtractorError> {
@@ -24,19 +24,19 @@ class PayPayReceiptExtractor(
             BitmapFactory.decodeStream(stream)
         } ?: throw Exception("Failed to open input stream")
 
-        val config = maskConfigRepository.getMaskConfig()
-        if (config !is MaskConfig.Percent) {
+        val config = paypayReceiptConfigRepository.getOCRSetting()
+        if (config.mask !is MaskConfig.Percent) {
             throw Exception("Coding Error: Invalid mask config. PayPay should set by percent")
         }
 
-        if (config.widthPercent == null || config.heightPercent == null) {
+        if (config.mask.widthPercent == null || config.mask.heightPercent == null) {
             return AppResult.Failure(ExtractorError.MaskNotSetError)
         }
 
         /* Mask the image */
         val maskedBitmap = bitmap.maskBitmapArea(
-            config.widthPercent,
-            config.heightPercent,
+            config.mask.widthPercent,
+            config.mask.heightPercent,
             leftPercent = 0.0,
             topPercent = 0.0
         )
@@ -44,6 +44,7 @@ class PayPayReceiptExtractor(
         val ocrResult = ocrService.runOcr(maskedBitmap)
 
         /* Parse here */
+        
 
         return AppResult.Success(
             SentData.Expense(

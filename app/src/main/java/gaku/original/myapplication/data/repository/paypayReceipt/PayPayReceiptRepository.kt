@@ -7,6 +7,14 @@ interface PayPayReceiptConfigRepository {
 }
 
 data class PayPayReceiptOCRSetting(
-    val topRatio: Float?,
-    val leftRatio: Float?
+    val mask: MaskConfig
 )
+
+sealed interface MaskConfig {
+    data class Percent(
+        val widthPercent: Double?,
+        val heightPercent: Double?,
+        val topPercent: Double?,
+        val leftPercent: Double?
+    ) : MaskConfig
+}

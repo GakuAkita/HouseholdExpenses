@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptOCRSetting
-import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,9 +21,7 @@ data class PayPayReceiptReaderUiState(
     val isLoadError: Boolean = false
 )
 
-class PayPayReceiptReaderViewModel(
-    private val payPayReceiptRepository: PayPayReceiptRepository
-) : ViewModel() {
+class PayPayReceiptReaderViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PayPayReceiptReaderUiState())
     val uiState get() = _uiState.asStateFlow()
 
@@ -36,7 +32,6 @@ class PayPayReceiptReaderViewModel(
                 val container = app.appContainer
                 val session = container.sessionContainer!!
                 PayPayReceiptReaderViewModel(
-                    session.payPayReceiptRepository
                 )
             }
         }
@@ -52,16 +47,16 @@ class PayPayReceiptReaderViewModel(
                         isLoading = true
                     )
                 }
-                val setting = payPayReceiptRepository.getOCRSetting()
-                val topRatio = setting.topRatio
-                val leftRatio = setting.leftRatio
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        topRatio = topRatio,
-                        leftRatio = leftRatio
-                    )
-                }
+//                val setting = paypay
+//                val topRatio = setting.topRatio
+//                val leftRatio = setting.leftRatio
+//                _uiState.update {
+//                    it.copy(
+//                        isLoading = false,
+//                        topRatio = topRatio,
+//                        leftRatio = leftRatio
+//                    )
+//                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -82,11 +77,7 @@ class PayPayReceiptReaderViewModel(
                         isLoading = true
                     )
                 }
-                payPayReceiptRepository.saveOCRSetting(
-                    PayPayReceiptOCRSetting(
-                        null, null
-                    )
-                )
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,

@@ -26,5 +26,5 @@ open class FakeSessionContainer(
         FakeMailboxExtractionRepository(),
     override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository(),
     override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository = FakeAmazonSubscribeItemRepository(),
-    override val payPayReceiptConfigRepository: PayPayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
+    override val payPayReceiptConfigRepository: PayPayReceiptConfigRepository = FakePayPayReceiptConfigRepository(),
 ) : SessionContainer

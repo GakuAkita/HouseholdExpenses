@@ -4,7 +4,14 @@ import kotlinx.coroutines.delay
 
 class FakePayPayReceiptConfigRepository : PayPayReceiptConfigRepository {
 
-    var setting: PayPayReceiptOCRSetting = PayPayReceiptOCRSetting(null, null)
+    var setting: PayPayReceiptOCRSetting = PayPayReceiptOCRSetting(
+        mask = MaskConfig.Percent(
+            widthPercent = 0.0,
+            heightPercent = 0.0,
+            topPercent = 0.0,
+            leftPercent = 0.0
+        )
+    )
 
     override suspend fun getOCRSetting(): PayPayReceiptOCRSetting {
         delay(1000)
