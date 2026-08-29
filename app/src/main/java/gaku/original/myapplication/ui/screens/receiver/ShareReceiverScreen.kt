@@ -23,8 +23,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainActivity
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.ui.common.TopBarView
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Composable
 fun ShareReceiverScreenRoot(
@@ -47,7 +49,7 @@ fun ShareReceiverScreenRoot(
             is SentData.Expense -> {
                 if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
-                        putExtra("", sentData)
+                        putExtra("aa", sentData)
                     }
                     context.startActivity(
                         mainIntent
@@ -98,14 +100,14 @@ fun ShareReceiverScreen(
                             Text("${it.datetime}")
                             Text("${it.amount}")
                             Text("${it.storeName}")
-                            it.bitmap?.let { bitmap ->
-                                Image(
-                                    bitmap = bitmap.asImageBitmap(),
-                                    contentDescription = "masked image"
-                                )
-                            }
                         }
                     }
+                }
+                uiState.bitmap?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "masked image"
+                    )
                 }
             }
         }
@@ -117,8 +119,11 @@ fun ShareReceiverScreen(
 @Composable
 fun ShareReceiverScreenPreview() {
     val uiState = ShareReceiverUiState(
-        isLoading = true, sentData = SentData.Expense(
-            datetime = LocalDateTime.now(), amount = 1000, storeName = "fake store"
+        isLoading = false,
+        sentData = SentData.Expense(
+            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.systemDefault()),
+            amount = 1000,
+            storeName = "fake store"
         )
     )
     ShareReceiverScreen(

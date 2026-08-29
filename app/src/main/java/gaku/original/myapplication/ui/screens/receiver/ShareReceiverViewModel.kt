@@ -1,5 +1,7 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import android.graphics.Bitmap
+import android.os.Parcelable
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -16,13 +18,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
+import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 
 data class ShareReceiverUiState(
     val sentData: SentData? = null,
     val isLoading: Boolean = false,
-    val message: String? = null
+    val message: String? = null,
+    val bitmap: Bitmap? = null
 )
 
 class ShareReceiverViewModel(
@@ -101,15 +104,11 @@ class ShareReceiverViewModel(
                     /* PayPay */
                     val result = paypayExtractor.extract(imageUri.toUri())
                     if (result is AppResult.Success) {
-                        Timber.d("${result.value}")
-                        when (val data = result.value.sentData) {
-                            is SentData.Expense -> {
-                                _uiState.update {
-                                    it.copy(
-                                        sentData = data
-                                    )
-                                }
-                            }
+                        _uiState.update {
+                            it.copy(
+                                sentData = result.value.sentData,
+                                bitmap = result.value.bitmap
+                            )
                         }
                     } else if (result is AppResult.Failure) {
                         if (result.error is ExtractorError.MaskNotSetError) {
@@ -139,12 +138,12 @@ class ShareReceiverViewModel(
     }
 }
 
-@Serializable
-sealed interface SentData {
-    @Serializable
+@Parcelize
+sealed interface SentData : Parcelable {
+    @Parcelize
     data class Expense(
         val datetime: String?,
         val amount: Long?,
         val storeName: String?,
-    ) : SentData
+    ) : SentData, Parcelable
 }
