@@ -63,28 +63,35 @@ class PayPayReceiptExtractor(
         /* get datetime first */
         var dtIndex: Int = 0
         var datetimeStr: String? = null
+        val storeNamePart = StringBuilder()
         for (i in lines.indices) {
             datetimeStr = extractDate(lines[i])
             if (datetimeStr != null) {
                 dtIndex = i
                 break
             }
+            storeNamePart.append(lines[i])
+        }
+
+        var storeName: String? = null
+        if (dtIndex < lines.size - 1) {
+            storeName = createStoreName(storeNamePart.toString())
         }
 
         /* get amount */
         var amount: Long? = null
-        for (i in 0..dtIndex - 1) {
+        for (i in dtIndex..lines.size - 1) {
             amount = extractAmount(lines[i])
-            if (amount == null) {
-
+            if (amount != null) {
+                break
             }
         }
 
         return AppResult.Success(
             SentData.Expense(
-                datetime = null,
-                amount = null,
-                storeName = null,
+                datetime = datetimeStr,
+                amount = amount,
+                storeName = storeName,
                 bitmap = maskedBitmap
             )
         )
@@ -141,6 +148,40 @@ class PayPayReceiptExtractor(
         }
 
         return null
+    }
+
+    private fun createStoreName(text: String): String? {
+        /**
+         * ダイソー\nフジ東予店
+         * のパターンと
+         * ハローズ\nハローズ 東予店
+         * という感じで2行目に店舗名しか入らないパターンと店名も含むパターンがある
+         */
+
+        val textSplit = text.split("\n")
+        val name = textSplit.getOrNull(0)
+        val storeName = textSplit.getOrNull(1)
+
+        if (name == null && storeName == null) {
+            return null
+        } else if (name == null) {
+            return storeName
+        } else if (storeName == null) {
+            return name
+        } else {
+            /* nameもstoreNameも入っている */
+        }
+
+        /**
+         *  nameもstoreNameも入っているとき、
+         *  storeNameにnameが入っていたらそのままnameを返す
+         *  */
+        if (storeName.contains(name)) {
+            return storeName
+        }
+
+        /* 空欄は取り除いておく */
+        return "${name.replace(" ", "")} ${storeName.replace(" ", "")}"
     }
 }
 
