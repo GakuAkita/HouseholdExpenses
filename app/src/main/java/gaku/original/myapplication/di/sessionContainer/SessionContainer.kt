@@ -6,7 +6,7 @@ import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
-import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 
 interface SessionContainer {
@@ -24,5 +24,5 @@ interface SessionContainer {
 
     val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
 
-    val payPayReceiptRepository: PayPayReceiptRepository
+    val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 }

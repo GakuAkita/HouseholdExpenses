@@ -11,5 +11,6 @@ open class FakeAppContainer(
     override val authRepository: AuthRepository = FakeAuthRepository(),
     override val ocrService: OcrService = MlkitOcrService()
 ) : AppContainer() {
+
     override fun createSessionContainer(): SessionContainer = FakeSessionContainer()
 }

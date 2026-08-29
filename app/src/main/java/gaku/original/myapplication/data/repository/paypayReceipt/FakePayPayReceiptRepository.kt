@@ -2,7 +2,7 @@ package gaku.original.myapplication.data.repository.paypayReceipt
 
 import kotlinx.coroutines.delay
 
-class FakePayPayReceiptRepository: PayPayReceiptRepository {
+class FakePayPayReceiptConfigRepository : PayPayReceiptConfigRepository {
 
     var setting: PayPayReceiptOCRSetting = PayPayReceiptOCRSetting(null, null)
 

@@ -12,8 +12,8 @@ import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.expense.FakeExpenseRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.FakeMailboxExtractionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
-import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptRepository
-import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptConfigRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 
@@ -26,6 +26,5 @@ open class FakeSessionContainer(
         FakeMailboxExtractionRepository(),
     override val emailConnectionRepository: EmailConnectionRepository = FakeEmailConnectionRepository(),
     override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository = FakeAmazonSubscribeItemRepository(),
-    override val payPayReceiptRepository: PayPayReceiptRepository = FakePayPayReceiptRepository()
-) : SessionContainer {
-}
+    override val payPayReceiptConfigRepository: PayPayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
+) : SessionContainer

@@ -1,6 +1,6 @@
 package gaku.original.myapplication.data.repository.paypayReceipt
 
-interface PayPayReceiptRepository {
+interface PayPayReceiptConfigRepository {
     suspend fun getOCRSetting(): PayPayReceiptOCRSetting
 
     suspend fun saveOCRSetting(setting: PayPayReceiptOCRSetting)
