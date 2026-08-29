@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.extraction.extractor
+package gaku.original.myapplication.data.extractor
 
 import android.net.Uri
 import gaku.original.myapplication.common.AppResult

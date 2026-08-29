@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -9,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
 import gaku.original.myapplication.SharedData
 import gaku.original.myapplication.ui.common.TopBarView
 
@@ -45,11 +46,10 @@ fun ShareReceiverScreen(
 
             Text("${uiState.sharedData?.packageName}")
 
-            if (uiState.sharedData is SharedData.Image) {
-                Text("${uiState.sharedData.imagePath}")
-                AsyncImage(
-                    model = uiState.sharedData.imagePath,
-                    contentDescription = null
+            uiState.maskedBitmap?.let {
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = "Masked image"
                 )
             }
         }
@@ -60,5 +60,14 @@ fun ShareReceiverScreen(
 @Preview(showBackground = true)
 @Composable
 fun ShareReceiverScreenPreview() {
-
+    val uiState = ShareReceiverUiState(
+        sharedData = SharedData.Image(
+            "jp.ne.paypay.android",
+            "https://example.com/image.jpg"
+        ),
+        maskedBitmap = null
+    )
+    ShareReceiverScreen(
+        uiState
+    )
 }

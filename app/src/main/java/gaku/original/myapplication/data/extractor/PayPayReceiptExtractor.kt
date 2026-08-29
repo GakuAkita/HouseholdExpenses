@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.extraction.extractor
+package gaku.original.myapplication.data.extractor
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -13,6 +13,7 @@ import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
 import gaku.original.myapplication.ui.screens.receiver.SentData
+import timber.log.Timber
 
 class PayPayReceiptExtractor(
     private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */
@@ -44,13 +45,15 @@ class PayPayReceiptExtractor(
         val ocrResult = ocrService.runOcr(maskedBitmap)
 
         /* Parse here */
-        
+        Timber.d("ocrResult = ${ocrResult.lines}")
+
 
         return AppResult.Success(
             SentData.Expense(
                 datetime = null,
                 amount = null,
-                storeName = null
+                storeName = null,
+                bitmap = maskedBitmap
             )
         )
     }

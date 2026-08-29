@@ -1,7 +1,7 @@
 package gaku.original.myapplication.di.sessionContainer
 
-import gaku.original.myapplication.data.extraction.extractor.Extractor
-import gaku.original.myapplication.data.extraction.extractor.FakeExtractor
+import gaku.original.myapplication.data.extractor.Extractor
+import gaku.original.myapplication.data.extractor.FakeExtractor
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
