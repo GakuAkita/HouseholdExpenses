@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.navigation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -35,6 +37,8 @@ fun RootNavigation(
     viewModel: RootViewModel = viewModel(factory = RootViewModel.Factory)
 ) {
     val authState by viewModel.authState.collectAsState()
+
+    val context = LocalContext.current
 
     LaunchedEffect(authState) {
         Timber.d("Effect started authState=${authState}\n current=${navHostController.currentBackStackEntry?.destination?.route}")
@@ -82,8 +86,14 @@ fun RootNavigation(
                     val newExpense = event.expense
                     Timber.d("ExpenseAdd: $newExpense")
                     navHostController.navigate(
-
+                        MainGraph.Global.ExpenseAddEdit(
+                            newExpense
+                        )
                     )
+                }
+
+                is RootUiEffect.ShowToast -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }

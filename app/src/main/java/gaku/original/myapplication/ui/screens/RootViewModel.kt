@@ -76,6 +76,12 @@ class RootViewModel(
                             )
                         }
                     }
+                } else if (state is AuthState.LoggedOut) {
+                    // The original design is that before MainActivity is launched by ShareReceiverActivity,
+                    // the user should be logged in.
+                    _eventFlow.emit(
+                        RootUiEffect.ShowToast("Error: Not logged in.")
+                    )
                 }
             }
         }
