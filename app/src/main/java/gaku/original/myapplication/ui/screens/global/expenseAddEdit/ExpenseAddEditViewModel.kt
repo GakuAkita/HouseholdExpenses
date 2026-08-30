@@ -621,6 +621,26 @@ class ExpenseAddEditViewModel(
         }
     }
 
+    fun onAddClick() {
+        val lastExpense = _uiState.value.expenseEditList.last()
+        if (lastExpense.amount == null || lastExpense.amount == 0L) {
+            _uiState.update {
+                it.copy(
+                    message = "Last Expense amount should not be empty"
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList + ExpenseEditItem(
+                    amount = 0,
+                    category = null
+                )
+            )
+        }
+    }
+
     override fun onCleared() {
         Timber.d("Cleared. ${hashCode()}")
         super.onCleared()

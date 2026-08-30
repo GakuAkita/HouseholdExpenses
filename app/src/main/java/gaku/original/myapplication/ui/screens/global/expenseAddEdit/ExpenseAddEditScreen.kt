@@ -174,6 +174,9 @@ fun ExpenseAddEditScreenRoot(
         },
         onDeleteClick = {
             viewModel.onDeleteClick()
+        },
+        onAddClick = {
+            viewModel.onAddClick()
         }
     )
 }
@@ -202,7 +205,8 @@ fun ExpenseAddEditScreen(
     onNoteChange: (Int, String) -> Unit,
     onProductNameChange: (Int, String) -> Unit,
     onSaveClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onAddClick: () -> Unit
 ) {
 
     val basicModifier = remember { Modifier.width(260.dp) }
@@ -432,6 +436,7 @@ fun ExpenseAddEditScreen(
                         IconButton(
                             onClick = {
                                 /* add to array */
+                                onAddClick()
                             }
                         ) {
                             Icon(
@@ -529,13 +534,13 @@ fun ExpenseAddEditScreenPreview() {
                     amount = 1000,
                     category = Category(name = "Food")
                 ),
-//                ExpenseEditItem(
-//                    amount = 2000,
-//                    category = Category(name = "Waste")
-//                )
+                ExpenseEditItem(
+                    amount = 2000,
+                    category = Category(name = "Waste")
+                )
             ),
             isSplitInputEnabled = false,
-            isLoading = true,
+            isLoading = false,
             isEdit = true
         ),
         snackbarHostState = SnackbarHostState(),
@@ -557,7 +562,8 @@ fun ExpenseAddEditScreenPreview() {
         onNoteChange = { _, _ -> },
         onProductNameChange = { _, _ -> },
         onSaveClick = {},
-        onDeleteClick = {}
+        onDeleteClick = {},
+        onAddClick = {}
     )
 }
 
