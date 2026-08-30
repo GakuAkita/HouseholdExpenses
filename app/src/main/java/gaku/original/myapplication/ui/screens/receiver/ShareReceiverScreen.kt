@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainActivity
+import gaku.original.myapplication.data.Constants.ShareIntentKeys
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.ui.common.TopBarView
 import java.time.LocalDateTime
@@ -50,8 +51,8 @@ fun ShareReceiverScreenRoot(
             is SentData.Expense -> {
                 if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
-                        putExtra("aa", sentData)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        putExtra(ShareIntentKeys.EXPENSE, sentData)
+                        //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                     }
                     context.startActivity(
                         mainIntent

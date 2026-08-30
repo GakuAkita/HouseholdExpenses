@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -16,6 +17,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import gaku.original.myapplication.data.Constants.createAllNotificationChannelsWithRemove
 import gaku.original.myapplication.ui.navigation.RootNavigation
+import gaku.original.myapplication.ui.screens.RootViewModel
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import timber.log.Timber
 
@@ -25,14 +27,15 @@ val LocalSnackBarHostState = compositionLocalOf<SnackbarHostState> {
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
-//    private val sharedImageViewModel: SharedImageViewModel by viewModels()
-//    private val sharedNotificationListenerViewModel: SharedNotificationListenerViewModel by viewModels()
+
+    private val rootViewModel: RootViewModel by viewModels {
+        RootViewModel.Factory
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val splashScreen = installSplashScreen()
-//        splashScreen.setKeepOnScreenCondition { true }
-        //https://www.youtube.com/watch?v=_Jslt5sMuKc
+
+        rootViewModel.onNewIntent(intent)
 
         /* 通知チャンネルをリセットする。いらないのを消して必要なのを生成 */
         createAllNotificationChannelsWithRemove(this)
@@ -60,7 +63,8 @@ class MainActivity : ComponentActivity() {
                     Surface(modifier = Modifier.fillMaxSize()) {
                         RootNavigation(
                             navController,
-                            appContainer = (application as MyApplication).appContainer
+                            appContainer = (application as MyApplication).appContainer,
+                            viewModel = rootViewModel
                         )
                     }
 
@@ -71,8 +75,11 @@ class MainActivity : ComponentActivity() {
 
     // https://zenn.dev/1stscratch/articles/1ea5e38cb9252c
     override fun onNewIntent(intent: Intent?) {
-        Timber.d("onNewIntent() called.")
         super.onNewIntent(intent)
+        Timber.d("onNewIntent() called.")
+        setIntent(intent)
+
+        rootViewModel.onNewIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent, caller: ComponentCaller) {

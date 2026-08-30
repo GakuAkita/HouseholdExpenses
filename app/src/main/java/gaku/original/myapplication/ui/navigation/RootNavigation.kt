@@ -23,7 +23,9 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.Splash
 import gaku.original.myapplication.di.appContainer.AppContainer
 import gaku.original.myapplication.domain.AuthState
+import gaku.original.myapplication.ui.screens.RootUiEffect
 import gaku.original.myapplication.ui.screens.RootViewModel
+import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
 
 @Composable
@@ -44,10 +46,7 @@ fun RootNavigation(
             is AuthState.LoggedIn -> {
                 val isInMainGraph =
                     navHostController.currentDestination?.hierarchy?.any { it.hasRoute<MainGraph>() } == true
-                if (!isInMainGraph) {
-                    /* if it doesn't check whether maingraph or not, HomeViewModel is recreated after the screen rotation */
-                    /* By checking if MainGraph still exists in the tree, we can avoid recreating HomeViewModel */
-                    /* This seems to be an anti-pattern...? */
+                if (!isInMainGraph) {/* if it doesn't check whether maingraph or not, HomeViewModel is recreated after the screen rotation *//* By checking if MainGraph still exists in the tree, we can avoid recreating HomeViewModel *//* This seems to be an anti-pattern...? */
                     appContainer.createSession()
                     navHostController.navigate(MainGraph) {
                         Timber.d("navigate to main. Remove all the stacks until ${navHostController.graph.id}")
@@ -76,13 +75,26 @@ fun RootNavigation(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is RootUiEffect.ExpenseAdd -> {
+                    val newExpense = event.expense
+                    Timber.d("ExpenseAdd: $newExpense")
+                    navHostController.navigate(
+
+                    )
+                }
+            }
+        }
+    }
+
     NavHost(
         navController = navHostController,
         startDestination = Splash,
     ) {
         composable<Splash> {
-            Scaffold(
-            ) { innerPadding ->
+            Scaffold { innerPadding ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
