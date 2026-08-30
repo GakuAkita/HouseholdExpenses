@@ -3,14 +3,19 @@ package gaku.original.myapplication.ui.screens.global.categoryAssignment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import timber.log.Timber
 
-class CategoryAssignmentViewModel : ViewModel() {
+class CategoryAssignmentViewModel(
+    private val categoryAssignmentRepository: CategoryAssignmentRepository
+) : ViewModel() {
 
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                CategoryAssignmentViewModel()
+                CategoryAssignmentViewModel(
+                    
+                )
             }
         }
     }

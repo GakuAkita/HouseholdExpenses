@@ -1,16 +1,5 @@
 package gaku.original.myapplication.useCase
 
-import com.google.firebase.database.DatabaseReference
-import gaku.original.myapplication.data.CheckResult
-import gaku.original.myapplication.data.Constants.Status.CheckStatus
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.Interface.CategoryAssignNamePattern
-import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.CategoryAssignmentData
-import gaku.original.myapplication.data.dataClass.checkAssignment
-import gaku.original.myapplication.data.mapFailure
 import javax.inject.Inject
 
 class CategoryAssignmentUseCase @Inject constructor(
