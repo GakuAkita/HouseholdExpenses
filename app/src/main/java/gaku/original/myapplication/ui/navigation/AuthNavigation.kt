@@ -5,13 +5,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import gaku.original.myapplication.AuthGraph
-import gaku.original.myapplication.Screen
 import gaku.original.myapplication.ui.screens.start.StartView
 import gaku.original.myapplication.ui.screens.start.signin.SignInScreenRoot
 
-fun NavGraphBuilder.authGraph(navController: NavHostController, start: Screen = AuthGraph.Start) {
+fun NavGraphBuilder.authGraph(navController: NavHostController) {
     navigation<AuthGraph>(
-        startDestination = start
+        startDestination = AuthGraph.Start
     ) {
         composable<AuthGraph.Start> {
             StartView(

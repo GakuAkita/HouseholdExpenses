@@ -116,7 +116,7 @@ class ShareReceiverActivity : ComponentActivity() {
                                 }
                             }
 
-                            authGraph(navController, AuthGraph.SignIn)
+                            authGraph(navController)
                             shareReceiverGraph(navController)
                         }
                     }
