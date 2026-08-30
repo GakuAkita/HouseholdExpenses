@@ -110,7 +110,11 @@ class ShareReceiverActivity : ComponentActivity() {
 
                             composable<AuthGraph.SignIn> {
                                 SignInScreenRoot(
-                                    navController = navController, isSignIn = true
+                                    isSignIn = true,
+                                    onBackNavClick = {
+                                        /* null is also okay */
+                                        finish()
+                                    }
                                 )
                             }
 

@@ -11,8 +11,8 @@ import gaku.original.myapplication.ui.screens.start.signin.SignInScreenRoot
 fun NavGraphBuilder.authGraph(navController: NavHostController) {
     navigation<AuthGraph>(
         startDestination = AuthGraph.Start
-    ){
-        composable<AuthGraph.Start>{
+    ) {
+        composable<AuthGraph.Start> {
             StartView(
                 onSignInClick = {
                     navController.navigate(AuthGraph.SignIn)
@@ -23,19 +23,23 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
             )
         }
 
-        composable<AuthGraph.SignIn>{
+        composable<AuthGraph.SignIn> {
             SignInScreenRoot(
-                navController = navController,
                 isSignIn = true,
-                isGoogleOnly = false
+                isGoogleOnly = false,
+                onBackNavClick = {
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable<AuthGraph.SignUp>{
+        composable<AuthGraph.SignUp> {
             SignInScreenRoot(
-                navController = navController,
                 isSignIn = false,
-                isGoogleOnly = true
+                isGoogleOnly = true,
+                onBackNavClick = {
+                    navController.popBackStack()
+                }
             )
         }
 

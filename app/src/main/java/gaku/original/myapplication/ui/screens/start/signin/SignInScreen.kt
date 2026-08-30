@@ -33,9 +33,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ComponentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.ui.common.TopBarView
@@ -46,9 +44,9 @@ import timber.log.Timber
 @Composable
 fun SignInScreenRoot(
     viewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory),
-    navController: NavHostController,
     isSignIn: Boolean = true,
-    isGoogleOnly: Boolean = true
+    isGoogleOnly: Boolean = true,
+    onBackNavClick: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -76,9 +74,7 @@ fun SignInScreenRoot(
                 viewModel.signInWithGoogle(activity)
             }
         },
-        onBackNavClick = {
-            navController.popBackStack()
-        },
+        onBackNavClick = onBackNavClick,
         onEmailChange = {
             viewModel.onEmailChange(it)
         },
@@ -104,7 +100,7 @@ fun SignInScreen(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onSignInClick: () -> Unit,
-    onBackNavClick: () -> Unit,
+    onBackNavClick: (() -> Unit)? = null,
     onForgotPasswordClick: () -> Unit
 ) {
 
@@ -262,9 +258,9 @@ fun SignInScreen(
         topBar = {
             TopBarView(
                 title = if (isSignIn) "SignIn" else "SignUp",
-                showBackButton = true,
+                showBackButton = onBackNavClick != null,
                 onBackNavClicked = {
-                    onBackNavClick()
+                    onBackNavClick?.invoke()
                 }
             )
         },
