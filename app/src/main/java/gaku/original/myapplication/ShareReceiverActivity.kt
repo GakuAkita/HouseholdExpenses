@@ -128,7 +128,8 @@ class ShareReceiverActivity : ComponentActivity() {
                                         factory = ShareReceiverViewModel.Factory(
                                             sharedData
                                         )
-                                    ), navController, onComplete = {
+                                    ), navController,
+                                    onComplete = {
                                         finish()
                                     })
                             }
