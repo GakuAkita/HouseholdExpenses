@@ -130,20 +130,29 @@ class ExpenseAddEditViewModel(
             )
         }
 
+        val expenseItem = ExpenseEditItem(
+            amount = initialExpense?.amount,
+            category = initialExpense?.category,
+            note = initialExpense?.note,
+            productName = initialExpense?.itemName,
+        )
+
         /* based on the selected timezone, decide initial Date and Time */
         /* Only when it is ADD!! */
+
+        _uiState.update {
+            it.copy(
+                expenseEditList = listOf(expenseItem),
+                placeName = initialExpense?.storeName ?: ""
+            )
+        }
         if (isEdit) {
             val expense = initialExpense
             val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
-            val expenseItem = ExpenseEditItem(
-                amount = expense.amount,
-                category = expense.category
-            )
             _uiState.update {
                 it.copy(
                     selectedDate = localDateTime?.toLocalDate(),
                     selectedTime = localDateTime?.toLocalTime(),
-                    expenseEditList = listOf(expenseItem)
                 )
             }
         } else {
@@ -152,7 +161,6 @@ class ExpenseAddEditViewModel(
                 it.copy(
                     selectedDate = LocalDate.now(zoneId),
                     selectedTime = LocalTime.now(zoneId),
-                    expenseEditList = listOf(ExpenseEditItem())
                 )
             }
         }
