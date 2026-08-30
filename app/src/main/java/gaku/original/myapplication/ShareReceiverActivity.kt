@@ -77,7 +77,7 @@ class ShareReceiverActivity : ComponentActivity() {
                                             )
                                         )
                                     ) {
-                                        popUpTo(navController.graph.startDestinationId) {
+                                        popUpTo(AuthGraph.SignIn) {
                                             inclusive = true
                                         }
                                     }
