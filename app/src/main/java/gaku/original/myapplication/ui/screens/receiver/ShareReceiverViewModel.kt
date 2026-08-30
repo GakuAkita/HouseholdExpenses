@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Parcelable
 import androidx.core.net.toUri
@@ -130,6 +131,10 @@ class ShareReceiverViewModel(
                 Timber.d("Unknown shared data")
             }
         }
+    }
+
+    fun onAddExpenseClick(context: Context) {
+
     }
 
     override fun onCleared() {

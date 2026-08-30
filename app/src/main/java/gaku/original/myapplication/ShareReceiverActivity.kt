@@ -20,23 +20,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import gaku.original.myapplication.domain.AuthState
-import gaku.original.myapplication.ui.navigation.navTypeOf
+import gaku.original.myapplication.ui.navigation.authGraph
+import gaku.original.myapplication.ui.navigation.shareReceiverGraph
 import gaku.original.myapplication.ui.screens.RootViewModel
-import gaku.original.myapplication.ui.screens.receiver.ShareReceiverScreenRoot
-import gaku.original.myapplication.ui.screens.receiver.ShareReceiverViewModel
-import gaku.original.myapplication.ui.screens.start.signin.SignInScreenRoot
 import gaku.original.myapplication.ui.theme.HouseholdExpensesTheme
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import timber.log.Timber
-import kotlin.reflect.typeOf
 
 // https://developer.android.com/training/basics/intents/filters
 class ShareReceiverActivity : ComponentActivity() {
@@ -70,25 +67,36 @@ class ShareReceiverActivity : ComponentActivity() {
                                 }
 
                                 is AuthState.LoggedIn -> {
-                                    navController.navigate(
-                                        SharedReceiverGraph.SharedReceiver.Entry(
-                                            intent.toSharedData(
-                                                referrer?.toString()
+                                    val isSharedReceiverGraph =
+                                        navController.currentBackStackEntry?.destination?.hierarchy?.any {
+                                            it.hasRoute<SharedReceiverGraph>()
+                                        } == true
+                                    if (!isSharedReceiverGraph) {
+                                        (application as MyApplication).appContainer.createSession()
+                                        navController.navigate(
+                                            SharedReceiverGraph.SharedReceiver.Entry(
+                                                intent.toSharedData(
+                                                    referrer?.toString()
+                                                )
                                             )
-                                        )
-                                    ) {
-                                        popUpTo(AuthGraph.SignIn) {
-                                            inclusive = true
+                                        ) {
+                                            popUpTo(AuthGraph.SignIn) {
+                                                inclusive = true
+                                            }
                                         }
                                     }
                                 }
 
                                 is AuthState.LoggedOut -> {
-                                    navController.navigate(
-                                        AuthGraph.SignIn
-                                    ) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            inclusive = true
+                                    val isAuthGraph =
+                                        navController.currentBackStackEntry?.destination?.hierarchy?.any {
+                                            it.hasRoute<AuthGraph>()
+                                        } == true
+                                    if (!isAuthGraph) {
+                                        navController.navigate(AuthGraph.SignIn) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                inclusive = true
+                                            }
                                         }
                                     }
                                 }
@@ -108,90 +116,13 @@ class ShareReceiverActivity : ComponentActivity() {
                                 }
                             }
 
-                            composable<AuthGraph.SignIn> {
-                                SignInScreenRoot(
-                                    isSignIn = true,
-                                    onBackNavClick = {
-                                        /* null is also okay */
-                                        finish()
-                                    }
-                                )
-                            }
-
-                            composable<SharedReceiverGraph.SharedReceiver.Entry>(
-                                typeMap = mapOf(typeOf<SharedData>() to navTypeOf<SharedData>())
-                            ) { backStackEntry ->
-                                val sharedData =
-                                    backStackEntry.toRoute<SharedReceiverGraph.SharedReceiver.Entry>().data
-                                ShareReceiverScreenRoot(
-                                    viewModel = viewModel(
-                                        factory = ShareReceiverViewModel.Factory(
-                                            sharedData
-                                        )
-                                    ), navController,
-                                    onComplete = {
-                                        finish()
-                                    })
-                            }
+                            authGraph(navController, AuthGraph.SignIn)
+                            shareReceiverGraph(navController)
                         }
                     }
                 }
             }
         }
-//        if (senderPackage in allowedPackages) {
-//            Toast.makeText(this, "Accepted ${senderPackage}", Toast.LENGTH_SHORT).show()
-//        } else {
-//            Toast.makeText(
-//                this,
-//                "このアプリからの共有は対応していません${senderPackage}",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            finish()
-//            return
-//        }
-//
-//        /* 画像uriを取得 */
-//        val imageUri: Uri? =
-//            if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("image/") == true) {
-//                intent.getParcelableExtraCompat<Uri>(Intent.EXTRA_STREAM)
-//            } else null
-//
-//        if (imageUri != null) {
-//            /* mainActivityに遷移してUriを渡す */
-//            val copiedUri = copyUriToCache(this, imageUri)
-//            if (copiedUri == null) {
-//                Toast.makeText(
-//                    this,
-//                    "受け取った画像をキャッシュにコピーできませんでした",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//                finish()
-//                return
-//            }
-//
-//            val data = SharedImageData(
-//                senderPackage,
-//                copiedUri
-//            )
-//
-//            val mainIntent = Intent(this, MainActivity::class.java).apply {
-//                /* onNewIntent側で処理を区別するためのキー */
-//                putExtra(
-//                    IntentKey, IntentSourceKeys.SHARE_IMAGE_FOR_OCR
-//                )
-//                putExtra(SharedImageData.EXTRA_KEY, data)
-//                flags =
-//                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_GRANT_READ_URI_PERMISSION//or Intent.FLAG_ACTIVITY_SINGLE_TOP
-//            }
-//            Log.d("ShareReceiverActivity", "passing ${imageUri}")
-//            startActivity(mainIntent)
-//            finish()
-//            return
-//        } else {
-//            Toast.makeText(this, "画像が受け取れませんでした", Toast.LENGTH_SHORT).show()
-//            finish()
-//            return
-//        }
     }
 
     override fun onNewIntent(intent: Intent?) {

@@ -1,11 +1,15 @@
 package gaku.original.myapplication.ui.screens.receiver
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -53,13 +57,7 @@ fun ShareReceiverScreenRoot(
                     sentData.amount != null &&
                     sentData.storeName != null
                 ) {/* startActivity */
-                    val mainIntent = Intent(context, MainActivity::class.java).apply {
-                        putExtra(ShareIntentKeys.EXPENSE, sentData)
-                        //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    }
-                    context.startActivity(
-                        mainIntent
-                    )
+                    startMainActivity(context, sentData)
                     onComplete()
                 }
             }
@@ -70,13 +68,19 @@ fun ShareReceiverScreenRoot(
     }
 
     ShareReceiverScreen(
-        uiState, snackbarHostState
+        uiState,
+        snackbarHostState,
+        onAddExpenseClick = {
+            startMainActivity(context, it)
+        }
     )
 }
 
 @Composable
 fun ShareReceiverScreen(
-    uiState: ShareReceiverUiState, snackbarHostState: SnackbarHostState
+    uiState: ShareReceiverUiState,
+    snackbarHostState: SnackbarHostState,
+    onAddExpenseClick: (SentData.Expense) -> Unit
 ) {
 
     Scaffold(topBar = {
@@ -100,13 +104,50 @@ fun ShareReceiverScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                Text("Received data is here")
                 uiState.sentData?.let {
                     when (it) {
                         is SentData.Expense -> {
-                            Text("${it.datetime}")
-                            Text("${it.amount}")
-                            Text("${it.storeName}")
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (it.datetime == null) {
+                                        Text("Unable to get datetime")
+                                    } else {
+                                        Text("DateTime:${it.datetime}")
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (it.amount == null) {
+                                        Text("Unable to get amount.")
+                                    } else {
+                                        Text("amount = ${it.amount}")
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (it.storeName == null) {
+                                        Text("Unable to get store name.")
+                                    } else {
+                                        Text("storeName = ${it.storeName}")
+                                    }
+                                }
+
+                                Button(
+                                    onClick = {
+                                        onAddExpenseClick(it)
+                                    }
+                                ) {
+                                    Text("Add to Expense")
+                                }
+                            }
                         }
                     }
                 }
@@ -130,10 +171,22 @@ fun ShareReceiverScreenPreview() {
         sentData = SentData.Expense(
             datetime = LocalDateTime.now().toIsoUtcString(ZoneId.systemDefault()),
             amount = 1000,
-            storeName = "fake store"
+            storeName = null
         )
     )
     ShareReceiverScreen(
-        uiState, SnackbarHostState()
+        uiState,
+        SnackbarHostState(),
+        onAddExpenseClick = {}
+    )
+}
+
+fun startMainActivity(context: Context, sentData: SentData) {
+    val mainIntent = Intent(context, MainActivity::class.java).apply {
+        putExtra(ShareIntentKeys.EXPENSE, sentData)
+        //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+    context.startActivity(
+        mainIntent
     )
 }
