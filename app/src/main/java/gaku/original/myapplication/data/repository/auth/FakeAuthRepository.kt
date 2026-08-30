@@ -1,7 +1,6 @@
 package gaku.original.myapplication.data.repository.auth
 
 import android.app.Activity
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.domain.AuthState
 import kotlinx.coroutines.delay
@@ -30,7 +29,8 @@ class FakeAuthRepository : AuthRepository, GoogleSignIn {
 
     init {
         Timber.d("Created: ${hashCode()}")
-        _authState.value = AuthState.LoggedIn(appUser)
+        //_authState.value = AuthState.LoggedIn(appUser)
+        _authState.value = AuthState.LoggedOut
     }
 
     override suspend fun signIn(request: SignInRequest): AppUser {

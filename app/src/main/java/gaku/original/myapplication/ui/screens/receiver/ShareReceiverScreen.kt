@@ -49,7 +49,10 @@ fun ShareReceiverScreenRoot(
     LaunchedEffect(uiState.sentData) {
         when (val sentData = uiState.sentData) {
             is SentData.Expense -> {
-                if (sentData.datetime != null || sentData.amount != null || sentData.storeName != null) {/* startActivity */
+                if (sentData.datetime != null &&
+                    sentData.amount != null &&
+                    sentData.storeName != null
+                ) {/* startActivity */
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
                         putExtra(ShareIntentKeys.EXPENSE, sentData)
                         //flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
