@@ -1,26 +1,40 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
 
 @Composable
 fun CategoryAssignmentScreenRoot(
+    navController: NavController,
+    viewModel: CategoryAssignmentViewModel = viewModel(factory = CategoryAssignmentViewModel.Factory)
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
-){
+    val snackbarHostState = LocalSnackbarHostState.current
+
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+
+        }
+    }
 
 }
 
 @Composable
-fun CategoryAssignmentScreen(){
+fun CategoryAssignmentScreen() {
 
 }
 
 @Preview
 @Composable
-fun CategoryAssignmentScreenPreview(){
+fun CategoryAssignmentScreenPreview() {
 
 }
 
