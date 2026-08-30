@@ -9,6 +9,7 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -45,6 +46,14 @@ class CategoryAssignmentViewModel(
             } catch (e: Exception) {
 
             }
+        }
+    }
+
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
         }
     }
 

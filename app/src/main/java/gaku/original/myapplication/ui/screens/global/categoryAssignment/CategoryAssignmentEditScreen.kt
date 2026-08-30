@@ -1,13 +1,24 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
 
 @Composable
@@ -17,25 +28,70 @@ fun CategoryAssignmentScreenRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val snackbarHostState = LocalSnackbarHostState.current
+    val snackbarHostState = LocalSnackBarHostState.current
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
-
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
         }
     }
 
+    CategoryAssignmentScreen(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onBackNavClick = {
+            navController.popBackStack()
+        }
+    )
 }
 
 @Composable
-fun CategoryAssignmentScreen() {
+fun CategoryAssignmentScreen(
+    uiState: CategoryAssignmentUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackNavClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopBarView(
+                title = "Category Assignment",
+                showBackButton = true,
+                onBackNavClicked = {
+                    onBackNavClick()
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            if (uiState.isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
 
+            }
+        }
+    }
 }
 
 @Preview
 @Composable
 fun CategoryAssignmentScreenPreview() {
-
+    val uiState = CategoryAssignmentUiState()
+    CategoryAssignmentScreen(
+        uiState = uiState,
+        snackbarHostState = SnackbarHostState(),
+        onBackNavClick = {}
+    )
 }
 
 @Composable
