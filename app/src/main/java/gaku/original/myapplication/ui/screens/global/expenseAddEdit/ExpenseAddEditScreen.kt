@@ -28,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -47,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -471,9 +471,7 @@ fun ExpenseAddEditScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                Column(
-
-                ) {
+                Column {
                     Button(
                         modifier = Modifier
                             .widthIn(max = 300.dp)
@@ -1413,7 +1411,7 @@ fun CalculatorUI(
     initialValue: Long = 0L,
     onDecide: (String) -> Unit = {}/* 決定ボタンを作ろうと思ったが、現状無理 */
 ) {
-    var input by remember { mutableStateOf(if (initialValue == 0L) "" else initialValue.toString()) }
+    var input by rememberSaveable { mutableStateOf(if (initialValue == 0L) "" else initialValue.toString()) }
 
     val hasOperator = input.contains(Regex("[+\\-×÷]"))
 
