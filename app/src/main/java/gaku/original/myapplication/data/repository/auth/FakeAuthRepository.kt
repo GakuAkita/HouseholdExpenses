@@ -29,8 +29,8 @@ class FakeAuthRepository : AuthRepository, GoogleSignIn {
 
     init {
         Timber.d("Created: ${hashCode()}")
-        //_authState.value = AuthState.LoggedIn(appUser)
-        _authState.value = AuthState.LoggedOut
+        _authState.value = AuthState.LoggedIn(appUser)
+        //_authState.value = AuthState.LoggedOut
     }
 
     override suspend fun signIn(request: SignInRequest): AppUser {

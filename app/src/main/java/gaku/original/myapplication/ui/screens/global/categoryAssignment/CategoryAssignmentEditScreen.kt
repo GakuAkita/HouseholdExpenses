@@ -1,23 +1,31 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
 
@@ -52,6 +60,7 @@ fun CategoryAssignmentScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit
 ) {
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     Scaffold(
         topBar = {
             TopBarView(
@@ -61,7 +70,8 @@ fun CategoryAssignmentScreen(
                     onBackNavClick()
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -77,8 +87,71 @@ fun CategoryAssignmentScreen(
                     CircularProgressIndicator()
                 }
             } else {
+                val storeNameAssignment =
+                    uiState.assignments.filterIsInstance<CategoryAssignment.Store>()
+                val productNameAssignment =
+                    uiState.assignments.filterIsInstance<CategoryAssignment.Product>()
 
+                if (isLandscape) {
+                    /* wide */
+                    Row(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        StoreNameAssignmentColumn(
+                            modifier = Modifier.weight(1f),
+                            assignments = storeNameAssignment,
+                            onAssignmentClick = {}
+                        )
+                        ProductNameAssignmentColumn(
+                            modifier = Modifier.weight(1f),
+                            assignments = productNameAssignment,
+                            onAssignmentClick = {}
+                        )
+                    }
+                } else {
+                    StoreNameAssignmentColumn(
+                        modifier = Modifier.weight(1f),
+                        assignments = storeNameAssignment,
+                        onAssignmentClick = {}
+                    )
+
+                    ProductNameAssignmentColumn(
+                        modifier = Modifier.weight(1f),
+                        assignments = productNameAssignment,
+                        onAssignmentClick = {}
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun StoreNameAssignmentColumn(
+    modifier: Modifier = Modifier,
+    assignments: List<CategoryAssignment.Store>,
+    onAssignmentClick: (CategoryAssignment.Store) -> Unit
+) {
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState())
+    ) {
+        assignments.map {
+            Text("${it.name}")
+        }
+    }
+}
+
+@Composable
+fun ProductNameAssignmentColumn(
+    modifier: Modifier,
+    assignments: List<CategoryAssignment.Product>,
+    onAssignmentClick: (CategoryAssignment.Product) -> Unit
+) {
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState())
+    ) {
+        assignments.map {
+            Text("${it.name}")
         }
     }
 }
@@ -86,7 +159,30 @@ fun CategoryAssignmentScreen(
 @Preview
 @Composable
 fun CategoryAssignmentScreenPreview() {
-    val uiState = CategoryAssignmentUiState()
+    val uiState = CategoryAssignmentUiState(
+        assignments = listOf(
+            CategoryAssignment.Product(
+                id = "1",
+                name = "水",
+                categoryId = "1"
+            ),
+            CategoryAssignment.Store(
+                id = "2",
+                name = "はま寿司",
+                categoryId = "2"
+            ),
+            CategoryAssignment.Store(
+                id = "3",
+                name = "はま寿司2",
+                categoryId = "2"
+            ),
+            CategoryAssignment.Product(
+                id = "4",
+                name = "アタック",
+                categoryId = "2"
+            )
+        )
+    )
     CategoryAssignmentScreen(
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),

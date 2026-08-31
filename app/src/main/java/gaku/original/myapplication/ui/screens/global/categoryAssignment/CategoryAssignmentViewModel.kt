@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ import timber.log.Timber
 
 data class CategoryAssignmentUiState(
     val isLoading: Boolean = false,
-    val message: String? = null
+    val message: String? = null,
+    val assignments: List<CategoryAssignment> = listOf()
 )
 
 class CategoryAssignmentViewModel(
