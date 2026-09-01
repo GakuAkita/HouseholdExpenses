@@ -61,11 +61,7 @@ class FakeCategoryRepository : CategoryRepository {
         _categories.value -= categoryId
     }
 
-    override fun startListening() {
-
-    }
-
-    override fun stopListening() {
-
+    override fun close() {
+        /* Do nothing */
     }
 }
