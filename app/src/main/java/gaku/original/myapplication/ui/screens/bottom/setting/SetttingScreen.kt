@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -66,7 +68,9 @@ fun SettingScreen(
     onSignOutClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
 
         SettingRowWithNavigation(
@@ -116,6 +120,7 @@ fun SettingScreen(
 //            route = MainGraph.SettingMenu.NotificationListenerSetting,
 //            onMenuClick = onMenuClick
 //        )
+
 
         SettingRowWithNavigation(
             label = "App Version",

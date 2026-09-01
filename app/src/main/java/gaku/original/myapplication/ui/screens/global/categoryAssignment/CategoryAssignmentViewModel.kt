@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
+import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,10 +19,12 @@ import timber.log.Timber
 data class CategoryAssignmentUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val assignments: List<CategoryAssignment> = listOf()
+    val assignments: List<CategoryAssignment> = listOf(),
+    val categories: List<Category> = listOf()
 )
 
 class CategoryAssignmentViewModel(
+    private val categoryRepository: CategoryRepository,
     private val categoryAssignmentRepository: CategoryAssignmentRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CategoryAssignmentUiState())
@@ -33,6 +37,7 @@ class CategoryAssignmentViewModel(
                 val appContainer = app.appContainer
                 val session = appContainer.sessionContainer!!
                 CategoryAssignmentViewModel(
+                    session.categoryRepository,
                     session.categoryAssignmentRepository
                 )
             }
@@ -44,9 +49,42 @@ class CategoryAssignmentViewModel(
 
         viewModelScope.launch {
             try {
-
+                val categories = categoryRepository.categories.value
+                _uiState.update {
+                    it.copy(
+                        categories = categories.values.toList()
+                    )
+                }
             } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            }
+        }
 
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                val data = categoryAssignmentRepository.getCategoryAssignments()
+                _uiState.update {
+                    it.copy(
+                        assignments = data.values.toList(),
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
             }
         }
     }

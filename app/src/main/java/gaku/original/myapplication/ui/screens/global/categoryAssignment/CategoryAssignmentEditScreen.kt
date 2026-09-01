@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,11 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
+import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
 
@@ -133,10 +137,15 @@ fun StoreNameAssignmentColumn(
     onAssignmentClick: (CategoryAssignment.Store) -> Unit
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
     ) {
-        assignments.map {
-            Text("${it.name}")
+        Text("Category Assignment by Store name")
+        Column(
+            modifier = modifier.verticalScroll(rememberScrollState())
+        ) {
+            assignments.map {
+                Text("${it.name}")
+            }
         }
     }
 }
@@ -145,13 +154,34 @@ fun StoreNameAssignmentColumn(
 fun ProductNameAssignmentColumn(
     modifier: Modifier,
     assignments: List<CategoryAssignment.Product>,
+    categories: List<Category>
     onAssignmentClick: (CategoryAssignment.Product) -> Unit
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
     ) {
-        assignments.map {
-            Text("${it.name}")
+        Text("Category Assignment by Product name")
+        Column(
+            modifier = modifier.verticalScroll(rememberScrollState())
+        ) {
+            assignments.map {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("${it.name}")
+                    CategoryDropDown(
+                        initialCategoryId = it.categoryId,
+                        categories = categories,
+                        onCategorySelected = {
+
+                        }
+                    )
+                }
+            }
         }
     }
 }
