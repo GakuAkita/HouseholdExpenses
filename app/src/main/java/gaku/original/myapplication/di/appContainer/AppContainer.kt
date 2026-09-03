@@ -31,6 +31,8 @@ abstract class AppContainer(
     }
 
     fun clearSession() {
+        /* Close all ClosableRepositories */
+        _sessionContainer?.categoryRepository?.close()
         _sessionContainer = null
     }
 }

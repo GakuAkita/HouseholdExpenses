@@ -48,17 +48,10 @@ class CategoryAssignmentViewModel(
         Timber.d("Created. ${hashCode()}")
 
         viewModelScope.launch {
-            try {
-                val categories = categoryRepository.categories.value
+            categoryRepository.categories.collect { categories ->
                 _uiState.update {
                     it.copy(
                         categories = categories.values.toList()
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        message = e.message
                     )
                 }
             }

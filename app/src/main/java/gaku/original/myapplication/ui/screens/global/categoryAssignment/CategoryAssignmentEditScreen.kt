@@ -1,15 +1,22 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
 import android.content.res.Configuration
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -104,25 +111,38 @@ fun CategoryAssignmentScreen(
                         StoreNameAssignmentColumn(
                             modifier = Modifier.weight(1f),
                             assignments = storeNameAssignment,
-                            onAssignmentClick = {}
+                            categories = uiState.categories,
+                            onCategorySelected = { index, category -> },
+                            onDeleteClick = {}
                         )
                         ProductNameAssignmentColumn(
                             modifier = Modifier.weight(1f),
                             assignments = productNameAssignment,
-                            onAssignmentClick = {}
+                            categories = uiState.categories,
+                            onCategorySelected = { index, category ->
+                            },
+                            onDeleteClick = {}
                         )
                     }
                 } else {
                     StoreNameAssignmentColumn(
                         modifier = Modifier.weight(1f),
                         assignments = storeNameAssignment,
-                        onAssignmentClick = {}
+                        categories = uiState.categories,
+                        onCategorySelected = { index, category ->
+
+                        },
+                        onDeleteClick = {}
                     )
 
                     ProductNameAssignmentColumn(
                         modifier = Modifier.weight(1f),
                         assignments = productNameAssignment,
-                        onAssignmentClick = {}
+                        categories = uiState.categories,
+                        onCategorySelected = { index, category ->
+
+                        },
+                        onDeleteClick = {}
                     )
                 }
             }
@@ -134,17 +154,62 @@ fun CategoryAssignmentScreen(
 fun StoreNameAssignmentColumn(
     modifier: Modifier = Modifier,
     assignments: List<CategoryAssignment.Store>,
-    onAssignmentClick: (CategoryAssignment.Store) -> Unit
+    categories: List<Category>,
+    onDeleteClick: (CategoryAssignment.Store) -> Unit,
+    onCategorySelected: (Int, Category) -> Unit,
 ) {
     Column(
         modifier = modifier
     ) {
         Text("Category Assignment by Store name")
         Column(
-            modifier = modifier.verticalScroll(rememberScrollState())
+            modifier = modifier.verticalScroll(rememberScrollState()),
         ) {
-            assignments.map {
-                Text("${it.name}")
+            assignments.forEachIndexed { index, store ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            vertical = 4.dp,
+                            horizontal = 4.dp
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                ) {
+                    Text("${store.name}")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        CategoryDropDown(
+                            modifier = Modifier.widthIn(max = 220.dp),
+                            initialCategoryId = store.categoryId,
+                            categories = categories,
+                            onCategorySelected = { category ->
+                                onCategorySelected(
+                                    index,
+                                    category
+                                )
+                            },
+                            nullOption = true
+                        )
+                        IconButton(
+                            onClick = {
+                                onDeleteClick(store)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "削除"
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -154,8 +219,9 @@ fun StoreNameAssignmentColumn(
 fun ProductNameAssignmentColumn(
     modifier: Modifier,
     assignments: List<CategoryAssignment.Product>,
-    categories: List<Category>
-    onAssignmentClick: (CategoryAssignment.Product) -> Unit
+    categories: List<Category>,
+    onCategorySelected: (Int, Category) -> Unit,
+    onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -164,22 +230,47 @@ fun ProductNameAssignmentColumn(
         Column(
             modifier = modifier.verticalScroll(rememberScrollState())
         ) {
-            assignments.map {
-                Row(
+            assignments.forEachIndexed { index, assignment ->
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(
+                            horizontal = 4.dp,
+                            vertical = 4.dp
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
                 ) {
-                    Text("${it.name}")
-                    CategoryDropDown(
-                        initialCategoryId = it.categoryId,
-                        categories = categories,
-                        onCategorySelected = {
-
+                    Text("${assignment.name}")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        CategoryDropDown(
+                            modifier = Modifier.widthIn(max = 220.dp),
+                            initialCategoryId = assignment.categoryId,
+                            categories = categories,
+                            onCategorySelected = { categoryId ->
+                                onCategorySelected(index, categoryId)
+                            },
+                            nullOption = true
+                        )
+                        IconButton(
+                            onClick = {
+                                onDeleteClick(assignment)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "削除"
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
@@ -208,9 +299,14 @@ fun CategoryAssignmentScreenPreview() {
             ),
             CategoryAssignment.Product(
                 id = "4",
-                name = "アタック",
+                name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 categoryId = "2"
-            )
+            ),
+            CategoryAssignment.Product(
+                id = "5",
+                name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                categoryId = "2"
+            ),
         )
     )
     CategoryAssignmentScreen(
