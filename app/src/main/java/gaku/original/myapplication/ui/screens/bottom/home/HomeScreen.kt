@@ -91,8 +91,7 @@ fun HomeScreenRoot(
             viewModel.onMonthChanged(it)
         },
         onExpenseClick = {
-            val ret = viewModel.onExpenseClick(it)
-            when (ret) {
+            when (val ret = viewModel.onExpenseClick(it)) {
                 is AppResult.Failure -> {
                     /* snackbar is triggered through uiState */
                     Timber.d("Failed to start editing expense:${it}")
@@ -141,7 +140,7 @@ fun HomeScreen(
         firstDayOfWeek = firstDayOfWeek
     )
 
-    val lazyLisState = rememberLazyListState()
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(calendarState) {
         snapshotFlow {
@@ -171,7 +170,7 @@ fun HomeScreen(
 
                 LazyExpensesColumn(
                     uiState = uiState,
-                    lazyLisState = lazyLisState,
+                    lazyLisState = lazyListState,
                     modifier = Modifier.weight(1f),
                     onExpenseClick = {
                         onExpenseClick(it)
@@ -190,7 +189,7 @@ fun HomeScreen(
 
                 LazyExpensesColumn(
                     uiState = uiState,
-                    lazyLisState = lazyLisState,
+                    lazyLisState = lazyListState,
                     modifier = Modifier.weight(1f),
                     onExpenseClick = {
                         onExpenseClick(it)

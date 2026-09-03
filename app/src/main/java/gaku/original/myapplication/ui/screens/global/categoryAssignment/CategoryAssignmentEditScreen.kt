@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +39,8 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.viewModel.settings.CategoryAssignmentEditViewModel
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 
 @Composable
 fun CategoryAssignmentScreenRoot(
@@ -109,14 +111,20 @@ fun CategoryAssignmentScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         StoreNameAssignmentColumn(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .border(1.dp, MaterialTheme.colorScheme.secondary)
+                                .padding(4.dp),
                             assignments = storeNameAssignment,
                             categories = uiState.categories,
                             onCategorySelected = { index, category -> },
                             onDeleteClick = {}
                         )
                         ProductNameAssignmentColumn(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .border(1.dp, MaterialTheme.colorScheme.secondary)
+                                .padding(4.dp),
                             assignments = productNameAssignment,
                             categories = uiState.categories,
                             onCategorySelected = { index, category ->
@@ -126,7 +134,10 @@ fun CategoryAssignmentScreen(
                     }
                 } else {
                     StoreNameAssignmentColumn(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(1.dp, MaterialTheme.colorScheme.secondary)
+                            .padding(4.dp),
                         assignments = storeNameAssignment,
                         categories = uiState.categories,
                         onCategorySelected = { index, category ->
@@ -136,7 +147,10 @@ fun CategoryAssignmentScreen(
                     )
 
                     ProductNameAssignmentColumn(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(1.dp, MaterialTheme.colorScheme.secondary)
+                            .padding(4.dp),
                         assignments = productNameAssignment,
                         categories = uiState.categories,
                         onCategorySelected = { index, category ->
@@ -158,55 +172,68 @@ fun StoreNameAssignmentColumn(
     onDeleteClick: (CategoryAssignment.Store) -> Unit,
     onCategorySelected: (Int, Category) -> Unit,
 ) {
+    val lazyListState = rememberLazyListState()
     Column(
         modifier = modifier
     ) {
         Text("Category Assignment by Store name")
-        Column(
-            modifier = modifier.verticalScroll(rememberScrollState()),
+        LazyColumnScrollbar(
+            state = lazyListState,
+            settings = ScrollbarSettings.Default.copy(
+                alwaysShowScrollbar = true,
+                thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+                thumbSelectedColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            assignments.forEachIndexed { index, store ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            vertical = 4.dp,
-                            horizontal = 4.dp
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                ) {
-                    Text("${store.name}")
-                    Row(
+            LazyColumn(
+                userScrollEnabled = true,
+                state = lazyListState,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(assignments.size) { index ->
+                    val store = assignments[index]
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        CategoryDropDown(
-                            modifier = Modifier.widthIn(max = 220.dp),
-                            initialCategoryId = store.categoryId,
-                            categories = categories,
-                            onCategorySelected = { category ->
-                                onCategorySelected(
-                                    index,
-                                    category
-                                )
-                            },
-                            nullOption = true
-                        )
-                        IconButton(
-                            onClick = {
-                                onDeleteClick(store)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "削除"
+                            .padding(
+                                vertical = 4.dp,
+                                horizontal = 4.dp
                             )
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                    ) {
+                        Text("${store.name}")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            CategoryDropDown(
+                                modifier = Modifier.widthIn(max = 220.dp),
+                                initialCategoryId = store.categoryId,
+                                categories = categories,
+                                onCategorySelected = { category ->
+                                    onCategorySelected(
+                                        index,
+                                        category
+                                    )
+                                },
+                                nullOption = true
+                            )
+                            IconButton(
+                                onClick = {
+                                    onDeleteClick(store)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "削除"
+                                )
+                            }
                         }
                     }
                 }
@@ -223,52 +250,65 @@ fun ProductNameAssignmentColumn(
     onCategorySelected: (Int, Category) -> Unit,
     onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
+    val lazyListState = rememberLazyListState()
     Column(
         modifier = modifier
     ) {
         Text("Category Assignment by Product name")
-        Column(
-            modifier = modifier.verticalScroll(rememberScrollState())
+        LazyColumnScrollbar(
+            state = lazyListState,
+            settings = ScrollbarSettings.Default.copy(
+                alwaysShowScrollbar = true,
+                thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+                thumbSelectedColor = MaterialTheme.colorScheme.primary
+            ),
         ) {
-            assignments.forEachIndexed { index, assignment ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = 4.dp,
-                            vertical = 4.dp
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                ) {
-                    Text("${assignment.name}")
-                    Row(
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                state = lazyListState,
+                userScrollEnabled = true
+            ) {
+                items(assignments.size) { index ->
+                    val product = assignments[index]
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        CategoryDropDown(
-                            modifier = Modifier.widthIn(max = 220.dp),
-                            initialCategoryId = assignment.categoryId,
-                            categories = categories,
-                            onCategorySelected = { categoryId ->
-                                onCategorySelected(index, categoryId)
-                            },
-                            nullOption = true
-                        )
-                        IconButton(
-                            onClick = {
-                                onDeleteClick(assignment)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "削除"
+                            .padding(
+                                horizontal = 4.dp,
+                                vertical = 4.dp
                             )
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                    ) {
+                        Text("${product.name}")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            CategoryDropDown(
+                                modifier = Modifier.widthIn(max = 220.dp),
+                                initialCategoryId = product.categoryId,
+                                categories = categories,
+                                onCategorySelected = { categoryId ->
+                                    onCategorySelected(index, categoryId)
+                                },
+                                nullOption = true
+                            )
+                            IconButton(
+                                onClick = {
+                                    onDeleteClick(product)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "削除"
+                                )
+                            }
                         }
                     }
                 }
