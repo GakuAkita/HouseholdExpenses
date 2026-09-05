@@ -10,8 +10,10 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.SharedData
 import gaku.original.myapplication.SharedReceiverGraph
+import gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask.PayPAyReceiptMaskRatioAdjustScreenRoot
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.ShareReceiverScreenRoot
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.ShareReceiverViewModel
+import timber.log.Timber
 import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.shareReceiverGraph(navHostController: NavHostController) {
@@ -21,6 +23,7 @@ fun NavGraphBuilder.shareReceiverGraph(navHostController: NavHostController) {
         composable<SharedReceiverGraph.SharedReceiver.Entry>(
             typeMap = mapOf(typeOf<SharedData>() to navTypeOf<SharedData>())
         ) { backStackEntry ->
+            Timber.d("Entry Received!")
             val sharedData =
                 backStackEntry.toRoute<SharedReceiverGraph.SharedReceiver.Entry>().data
 
@@ -36,6 +39,12 @@ fun NavGraphBuilder.shareReceiverGraph(navHostController: NavHostController) {
                 onComplete = {
                     (context as Activity?)?.finish()
                 })
+        }
+
+        composable<SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust> {
+            PayPAyReceiptMaskRatioAdjustScreenRoot(
+                navHostController
+            )
         }
     }
 }

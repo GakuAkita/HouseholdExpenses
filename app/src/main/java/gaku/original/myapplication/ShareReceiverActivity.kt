@@ -54,7 +54,6 @@ class ShareReceiverActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalSnackBarHostState provides snackbarHostState
                 ) {
-
                     Surface(
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -63,10 +62,10 @@ class ShareReceiverActivity : ComponentActivity() {
                         LaunchedEffect(authState) {
                             when (authState) {
                                 is AuthState.Loading -> {
-
                                 }
 
                                 is AuthState.LoggedIn -> {
+                                    Timber.d("AuthState is LoggedIn..")
                                     val isSharedReceiverGraph =
                                         navController.currentBackStackEntry?.destination?.hierarchy?.any {
                                             it.hasRoute<SharedReceiverGraph>()

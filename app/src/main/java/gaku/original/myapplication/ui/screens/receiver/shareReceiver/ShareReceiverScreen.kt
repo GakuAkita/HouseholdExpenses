@@ -31,6 +31,7 @@ import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.SharedReceiverGraph
 import gaku.original.myapplication.data.Constants.ShareIntentKeys
 import gaku.original.myapplication.ui.common.TopBarView
+import timber.log.Timber
 
 @Composable
 fun ShareReceiverScreenRoot(
@@ -51,6 +52,7 @@ fun ShareReceiverScreenRoot(
 
     LaunchedEffect(uiState.notMaskSet) {
         if (uiState.notMaskSet) {
+            Timber.d("Launch MaskAdjust screen")
             navHostController.navigate(SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust)
             viewModel.onNotMaskSetDone()// lower notMaskSet
         }
@@ -79,7 +81,9 @@ fun ShareReceiverScreenRoot(
         onAddExpenseClick = {
             startMainActivity(context, it)
         },
-        onAnalyzeClick = {}
+        onAnalyzeClick = {
+            viewModel.onAnalyzeClick()
+        }
     )
 }
 
