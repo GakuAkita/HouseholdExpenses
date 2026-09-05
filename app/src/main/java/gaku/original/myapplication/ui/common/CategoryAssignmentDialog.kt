@@ -29,25 +29,13 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 @Composable
 fun CategoryDropDown(
     modifier: Modifier = Modifier.width(280.dp),
-    initialCategory: Category?,
+    selectedCategory: Category?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
     enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<Category?>(null) }
-
-    // 初期カテゴリーを設定
-    LaunchedEffect(initialCategory, categories) {
-        if (selectedCategory == null) {
-            if (initialCategory != null) {
-                // まず現在のカテゴリーリストから探す
-                val foundCategory = categories.find { it.id == initialCategory.id }
-                selectedCategory = foundCategory ?: initialCategory // 見つからない場合は元のカテゴリーを使用
-            }
-        }
-    }
 
     LaunchedEffect(enabled) {
         if (!enabled) {
@@ -85,7 +73,6 @@ fun CategoryDropDown(
                 DropdownMenuItem(
                     text = { Text(text = "(null)", color = MaterialTheme.colorScheme.tertiary) },
                     onClick = {
-                        selectedCategory = Category(id = null, name = null)
                         expanded = false
                         onCategorySelected(Category(id = null, name = null))
                     }
@@ -95,18 +82,18 @@ fun CategoryDropDown(
             // 現在選択されているカテゴリーが削除されたカテゴリーの場合は表示
             if (selectedCategory != null &&
                 selectedCategory !in categories &&
-                selectedCategory?.name != null/* when nullOption is true, this exists in options which should be avoided. */
+                selectedCategory.name != null/* when nullOption is true, this exists in options which should be avoided. */
             ) {
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = selectedCategory?.name ?: "不明なカテゴリー",
+                            text = selectedCategory.name,
                             color = MaterialTheme.colorScheme.error
                         )
                     },
                     onClick = {
                         expanded = false
-                        onCategorySelected(selectedCategory!!)
+                        onCategorySelected(selectedCategory)
                     }
                 )
             }
@@ -115,7 +102,6 @@ fun CategoryDropDown(
                 DropdownMenuItem(
                     text = { Text(text = category.name ?: "") },
                     onClick = {
-                        selectedCategory = category
                         expanded = false
                         onCategorySelected(category)
                     }
@@ -129,26 +115,25 @@ fun CategoryDropDown(
 @Composable
 fun CategoryDropDown(
     modifier: Modifier = Modifier,
-    initialCategoryId: String?,
+    selectedCategoryId: String?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
     enabled: Boolean = true
 ) {
     // initialCategoryIdをCategoryオブジェクトに変換
-    val initialCategory = remember(initialCategoryId, categories) {
-        if (initialCategoryId != null) {
-            categories.find { it.id == initialCategoryId } ?: Category(
-                id = initialCategoryId,
+    val selectedCategory =
+        if (selectedCategoryId != null) {
+            categories.find { it.id == selectedCategoryId } ?: Category(
+                id = selectedCategoryId,
                 name = "削除されたカテゴリー"
             )
         } else {
             null
         }
-    }
 
     CategoryDropDown(
-        initialCategory = initialCategory,
+        selectedCategory = selectedCategory,
         categories = categories,
         onCategorySelected = onCategorySelected,
         nullOption = nullOption,

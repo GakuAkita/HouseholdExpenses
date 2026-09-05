@@ -240,7 +240,7 @@ fun StoreNameAssignmentColumn(
                         ) {
                             CategoryDropDown(
                                 modifier = Modifier.widthIn(max = 220.dp),
-                                initialCategoryId = assignmentUi.assignment.categoryId,
+                                selectedCategoryId = assignmentUi.assignment.categoryId,
                                 categories = categories,
                                 onCategorySelected = { category ->
                                     onCategorySelected(
@@ -331,7 +331,7 @@ fun ProductNameAssignmentColumn(
                         ) {
                             CategoryDropDown(
                                 modifier = Modifier.widthIn(max = 220.dp),
-                                initialCategoryId = productUi.assignment.categoryId,
+                                selectedCategoryId = productUi.assignment.categoryId,
                                 categories = categories,
                                 onCategorySelected = { categoryId ->
                                     onCategorySelected(productUi, categoryId)
