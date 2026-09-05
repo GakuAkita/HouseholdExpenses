@@ -79,7 +79,7 @@ class ShareReceiverActivity : ComponentActivity() {
                                                 )
                                             )
                                         ) {
-                                            popUpTo(AuthGraph.SignIn) {
+                                            popUpTo(0) {
                                                 inclusive = true
                                             }
                                         }
