@@ -25,13 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainActivity
+import gaku.original.myapplication.SharedReceiverGraph
 import gaku.original.myapplication.data.Constants.ShareIntentKeys
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.ui.common.TopBarView
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Composable
 fun ShareReceiverScreenRoot(
@@ -47,6 +46,13 @@ fun ShareReceiverScreenRoot(
         uiState.message?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.onMessageShown()
+        }
+    }
+
+    LaunchedEffect(uiState.notMaskSet) {
+        if (uiState.notMaskSet) {
+            navHostController.navigate(SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust)
+            viewModel.onNotMaskSetDone()// lower notMaskSet
         }
     }
 
@@ -72,7 +78,8 @@ fun ShareReceiverScreenRoot(
         snackbarHostState,
         onAddExpenseClick = {
             startMainActivity(context, it)
-        }
+        },
+        onAnalyzeClick = {}
     )
 }
 
@@ -80,7 +87,8 @@ fun ShareReceiverScreenRoot(
 fun ShareReceiverScreen(
     uiState: ShareReceiverUiState,
     snackbarHostState: SnackbarHostState,
-    onAddExpenseClick: (SentData.Expense) -> Unit
+    onAddExpenseClick: (SentData.Expense) -> Unit,
+    onAnalyzeClick: () -> Unit
 ) {
 
     Scaffold(topBar = {
@@ -104,8 +112,8 @@ fun ShareReceiverScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                uiState.sentData?.let {
-                    when (it) {
+                if (uiState.sentData != null) {
+                    when (val sentData = uiState.sentData) {
                         is SentData.Expense -> {
                             Column(
                                 modifier = Modifier.fillMaxWidth()
@@ -113,41 +121,60 @@ fun ShareReceiverScreen(
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    if (it.datetime == null) {
+                                    if (sentData.datetime == null) {
                                         Text("Unable to get datetime")
                                     } else {
-                                        Text("DateTime:${it.datetime}")
+                                        Text("DateTime:${sentData.datetime}")
                                     }
                                 }
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    if (it.amount == null) {
+                                    if (sentData.amount == null) {
                                         Text("Unable to get amount.")
                                     } else {
-                                        Text("amount = ${it.amount}")
+                                        Text("amount = ${sentData.amount}")
                                     }
                                 }
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    if (it.storeName == null) {
+                                    if (sentData.storeName == null) {
                                         Text("Unable to get store name.")
                                     } else {
-                                        Text("storeName = ${it.storeName}")
+                                        Text("storeName = ${sentData.storeName}")
                                     }
                                 }
 
                                 Button(
                                     onClick = {
-                                        onAddExpenseClick(it)
+                                        onAddExpenseClick(sentData)
                                     }
                                 ) {
                                     Text("Add to Expense")
                                 }
                             }
+                        }
+
+                        null -> {
+
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Button(
+                            onClick = {
+                                onAnalyzeClick()
+                            }
+                        ) {
+                            Text("Analyze the image")
                         }
                     }
                 }
@@ -168,16 +195,18 @@ fun ShareReceiverScreen(
 fun ShareReceiverScreenPreview() {
     val uiState = ShareReceiverUiState(
         isLoading = false,
-        sentData = SentData.Expense(
-            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.systemDefault()),
-            amount = 1000,
-            storeName = null
-        )
+//        sentData = SentData.Expense(
+//            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.systemDefault()),
+//            amount = 1000,
+//            storeName = null
+//        )
+        sentData = null
     )
     ShareReceiverScreen(
         uiState,
         SnackbarHostState(),
-        onAddExpenseClick = {}
+        onAddExpenseClick = {},
+        onAnalyzeClick = {}
     )
 }
 

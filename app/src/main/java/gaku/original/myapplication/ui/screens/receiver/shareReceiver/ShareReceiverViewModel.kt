@@ -26,7 +26,8 @@ data class ShareReceiverUiState(
     val sentData: SentData? = null,
     val isLoading: Boolean = false,
     val message: String? = null,
-    val bitmap: Bitmap? = null
+    val bitmap: Bitmap? = null,
+    val notMaskSet: Boolean = false
 )
 
 class ShareReceiverViewModel(
@@ -129,6 +130,39 @@ class ShareReceiverViewModel(
             is SharedData.Unknown -> {
                 /* finish?? */
                 Timber.d("Unknown shared data")
+            }
+        }
+    }
+
+    fun onNotMaskSetDone() {
+        _uiState.update {
+            it.copy(
+                notMaskSet = false
+            )
+        }
+    }
+
+    fun onAnalyzeClick() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                analyzeSharedData(sharedData)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
