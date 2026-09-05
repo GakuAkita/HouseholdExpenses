@@ -353,8 +353,7 @@ class MailboxExtractionViewModel(
                         isLoading = true
                     )
                 }
-                val action = emailConnectionRepository.connect(EmailProvider.GMAIL)
-                when (action) {
+                when (val action = emailConnectionRepository.connect(EmailProvider.GMAIL)) {
                     is EmailConnectionAction.Connected -> {
                         fetchEmailTemplaSettings()
                         _uiState.update {
@@ -393,7 +392,7 @@ class MailboxExtractionViewModel(
 
     /* When launches oauth url and goes back to this app, this app needs to check if token is saved.*/
     fun onResume() {
-        Timber.d("Triggered OnResume")
+        Timber.d("Triggered OnResume. ${_uiState.value.isWaitingForAuth}")
         if (!_uiState.value.isWaitingForAuth) return
 
         Timber.d("Checking if token is saved. OnResume")

@@ -56,6 +56,7 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.ShikokuElectricPower
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.Udemy
 import kotlinx.coroutines.flow.collectLatest
+import timber.log.Timber
 
 val EmailTemplateType.displayName: String
     get() = when (this) {
@@ -108,6 +109,7 @@ fun MailboxExtractionScreenRoot(
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
+            Timber.d("message:=${it}")
             snackbarHostState.showSnackbar(it)
             viewModel.onMessageShown()
         }

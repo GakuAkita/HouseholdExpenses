@@ -120,7 +120,7 @@ class FakeCategoryAssignmentRepository : CategoryAssignmentRepository {
     }
 
     override suspend fun deleteCategoryAssignment(assignment: CategoryAssignment) {
-        delay(1000.milliseconds)
+        delay(5000.milliseconds)
         when (assignment) {
             is CategoryAssignment.Store -> {
                 categoryAssignments.remove(assignment.id!!)
