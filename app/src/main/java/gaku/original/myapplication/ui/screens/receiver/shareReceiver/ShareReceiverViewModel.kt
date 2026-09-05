@@ -115,6 +115,11 @@ class ShareReceiverViewModel(
                     } else if (result is AppResult.Failure) {
                         if (result.error is ExtractorError.MaskNotSetError) {
                             /* open new screen to set mask parameters*/
+                            _uiState.update {
+                                it.copy(
+                                    notMaskSet = true
+                                )
+                            }
                         }
                     }
                 } else {

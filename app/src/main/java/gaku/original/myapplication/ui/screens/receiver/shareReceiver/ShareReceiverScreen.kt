@@ -35,7 +35,8 @@ import timber.log.Timber
 
 @Composable
 fun ShareReceiverScreenRoot(
-    viewModel: ShareReceiverViewModel, navHostController: NavHostController,
+    viewModel: ShareReceiverViewModel,
+    navHostController: NavHostController,
     onComplete: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()

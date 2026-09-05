@@ -79,7 +79,7 @@ class ShareReceiverActivity : ComponentActivity() {
                                                 )
                                             )
                                         ) {
-                                            popUpTo(0) {
+                                            popUpTo(0) {// by popUpTo(0), clean all the stacks.
                                                 inclusive = true
                                             }
                                         }
