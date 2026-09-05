@@ -47,14 +47,14 @@ fun CategoryAssignmentData.getAssignmentsByNamePattern(namePattern: CategoryAssi
     }
 }
 
-sealed interface CategoryAssignment {
+sealed interface CategoryAssignment : HasId {
     data class Store(
         override var id: String? = null,
         val categoryId: String? = null,
         val name: String? = null, /* 店の名前や商品名 */
         val condition: MatchCondition = MatchCondition.EXACT, /* 完全一致なのか部分一致なのか */
         val regex: Boolean = false,
-    ) : CategoryAssignment, HasId
+    ) : CategoryAssignment
 
     data class Product(
         override var id: String? = null,
@@ -62,7 +62,7 @@ sealed interface CategoryAssignment {
         val name: String? = null,
         val condition: MatchCondition = MatchCondition.EXACT,
         val regex: Boolean = false
-    ) : CategoryAssignment, HasId
+    ) : CategoryAssignment
 }
 
 enum class MatchCondition {

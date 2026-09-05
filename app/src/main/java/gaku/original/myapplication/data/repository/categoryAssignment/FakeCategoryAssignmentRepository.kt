@@ -4,6 +4,7 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
 import kotlinx.coroutines.delay
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 class FakeCategoryAssignmentRepository : CategoryAssignmentRepository {
 
@@ -105,6 +106,7 @@ class FakeCategoryAssignmentRepository : CategoryAssignmentRepository {
     }
 
     override suspend fun updateCategoryAssignment(assignment: CategoryAssignment) {
+        delay(3000.milliseconds)
         when (assignment) {
             is CategoryAssignment.Store -> {
                 categoryAssignments[assignment.id!!] = assignment
@@ -118,6 +120,7 @@ class FakeCategoryAssignmentRepository : CategoryAssignmentRepository {
     }
 
     override suspend fun deleteCategoryAssignment(assignment: CategoryAssignment) {
+        delay(1000.milliseconds)
         when (assignment) {
             is CategoryAssignment.Store -> {
                 categoryAssignments.remove(assignment.id!!)

@@ -104,7 +104,69 @@ class CategoryAssignmentViewModel(
         assignmentUiState: AssignmentUiState<CategoryAssignment>,
         categoryId: String?
     ) {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        assignments = it.assignments.map {
+                            if (it.assignment.id == assignmentUiState.assignment.id) {
+                                it.copy(
+                                    isLoading = true
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                }
+                val assignment = assignmentUiState.assignment
+                var newAssignment: CategoryAssignment
+                when (assignment) {
+                    is CategoryAssignment.Product -> {
+                        categoryAssignmentRepository.updateCategoryAssignment(
+                            assignment.copy(categoryId = categoryId)
+                        )
+                        newAssignment = assignment.copy(categoryId = categoryId)
+                    }
 
+                    is CategoryAssignment.Store -> {
+                        categoryAssignmentRepository.updateCategoryAssignment(
+                            assignment.copy(categoryId = categoryId)
+                        )
+                        newAssignment = assignment.copy(categoryId = categoryId)
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        assignments = it.assignments.map {
+                            if (it.assignment.id == assignmentUiState.assignment.id) {
+                                it.copy(
+                                    isLoading = false,
+                                    assignment = newAssignment
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        assignments = it.assignments.map {
+                            if (it.assignment.id == assignmentUiState.assignment.id) {
+                                it.copy(
+                                    isLoading = false
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 
     fun onDeleteClick(categoryAssignment: CategoryAssignment) {
