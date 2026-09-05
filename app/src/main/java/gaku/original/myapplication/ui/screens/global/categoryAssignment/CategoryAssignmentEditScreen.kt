@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,6 +67,10 @@ fun CategoryAssignmentScreenRoot(
             navController.popBackStack()
         },
         onCategorySelected = { assignment, categoryId ->
+            viewModel.onCategorySelected(assignment, categoryId)
+        },
+        onDeleteClick = {
+            viewModel.onDeleteClick(it)
         }
     )
 }
@@ -74,7 +80,8 @@ fun CategoryAssignmentScreen(
     uiState: CategoryAssignmentUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
-    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
+    onDeleteClick: (CategoryAssignment) -> Unit
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     Scaffold(
@@ -127,7 +134,9 @@ fun CategoryAssignmentScreen(
                             onCategorySelected = { assignmentUi, category ->
                                 onCategorySelected(assignmentUi, category.id)
                             },
-                            onDeleteClick = {}
+                            onDeleteClick = {
+                                onDeleteClick(it)
+                            }
                         )
                         ProductNameAssignmentColumn(
                             modifier = Modifier
@@ -139,7 +148,9 @@ fun CategoryAssignmentScreen(
                             onCategorySelected = { assignmentUi, category ->
                                 onCategorySelected(assignmentUi, category.id)
                             },
-                            onDeleteClick = {}
+                            onDeleteClick = {
+                                onDeleteClick(it)
+                            }
                         )
                     }
                 } else {
@@ -153,7 +164,9 @@ fun CategoryAssignmentScreen(
                         onCategorySelected = { assignmentUi, category ->
                             onCategorySelected(assignmentUi, category.id)
                         },
-                        onDeleteClick = {}
+                        onDeleteClick = {
+                            onDeleteClick(it)
+                        }
                     )
 
                     ProductNameAssignmentColumn(
@@ -166,7 +179,9 @@ fun CategoryAssignmentScreen(
                         onCategorySelected = { assignmentUi, category ->
                             onCategorySelected(assignmentUi, category.id)
                         },
-                        onDeleteClick = {}
+                        onDeleteClick = {
+                            onDeleteClick(it)
+                        }
                     )
                 }
             }
@@ -233,17 +248,30 @@ fun StoreNameAssignmentColumn(
                                         category
                                     )
                                 },
+                                enabled = !assignmentUi.isLoading,
                                 nullOption = true
                             )
-                            IconButton(
-                                onClick = {
-                                    onDeleteClick(assignmentUi.assignment)
-                                }
+                            Column(
+                                modifier = Modifier.width(54.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "削除"
-                                )
+                                if (assignmentUi.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            onDeleteClick(assignmentUi.assignment)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "削除"
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -308,17 +336,30 @@ fun ProductNameAssignmentColumn(
                                 onCategorySelected = { categoryId ->
                                     onCategorySelected(productUi, categoryId)
                                 },
-                                nullOption = true
+                                nullOption = true,
+                                enabled = !productUi.isLoading
                             )
-                            IconButton(
-                                onClick = {
-                                    onDeleteClick(productUi.assignment)
-                                }
+                            Column(
+                                modifier = Modifier.width(54.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "削除"
-                                )
+                                if (productUi.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            onDeleteClick(productUi.assignment)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "削除"
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -350,7 +391,7 @@ fun CategoryAssignmentScreenPreview() {
                 )
             ),
             AssignmentUiState(
-                isLoading = false,
+                isLoading = true,
                 assignment = CategoryAssignment.Store(
                     id = "3",
                     name = "はま寿司2",
@@ -366,7 +407,7 @@ fun CategoryAssignmentScreenPreview() {
                 ),
             ),
             AssignmentUiState(
-                isLoading = false,
+                isLoading = true,
                 assignment = CategoryAssignment.Product(
                     id = "5",
                     name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -379,7 +420,8 @@ fun CategoryAssignmentScreenPreview() {
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
-        onCategorySelected = { _, _ -> }
+        onCategorySelected = { _, _ -> },
+        onDeleteClick = {}
     )
 }
 

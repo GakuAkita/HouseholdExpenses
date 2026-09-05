@@ -100,6 +100,17 @@ class CategoryAssignmentViewModel(
         }
     }
 
+    fun onCategorySelected(
+        assignmentUiState: AssignmentUiState<CategoryAssignment>,
+        categoryId: String?
+    ) {
+
+    }
+
+    fun onDeleteClick(categoryAssignment: CategoryAssignment) {
+
+    }
+
     override fun onCleared() {
         Timber.d("Cleared. ${hashCode()}")
         super.onCleared()

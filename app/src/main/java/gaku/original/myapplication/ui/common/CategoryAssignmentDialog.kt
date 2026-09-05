@@ -125,13 +125,15 @@ fun CategoryDropDown(
     }
 }
 
+/* こっちはCategoryIdだけ渡せば良い。Category本体でなくても */
 @Composable
 fun CategoryDropDown(
+    modifier: Modifier = Modifier,
     initialCategoryId: String?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     nullOption: Boolean = false,
-    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     // initialCategoryIdをCategoryオブジェクトに変換
     val initialCategory = remember(initialCategoryId, categories) {
@@ -150,7 +152,8 @@ fun CategoryDropDown(
         categories = categories,
         onCategorySelected = onCategorySelected,
         nullOption = nullOption,
-        modifier = modifier
+        modifier = modifier,
+        enabled = enabled
     )
 }
 
