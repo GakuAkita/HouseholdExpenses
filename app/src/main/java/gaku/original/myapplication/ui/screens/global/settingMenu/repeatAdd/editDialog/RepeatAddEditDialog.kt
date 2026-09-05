@@ -169,13 +169,12 @@ fun RepeatAddEditDialog(
             )
 
             CategoryDropDown(
-                initialCategory = uiState.category,
+                selectedCategory = uiState.category,
                 categories = uiState.categories,
                 onCategorySelected = {
                     onCategorySelected(it)
-                },
-
-                )
+                }
+            )
 
             TextField(
                 value = uiState.note ?: "",

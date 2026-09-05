@@ -370,7 +370,7 @@ fun ExpenseAddEditScreen(
                     ) {
                         CategoryDropDown(
                             modifier = basicModifier.padding(4.dp),
-                            initialCategory = uiState.expenseEditList[index].category,
+                            selectedCategory = uiState.expenseEditList[index].category,
                             categories = uiState.categories,
                             onCategorySelected = {
                                 onCategorySelected(index, it)

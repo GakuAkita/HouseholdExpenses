@@ -237,7 +237,7 @@ fun MailboxExtractionScreen(
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     CategoryDropDown(
-                                        initialCategory = Category(
+                                        selectedCategory = Category(
                                             id = typeUiState.type.categoryId,
                                         ),
                                         nullOption = true,
