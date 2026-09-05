@@ -46,7 +46,6 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.Interface.HasCategoryId
-import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonItem
@@ -237,9 +236,7 @@ fun MailboxExtractionScreen(
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     CategoryDropDown(
-                                        selectedCategory = Category(
-                                            id = typeUiState.type.categoryId,
-                                        ),
+                                        selectedCategoryId = typeUiState.type.categoryId,
                                         nullOption = true,
                                         categories = uiState.categories,
                                         onCategorySelected = { category ->
