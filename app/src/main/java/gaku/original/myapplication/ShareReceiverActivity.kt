@@ -159,6 +159,7 @@ fun Intent.toSharedData(
     }
 
     if (this.type?.startsWith("image/") == true) {
+        // First copy the file to the cache directory so we can use it even if the original file is deleted.
         return SharedData.Image(
             senderPackage, this.getParcelableExtraCompat<Uri>(Intent.EXTRA_STREAM).toString()
         )
