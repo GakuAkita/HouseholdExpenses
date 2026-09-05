@@ -107,6 +107,7 @@ class FakeCategoryAssignmentRepository : CategoryAssignmentRepository {
 
     override suspend fun updateCategoryAssignment(assignment: CategoryAssignment) {
         delay(3000.milliseconds)
+        throw Exception("Test Exception")
         when (assignment) {
             is CategoryAssignment.Store -> {
                 categoryAssignments[assignment.id!!] = assignment
