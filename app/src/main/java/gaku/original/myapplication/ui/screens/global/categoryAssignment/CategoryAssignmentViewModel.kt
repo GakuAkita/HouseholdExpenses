@@ -19,8 +19,13 @@ import timber.log.Timber
 data class CategoryAssignmentUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val assignments: List<CategoryAssignment> = listOf(),
+    val assignments: List<AssignmentUiState<CategoryAssignment>> = listOf(),
     val categories: List<Category> = listOf()
+)
+
+data class AssignmentUiState<out T : CategoryAssignment>(
+    val isLoading: Boolean = false,
+    val assignment: T,
 )
 
 class CategoryAssignmentViewModel(
@@ -67,7 +72,12 @@ class CategoryAssignmentViewModel(
                 val data = categoryAssignmentRepository.getCategoryAssignments()
                 _uiState.update {
                     it.copy(
-                        assignments = data.values.toList(),
+                        assignments = data.values.map {
+                            AssignmentUiState(
+                                isLoading = false,
+                                assignment = it
+                            )
+                        },
                         isLoading = false
                     )
                 }

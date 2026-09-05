@@ -63,6 +63,8 @@ fun CategoryAssignmentScreenRoot(
         snackbarHostState = snackbarHostState,
         onBackNavClick = {
             navController.popBackStack()
+        },
+        onCategorySelected = { assignment, categoryId ->
         }
     )
 }
@@ -71,7 +73,8 @@ fun CategoryAssignmentScreenRoot(
 fun CategoryAssignmentScreen(
     uiState: CategoryAssignmentUiState,
     snackbarHostState: SnackbarHostState,
-    onBackNavClick: () -> Unit
+    onBackNavClick: () -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     Scaffold(
@@ -101,9 +104,13 @@ fun CategoryAssignmentScreen(
                 }
             } else {
                 val storeNameAssignment =
-                    uiState.assignments.filterIsInstance<CategoryAssignment.Store>()
+                    uiState.assignments.filter {
+                        it.assignment is CategoryAssignment.Store
+                    } as List<AssignmentUiState<CategoryAssignment.Store>>
                 val productNameAssignment =
-                    uiState.assignments.filterIsInstance<CategoryAssignment.Product>()
+                    uiState.assignments.filter {
+                        it.assignment is CategoryAssignment.Product
+                    } as List<AssignmentUiState<CategoryAssignment.Product>>
 
                 if (isLandscape) {
                     /* wide */
@@ -115,9 +122,11 @@ fun CategoryAssignmentScreen(
                                 .weight(1f)
                                 .border(1.dp, MaterialTheme.colorScheme.secondary)
                                 .padding(4.dp),
-                            assignments = storeNameAssignment,
+                            assignmentUiList = storeNameAssignment,
                             categories = uiState.categories,
-                            onCategorySelected = { index, category -> },
+                            onCategorySelected = { assignmentUi, category ->
+                                onCategorySelected(assignmentUi, category.id)
+                            },
                             onDeleteClick = {}
                         )
                         ProductNameAssignmentColumn(
@@ -125,9 +134,10 @@ fun CategoryAssignmentScreen(
                                 .weight(1f)
                                 .border(1.dp, MaterialTheme.colorScheme.secondary)
                                 .padding(4.dp),
-                            assignments = productNameAssignment,
+                            assignmentUiList = productNameAssignment,
                             categories = uiState.categories,
-                            onCategorySelected = { index, category ->
+                            onCategorySelected = { assignmentUi, category ->
+                                onCategorySelected(assignmentUi, category.id)
                             },
                             onDeleteClick = {}
                         )
@@ -138,10 +148,10 @@ fun CategoryAssignmentScreen(
                             .weight(1f)
                             .border(1.dp, MaterialTheme.colorScheme.secondary)
                             .padding(4.dp),
-                        assignments = storeNameAssignment,
+                        assignmentUiList = storeNameAssignment,
                         categories = uiState.categories,
-                        onCategorySelected = { index, category ->
-
+                        onCategorySelected = { assignmentUi, category ->
+                            onCategorySelected(assignmentUi, category.id)
                         },
                         onDeleteClick = {}
                     )
@@ -151,10 +161,10 @@ fun CategoryAssignmentScreen(
                             .weight(1f)
                             .border(1.dp, MaterialTheme.colorScheme.secondary)
                             .padding(4.dp),
-                        assignments = productNameAssignment,
+                        assignmentUiList = productNameAssignment,
                         categories = uiState.categories,
-                        onCategorySelected = { index, category ->
-
+                        onCategorySelected = { assignmentUi, category ->
+                            onCategorySelected(assignmentUi, category.id)
                         },
                         onDeleteClick = {}
                     )
@@ -167,12 +177,13 @@ fun CategoryAssignmentScreen(
 @Composable
 fun StoreNameAssignmentColumn(
     modifier: Modifier = Modifier,
-    assignments: List<CategoryAssignment.Store>,
+    assignmentUiList: List<AssignmentUiState<CategoryAssignment.Store>>,
     categories: List<Category>,
-    onDeleteClick: (CategoryAssignment.Store) -> Unit,
-    onCategorySelected: (Int, Category) -> Unit,
+    onDeleteClick: (CategoryAssignment) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
 ) {
     val lazyListState = rememberLazyListState()
+
     Column(
         modifier = modifier
     ) {
@@ -190,8 +201,8 @@ fun StoreNameAssignmentColumn(
                 state = lazyListState,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(assignments.size) { index ->
-                    val store = assignments[index]
+                items(assignmentUiList.size) { index ->
+                    val assignmentUi = assignmentUiList[index]
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -204,7 +215,7 @@ fun StoreNameAssignmentColumn(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
                     ) {
-                        Text("${store.name}")
+                        Text("${assignmentUi.assignment.name}")
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -214,11 +225,11 @@ fun StoreNameAssignmentColumn(
                         ) {
                             CategoryDropDown(
                                 modifier = Modifier.widthIn(max = 220.dp),
-                                initialCategoryId = store.categoryId,
+                                initialCategoryId = assignmentUi.assignment.categoryId,
                                 categories = categories,
                                 onCategorySelected = { category ->
                                     onCategorySelected(
-                                        index,
+                                        assignmentUi,
                                         category
                                     )
                                 },
@@ -226,7 +237,7 @@ fun StoreNameAssignmentColumn(
                             )
                             IconButton(
                                 onClick = {
-                                    onDeleteClick(store)
+                                    onDeleteClick(assignmentUi.assignment)
                                 }
                             ) {
                                 Icon(
@@ -245,9 +256,9 @@ fun StoreNameAssignmentColumn(
 @Composable
 fun ProductNameAssignmentColumn(
     modifier: Modifier,
-    assignments: List<CategoryAssignment.Product>,
+    assignmentUiList: List<AssignmentUiState<CategoryAssignment.Product>>,
     categories: List<Category>,
-    onCategorySelected: (Int, Category) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
     onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
@@ -268,8 +279,8 @@ fun ProductNameAssignmentColumn(
                 state = lazyListState,
                 userScrollEnabled = true
             ) {
-                items(assignments.size) { index ->
-                    val product = assignments[index]
+                items(assignmentUiList.size) { index ->
+                    val productUi = assignmentUiList[index]
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -282,7 +293,7 @@ fun ProductNameAssignmentColumn(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
                     ) {
-                        Text("${product.name}")
+                        Text("${productUi.assignment.name}")
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -292,16 +303,16 @@ fun ProductNameAssignmentColumn(
                         ) {
                             CategoryDropDown(
                                 modifier = Modifier.widthIn(max = 220.dp),
-                                initialCategoryId = product.categoryId,
+                                initialCategoryId = productUi.assignment.categoryId,
                                 categories = categories,
                                 onCategorySelected = { categoryId ->
-                                    onCategorySelected(index, categoryId)
+                                    onCategorySelected(productUi, categoryId)
                                 },
                                 nullOption = true
                             )
                             IconButton(
                                 onClick = {
-                                    onDeleteClick(product)
+                                    onDeleteClick(productUi.assignment)
                                 }
                             ) {
                                 Icon(
@@ -322,37 +333,53 @@ fun ProductNameAssignmentColumn(
 fun CategoryAssignmentScreenPreview() {
     val uiState = CategoryAssignmentUiState(
         assignments = listOf(
-            CategoryAssignment.Product(
-                id = "1",
-                name = "水",
-                categoryId = "1"
+            AssignmentUiState(
+                isLoading = false,
+                assignment = CategoryAssignment.Product(
+                    id = "1",
+                    name = "水",
+                    categoryId = "1"
+                ),
             ),
-            CategoryAssignment.Store(
-                id = "2",
-                name = "はま寿司",
-                categoryId = "2"
+            AssignmentUiState(
+                isLoading = false,
+                assignment = CategoryAssignment.Store(
+                    id = "2",
+                    name = "はま寿司",
+                    categoryId = "2"
+                )
             ),
-            CategoryAssignment.Store(
-                id = "3",
-                name = "はま寿司2",
-                categoryId = "2"
+            AssignmentUiState(
+                isLoading = false,
+                assignment = CategoryAssignment.Store(
+                    id = "3",
+                    name = "はま寿司2",
+                    categoryId = "2"
+                )
             ),
-            CategoryAssignment.Product(
-                id = "4",
-                name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                categoryId = "2"
+            AssignmentUiState(
+                isLoading = false,
+                assignment = CategoryAssignment.Product(
+                    id = "4",
+                    name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    categoryId = "2"
+                ),
             ),
-            CategoryAssignment.Product(
-                id = "5",
-                name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                categoryId = "2"
-            ),
+            AssignmentUiState(
+                isLoading = false,
+                assignment = CategoryAssignment.Product(
+                    id = "5",
+                    name = "アタックaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    categoryId = "2"
+                ),
+            )
         )
     )
     CategoryAssignmentScreen(
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),
-        onBackNavClick = {}
+        onBackNavClick = {},
+        onCategorySelected = { _, _ -> }
     )
 }
 
