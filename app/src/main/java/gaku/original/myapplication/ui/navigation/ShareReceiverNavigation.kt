@@ -10,7 +10,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.SharedData
 import gaku.original.myapplication.SharedReceiverGraph
-import gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask.PayPAyReceiptMaskRatioAdjustScreenRoot
+import gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask.PayPayReceiptMaskRatioAdjustScreenRoot
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.ShareReceiverScreenRoot
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.ShareReceiverViewModel
 import kotlin.reflect.typeOf
@@ -40,7 +40,7 @@ fun NavGraphBuilder.shareReceiverGraph(navHostController: NavHostController) {
         }
 
         composable<SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust> {
-            PayPAyReceiptMaskRatioAdjustScreenRoot(
+            PayPayReceiptMaskRatioAdjustScreenRoot(
                 navHostController
             )
         }

@@ -1,12 +1,26 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 
 @Composable
-fun PayPAyReceiptMaskRatioAdjustScreenRoot(
+fun PayPayReceiptMaskRatioAdjustScreenRoot(
     navHostController: NavHostController,
-    //viewModel: PayPayReceiptMaskRatioAdjustViewModel = viewModel()
+    viewModel: PayPayReceiptMaskRatioAdjustViewModel = viewModel(factory = PayPayReceiptMaskRatioAdjustViewModel.Factory)
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    PayPayReceiptMaskRatioAdjustScreen(
+        uiState
+    )
+}
+
+@Composable
+fun PayPayReceiptMaskRatioAdjustScreen(
+    uiState: PayPayReceiptMaskRatioAdjustUiState
 ) {
 
 }

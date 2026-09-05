@@ -7,10 +7,21 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
+
+data class PayPayReceiptMaskRatioAdjustUiState(
+    val isLoading: Boolean = false,
+    val leftRatio: Float = 0f,
+    val topRatio: Float = 0f
+)
 
 class PayPayReceiptMaskRatioAdjustViewModel(
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(PayPayReceiptMaskRatioAdjustUiState())
+    val uiState = _uiState.asStateFlow()
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -26,6 +37,8 @@ class PayPayReceiptMaskRatioAdjustViewModel(
     }
 
     init {
-
+        Timber.d("Created.${hashCode()}")
     }
+
+
 }
