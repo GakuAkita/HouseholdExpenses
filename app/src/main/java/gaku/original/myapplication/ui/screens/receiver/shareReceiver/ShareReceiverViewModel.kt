@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.receiver
+package gaku.original.myapplication.ui.screens.receiver.shareReceiver
 
 import android.content.Context
 import android.graphics.Bitmap

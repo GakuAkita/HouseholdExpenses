@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
-import gaku.original.myapplication.ui.screens.receiver.SentData
+import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 
 interface Extractor {
     suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError>

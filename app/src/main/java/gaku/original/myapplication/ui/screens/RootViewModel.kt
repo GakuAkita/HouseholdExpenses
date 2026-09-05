@@ -12,7 +12,7 @@ import gaku.original.myapplication.data.Constants.ShareIntentKeys
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.domain.AuthState
-import gaku.original.myapplication.ui.screens.receiver.SentData
+import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow

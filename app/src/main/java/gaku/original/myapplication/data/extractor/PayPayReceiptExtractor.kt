@@ -13,7 +13,7 @@ import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.service.ocr.OcrService
-import gaku.original.myapplication.ui.screens.receiver.SentData
+import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.ZoneId

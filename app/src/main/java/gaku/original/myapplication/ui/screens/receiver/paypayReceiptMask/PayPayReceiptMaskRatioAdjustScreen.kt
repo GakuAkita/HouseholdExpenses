@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.ocr
+package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -24,7 +24,7 @@ import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.viewModel.ocr.OCRMaskRatioAdjustViewModel
 
 @Composable
-fun OCRMaskRatioAdjustView(
+fun PayPayReceiptMaskRatioAdjustScreen(
     navController: NavHostController,
     viewModel: OCRMaskRatioAdjustViewModel = hiltViewModel()
 ) {
