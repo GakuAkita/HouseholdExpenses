@@ -170,7 +170,46 @@ class CategoryAssignmentViewModel(
     }
 
     fun onDeleteClick(categoryAssignment: CategoryAssignment) {
-
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        assignments = it.assignments.map {
+                            if (it.assignment.id == categoryAssignment.id) {
+                                it.copy(
+                                    isLoading = true
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                }
+                categoryAssignmentRepository.deleteCategoryAssignment(categoryAssignment)
+                _uiState.update {
+                    it.copy(
+                        assignments = it.assignments.filter {
+                            it.assignment.id != categoryAssignment.id
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        assignments = it.assignments.map {
+                            if (it.assignment.id == categoryAssignment.id) {
+                                it.copy(
+                                    isLoading = false
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 
     override fun onCleared() {
