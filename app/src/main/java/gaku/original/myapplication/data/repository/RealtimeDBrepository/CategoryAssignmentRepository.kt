@@ -1,10 +1,8 @@
 package gaku.original.myapplication.data.repository.RealtimeDBrepository
 
-import gaku.original.myapplication.RealtimeDbReference
 import javax.inject.Inject
 
 class CategoryAssignmentRepository @Inject constructor(
-    private val realtimeDbReference: RealtimeDbReference
 ) {
 //    private val className = this::class.simpleName ?: "UnableToGetClassName"
 //

@@ -33,14 +33,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.TopBarView
@@ -98,12 +95,12 @@ fun CategoryEditScreen(
     onBackNavClicked: () -> Unit,
     onCategorySelected: (Category) -> Unit,
     onDeleteIconClick: (Category) -> Unit,
-    onCategoryAddClick:()->Unit,
-    onEditDialogDismiss:()->Unit,
-    onDeleteDialogDismiss:()->Unit,
-    onSaveClick:(Category)->Unit,
-    onDeleteClick:(Category)->Unit,
-    onCategoryNameChange:(String)->Unit/* used to change erase the dialog message */
+    onCategoryAddClick: () -> Unit,
+    onEditDialogDismiss: () -> Unit,
+    onDeleteDialogDismiss: () -> Unit,
+    onSaveClick: (Category) -> Unit,
+    onDeleteClick: (Category) -> Unit,
+    onCategoryNameChange: (String) -> Unit/* used to change erase the dialog message */
 ) {
     Scaffold(
         topBar = {
@@ -222,9 +219,7 @@ fun CategoryEditScreenPreview() {
 
 @Composable
 fun CategoryAddEditView(
-    viewModel: CategoryEditViewModel = hiltViewModel(),
 
-    navController: NavController
 ) {
 //    var editedCategory by remember { mutableStateOf(Category(name = null)) }
 //    var showDialog by remember { mutableStateOf(false) }
@@ -436,7 +431,7 @@ fun CategoryAddEditDialog(
     onSave: (category: Category) -> Unit,
     onDismiss: () -> Unit,
     errorMessage: String? = null,
-    onValueChange:(String)->Unit = {}
+    onValueChange: (String) -> Unit = {}
 ) {
     var newCategory by remember { mutableStateOf(category) }
 
@@ -494,8 +489,7 @@ fun CategoryAddEditDialog(
                     },
                     singleLine = true
                 )
-                if(errorMessage != null)
-                {
+                if (errorMessage != null) {
                     Text(errorMessage, color = MaterialTheme.colorScheme.error)
                 }
             }

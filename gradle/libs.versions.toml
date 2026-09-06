@@ -1,22 +1,24 @@
 [versions]
-agp = "8.6.1"
+agp = "9.1.0"
 coilComposeVersion = "2.6.0"
-kotlin = "2.0.21"
+kotlin = "2.2.10"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
-composeBom = "2024.04.01"
+composeBom = "2026.08.00"
 firebaseAuthKtx = "23.1.0"
 firebaseDatabaseKtx = "21.0.0"
 textRecognition = "16.0.1"
 textRecognitionJapanese = "16.0.1"
 material3 = "1.4.0"
-foundation = "1.11.4"
+foundation = "1.12.0"
+uiTestManifest = "1.11.4"
 
 [libraries]
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestManifest" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose" }
 coil-kt-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }

@@ -16,9 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.ui.common.TopBarView
@@ -114,50 +112,4 @@ fun PayPayReceiptReaderScreenPreview() {
         onBackNavClick = {},
         onResetClick = {}
     )
-}
-
-
-/**
- * 使わない
- * サンプル画像を使ってもおそらく、携帯の縮尺によって画像も変わる。
- * ここでサンプル画像を使ってやるべきではない。
- */
-@Composable
-fun PayPayReceiptOCRSettingView(
-    navController: NavController,
-    viewModel: PayPayReceiptReaderViewModel = hiltViewModel()
-) {
-
-//    Scaffold(
-//        topBar = {
-//            TopBarView(
-//                title = "PayPayレシートOCR設定",
-//                onBackNavClicked = {
-//                    navController.popBackStack()
-//                },
-//                showBackButton = true
-//            )
-//        }
-//    ) { innerPadding ->
-//        Column(
-//            modifier = Modifier.padding(innerPadding)
-//        ) {
-//            Text("PayPayレシートのマスキング設定を変えたいときは、ここで設定をリセットする。")
-//            Text("次にPayPayレシート読み取り機能を使ったときに再設定する")
-//            HorizontalDivider()
-//            if (viewModel.checkBothRatioSet()) {
-//                /* 両方セットされているならリセットボタンを押せるように */
-//                Text("leftRatio:${viewModel.leftRatio.value}")
-//                Text("topRatio:${viewModel.topRatio.value}")
-//                Button(onClick = {
-//                    viewModel.resetRatio()
-//                    navController.popBackStack()
-//                }) {
-//                    Text("リセット")
-//                }
-//            } else {
-//                Text("まだマスキング設定を変えていないのでPayPayレシート読み取り機能を使用したときにマスキング設定画面が開きます")
-//            }
-//        }
-//    }
 }

@@ -1,15 +1,15 @@
-import java.util.Properties
 import java.io.ByteArrayOutputStream
+import java.util.Properties
 
 // Gitタグからバージョンを取得する関数
 fun Project.getVersionName(): String {
     return try {
         val stdout = ByteArrayOutputStream()
-        exec {
-            commandLine("git", "describe", "--tags", "--abbrev=0")
-            standardOutput = stdout
-            isIgnoreExitValue = true
-        }
+//        exec {
+//            commandLine("git", "describe", "--tags", "--abbrev=0")
+//            standardOutput = stdout
+//            isIgnoreExitValue = true
+//        }
         val tag = stdout.toString().trim()
         if (tag.isNotEmpty() && tag.startsWith("v")) {
             tag.substring(1) // "v"を削除
@@ -42,7 +42,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")//version宣言しなくて大丈夫かな。kotlin("kapt") version "2.0.21"だとエラーでからこの書き方だけど。
     id("com.google.gms.google-services")
-    id("dagger.hilt.android.plugin")
+    //id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
     alias(libs.plugins.compose.compiler)
 
@@ -51,12 +51,12 @@ plugins {
 
 android {
     namespace = "gaku.original.myapplication"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
         minSdk = 31//ここを上げる。上げないとkizitonwoseが使いづらくなる
-        
+
         // Gitタグからバージョンを取得
         val versionNameFromGit = project.getVersionName()
         versionName = versionNameFromGit
@@ -82,7 +82,7 @@ android {
         // USE_FIREBASE_EMULATOR=true のときはエミュレータを使用、false または未設定のときは本番環境を使用
         val useEmulator = (localProperties["USE_FIREBASE_EMULATOR"] as String?)?.toBoolean() ?: true
         buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", useEmulator.toString())
-        
+
         // Firebase Emulator Host設定（Androidエミュレータ: 10.0.2.2, 実機: PCのIPアドレス）
         val emulatorHost = localProperties["FIREBASE_EMULATOR_HOST"] as String? ?: "10.0.2.2"
         buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")
@@ -98,11 +98,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -137,7 +137,7 @@ dependencies {
     val room_version = "2.7.2"
     val hilt_version = "2.51.1"
     val gson_version = "2.10.1"
-    val serialize_version ="1.7.3"
+    val serialize_version = "1.7.3"
     val timber_version = "5.0.1"
 
     //外部のライブラリいただく
@@ -186,9 +186,9 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     /************************** Dagger-hilt ***********************************/
-    implementation("com.google.dagger:hilt-android:$hilt_version")
-    kapt("com.google.dagger:hilt-compiler:$hilt_version")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")//hiltViewModelを使うために必要
+//    implementation("com.google.dagger:hilt-android:$hilt_version")
+//    kapt("com.google.dagger:hilt-compiler:$hilt_version")
+//    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")//hiltViewModelを使うために必要
 
     //OpenInNewってアイコンがこれを追加しないと使えない？
     implementation("androidx.compose.material:material-icons-extended")
@@ -199,6 +199,12 @@ dependencies {
     implementation(libs.text.recognition)
     // To recognize Japanese script
     implementation(libs.text.recognition.japanese)
+
+    /**************** Test ******************/
+    // Test rules and transitive dependencies:
+//    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
+    // Needed for createComposeRule(), but not for createAndroidComposeRule<YourActivity>():
+//    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
