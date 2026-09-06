@@ -66,7 +66,7 @@ fun ConfirmAlertDialog(
                             modifier = Modifier.size(24.dp)
                         )
                     } else {
-                        Text("No")
+                        Text("Yes")
                     }
                 }
 

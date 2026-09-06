@@ -1,6 +1,7 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -226,8 +227,12 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                                 fontSize = 20.sp,
                                 modifier = Modifier.padding(4.dp)
                             )
-
-                            Text("vvvvvvvvvvvvv Extracted Data vvvvvvvvvvvvv")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text("vvv Extracted Data vvv")
+                            }
                             SentDataExpenseDisplay(data = data)
                         }
                     }
