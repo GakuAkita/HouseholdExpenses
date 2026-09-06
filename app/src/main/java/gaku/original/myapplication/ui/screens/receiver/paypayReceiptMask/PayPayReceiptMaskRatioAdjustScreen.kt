@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.extractor.ExtractedData
@@ -69,6 +70,7 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
         onTopRatioPercentChange = {
             viewModel.onTopRatioChange(it)
         },
+        onSaveClick = {},
         onDismissDialog = {
             viewModel.onDismissDialog()
         }
@@ -82,6 +84,7 @@ fun PayPayReceiptMaskRatioAdjustScreen(
     onFABClick: () -> Unit,
     onLeftRatioPercentChange: (Float) -> Unit,
     onTopRatioPercentChange: (Float) -> Unit,
+    onSaveClick: () -> Unit,
     onDismissDialog: () -> Unit
 ) {
     Scaffold(topBar = {
@@ -194,10 +197,17 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 
     if (uiState.showConfirm) {
         ConfirmAlertDialog(
+            isLoading = uiState.isLoading,
             onClick = {
-
+                if (uiState.isLoading) {
+                    return@ConfirmAlertDialog
+                }
+                onSaveClick()
             },
             onDismissRequest = {
+                if (uiState.isLoading) {
+                    return@ConfirmAlertDialog
+                }
                 onDismissDialog()
             }
         ) {
@@ -211,6 +221,13 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                 } else {
                     when (val data = uiState.extractResult.sentData) {
                         is SentData.Expense -> {
+                            Text(
+                                "Do you save the current masking setting?",
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(4.dp)
+                            )
+
+                            Text("vvvvvvvvvvvvv Extracted Data vvvvvvvvvvvvv")
                             SentDataExpenseDisplay(data = data)
                         }
                     }
@@ -224,6 +241,7 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     val uiState = PayPayReceiptMaskRatioAdjustUiState(
+        isLoading = true,
         message = null,
         leftRatio = 0.1f,
         topRatio = 0.2f,
@@ -245,6 +263,7 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
         onFABClick = {},
         onLeftRatioPercentChange = {},
         onTopRatioPercentChange = {},
+        onSaveClick = {},
         onDismissDialog = {}
     )
 }

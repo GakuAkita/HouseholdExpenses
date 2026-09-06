@@ -34,7 +34,8 @@ data class PayPayReceiptMaskRatioAdjustUiState(
     val bitmap: Bitmap? = null,
 
     val showConfirm: Boolean = false,
-    val extractResult: ExtractedData? = null
+    val extractResult: ExtractedData? = null,
+    val isSaved: Boolean = false
 )
 
 class PayPayReceiptMaskRatioAdjustViewModel(
@@ -204,6 +205,16 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                         isValidating = false
                     )
                 }
+            }
+        }
+    }
+
+    fun onSaveClick() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
             }
         }
     }
