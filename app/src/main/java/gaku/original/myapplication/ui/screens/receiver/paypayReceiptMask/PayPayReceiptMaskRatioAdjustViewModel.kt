@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -20,8 +21,9 @@ import timber.log.Timber
 data class PayPayReceiptMaskRatioAdjustUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val leftRatio: Float = 0f,/* Not percent!! */
-    val topRatio: Float = 0f,/* Not percent!! */
+    val leftRatio: Float = 0.05f,/* Not percent!! */
+    val topRatio: Float = 0.05f,/* Not percent!! */
+    val originalBitmap: Bitmap? = null,
     val bitmap: Bitmap? = null
 )
 
@@ -29,6 +31,8 @@ class PayPayReceiptMaskRatioAdjustViewModel(
     private val imagePath: String,
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 ) : ViewModel() {
+    private val hidingColor = Color.RED
+
     private val _uiState = MutableStateFlow(PayPayReceiptMaskRatioAdjustUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -70,9 +74,17 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 }
 
                 val bitmap = BitmapFactory.decodeFile(imagePath)
-                _uiState.update {
-                    it.copy(
-                        bitmap = bitmap,
+                _uiState.update { state ->
+                    state.copy(
+                        originalBitmap = bitmap,
+                        bitmap = bitmap.maskBitmapArea(
+                            widthPercent = state.leftRatio.toDouble() * 100,
+                            heightPercent = state.topRatio.toDouble() * 100,
+                            /* always start from the top-left corner */
+                            leftPercent = 0.0,
+                            topPercent = 0.0,
+                            color = hidingColor
+                        ),
                         isLoading = false
                     )
                 }
@@ -91,12 +103,13 @@ class PayPayReceiptMaskRatioAdjustViewModel(
         _uiState.update { state ->
             state.copy(
                 leftRatio = leftRatio,
-                bitmap = state.bitmap?.maskBitmapArea(
-                    widthPercent = leftRatio.toDouble(),
-                    heightPercent = state.topRatio.toDouble(),
+                bitmap = state.originalBitmap?.maskBitmapArea(
+                    widthPercent = leftRatio.toDouble() * 100,
+                    heightPercent = state.topRatio.toDouble() * 100,
                     /* always start from the top-left corner */
                     leftPercent = 0.0,
                     topPercent = 0.0,
+                    color = hidingColor
                 )
             )
         }
@@ -106,12 +119,13 @@ class PayPayReceiptMaskRatioAdjustViewModel(
         _uiState.update { state ->
             state.copy(
                 topRatio = topRatio,
-                bitmap = state.bitmap?.maskBitmapArea(
-                    widthPercent = state.leftRatio.toDouble(),
-                    heightPercent = topRatio.toDouble(),
+                bitmap = state.originalBitmap?.maskBitmapArea(
+                    widthPercent = state.leftRatio.toDouble() * 100,
+                    heightPercent = topRatio.toDouble() * 100,
                     /* always start from the top-left corner */
                     leftPercent = 0.0,
                     topPercent = 0.0,
+                    color = hidingColor
                 )
             )
         }
