@@ -426,7 +426,6 @@ data class EmailTemplateSettingState(
 class _MailboxExtractionViewModel @Inject constructor(
     private val firebaseAuthRepository: FirebaseAuthRepository,
     private val mailboxExtractionRepository: MailboxExtractionRTDbRepository,
-    private val categoryUseCase: CategoryUseCase
 ) : ViewModel() {
 //    val className: String = this::class.simpleName ?: "UnableToGetClassName"
 //

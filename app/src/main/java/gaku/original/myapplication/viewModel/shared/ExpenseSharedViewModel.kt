@@ -9,7 +9,6 @@ import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val categoryUseCase: CategoryUseCase,
     private val userSettingsRepository: UserSettingsFirestoreRepository,
     private val listenerManager: FirestoreListenerManager
 ) : ViewModel() {

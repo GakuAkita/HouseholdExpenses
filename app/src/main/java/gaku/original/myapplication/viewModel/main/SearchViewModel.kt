@@ -1,23 +1,15 @@
 package gaku.original.myapplication.viewModel.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
-import android.util.Log
-import gaku.original.myapplication.data.dataClass.getDefaultSearchFilter
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
-import gaku.original.myapplication.useCase.SearchFilterUseCase
 import gaku.original.myapplication.viewModel.shared.ExpenseSharedViewModel
 import gaku.original.myapplication.viewModel.shared.TemporaryExpenseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +17,6 @@ class SearchViewModel @Inject constructor(
     private val expenseFirestoreRepository: ExpenseRepository,
     private val tmpExpenseViewModel: TemporaryExpenseViewModel,
     private val expenseSharedViewModel: ExpenseSharedViewModel,
-    private val searchFilterUseCase: SearchFilterUseCase,
 ) : ViewModel() {
     override fun onCleared() {
         /**
