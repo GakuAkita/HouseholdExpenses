@@ -194,7 +194,11 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                 onDismissDialog()
             }
         ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
 
+            }
         }
     }
 }
@@ -203,7 +207,12 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     val uiState = PayPayReceiptMaskRatioAdjustUiState(
-        message = null, leftRatio = 0.1f, topRatio = 0.2f, bitmap = null
+        message = null,
+        leftRatio = 0.1f,
+        topRatio = 0.2f,
+        bitmap = null,
+
+        showConfirm = true
     )
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
