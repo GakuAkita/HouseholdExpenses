@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
@@ -26,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -50,6 +52,7 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = snackbarHostState,
+        onFABClick = {},
         onLeftRatioPercentChange = {
             viewModel.onLeftRatioChane(it)
         },
@@ -63,6 +66,7 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
 fun PayPayReceiptMaskRatioAdjustScreen(
     uiState: PayPayReceiptMaskRatioAdjustUiState,
     snackbarHostState: SnackbarHostState,
+    onFABClick: () -> Unit,
     onLeftRatioPercentChange: (Float) -> Unit,
     onTopRatioPercentChange: (Float) -> Unit
 ) {
@@ -77,14 +81,20 @@ fun PayPayReceiptMaskRatioAdjustScreen(
         },
         floatingActionButton = {
             Column {
-                Text("Validate")
+                Text(
+                    "Validate", style = TextStyle.Default.copy(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
                 IconButton(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .size(60.dp),
                     onClick = {
                     },
-                    colors = IconButtonDefaults.filledIconButtonColors()
+                    colors = IconButtonDefaults.filledIconButtonColors().copy(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
@@ -172,6 +182,7 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = SnackbarHostState(),
+        onFABClick = {},
         onLeftRatioPercentChange = {},
         onTopRatioPercentChange = {}
     )
