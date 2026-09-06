@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,11 +53,20 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.onMessageShown()
+        }
+    }
+
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            navHostController.popBackStack()
+            Toast.makeText(context, "Setting was saved. Please analyze again", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -71,7 +82,9 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
         onTopRatioPercentChange = {
             viewModel.onTopRatioChange(it)
         },
-        onSaveClick = {},
+        onSaveClick = {
+            viewModel.onSaveClick()
+        },
         onDismissDialog = {
             viewModel.onDismissDialog()
         }
@@ -281,7 +294,8 @@ fun SentDataExpenseDisplay(modifier: Modifier = Modifier, data: SentData.Expense
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Date Time: ")
             val datetime = data.datetime
@@ -303,7 +317,8 @@ fun SentDataExpenseDisplay(modifier: Modifier = Modifier, data: SentData.Expense
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Amount: ")
             val amount = data.amount
@@ -322,7 +337,8 @@ fun SentDataExpenseDisplay(modifier: Modifier = Modifier, data: SentData.Expense
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Store name: ")
             val storeName = data.storeName

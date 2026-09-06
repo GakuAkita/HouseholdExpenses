@@ -63,7 +63,7 @@ fun ConfirmAlertDialog(
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     } else {
                         Text("Yes")
@@ -75,7 +75,8 @@ fun ConfirmAlertDialog(
                 }) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text("Cancel")
