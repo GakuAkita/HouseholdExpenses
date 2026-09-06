@@ -1,7 +1,7 @@
 package gaku.original.myapplication.di.appContainer
 
 import android.content.Context
-import gaku.original.myapplication.data.extractor.PayPayReceiptExtractor
+import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.data.repository.auth.FakeAuthRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptConfigRepository
@@ -26,7 +26,8 @@ open class FakeAppContainer(
         )
         return FakeSessionContainer(
             payPayReceiptConfigRepository = payPayReceiptConfigRepository,
-            payPayReceiptExtractor = extractor
+            payPayReceiptExtractor = extractor,
+            payPayReceiptValidator = extractor
         )
     }
 }

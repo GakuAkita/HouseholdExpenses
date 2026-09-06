@@ -52,12 +52,12 @@ fun ConfirmAlertDialog(
                         disabledContentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text("はい")
+                    Text("Yes")
                 }
                 Button(onClick = {
                     onDismissRequest()
                 }) {
-                    Text("キャンセル")
+                    Text("Cancel")
                 }
             }
         }

@@ -10,7 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import gaku.original.myapplication.data.Constants.Status.FuncStatus
 import gaku.original.myapplication.data.FuncResultWithData
 import gaku.original.myapplication.data.dataClass.SharedImageData
-import gaku.original.myapplication.data.extractor.maskBitmapTopLeftArea
+import gaku.original.myapplication.data.extractor.paypayReceipt.maskBitmapTopLeftArea
 import gaku.original.myapplication.utility.loadBitmapFromUri
 import gaku.original.myapplication.viewModel.shared.SharedImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

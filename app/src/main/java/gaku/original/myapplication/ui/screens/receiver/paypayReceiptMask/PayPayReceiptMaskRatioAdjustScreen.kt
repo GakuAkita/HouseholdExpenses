@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
@@ -60,7 +61,11 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
         },
         onTopRatioPercentChange = {
             viewModel.onTopRatioChange(it)
-        })
+        },
+        onDismissDialog = {
+            viewModel.onDismissDialog()
+        }
+    )
 }
 
 @Composable
@@ -69,7 +74,8 @@ fun PayPayReceiptMaskRatioAdjustScreen(
     snackbarHostState: SnackbarHostState,
     onFABClick: () -> Unit,
     onLeftRatioPercentChange: (Float) -> Unit,
-    onTopRatioPercentChange: (Float) -> Unit
+    onTopRatioPercentChange: (Float) -> Unit,
+    onDismissDialog: () -> Unit
 ) {
     Scaffold(topBar = {
         TopBarView(
@@ -178,6 +184,19 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             }
         }
     }
+
+    if (uiState.showConfirm) {
+        ConfirmAlertDialog(
+            onClick = {
+
+            },
+            onDismissRequest = {
+                onDismissDialog()
+            }
+        ) {
+
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -191,5 +210,7 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onFABClick = {},
         onLeftRatioPercentChange = {},
-        onTopRatioPercentChange = {})
+        onTopRatioPercentChange = {},
+        onDismissDialog = {}
+    )
 }

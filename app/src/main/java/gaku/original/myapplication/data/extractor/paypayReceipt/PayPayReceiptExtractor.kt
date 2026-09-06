@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.extractor
+package gaku.original.myapplication.data.extractor.paypayReceipt
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,6 +7,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.data.extractor.ExtractedData
+import gaku.original.myapplication.data.extractor.Extractor
+import gaku.original.myapplication.data.extractor.ExtractorError
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
@@ -21,7 +24,14 @@ import java.time.format.DateTimeFormatter
 class PayPayReceiptExtractor(
     private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
     private val ocrService: OcrService
-) : Extractor {
+) : Extractor, PayPayReceiptValidator {
+    override suspend fun validate(
+        bitmap: Bitmap,
+        maskConfig: MaskConfig.Percent
+    ): AppResult<ExtractedData, ExtractorError> {
+        return extract(bitmap, maskConfig)
+    }
+
     override suspend fun extract(image: File): AppResult<ExtractedData, ExtractorError> {
         val bitmap: Bitmap = BitmapFactory.decodeFile(image.absolutePath)
             ?: throw Exception("Failed to decode image")
@@ -31,7 +41,14 @@ class PayPayReceiptExtractor(
             throw Exception("Coding Error: Invalid mask config. PayPay should set by percent")
         }
 
-        if (config.mask.widthPercent == null || config.mask.heightPercent == null) {
+        return extract(bitmap, config.mask)
+    }
+
+    private suspend fun extract(
+        bitmap: Bitmap,
+        maskConfig: MaskConfig.Percent
+    ): AppResult<ExtractedData, ExtractorError> {
+        if (maskConfig.widthPercent == null || maskConfig.heightPercent == null) {
             return AppResult.Failure(
                 ExtractorError.MaskNotSetError(
                     bitmap
@@ -39,12 +56,10 @@ class PayPayReceiptExtractor(
             )
         }
 
-        Timber.d("widthPercent = ${config.mask.widthPercent} heightPercent = ${config.mask.heightPercent}")
-
         /* Mask the image */
         val maskedBitmap = bitmap.maskBitmapArea(
-            config.mask.widthPercent,
-            config.mask.heightPercent,
+            maskConfig.widthPercent,
+            maskConfig.heightPercent,
             leftPercent = 0.0,
             topPercent = 0.0
         )
@@ -249,4 +264,11 @@ fun maskBitmapTopLeftArea(
         color = Color.WHITE, // 既存仕様どおり白
         alpha = 255
     )
+}
+
+interface PayPayReceiptValidator {
+    suspend fun validate(
+        bitmap: Bitmap,
+        maskConfig: MaskConfig.Percent
+    ): AppResult<ExtractedData, ExtractorError>
 }

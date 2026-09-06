@@ -10,9 +10,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.extractor.maskBitmapArea
+import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.data.extractor.ExtractedData
+import gaku.original.myapplication.data.extractor.ExtractorError
+import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.extractor.paypayReceipt.maskBitmapArea
+import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
-import gaku.original.myapplication.service.ocr.OcrService
+import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -26,12 +31,15 @@ data class PayPayReceiptMaskRatioAdjustUiState(
     val leftRatio: Float = 0.05f,/* Not percent!! */
     val topRatio: Float = 0.05f,/* Not percent!! */
     val originalBitmap: Bitmap? = null,
-    val bitmap: Bitmap? = null
+    val bitmap: Bitmap? = null,
+
+    val showConfirm: Boolean = false,
+    val extractResult: ExtractedData? = null
 )
 
 class PayPayReceiptMaskRatioAdjustViewModel(
     private val imagePath: String,
-    private val ocrService: OcrService,
+    private val payPayReceiptValidator: PayPayReceiptValidator,
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 ) : ViewModel() {
     private val hidingColor = Color.RED
@@ -48,7 +56,7 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 Timber.d("imagePath:${imagePath}")
                 PayPayReceiptMaskRatioAdjustViewModel(
                     imagePath,
-                    ocrService = container.ocrService,
+                    payPayReceiptValidator = session.payPayReceiptValidator,
                     payPayReceiptConfigRepository = session.payPayReceiptConfigRepository
                 )
             }
@@ -137,9 +145,74 @@ class PayPayReceiptMaskRatioAdjustViewModel(
 
     fun onFABClick() {
         viewModelScope.launch {
-            _uiState.update {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isValidating = true
+                    )
+                }
+                val bitmap = _uiState.value.bitmap ?: throw Exception("Bitmap is not set")
+                val percentConfig = MaskConfig.Percent(
+                    widthPercent = _uiState.value.leftRatio.toDouble() * 100,
+                    heightPercent = _uiState.value.topRatio.toDouble() * 100,
+                    topPercent = 0.0,
+                    leftPercent = 0.0
+                )
+                when (val result = payPayReceiptValidator.validate(bitmap, percentConfig)) {
+                    is AppResult.Success -> {
+                        Timber.d("Extract Success!!")
+                        /* input values */
+                        val data = result.value.sentData
+                        when (data) {
+                            is SentData.Expense -> {
+                                _uiState.update {
+                                    it.copy(
+                                        extractResult = result.value,
+                                        showConfirm = true
+                                    )
+                                }
+                            }
+                        }
+                    }
 
+                    is AppResult.Failure -> {
+                        val error = result.error
+                        when (error) {
+                            is ExtractorError.NoStringFoundError -> {
+                                _uiState.update {
+                                    it.copy(
+                                        message = "No string found. Masking too much??"
+                                    )
+                                }
+                            }
+
+                            is ExtractorError.MaskNotSetError -> {
+                                throw Exception("Mask not set error. This never happens. Please contact the developer")
+                            }
+                        }
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isValidating = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.toString(),
+                        isValidating = false
+                    )
+                }
             }
+        }
+    }
+
+    fun onDismissDialog() {
+        _uiState.update {
+            it.copy(
+                showConfirm = false
+            )
         }
     }
 }

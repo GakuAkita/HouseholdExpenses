@@ -17,7 +17,7 @@ import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.SharedImageData
 import gaku.original.myapplication.data.dataClass.getDefaultExpense
-import gaku.original.myapplication.data.extractor.maskBitmapArea
+import gaku.original.myapplication.data.extractor.paypayReceipt.maskBitmapArea
 import gaku.original.myapplication.data.mapFailure
 import gaku.original.myapplication.data.repository.PrefKeys
 import gaku.original.myapplication.data.repository.SharedPreferencesRepository
