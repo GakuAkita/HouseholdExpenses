@@ -1,28 +1,56 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenRoot(
     navHostController: NavHostController,
-    viewModel: PayPayReceiptMaskRatioAdjustViewModel = viewModel(factory = PayPayReceiptMaskRatioAdjustViewModel.Factory)
+    viewModel: PayPayReceiptMaskRatioAdjustViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = LocalSnackBarHostState.current
+
+    LaunchedEffect(uiState.message) {
+        uiState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
 
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
+        snackbarHostState = snackbarHostState,
         onBackNavClick = {
             navHostController.popBackStack()
+        },
+        onLeftRatioPercentChange = {
+            //viewModel.updateLeftRatio(it)
+        },
+        onTopRatioPercentChange = {
+            //viewModel.updateTopRatio(it)
         }
     )
 }
@@ -30,7 +58,10 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreen(
     uiState: PayPayReceiptMaskRatioAdjustUiState,
-    onBackNavClick: () -> Unit
+    snackbarHostState: SnackbarHostState,
+    onBackNavClick: () -> Unit,
+    onLeftRatioPercentChange: (Float) -> Unit,
+    onTopRatioPercentChange: (Float) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -42,15 +73,86 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                 showBackButton = true
             )
         },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
         ) {
-            Text("Adjust the masking ratio")
-            Text("Left masking ratio:%.4f".format(uiState.leftRatio))
-            Text("Top masking ratio:%.4f".format(uiState.topRatio))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    text = "Please adjust the top and left masking ratio. Hide the top-left logo in the receipt"
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Text("Left masking ratio:%.2f".format(uiState.leftRatio * 100) + "[%]")
+                Slider(
+                    modifier = Modifier
+                        .widthIn(max = 280.dp)
+                        .padding(8.dp),
+                    value = uiState.leftRatio,
+                    onValueChange = {
+                        onLeftRatioPercentChange(it)
+                    }
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Text("Top masking ratio:%.4f".format(uiState.topRatio) + "[%]")
+                Slider(
+                    modifier = Modifier
+                        .widthIn(max = 280.dp)
+                        .padding(8.dp),
+                    value = uiState.topRatio,
+                    onValueChange = {
+                        onTopRatioPercentChange(it)
+                    }
+                )
+            }
+
+            if (uiState.bitmap != null) {
+                Image(
+                    bitmap = uiState.bitmap.asImageBitmap(),
+                    contentDescription = "maskedBitmap",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                Text("Unable to load image..")
+            }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PayPayReceiptMaskRatioAdjustScreenPreview() {
+    val uiState = PayPayReceiptMaskRatioAdjustUiState(
+        isLoading = false,
+        message = null,
+        leftRatio = 0.1f,
+        topRatio = 0.2f,
+        bitmap = null
+    )
+    PayPayReceiptMaskRatioAdjustScreen(
+        uiState,
+        snackbarHostState = SnackbarHostState(),
+        onBackNavClick = {},
+        onLeftRatioPercentChange = {},
+        onTopRatioPercentChange = {}
+    )
 }
 
 //@Composable
