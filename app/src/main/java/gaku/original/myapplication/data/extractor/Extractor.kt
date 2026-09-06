@@ -1,13 +1,13 @@
 package gaku.original.myapplication.data.extractor
 
 import android.graphics.Bitmap
-import android.net.Uri
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
+import java.io.File
 
 interface Extractor {
-    suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError>
+    suspend fun extract(image: File): AppResult<ExtractedData, ExtractorError>
 }
 
 sealed interface ExtractorError : AppError {

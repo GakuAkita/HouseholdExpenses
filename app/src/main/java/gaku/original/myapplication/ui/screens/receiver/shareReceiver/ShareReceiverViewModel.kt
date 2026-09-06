@@ -3,7 +3,6 @@ package gaku.original.myapplication.ui.screens.receiver.shareReceiver
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Parcelable
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
+import java.io.File
 
 data class ShareReceiverUiState(
     val sentData: SentData? = null,
@@ -107,7 +107,7 @@ class ShareReceiverViewModel(
                 Timber.d("package name:${packageName}")
                 if (packageName.contains("jp.ne.paypay.android")) {
                     /* PayPay */
-                    val result = paypayExtractor.extract(imageUri.toUri())
+                    val result = paypayExtractor.extract(File(imageUri))
                     if (result is AppResult.Success) {
                         _uiState.update {
                             it.copy(

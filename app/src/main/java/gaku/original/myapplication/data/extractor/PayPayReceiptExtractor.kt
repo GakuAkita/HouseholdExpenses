@@ -7,7 +7,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import android.net.Uri
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
@@ -15,6 +14,7 @@ import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptCo
 import gaku.original.myapplication.service.ocr.OcrService
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import timber.log.Timber
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -24,10 +24,9 @@ class PayPayReceiptExtractor(
     private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
     private val ocrService: OcrService
 ) : Extractor {
-    override suspend fun extract(image: Uri): AppResult<ExtractedData, ExtractorError> {
-        val bitmap: Bitmap = context.contentResolver.openInputStream(image)?.use { stream ->
-            BitmapFactory.decodeStream(stream)
-        } ?: throw Exception("Failed to open input stream")
+    override suspend fun extract(image: File): AppResult<ExtractedData, ExtractorError> {
+        val bitmap: Bitmap = BitmapFactory.decodeFile(image.absolutePath)
+            ?: throw Exception("Failed to decode image")
 
         val config = paypayReceiptConfigRepository.getOCRSetting()
         if (config.mask !is MaskConfig.Percent) {
