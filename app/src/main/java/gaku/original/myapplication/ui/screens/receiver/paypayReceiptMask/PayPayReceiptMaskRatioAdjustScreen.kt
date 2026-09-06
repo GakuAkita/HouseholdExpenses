@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,8 +34,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.data.extractor.ExtractedData
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
+import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenRoot(
@@ -195,9 +202,19 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             }
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             ) {
-
+                if (uiState.extractResult == null) {
+                    Text("Coding Error: Please contact the developer")
+                } else {
+                    when (val data = uiState.extractResult.sentData) {
+                        is SentData.Expense -> {
+                            SentDataExpenseDisplay(data = data)
+                        }
+                    }
+                }
             }
         }
     }
@@ -212,7 +229,15 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
         topRatio = 0.2f,
         bitmap = null,
 
-        showConfirm = true
+        showConfirm = true,
+        extractResult = ExtractedData(
+            sentData = SentData.Expense(
+                datetime = LocalDateTime.now().toIsoUtcString(ZoneId.systemDefault()),
+                amount = null,
+                storeName = "McDonald's"
+            ),
+            bitmap = null
+        )
     )
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
@@ -222,4 +247,71 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
         onTopRatioPercentChange = {},
         onDismissDialog = {}
     )
+}
+
+@Composable
+fun SentDataExpenseDisplay(modifier: Modifier = Modifier, data: SentData.Expense) {
+    Column(
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Text("Date Time: ")
+            val datetime = data.datetime
+            if (datetime == null) {
+                Text(
+                    "datetime was not extracted",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.error
+                    )
+                )
+            } else {
+                val dt = datetime.toLocalDateTime(ZoneId.systemDefault())
+                Text(
+                    "${dt.year}/${dt.monthValue}/${dt.dayOfMonth} ${dt.hour}:${dt.minute}"
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Text("Amount: ")
+            val amount = data.amount
+            if (amount == null) {
+                Text(
+                    "amount was not extracted",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.error
+                    )
+                )
+            } else {
+                Text("${amount}")
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Text("Store name: ")
+            val storeName = data.storeName
+            if (storeName == null) {
+                Text(
+                    "storeName was not extracted",
+                    style = TextStyle(
+                        color = MaterialTheme.colorScheme.error
+                    )
+                )
+            } else {
+                Text(storeName)
+            }
+        }
+    }
 }
