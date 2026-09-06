@@ -21,7 +21,6 @@ open class FakeAppContainer(
     override fun createSessionContainer(): SessionContainer {
         val payPayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
         val extractor = PayPayReceiptExtractor(
-            context,
             payPayReceiptConfigRepository,
             ocrService = ocrService
         )

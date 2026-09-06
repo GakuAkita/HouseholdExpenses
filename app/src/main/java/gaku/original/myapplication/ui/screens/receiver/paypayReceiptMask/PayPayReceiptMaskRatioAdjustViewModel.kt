@@ -10,9 +10,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.maskBitmapArea
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import gaku.original.myapplication.service.ocr.OcrService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,7 +21,6 @@ import timber.log.Timber
 
 data class PayPayReceiptMaskRatioAdjustUiState(
     val isLoading: Boolean = false,
-    val isValidating: Boolean = false,
     val message: String? = null,
     val leftRatio: Float = 0.05f,/* Not percent!! */
     val topRatio: Float = 0.05f,/* Not percent!! */
@@ -31,7 +30,7 @@ data class PayPayReceiptMaskRatioAdjustUiState(
 
 class PayPayReceiptMaskRatioAdjustViewModel(
     private val imagePath: String,
-    private val extractor: Extractor,
+    private val ocrService: OcrService,
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 ) : ViewModel() {
     private val hidingColor = Color.RED
@@ -48,7 +47,7 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 Timber.d("imagePath:${imagePath}")
                 PayPayReceiptMaskRatioAdjustViewModel(
                     imagePath,
-                    extractor = session.payPayReceiptExtractor,
+                    ocrService = container.ocrService,
                     payPayReceiptConfigRepository = session.payPayReceiptConfigRepository
                 )
             }
@@ -133,5 +132,9 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 )
             )
         }
+    }
+
+    fun onFABClick() {
+        
     }
 }

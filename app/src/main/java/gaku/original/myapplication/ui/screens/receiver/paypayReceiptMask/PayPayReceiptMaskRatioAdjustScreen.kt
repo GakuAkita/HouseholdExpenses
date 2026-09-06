@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -37,8 +36,7 @@ import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenRoot(
-    navHostController: NavHostController,
-    viewModel: PayPayReceiptMaskRatioAdjustViewModel
+    navHostController: NavHostController, viewModel: PayPayReceiptMaskRatioAdjustViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = LocalSnackBarHostState.current
@@ -53,14 +51,15 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = snackbarHostState,
-        onFABClick = {},
+        onFABClick = {
+            viewModel.onFABClick()
+        },
         onLeftRatioPercentChange = {
             viewModel.onLeftRatioChane(it)
         },
         onTopRatioPercentChange = {
             viewModel.onTopRatioChange(it)
-        }
-    )
+        })
 }
 
 @Composable
@@ -71,47 +70,40 @@ fun PayPayReceiptMaskRatioAdjustScreen(
     onLeftRatioPercentChange: (Float) -> Unit,
     onTopRatioPercentChange: (Float) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopBarView(
-                title = "PayPay Receipt Masking Setting",
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        },
-        floatingActionButton = {
-            if (uiState.isLoading) {
-                /* Nothing is shown */
-            } else if (uiState.isValidating) {
-                CircularProgressIndicator()
-            } else {
-                Column {
-                    Text(
-                        "Validate", style = TextStyle.Default.copy(
-                            color = MaterialTheme.colorScheme.primary
-                        )
+    Scaffold(topBar = {
+        TopBarView(
+            title = "PayPay Receipt Masking Setting",
+        )
+    }, snackbarHost = {
+        SnackbarHost(snackbarHostState)
+    }, floatingActionButton = {
+        if (uiState.isLoading) {
+            /* Nothing is shown */
+        } else {
+            Column {
+                Text(
+                    "Validate & Save", style = TextStyle.Default.copy(
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    IconButton(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .size(60.dp),
-                        onClick = {
-                            onFABClick()
-                        },
-                        colors = IconButtonDefaults.filledIconButtonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Validate"
-                        )
-                    }
+                )
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(60.dp),
+                    onClick = {
+                        onFABClick()
+                    },
+                    colors = IconButtonDefaults.filledIconButtonColors().copy(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check, contentDescription = "Validate"
+                    )
                 }
             }
         }
-    ) { innerPadding ->
+    }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -141,13 +133,8 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                         .padding(8.dp),
                     value = uiState.leftRatio,
                     onValueChange = {
-                        if (uiState.isValidating) {
-                            /* Do nothing */
-                        } else {
-                            onLeftRatioPercentChange(it)
-                        }
-                    }
-                )
+                        onLeftRatioPercentChange(it)
+                    })
             }
 
             Column(
@@ -163,13 +150,8 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                         .padding(8.dp),
                     value = uiState.topRatio,
                     onValueChange = {
-                        if (uiState.isValidating) {
-                            /* Do nothing */
-                        } else {
-                            onTopRatioPercentChange(it)
-                        }
-                    }
-                )
+                        onTopRatioPercentChange(it)
+                    })
             }
 
             if (uiState.bitmap != null) {
@@ -189,17 +171,12 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     val uiState = PayPayReceiptMaskRatioAdjustUiState(
-        isValidating = true,
-        message = null,
-        leftRatio = 0.1f,
-        topRatio = 0.2f,
-        bitmap = null
+        message = null, leftRatio = 0.1f, topRatio = 0.2f, bitmap = null
     )
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = SnackbarHostState(),
         onFABClick = {},
         onLeftRatioPercentChange = {},
-        onTopRatioPercentChange = {}
-    )
+        onTopRatioPercentChange = {})
 }

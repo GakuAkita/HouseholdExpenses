@@ -1,6 +1,5 @@
 package gaku.original.myapplication.data.extractor
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -20,7 +19,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class PayPayReceiptExtractor(
-    private val context: Context,/* This should be abstracted, but it's too much work. I just pass context. */
     private val paypayReceiptConfigRepository: PayPayReceiptConfigRepository,
     private val ocrService: OcrService
 ) : Extractor {
