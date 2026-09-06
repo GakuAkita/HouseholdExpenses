@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,10 +48,10 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
             navHostController.popBackStack()
         },
         onLeftRatioPercentChange = {
-            //viewModel.updateLeftRatio(it)
+            viewModel.onLeftRatioChane(it)
         },
         onTopRatioPercentChange = {
-            //viewModel.updateTopRatio(it)
+            viewModel.onTopRatioChange(it)
         }
     )
 }
@@ -94,7 +95,10 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             }
 
             Column(
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("Left masking ratio:%.2f".format(uiState.leftRatio * 100) + "[%]")
                 Slider(
@@ -109,9 +113,12 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             }
 
             Column(
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Top masking ratio:%.4f".format(uiState.topRatio) + "[%]")
+                Text("Top masking ratio:%.2f".format(uiState.topRatio * 100) + "[%]")
                 Slider(
                     modifier = Modifier
                         .widthIn(max = 280.dp)

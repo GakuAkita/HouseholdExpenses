@@ -195,11 +195,16 @@ class PayPayReceiptExtractor(
     }
 }
 
+/**
+ *   ( leftPercent, topPercent)  (leftPercent + widthPercent, topPercent)
+ *
+ *   ( leftPercent, topPercent + heightPercent) (topPercent + heightPercent, leftPercent + widthPercent)
+ */
 fun Bitmap.maskBitmapArea(
     widthPercent: Double,
     heightPercent: Double,
-    leftPercent: Double = 0.0,
-    topPercent: Double = 0.0,
+    leftPercent: Double = 0.0,/* Starting point */
+    topPercent: Double = 0.0,/* Starting point */
     color: Int = Color.WHITE,              // 塗りつぶす色
     alpha: Int = 255,                      // 不透明度（0〜255）
     style: Paint.Style = Paint.Style.FILL  // 塗りつぶし or 枠線
