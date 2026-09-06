@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.maskBitmapArea
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import timber.log.Timber
 
 data class PayPayReceiptMaskRatioAdjustUiState(
     val isLoading: Boolean = false,
+    val isValidating: Boolean = false,
     val message: String? = null,
     val leftRatio: Float = 0.05f,/* Not percent!! */
     val topRatio: Float = 0.05f,/* Not percent!! */
@@ -29,6 +31,7 @@ data class PayPayReceiptMaskRatioAdjustUiState(
 
 class PayPayReceiptMaskRatioAdjustViewModel(
     private val imagePath: String,
+    private val extractor: Extractor,
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 ) : ViewModel() {
     private val hidingColor = Color.RED
@@ -45,6 +48,7 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 Timber.d("imagePath:${imagePath}")
                 PayPayReceiptMaskRatioAdjustViewModel(
                     imagePath,
+                    extractor = session.payPayReceiptExtractor,
                     payPayReceiptConfigRepository = session.payPayReceiptConfigRepository
                 )
             }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -80,26 +81,33 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             SnackbarHost(snackbarHostState)
         },
         floatingActionButton = {
-            Column {
-                Text(
-                    "Validate", style = TextStyle.Default.copy(
-                        color = MaterialTheme.colorScheme.primary
+            if (uiState.isLoading) {
+                /* Nothing is shown */
+            } else if (uiState.isValidating) {
+                CircularProgressIndicator()
+            } else {
+                Column {
+                    Text(
+                        "Validate", style = TextStyle.Default.copy(
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     )
-                )
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .size(60.dp),
-                    onClick = {
-                    },
-                    colors = IconButtonDefaults.filledIconButtonColors().copy(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Validate"
-                    )
+                    IconButton(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .size(60.dp),
+                        onClick = {
+                            onFABClick()
+                        },
+                        colors = IconButtonDefaults.filledIconButtonColors().copy(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Validate"
+                        )
+                    }
                 }
             }
         }
@@ -133,7 +141,11 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                         .padding(8.dp),
                     value = uiState.leftRatio,
                     onValueChange = {
-                        onLeftRatioPercentChange(it)
+                        if (uiState.isValidating) {
+                            /* Do nothing */
+                        } else {
+                            onLeftRatioPercentChange(it)
+                        }
                     }
                 )
             }
@@ -151,7 +163,11 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                         .padding(8.dp),
                     value = uiState.topRatio,
                     onValueChange = {
-                        onTopRatioPercentChange(it)
+                        if (uiState.isValidating) {
+                            /* Do nothing */
+                        } else {
+                            onTopRatioPercentChange(it)
+                        }
                     }
                 )
             }
@@ -173,7 +189,7 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     val uiState = PayPayReceiptMaskRatioAdjustUiState(
-        isLoading = false,
+        isValidating = true,
         message = null,
         leftRatio = 0.1f,
         topRatio = 0.2f,
