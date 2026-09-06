@@ -19,7 +19,7 @@ class FakePayPayReceiptConfigRepository : PayPayReceiptConfigRepository {
     }
 
     override suspend fun saveOCRSetting(setting: PayPayReceiptOCRSetting) {
-        delay(1000)
+        delay(5000)
         this.setting = setting
     }
 }

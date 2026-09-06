@@ -17,6 +17,7 @@ import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptVal
 import gaku.original.myapplication.data.extractor.paypayReceipt.maskBitmapArea
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptOCRSetting
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,23 +90,19 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 val bitmap = BitmapFactory.decodeFile(imagePath)
                 _uiState.update { state ->
                     state.copy(
-                        originalBitmap = bitmap,
-                        bitmap = bitmap.maskBitmapArea(
+                        originalBitmap = bitmap, bitmap = bitmap.maskBitmapArea(
                             widthPercent = state.leftRatio.toDouble() * 100,
-                            heightPercent = state.topRatio.toDouble() * 100,
-                            /* always start from the top-left corner */
+                            heightPercent = state.topRatio.toDouble() * 100,/* always start from the top-left corner */
                             leftPercent = 0.0,
                             topPercent = 0.0,
                             color = hidingColor
-                        ),
-                        isLoading = false
+                        ), isLoading = false
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        message = e.toString(),
-                        isLoading = false
+                        message = e.toString(), isLoading = false
                     )
                 }
             }
@@ -115,11 +112,9 @@ class PayPayReceiptMaskRatioAdjustViewModel(
     fun onLeftRatioChane(leftRatio: Float) {
         _uiState.update { state ->
             state.copy(
-                leftRatio = leftRatio,
-                bitmap = state.originalBitmap?.maskBitmapArea(
+                leftRatio = leftRatio, bitmap = state.originalBitmap?.maskBitmapArea(
                     widthPercent = leftRatio.toDouble() * 100,
-                    heightPercent = state.topRatio.toDouble() * 100,
-                    /* always start from the top-left corner */
+                    heightPercent = state.topRatio.toDouble() * 100,/* always start from the top-left corner */
                     leftPercent = 0.0,
                     topPercent = 0.0,
                     color = hidingColor
@@ -131,11 +126,9 @@ class PayPayReceiptMaskRatioAdjustViewModel(
     fun onTopRatioChange(topRatio: Float) {
         _uiState.update { state ->
             state.copy(
-                topRatio = topRatio,
-                bitmap = state.originalBitmap?.maskBitmapArea(
+                topRatio = topRatio, bitmap = state.originalBitmap?.maskBitmapArea(
                     widthPercent = state.leftRatio.toDouble() * 100,
-                    heightPercent = topRatio.toDouble() * 100,
-                    /* always start from the top-left corner */
+                    heightPercent = topRatio.toDouble() * 100,/* always start from the top-left corner */
                     leftPercent = 0.0,
                     topPercent = 0.0,
                     color = hidingColor
@@ -161,15 +154,13 @@ class PayPayReceiptMaskRatioAdjustViewModel(
                 )
                 when (val result = payPayReceiptValidator.validate(bitmap, percentConfig)) {
                     is AppResult.Success -> {
-                        Timber.d("Extract Success!!")
-                        /* input values */
+                        Timber.d("Extract Success!!")/* input values */
                         val data = result.value.sentData
                         when (data) {
                             is SentData.Expense -> {
                                 _uiState.update {
                                     it.copy(
-                                        extractResult = result.value,
-                                        showConfirm = true
+                                        extractResult = result.value, showConfirm = true
                                     )
                                 }
                             }
@@ -201,8 +192,7 @@ class PayPayReceiptMaskRatioAdjustViewModel(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        message = e.toString(),
-                        isValidating = false
+                        message = e.toString(), isValidating = false
                     )
                 }
             }
@@ -211,10 +201,34 @@ class PayPayReceiptMaskRatioAdjustViewModel(
 
     fun onSaveClick() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                val setting = PayPayReceiptOCRSetting(
+                    mask = MaskConfig.Percent(
+                        widthPercent = _uiState.value.leftRatio.toDouble() * 100,
+                        heightPercent = _uiState.value.topRatio.toDouble() * 100,
+                        topPercent = 0.0,
+                        leftPercent = 0.0
+                    )
                 )
+                payPayReceiptConfigRepository.saveOCRSetting(setting)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isSaved = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
