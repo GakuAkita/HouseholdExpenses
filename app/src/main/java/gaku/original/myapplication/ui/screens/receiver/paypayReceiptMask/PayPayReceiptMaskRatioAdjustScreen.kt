@@ -4,10 +4,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
@@ -44,9 +50,6 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = snackbarHostState,
-        onBackNavClick = {
-            navHostController.popBackStack()
-        },
         onLeftRatioPercentChange = {
             viewModel.onLeftRatioChane(it)
         },
@@ -60,7 +63,6 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
 fun PayPayReceiptMaskRatioAdjustScreen(
     uiState: PayPayReceiptMaskRatioAdjustUiState,
     snackbarHostState: SnackbarHostState,
-    onBackNavClick: () -> Unit,
     onLeftRatioPercentChange: (Float) -> Unit,
     onTopRatioPercentChange: (Float) -> Unit
 ) {
@@ -68,14 +70,28 @@ fun PayPayReceiptMaskRatioAdjustScreen(
         topBar = {
             TopBarView(
                 title = "PayPay Receipt Masking Setting",
-                onBackNavClicked = {
-                    onBackNavClick()
-                },
-                showBackButton = true
             )
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState)
+        },
+        floatingActionButton = {
+            Column {
+                Text("Validate")
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(60.dp),
+                    onClick = {
+                    },
+                    colors = IconButtonDefaults.filledIconButtonColors()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Validate"
+                    )
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -156,89 +172,7 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
     PayPayReceiptMaskRatioAdjustScreen(
         uiState,
         snackbarHostState = SnackbarHostState(),
-        onBackNavClick = {},
         onLeftRatioPercentChange = {},
         onTopRatioPercentChange = {}
     )
 }
-
-//@Composable
-//fun PayPayReceiptMaskRatioAdjustScreen(
-//    navController: NavHostController,
-//) {
-//    val context = LocalContext.current
-//
-//    val sharedImageData by viewModel.sharedImageData.collectAsState()
-//    val bitmapShown by viewModel.bitmapShown.collectAsState()
-//
-//    LaunchedEffect(sharedImageData) {
-//        LogAkitaDebug("sharedImageData changed")
-//        viewModel.setBitmapShown(context)
-//    }
-//
-//    LaunchedEffect(viewModel.topRatio.value, viewModel.leftRatio.value) {
-//        viewModel.setBitmapShown(context)
-//    }
-//
-//    Scaffold(
-//        topBar = {
-//            TopBarView(
-//                title = "OCR マスキング割合調整",
-//                onBackNavClicked = {
-//                    navController.popBackStack()
-//                },
-//                showBackButton = true
-//            )
-//        },
-//    ) { innerPadding ->
-//        Column(
-//            modifier = Modifier
-//                .padding(innerPadding)
-//                .verticalScroll(rememberScrollState())
-//        ) {
-//            Text("マスキングの割合を調整します")
-//            Text("左マスキング割合:%.4f".format(viewModel.leftRatio.value))
-//            Text("上マスキング割合:%.4f".format(viewModel.topRatio.value))
-//
-//            Text("左マスキングスライドバー")
-//            Slider(
-//                value = viewModel.leftRatio.value,
-//                onValueChange = {
-//                    viewModel.updateLeftRatio(it)
-//                },
-//                onValueChangeFinished = {
-//                    //viewModel.setBitmapShown(context)
-//                }
-//            )
-//
-//            Text("上マスキングスライドバー")
-//            Slider(
-//                value = viewModel.topRatio.value,
-//                onValueChange = {
-//                    viewModel.updateTopRatio(it)
-//                },
-//                onValueChangeFinished = {
-//
-//                }
-//            )
-//            Button(
-//                onClick = {
-//                    /* 設定値を保存 */
-//                    viewModel.saveAdjustedRatioSetting()
-//                    //navigateAndRemoveCurrent(navController, Screen.GlobalScreen.OCR.Read.route)
-//                }
-//            ) {
-//                Text("設定値を保存")
-//            }
-//            Text("設定画面からここで保存したものをリセット&再設定できます。")
-//
-//            bitmapShown?.let {
-//                Image(
-//                    bitmap = it.asImageBitmap(),
-//                    contentDescription = "maskedBitmap",
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-//            }
-//        }
-//    }
-//}

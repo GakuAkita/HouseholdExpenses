@@ -6,8 +6,8 @@ class FakePayPayReceiptConfigRepository : PayPayReceiptConfigRepository {
 
     var setting: PayPayReceiptOCRSetting = PayPayReceiptOCRSetting(
         mask = MaskConfig.Percent(
-            widthPercent = 20.0,
-            heightPercent = 18.0,
+            widthPercent = null,
+            heightPercent = null,
             topPercent = 0.0,
             leftPercent = 0.0
         )

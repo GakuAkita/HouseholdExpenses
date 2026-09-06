@@ -1,9 +1,10 @@
 package gaku.original.myapplication.di.appContainer
 
 import android.content.Context
-import gaku.original.myapplication.data.extractor.FakeExtractor
+import gaku.original.myapplication.data.extractor.PayPayReceiptExtractor
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.data.repository.auth.FakeAuthRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptConfigRepository
 import gaku.original.myapplication.di.sessionContainer.FakeSessionContainer
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
 import gaku.original.myapplication.service.ocr.MlkitOcrService
@@ -18,9 +19,15 @@ open class FakeAppContainer(
 ) {
 
     override fun createSessionContainer(): SessionContainer {
-
+        val payPayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
+        val extractor = PayPayReceiptExtractor(
+            context,
+            payPayReceiptConfigRepository,
+            ocrService = ocrService
+        )
         return FakeSessionContainer(
-            payPayReceiptExtractor = FakeExtractor()
+            payPayReceiptConfigRepository = payPayReceiptConfigRepository,
+            payPayReceiptExtractor = extractor
         )
     }
 }
