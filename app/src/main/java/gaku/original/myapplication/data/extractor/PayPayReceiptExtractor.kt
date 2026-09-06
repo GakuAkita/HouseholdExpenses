@@ -35,7 +35,11 @@ class PayPayReceiptExtractor(
         }
 
         if (config.mask.widthPercent == null || config.mask.heightPercent == null) {
-            return AppResult.Failure(ExtractorError.MaskNotSetError)
+            return AppResult.Failure(
+                ExtractorError.MaskNotSetError(
+                    bitmap
+                )
+            )
         }
 
         Timber.d("widthPercent = ${config.mask.widthPercent} heightPercent = ${config.mask.heightPercent}")
@@ -103,7 +107,11 @@ class PayPayReceiptExtractor(
     /* This time is always system default zoneid */
     private fun extractDate(text: String): String? {
         // OCRのノイズ対策：B時を時に置換、全角スペースや複数スペースを削除
-        val processedT = text.replace("B時", "時").replace("\\s+".toRegex(), " ").trim()
+        val processedT =
+            text.replace("B時", "時")
+                .replace("\\s+".toRegex(), " ").trim()
+                .replace("時時", "時")
+
 
         // 日本語形式：yyyy年M月d日H時m分（スペース有無対応）
         val dateJaRegex = """(\d{4}年\d{1,2}月\d{1,2}日\s*\d{1,2}時\d{1,2}分)""".toRegex()

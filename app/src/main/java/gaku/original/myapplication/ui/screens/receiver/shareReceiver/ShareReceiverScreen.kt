@@ -54,8 +54,12 @@ fun ShareReceiverScreenRoot(
     LaunchedEffect(uiState.notMaskSet) {
         if (uiState.notMaskSet) {
             Timber.d("Launch MaskAdjust screen")
-            navHostController.navigate(SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust)
-            viewModel.onNotMaskSetDone()// lower notMaskSet
+            navHostController.navigate(
+                SharedReceiverGraph.SharedReceiver.PayPayReceiptMaskRatioAdjust(
+                    uiState.imagePath!!
+                )
+            )
+            viewModel.onNotMaskSetDone()// lower notMaskSet, clear imagePath
         }
     }
 

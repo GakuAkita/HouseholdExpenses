@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -14,7 +15,8 @@ import timber.log.Timber
 data class PayPayReceiptMaskRatioAdjustUiState(
     val isLoading: Boolean = false,
     val leftRatio: Float = 0f,
-    val topRatio: Float = 0f
+    val topRatio: Float = 0f,
+    val bitmap: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
 )
 
 class PayPayReceiptMaskRatioAdjustViewModel(
@@ -38,6 +40,7 @@ class PayPayReceiptMaskRatioAdjustViewModel(
 
     init {
         Timber.d("Created.${hashCode()}")
+
     }
 
 

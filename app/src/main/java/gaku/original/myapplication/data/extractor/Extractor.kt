@@ -11,7 +11,7 @@ interface Extractor {
 }
 
 sealed interface ExtractorError : AppError {
-    data object MaskNotSetError : ExtractorError {
+    data class MaskNotSetError(val bitmap: Bitmap) : ExtractorError {
         override val message: String
             get() = "Mask setting is not set."
     }

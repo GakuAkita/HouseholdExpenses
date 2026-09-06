@@ -100,7 +100,7 @@ data object SharedReceiverGraph {
         data class Entry(val data: SharedData) : SharedReceiver
 
         @Serializable
-        data object PayPayReceiptMaskRatioAdjust : SharedReceiver
+        data class PayPayReceiptMaskRatioAdjust(val imagePath: String) : SharedReceiver
     }
 }
 

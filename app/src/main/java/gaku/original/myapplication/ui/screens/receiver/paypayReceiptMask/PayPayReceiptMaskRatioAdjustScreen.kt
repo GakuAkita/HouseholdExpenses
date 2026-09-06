@@ -1,10 +1,16 @@
 package gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreenRoot(
@@ -14,15 +20,37 @@ fun PayPayReceiptMaskRatioAdjustScreenRoot(
     val uiState by viewModel.uiState.collectAsState()
 
     PayPayReceiptMaskRatioAdjustScreen(
-        uiState
+        uiState,
+        onBackNavClick = {
+            navHostController.popBackStack()
+        }
     )
 }
 
 @Composable
 fun PayPayReceiptMaskRatioAdjustScreen(
-    uiState: PayPayReceiptMaskRatioAdjustUiState
+    uiState: PayPayReceiptMaskRatioAdjustUiState,
+    onBackNavClick: () -> Unit
 ) {
-
+    Scaffold(
+        topBar = {
+            TopBarView(
+                title = "PayPay Receipt Masking Setting",
+                onBackNavClicked = {
+                    onBackNavClick()
+                },
+                showBackButton = true
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            Text("Adjust the masking ratio")
+            Text("Left masking ratio:%.4f".format(uiState.leftRatio))
+            Text("Top masking ratio:%.4f".format(uiState.topRatio))
+        }
+    }
 }
 
 //@Composable

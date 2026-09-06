@@ -27,7 +27,8 @@ data class ShareReceiverUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
     val bitmap: Bitmap? = null,
-    val notMaskSet: Boolean = false
+    val notMaskSet: Boolean = false,
+    val imagePath: String? = null
 )
 
 class ShareReceiverViewModel(
@@ -99,6 +100,8 @@ class ShareReceiverViewModel(
                 val imageUri = sharedData.imagePath
                 if (imageUri == null) {
                     throw Exception("Image path is null")
+                } else {
+                    Timber.d("imageUri:${imageUri}")
                 }
 
                 Timber.d("package name:${packageName}")
@@ -117,12 +120,16 @@ class ShareReceiverViewModel(
                             /* open new screen to set mask parameters*/
                             _uiState.update {
                                 it.copy(
-                                    notMaskSet = true
+                                    notMaskSet = true,
+                                    bitmap = result.error.bitmap,
+                                    imagePath = imageUri
                                 )
                             }
                         }
                     }
-                } else {
+                }
+                /* if the data is sent other than paypay, handle it here by adding else if */
+                else {
                     /* エラー */
                     _uiState.update {
                         it.copy(
@@ -142,7 +149,8 @@ class ShareReceiverViewModel(
     fun onNotMaskSetDone() {
         _uiState.update {
             it.copy(
-                notMaskSet = false
+                notMaskSet = false,
+                imagePath = null
             )
         }
     }
