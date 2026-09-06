@@ -19,7 +19,6 @@ import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionAction
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
-import gaku.original.myapplication.useCase.CategoryUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

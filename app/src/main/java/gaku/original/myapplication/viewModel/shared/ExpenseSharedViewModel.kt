@@ -2,26 +2,9 @@ package gaku.original.myapplication.viewModel.shared
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import gaku.original.myapplication.FirestoreListenerManager
-import gaku.original.myapplication.data.Constants.MONTH_RANGE
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.Constants.Status.LoadingStatus
-import gaku.original.myapplication.data.FuncResultWithData
-import gaku.original.myapplication.data.FuncStatusInfo
-import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.GeneratedType
-import gaku.original.myapplication.data.dataClass.InitialCategories
-import gaku.original.myapplication.data.repository.FirestoreRepository.ExpenseFirestoreRepository
 import gaku.original.myapplication.data.repository.FirestoreRepository.UserSettingsFirestoreRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
-import gaku.original.myapplication.useCase.CategoryUseCase
-import gaku.original.myapplication.utility.LogAkitaDebug
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import java.time.YearMonth
 import javax.inject.Inject
 
 class ExpenseSharedViewModel @Inject constructor(
