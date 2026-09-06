@@ -21,6 +21,7 @@ import timber.log.Timber
 
 data class PayPayReceiptMaskRatioAdjustUiState(
     val isLoading: Boolean = false,
+    val isValidating: Boolean = false,
     val message: String? = null,
     val leftRatio: Float = 0.05f,/* Not percent!! */
     val topRatio: Float = 0.05f,/* Not percent!! */
@@ -135,6 +136,10 @@ class PayPayReceiptMaskRatioAdjustViewModel(
     }
 
     fun onFABClick() {
-        
+        viewModelScope.launch {
+            _uiState.update {
+
+            }
+        }
     }
 }
