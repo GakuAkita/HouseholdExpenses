@@ -35,7 +35,8 @@ class FirebaseEmulatorAppContainer(
         return FirebaseSessionContainer(
             firebaseAuth = firebaseAuth,
             firestore = firestore,
-            firebaseRealtimeDb = firebaseRealtimeDb
+            firebaseRealtimeDb = firebaseRealtimeDb,
+            ocrService = ocrService
         )
     }
 }
