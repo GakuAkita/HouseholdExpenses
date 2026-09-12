@@ -1,6 +1,5 @@
 package gaku.original.myapplication.di.sessionContainer
 
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.data.extractor.Extractor
@@ -9,7 +8,7 @@ import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptVal
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
-import gaku.original.myapplication.data.repository.appTimeZone.FakeAppTimeZoneRepository
+import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepositoryFirestore
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepositoryFirestore
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
@@ -29,7 +28,6 @@ import gaku.original.myapplication.service.ocr.OcrService
 
 class FirebaseSessionContainer(
     override val appUser: AppUser,
-    private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val firebaseRealtimeDb: FirebaseDatabase,
     private val ocrService: OcrService
@@ -66,7 +64,10 @@ class FirebaseSessionContainer(
         appUser = appUser,
         firestore = firestore
     )
-    override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository()
+    override val appTimeZoneRepository: AppTimeZoneRepository = AppTimeZoneRepositoryFirestore(
+        appUser = appUser,
+        firestore = firestore
+    )
     override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository()
     override val mailboxExtractionRepository: MailboxExtractionRepository =
         FakeMailboxExtractionRepository()

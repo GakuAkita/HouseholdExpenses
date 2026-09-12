@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel
+package gaku.original.myapplication.ui.screens
 
 data class TransactionInfo(
     val amount: Long?,

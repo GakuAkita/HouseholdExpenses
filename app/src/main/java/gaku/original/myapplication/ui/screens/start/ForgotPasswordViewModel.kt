@@ -1,4 +1,4 @@
-package gaku.original.myapplication.viewModel.start
+package gaku.original.myapplication.ui.screens.start
 
 //@HiltViewModel
 //class ForgotPasswordViewModel @Inject constructor(
