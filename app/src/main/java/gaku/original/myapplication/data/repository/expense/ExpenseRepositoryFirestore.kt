@@ -42,7 +42,6 @@ class ExpenseRepositoryFirestore(
             if (exception != null) {
                 Timber.d("Error: $exception")
                 throw Exception(exception)
-                return@addSnapshotListener
             }
 
             for (dc in snapshots!!.documentChanges) {
@@ -58,7 +57,8 @@ class ExpenseRepositoryFirestore(
                     }
 
                     DocumentChange.Type.REMOVED -> {
-
+                        val expense = dc.document.toObject(Expense::class.java)
+                        _expenses.value = _expenses.value - expense.id!!
                     }
                 }
             }
@@ -66,6 +66,7 @@ class ExpenseRepositoryFirestore(
     }
 
     override fun stopListening() {
+        _expenses.value = emptyMap()
 
     }
 

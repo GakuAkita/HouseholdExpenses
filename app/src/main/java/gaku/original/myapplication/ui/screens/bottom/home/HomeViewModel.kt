@@ -127,7 +127,7 @@ class HomeViewModel(
         /* this should be called after uiState selectedMonth is updated */
         rebuildExpenseUiState()
 
-        val lastQueryStart = lastQuery.datetimeFrom
+        val lastQueryStart = lastQuery.datetimeFromOrEqual
         val lastQueryEnd = lastQuery.datetimeTo
 
         if (lastQueryStart != null && lastQueryEnd != null) {
@@ -180,9 +180,17 @@ class HomeViewModel(
 
         Timber.d("Refresh Expenses: start=${startDateTime} end=${endDateTime} zoneId=${zoneId}")
         viewModelScope.launch {
-            expenseRepository.stopListening()
-            expenseRepository.startListening(query)
-            lastQuery = query
+            try {
+                expenseRepository.stopListening()
+                expenseRepository.startListening(query)
+                lastQuery = query
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
+            }
         }
     }
 
