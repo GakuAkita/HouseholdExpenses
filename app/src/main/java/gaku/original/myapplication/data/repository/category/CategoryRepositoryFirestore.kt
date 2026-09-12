@@ -46,16 +46,16 @@ class CategoryRepositoryFirestore(
         val newId = categoryCollection.document().id
         Timber.d("newId=$newId")
         val newCategory = category.copy(id = newId)
-        categoryCollection.document(newId).set(newCategory)
+        categoryCollection.document(newId).set(newCategory).await()
         return newCategory
     }
 
     override suspend fun updateCategory(category: Category) {
-        categoryCollection.document(category.id!!).set(category)
+        categoryCollection.document(category.id!!).set(category).await()
     }
 
     override suspend fun deleteCategory(categoryId: String) {
-        categoryCollection.document(categoryId).delete()
+        categoryCollection.document(categoryId).delete().await()
     }
 
     override suspend fun getAllCategories(): Map<String, Category> {

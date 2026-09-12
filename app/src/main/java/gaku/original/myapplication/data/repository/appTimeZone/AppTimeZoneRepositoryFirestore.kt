@@ -1,10 +1,12 @@
 package gaku.original.myapplication.data.repository.appTimeZone
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.time.ZoneId
 
@@ -16,11 +18,16 @@ class AppTimeZoneRepositoryFirestore(
         firestore.collection("users").document(appUser.id!!).collection("settings")
             .document("user_preferences")
 
+    private var registration: ListenerRegistration? = null
+
     private val _zoneId = MutableStateFlow(ZoneId.systemDefault())
     override val zoneId: StateFlow<ZoneId> = _zoneId.asStateFlow()
 
     override fun startListening() {
-        document.addSnapshotListener { snapshot, exception ->
+        if (registration != null) {
+            throw Exception("Coding Error: Already listening to AppTimeZone")
+        }
+        registration = document.addSnapshotListener { snapshot, exception ->
             if (exception != null) {
                 Timber.e(exception)
                 return@addSnapshotListener
@@ -39,16 +46,23 @@ class AppTimeZoneRepositoryFirestore(
     }
 
     override fun stopListening() {
-
+        Timber.d("stopListening called")
+        registration?.remove()
+        registration = null
     }
 
     override suspend fun getZoneId(newZoneId: ZoneId): ZoneId {
-        val ret = document.get()
+        val snapshot = document.get().await()
+        val zoneId = snapshot.getString("timeZone")
+        if (zoneId != null) {
+            return ZoneId.of(zoneId)
+        }
         return ZoneId.systemDefault()
     }
 
     override suspend fun updateZoneId(newZoneId: ZoneId) {
         Timber.d(newZoneId.id)
+        document.update("timeZone", newZoneId.id).await()
         return
     }
 

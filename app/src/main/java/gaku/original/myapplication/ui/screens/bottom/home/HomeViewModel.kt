@@ -209,7 +209,7 @@ class HomeViewModel(
             expenseRepository.stopListening(_subscriptionId!!)
         }
 
-        /* It might be better off stopping Listening in SessinoContainer */
+        /* It might be better off stopping Listening in SessionContainer */
         appTimeZoneRepository.stopListening()
         super.onCleared()
     }

@@ -9,6 +9,7 @@ import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 class ExpenseRepositoryFirestore(
@@ -95,16 +96,16 @@ class ExpenseRepositoryFirestore(
     override suspend fun addExpense(expense: Expense): Expense {
         val document = expenseCollection.document()
         val newExpense = expense.copy(id = document.id)
-        document.set(newExpense)
+        document.set(newExpense).await()
         return newExpense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        expenseCollection.document(expense.id!!).set(expense)
+        expenseCollection.document(expense.id!!).set(expense).await()
         return expense
     }
 
     override suspend fun removeExpense(id: String) {
-        expenseCollection.document(id).delete()
+        expenseCollection.document(id).delete().await()
     }
 }
