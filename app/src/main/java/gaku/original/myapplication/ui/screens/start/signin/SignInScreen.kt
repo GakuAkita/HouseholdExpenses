@@ -82,7 +82,11 @@ fun SignInScreenRoot(
             viewModel.onPasswordChange(it)
         },
         onSignInClick = {
-            viewModel.signInWithEmail()
+            if (isSignIn) {
+                viewModel.signInWithEmail()
+            } else {
+                viewModel.signUpWithEmail()
+            }
         },
         onForgotPasswordClick = {
 
@@ -103,157 +107,6 @@ fun SignInScreen(
     onBackNavClick: (() -> Unit)? = null,
     onForgotPasswordClick: () -> Unit
 ) {
-
-//    fun getSignInErrorMsgFromCode(errorCode: String?): String {
-//        val message = when (errorCode) {
-//            "ERROR_INVALID_EMAIL" -> "メールアドレスの形式が正しくありません。"
-//            "ERROR_USER_DISABLED" -> "このアカウントは無効です。"
-//            "ERROR_USER_NOT_FOUND" -> "ユーザーが存在しません。"
-//            "ERROR_WRONG_PASSWORD" -> "パスワードが間違っています。"
-//            "_EMAIL_NOT_VERIFIED" -> "メールアドレスが認証されていません。認証メールを再送します。"
-//            else -> "ログインに失敗しました。"
-//        }
-//        return message
-//    }
-//
-//    fun getSignUpErrorMsgFromCode(errorCode: String?): String {
-//        val message = when (errorCode) {
-//            "ERROR_INVALID_EMAIL" -> "メールアドレスの形式が正しくありません。"
-//            "ERROR_WEAK_PASSWORD" -> "パスワードが弱すぎます。6文字以上にしてください。"
-//            "ERROR_OPERATION_NOT_ALLOWED" -> "この操作は許可されていません。"
-//            else -> "アカウント作成に失敗しました"
-//        }
-//        return message
-//    }
-
-//    fun handleLogin() {
-//        authViewModel.signInWithCallback(
-//            email = email,
-//            password = password,
-//            callback = { status ->
-//                when (status.status) {
-//                    FuncStatus.SUCCESS -> {
-//                        scope.launch {
-//                            snackBarHostState.showSnackbar(
-//                                "ログインしました",
-//                                actionLabel = "OK",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-////                        navController.navigate(Screen.MainScreen.Content.route) {
-////                            //ログイン画面をスタックから削除して、MainScreen.Contentが一番上に来るように。
-////                            popUpTo(0) {
-////                                inclusive = true
-////                            }
-////                        }
-//                    }
-//
-//                    FuncStatus.TIMEOUT -> {
-//                        scope.launch {
-//                            snackBarHostState.showSnackbar(
-//                                "ログインできずタイムアウトしました",
-//                                actionLabel = "OK",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        loading = false
-//                    }
-//
-//                    FuncStatus.FAILED -> {
-//                        val errorMsg =
-//                            getSignInErrorMsgFromCode(status.errorCode)
-//                        LogAkitaDebug(errorMsg)
-//                        scope.launch {
-//                            snackBarHostState.showSnackbar(
-//                                errorMsg,
-//                                actionLabel = "OK",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        loading = false
-//                    }
-//
-//                    FuncStatus.WARNING -> {
-//
-//                    }
-//                }
-//            }
-//        )
-//    }
-//
-//    fun handleSignUp() {
-//        authViewModel.signUpWithCallback(
-//            email,
-//            password,
-//            callback = { status ->
-//                when (status.status) {
-//                    FuncStatus.SUCCESS -> {
-//                        scope.launch {
-//                            snackBarHostState.showSnackbar(
-//                                "アカウントを作成しました。メールアドレス認証をしてください。\n認証後、ログインボタンを押してください",
-//                                actionLabel = "OK",
-//                            )
-//                            //サインアップに成功したら画面がログイン画面に切り替わる
-//                            //※画面のUIが変わっているだけでルートは変わっていない!!
-//                        }
-//                        loading = false
-//                        isLoginState = true
-//                    }
-//
-//                    FuncStatus.TIMEOUT -> {
-//                        scope.launch {
-//                            snackBarHostState.showSnackbar(
-//                                "タイムアウトしました。アカウント作成に失敗しました",
-//                                actionLabel = "OK",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        loading = false
-//                    }
-//
-//                    FuncStatus.FAILED -> {
-//                        scope.launch {
-//                            val errorMsg =
-//                                getSignUpErrorMsgFromCode(status.errorCode)
-//                            LogAkitaDebug(errorMsg)
-//                            snackBarHostState.showSnackbar(
-//                                errorMsg,
-//                                actionLabel = "OK",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        loading = false
-//                    }
-//
-//                    FuncStatus.WARNING -> {
-//
-//                    }
-//                }
-//            }
-//        )
-//    }
-
-//    val user by authViewModel.currentUser.collectAsState()
-//    val signInLoading by authViewModel.signInLoading.collectAsState()
-//    LaunchedEffect(user) {
-//        /**
-//         * userが変化したら走る。
-//         */
-//        if (user != null) {
-////            scope.launch {
-////                snackBarHostState.showSnackbar(
-////                    "ログインしました。",
-////                    actionLabel = "OK",
-////                    duration = SnackbarDuration.Long
-////                )
-////            }
-//            /* Mainスクリーンに遷移 */
-////            navController.navigate(Screen.MainScreen.Content.route) {
-////                popUpTo(0) { inclusive = true }
-////            }
-//        }
-//    }
-
     Scaffold(
         topBar = {
             TopBarView(
@@ -289,22 +142,6 @@ fun SignInScreen(
                     Box(
                         modifier = Modifier
                             .clickable {
-                                /* Googleでログイン */
-                                /* ここをエラーの理由をちゃんと吐かせないとだめｄな。 */
-//                            authViewModel.viewModelScope.launch {
-//                                val result = CredentialManagerHelper.getGoogleIdToken(context)
-//                                if (result !is FuncResultWithData.Success) {
-//                                    val errorMessage = result.toFuncStatusInfo().errorMessage
-//                                    snackBarHostState.currentSnackbarData?.dismiss()
-//                                    snackBarHostState.showSnackbar(
-//                                        "Googleログインに失敗しました: ${errorMessage}",
-//                                        duration = SnackbarDuration.Long
-//                                    )
-//                                    return@launch
-//                                }
-//                                val idToken = result.data
-//                                authViewModel.signInWithGoogleIdToken(idToken)
-//                            }
                                 onGoogleClick()
                             }
                             .padding(vertical = 20.dp),
