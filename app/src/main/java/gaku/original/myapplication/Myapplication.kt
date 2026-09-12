@@ -3,7 +3,7 @@ package gaku.original.myapplication
 
 import android.app.Application
 import gaku.original.myapplication.di.appContainer.AppContainer
-import gaku.original.myapplication.di.appContainer.FakeAppContainer
+import gaku.original.myapplication.di.appContainer.FirebaseEmulatorAppContainer
 import timber.log.Timber
 
 class MyApplication : Application() {
@@ -17,7 +17,7 @@ class MyApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        appContainer = FakeAppContainer(this)
+        appContainer = FirebaseEmulatorAppContainer(this)
 
         Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }

@@ -12,6 +12,7 @@ import gaku.original.myapplication.di.sessionContainer.FirebaseSessionContainer
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
 import gaku.original.myapplication.service.ocr.MlkitOcrService
 import gaku.original.myapplication.service.ocr.OcrService
+import timber.log.Timber
 
 class FirebaseEmulatorAppContainer(
     context: Context
@@ -22,9 +23,10 @@ class FirebaseEmulatorAppContainer(
     val firebaseRealtimeDb: FirebaseDatabase = Firebase.database
 
     init {
-        firebaseAuth.useEmulator("localhost", 5001)
-        firestore.useEmulator("localhost", 5001)
-        firebaseRealtimeDb.useEmulator("localhost", 9000)
+        Timber.d("Use emulators")
+        firebaseAuth.useEmulator("10.0.2.2", 9099)
+        firestore.useEmulator("10.0.2.2", 5002)
+        firebaseRealtimeDb.useEmulator("10.0.2.2", 9000)
     }
 
     override val ocrService: OcrService = MlkitOcrService()

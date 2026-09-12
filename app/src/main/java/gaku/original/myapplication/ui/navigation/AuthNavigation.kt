@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import gaku.original.myapplication.AuthGraph
+import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.ui.screens.start.StartView
 import gaku.original.myapplication.ui.screens.start.signin.SignInScreenRoot
 
@@ -36,7 +37,7 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable<AuthGraph.SignUp> {
             SignInScreenRoot(
                 isSignIn = false,
-                isGoogleOnly = true,
+                isGoogleOnly = !BuildConfig.DEBUG,
                 onBackNavClick = {
                     navController.popBackStack()
                 }

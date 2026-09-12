@@ -17,11 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import gaku.original.myapplication.BuildConfig
 
 @Composable
 fun StartView(
-    onSignUpClick:()->Unit,
-    onSignInClick:()->Unit
+    onSignUpClick: () -> Unit,
+    onSignInClick: () -> Unit
 ) {
 
     Column(
@@ -59,7 +60,7 @@ fun StartView(
                     containerColor = MaterialTheme.colorScheme.tertiary,
                     contentColor = MaterialTheme.colorScheme.onTertiary
                 ),
-                enabled = false
+                enabled = BuildConfig.DEBUG
             ) {
                 Text("Sign Up")
             }
