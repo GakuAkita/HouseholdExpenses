@@ -17,7 +17,6 @@ import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -118,7 +117,7 @@ class HomeViewModel(
 
     /* onMonthChanged is definitely called once when the screen is created. */
     fun onMonthChanged(month: YearMonth) {
-        Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}");
+        Timber.d("Swiped to ${month.year}-${month.monthValue} hash=${hashCode()}")
         _uiState.update {
             it.copy(
                 selectedMonth = month,
@@ -175,7 +174,7 @@ class HomeViewModel(
         val endDateTime = endMonth.plusMonths(1).atDay(1).atStartOfDay().toInstant(zoneId)
 
         val query = ExpenseQuery(
-            datetimeFrom = startDateTime,
+            datetimeFromOrEqual = startDateTime,
             datetimeTo = endDateTime
         )
 

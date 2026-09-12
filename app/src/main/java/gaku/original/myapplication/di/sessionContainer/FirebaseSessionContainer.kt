@@ -24,14 +24,24 @@ import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayRecei
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
+import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.service.ocr.OcrService
 
 class FirebaseSessionContainer(
+    override val appUser: AppUser,
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val firebaseRealtimeDb: FirebaseDatabase,
     private val ocrService: OcrService
 ) : SessionContainer {
+
+    init {
+        if (appUser.id == null) {
+            throw Exception("Coding Error:AppUser id is null!")
+        } else if (appUser.email == null) {
+            throw Exception("Coding Error:AppUser email is null!")
+        }
+    }
 
     /* order is important */
     private val _paypayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
@@ -50,6 +60,7 @@ class FirebaseSessionContainer(
 
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore()
     override val expenseRepository: ExpenseRepository = ExpenseRepositoryFirestore(
+        appUser = appUser,
         firestore = firestore
     )
     override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository()

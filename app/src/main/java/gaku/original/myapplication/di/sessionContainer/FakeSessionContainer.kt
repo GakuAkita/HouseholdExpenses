@@ -21,8 +21,10 @@ import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayRecei
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
+import gaku.original.myapplication.domain.AppUser
 
 open class FakeSessionContainer(
+    override val appUser: AppUser = AppUser("1", "g@gmail.com"),
     override val expenseRepository: ExpenseRepository = FakeExpenseRepository(),
     override val categoryRepository: CategoryRepository = FakeCategoryRepository(),
     override val appTimeZoneRepository: AppTimeZoneRepository = FakeAppTimeZoneRepository(),

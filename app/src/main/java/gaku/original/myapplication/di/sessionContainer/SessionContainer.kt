@@ -11,8 +11,11 @@ import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
+import gaku.original.myapplication.domain.AppUser
 
 interface SessionContainer {
+    val appUser: AppUser
+    
     val expenseRepository: ExpenseRepository
 
     val categoryRepository: CategoryRepository
