@@ -10,11 +10,11 @@ data class ExpenseQuery(
 )
 
 interface ExpenseRepository {
-    fun startListening(query: ExpenseQuery)
+    fun startListening(subscriptionId: String, query: ExpenseQuery)
 
-    fun stopListening()
+    fun stopListening(subscriptionId: String)
 
-    val expenses: StateFlow<Map<String, Expense>>
+    val expenses: StateFlow<Map<String, Map<String, Expense>>>
 
     suspend fun addExpense(expense: Expense): Expense
 
