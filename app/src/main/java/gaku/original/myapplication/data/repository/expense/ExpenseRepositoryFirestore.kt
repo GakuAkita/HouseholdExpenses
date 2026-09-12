@@ -29,19 +29,20 @@ class ExpenseRepositoryFirestore(
         // すでにリスナーがある場合は何もしない（あるいは再起動するかは要件次第だが、一旦重複回避）
         if (listeners.containsKey(subscriptionId)) return
         var firestoreQuery: Query = expenseCollection
-//        query.datetimeFromOrEqual?.let {
-//            Timber.d("datetimeFromOrEqual=$it")
-//            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
-//                "datetime", it
-//            )
-//        }
-//
-//        query.datetimeTo?.let {
-//            Timber.d("datetimeTo=$it")
-//            firestoreQuery = firestoreQuery.whereLessThan(
-//                "datetime", it
-//            )
-//        }
+
+        query.datetimeFromOrEqual?.let {
+            Timber.d("datetimeFromOrEqual=$it")
+            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
+                "datetime", it.toString()
+            )
+        }
+
+        query.datetimeTo?.let {
+            Timber.d("datetimeTo=$it")
+            firestoreQuery = firestoreQuery.whereLessThan(
+                "datetime", it.toString()
+            )
+        }
 
         val registration = firestoreQuery.addSnapshotListener { snapshots, exception ->
             if (exception != null) {
@@ -59,13 +60,11 @@ class ExpenseRepositoryFirestore(
 
             _expenses.update { currentExpenses ->
 
-                Timber.d("Inside _expense.update :subscriptionId = ${subscriptionId}")
                 val subscriptionExpenses =
                     currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
                 for (dc in snapshots.documentChanges) {
                     val expense = dc.document.toObject(Expense::class.java)
-                    Timber.d("Expense: $expense")
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                             subscriptionExpenses[expense.id!!] = expense
