@@ -45,12 +45,13 @@ class FakeCategoryRepository : CategoryRepository {
         return _categories.value
     }
 
-    override suspend fun addCategory(category: Category) {
+    override suspend fun addCategory(category: Category): Category {
         val newCategory = category.copy(
             id = UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis()
         )
         _categories.value += (newCategory.id!! to newCategory)
+        return newCategory
     }
 
     override suspend fun updateCategory(category: Category) {

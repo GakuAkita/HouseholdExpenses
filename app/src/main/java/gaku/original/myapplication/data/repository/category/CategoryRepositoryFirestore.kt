@@ -1,39 +1,68 @@
 package gaku.original.myapplication.data.repository.category
 
+import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.tasks.await
 
-class CategoryRepositoryFirestore : CategoryRepository {
+class CategoryRepositoryFirestore(
+    appUser: AppUser,
+    firestore: FirebaseFirestore
+) : CategoryRepository {
+
+    private val categoryCollection =
+        firestore.collection("users").document(appUser.id!!).collection("categories")
 
     private val _categories = MutableStateFlow<Map<String, Category>>(emptyMap())
     override val categories: StateFlow<Map<String, Category>>
         get() = _categories
 
-    init {
-        /**
-        startListening{
+    private val listenerRegistration =
+        categoryCollection.addSnapshotListener { snapshots, exception ->
+            if (exception != null) {
+                // 後述
+                return@addSnapshotListener
+            }
 
-        }*/
-    }
+            if (snapshots == null) return@addSnapshotListener
 
-    override suspend fun addCategory(category: Category) {
-        TODO("Not yet implemented")
+            val categories = snapshots.documents
+                .mapNotNull { document ->
+                    document.toObject(Category::class.java)
+                        ?.let { document.id to it }
+                }
+                .toMap()
+
+            _categories.value = categories
+        }
+
+    override suspend fun addCategory(category: Category): Category {
+        val newId = categoryCollection.document().id
+        val newCategory = category.copy(id = newId)
+        categoryCollection.document(newId).set(newCategory)
+
+        return newCategory
     }
 
     override suspend fun updateCategory(category: Category) {
-        TODO("Not yet implemented")
+        categoryCollection.document(category.id!!).set(category)
     }
 
     override suspend fun deleteCategory(categoryId: String) {
-        TODO("Not yet implemented")
+        categoryCollection.document(categoryId).delete()
     }
 
     override suspend fun getAllCategories(): Map<String, Category> {
-        TODO("Not yet implemented")
+        val snapshot = categoryCollection.get().await()
+        return snapshot.documents.mapNotNull { document ->
+            document.toObject(Category::class.java)
+                ?.let { document.id to it }
+        }.toMap()
     }
 
     override fun close() {
-        /* stopListening() */
+        listenerRegistration.remove()
     }
 }

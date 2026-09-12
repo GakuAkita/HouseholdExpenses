@@ -11,7 +11,7 @@ interface CategoryRepository : ClosableRepository {
     val categories: StateFlow<Map<String, Category>>
     suspend fun getAllCategories(): Map<String, Category>
 
-    suspend fun addCategory(category: Category)
+    suspend fun addCategory(category: Category): Category
 
     suspend fun updateCategory(category: Category)
 

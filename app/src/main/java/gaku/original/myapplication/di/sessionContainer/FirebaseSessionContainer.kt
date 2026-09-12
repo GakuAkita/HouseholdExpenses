@@ -58,7 +58,10 @@ class FirebaseSessionContainer(
     override val payPayReceiptValidator: PayPayReceiptValidator = _paypayReceiptExtractor
 
 
-    override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore()
+    override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
+        appUser = appUser,
+        firestore = firestore
+    )
     override val expenseRepository: ExpenseRepository = ExpenseRepositoryFirestore(
         appUser = appUser,
         firestore = firestore
