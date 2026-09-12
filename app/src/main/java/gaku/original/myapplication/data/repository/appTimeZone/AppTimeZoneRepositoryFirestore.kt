@@ -39,7 +39,7 @@ class AppTimeZoneRepositoryFirestore(
     }
 
     override fun stopListening() {
-        TODO("Not yet implemented")
+
     }
 
     override suspend fun getZoneId(newZoneId: ZoneId): ZoneId {

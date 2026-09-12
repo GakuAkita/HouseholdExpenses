@@ -208,6 +208,8 @@ class HomeViewModel(
         if (_subscriptionId != null) {
             expenseRepository.stopListening(_subscriptionId!!)
         }
+
+        /* It might be better off stopping Listening in SessinoContainer */
         appTimeZoneRepository.stopListening()
         super.onCleared()
     }
