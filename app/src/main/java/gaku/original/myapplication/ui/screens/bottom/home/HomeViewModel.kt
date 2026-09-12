@@ -90,7 +90,8 @@ class HomeViewModel(
         refreshExpenses(YearMonth.now())
         viewModelScope.launch {
             expenseRepository.expenses.collect { allExpenses ->
-                cachedExpenses = allExpenses["Home"] ?: emptyMap()
+                Timber.d("allExpenses was collected. ${allExpenses[_subscriptionId]}")
+                cachedExpenses = allExpenses[_subscriptionId] ?: emptyMap()
                 rebuildExpenseUiState()
             }
         }

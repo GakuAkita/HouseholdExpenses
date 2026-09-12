@@ -28,20 +28,20 @@ class ExpenseRepositoryFirestore(
     override fun startListening(subscriptionId: String, query: ExpenseQuery) {
         // すでにリスナーがある場合は何もしない（あるいは再起動するかは要件次第だが、一旦重複回避）
         if (listeners.containsKey(subscriptionId)) return
-
         var firestoreQuery: Query = expenseCollection
-
-        query.datetimeFromOrEqual?.let {
-            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
-                "datetime", it
-            )
-        }
-
-        query.datetimeTo?.let {
-            firestoreQuery = firestoreQuery.whereLessThan(
-                "datetime", it
-            )
-        }
+//        query.datetimeFromOrEqual?.let {
+//            Timber.d("datetimeFromOrEqual=$it")
+//            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
+//                "datetime", it
+//            )
+//        }
+//
+//        query.datetimeTo?.let {
+//            Timber.d("datetimeTo=$it")
+//            firestoreQuery = firestoreQuery.whereLessThan(
+//                "datetime", it
+//            )
+//        }
 
         val registration = firestoreQuery.addSnapshotListener { snapshots, exception ->
             if (exception != null) {
@@ -49,14 +49,23 @@ class ExpenseRepositoryFirestore(
                 throw Exception(exception)
             }
 
-            if (snapshots == null) return@addSnapshotListener
+            if (snapshots == null) {
+                Timber.d("snapshots is null")
+                return@addSnapshotListener
+            }
+
+            Timber.d("documents = ${snapshots.documents.size}")
+            Timber.d("documentChanges = ${snapshots.documentChanges.size}")
 
             _expenses.update { currentExpenses ->
+
+                Timber.d("Inside _expense.update :subscriptionId = ${subscriptionId}")
                 val subscriptionExpenses =
                     currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
                 for (dc in snapshots.documentChanges) {
                     val expense = dc.document.toObject(Expense::class.java)
+                    Timber.d("Expense: $expense")
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                             subscriptionExpenses[expense.id!!] = expense
@@ -79,14 +88,15 @@ class ExpenseRepositoryFirestore(
         Timber.d("Stop listening to $subscriptionId")
         listeners[subscriptionId]?.remove()
         listeners.remove(subscriptionId)
+
+        /* delete StateFlow from _expenses */
         _expenses.update { it - subscriptionId }
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
         val document = expenseCollection.document()
         val newExpense = expense.copy(id = document.id)
-
-        document.set(expense)
+        document.set(newExpense)
         return newExpense
     }
 
