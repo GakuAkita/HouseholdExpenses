@@ -159,7 +159,9 @@ fun ExpenseAddEditScreenRoot(
         onCategoryEditClick = {
             navHostController.navigate(MainGraph.Global.CategoryAddEdit)
         },
-        onCategoryRefreshClick = {},
+        onCategoryRefreshClick = {
+            viewModel.onCategoryRefreshClick()
+        },
         onNoteChange = { index, note ->
             viewModel.onNoteChange(index, note)
         },

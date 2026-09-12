@@ -167,11 +167,12 @@ class ExpenseAddEditViewModel(
 
         viewModelScope.launch {
             try {
-                val categories = categoryRepository.getAllCategories()
-                _uiState.update {
-                    it.copy(
-                        categories = categories.values.toList()
-                    )
+                categoryRepository.categories.collect { categories ->
+                    _uiState.update {
+                        it.copy(
+                            categories = categories.values.toList()
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -405,6 +406,14 @@ class ExpenseAddEditViewModel(
                         category = category
                     )
                 }
+            )
+        }
+    }
+
+    fun onCategoryRefreshClick() {
+        _uiState.update {
+            it.copy(
+                message = "Not implemented yet."
             )
         }
     }
