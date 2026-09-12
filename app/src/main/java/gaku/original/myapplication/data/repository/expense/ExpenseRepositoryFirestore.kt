@@ -2,82 +2,100 @@ package gaku.original.myapplication.data.repository.expense
 
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 class ExpenseRepositoryFirestore(
-    appUser: AppUser,
-    firestore: FirebaseFirestore
+    appUser: AppUser, firestore: FirebaseFirestore
 ) : ExpenseRepository {
     private val expenseCollection = firestore.collection("users").document(appUser.id!!).collection(
         "expenses"
     )
 
-    private val _expenses = MutableStateFlow<Map<String, Expense>>(emptyMap())
-    override val expenses: StateFlow<Map<String, Expense>>
+    /* key is subscription id. */
+    private val listeners = mutableMapOf<String, ListenerRegistration>()
+
+    private val _expenses = MutableStateFlow<Map<String, Map<String, Expense>>>(emptyMap())
+    override val expenses: StateFlow<Map<String, Map<String, Expense>>>
         get() = _expenses
 
-    override fun startListening(query: ExpenseQuery) {
+    override fun startListening(subscriptionId: String, query: ExpenseQuery) {
+        // すでにリスナーがある場合は何もしない（あるいは再起動するかは要件次第だが、一旦重複回避）
+        if (listeners.containsKey(subscriptionId)) return
+
         var firestoreQuery: Query = expenseCollection
 
         query.datetimeFromOrEqual?.let {
             firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
-                "datetime",
-                it
+                "datetime", it
             )
         }
 
         query.datetimeTo?.let {
             firestoreQuery = firestoreQuery.whereLessThan(
-                "datetime",
-                it
+                "datetime", it
             )
         }
 
-        firestoreQuery.addSnapshotListener { snapshots, exception ->
+        val registration = firestoreQuery.addSnapshotListener { snapshots, exception ->
             if (exception != null) {
                 Timber.d("Error: $exception")
                 throw Exception(exception)
             }
 
-            for (dc in snapshots!!.documentChanges) {
-                when (dc.type) {
-                    DocumentChange.Type.ADDED -> {
-                        val expense = dc.document.toObject(Expense::class.java)
-                        _expenses.value = _expenses.value + (expense.id!! to expense)
-                    }
+            if (snapshots == null) return@addSnapshotListener
 
-                    DocumentChange.Type.MODIFIED -> {
-                        val expense = dc.document.toObject(Expense::class.java)
-                        _expenses.value = _expenses.value + (expense.id!! to expense)
-                    }
+            _expenses.update { currentExpenses ->
+                val subscriptionExpenses =
+                    currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
-                    DocumentChange.Type.REMOVED -> {
-                        val expense = dc.document.toObject(Expense::class.java)
-                        _expenses.value = _expenses.value - expense.id!!
+                for (dc in snapshots.documentChanges) {
+                    val expense = dc.document.toObject(Expense::class.java)
+                    when (dc.type) {
+                        DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                            subscriptionExpenses[expense.id!!] = expense
+                        }
+
+                        DocumentChange.Type.REMOVED -> {
+                            subscriptionExpenses.remove(expense.id!!)
+                        }
                     }
                 }
+
+                currentExpenses + (subscriptionId to subscriptionExpenses)
             }
         }
+        Timber.d("Start listening to $subscriptionId")
+        listeners[subscriptionId] = registration
     }
 
-    override fun stopListening() {
-        _expenses.value = emptyMap()
-
+    override fun stopListening(subscriptionId: String) {
+        Timber.d("Stop listening to $subscriptionId")
+        listeners[subscriptionId]?.remove()
+        listeners.remove(subscriptionId)
+        _expenses.update { it - subscriptionId }
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
-        return Expense()
+        val document = expenseCollection.document()
+        val newExpense = expense.copy(id = document.id)
+
+        document.set(expense)
+        return newExpense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        return Expense()
+        expenseCollection.document(expense.id!!).set(expense)
+        return expense
     }
 
     override suspend fun removeExpense(id: String) {
+        expenseCollection.document(id).delete()
     }
 }

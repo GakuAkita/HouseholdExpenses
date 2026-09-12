@@ -35,6 +35,7 @@ class FirebaseEmulatorAppContainer(
 
     override fun createSessionContainer(): SessionContainer {
         return FirebaseSessionContainer(
+            appUser = authRepository.user!!,
             firebaseAuth = firebaseAuth,
             firestore = firestore,
             firebaseRealtimeDb = firebaseRealtimeDb,

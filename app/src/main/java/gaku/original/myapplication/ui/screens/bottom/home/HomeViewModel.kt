@@ -26,6 +26,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneId
+import java.util.UUID
 
 data class ExpenseUi(
     val id: String?,
@@ -57,6 +58,8 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState get() = _uiState.asStateFlow()
 
+    private var _subscriptionId: String? = null
+
     private var lastQuery = ExpenseQuery()
     private var cachedExpenses = emptyMap<String, Expense>()
 
@@ -86,8 +89,8 @@ class HomeViewModel(
 
         refreshExpenses(YearMonth.now())
         viewModelScope.launch {
-            expenseRepository.expenses.collect { expenses ->
-                cachedExpenses = expenses
+            expenseRepository.expenses.collect { allExpenses ->
+                cachedExpenses = allExpenses["Home"] ?: emptyMap()
                 rebuildExpenseUiState()
             }
         }
@@ -181,8 +184,13 @@ class HomeViewModel(
         Timber.d("Refresh Expenses: start=${startDateTime} end=${endDateTime} zoneId=${zoneId}")
         viewModelScope.launch {
             try {
-                expenseRepository.stopListening()
-                expenseRepository.startListening(query)
+                if (_subscriptionId != null) {
+                    expenseRepository.stopListening(_subscriptionId!!)
+                }
+
+                /* generate UID */
+                _subscriptionId = UUID.randomUUID().toString()
+                expenseRepository.startListening(_subscriptionId!!, query)
                 lastQuery = query
             } catch (e: Exception) {
                 _uiState.update {
@@ -196,7 +204,9 @@ class HomeViewModel(
 
     override fun onCleared() {
         Timber.d("onCleared called. ${hashCode()}")
-        expenseRepository.stopListening()
+        if (_subscriptionId != null) {
+            expenseRepository.stopListening(_subscriptionId!!)
+        }
         appTimeZoneRepository.stopListening()
         super.onCleared()
     }

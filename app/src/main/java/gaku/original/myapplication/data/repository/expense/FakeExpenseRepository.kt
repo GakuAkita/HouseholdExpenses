@@ -1,6 +1,5 @@
 package gaku.original.myapplication.data.repository.expense
 
-import com.google.type.DateTime
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,22 +23,21 @@ class FakeExpenseRepository : ExpenseRepository {
         )
     )
 
-    private val _expenses = MutableStateFlow<Map<String, Expense>>(emptyMap())
-    override val expenses: StateFlow<Map<String, Expense>>
+    private val _expenses = MutableStateFlow<Map<String, Map<String, Expense>>>(emptyMap())
+    override val expenses: StateFlow<Map<String, Map<String, Expense>>>
         get() = _expenses
 
     init {
         Timber.d("Created. ${hashCode()}")
     }
 
-    override fun startListening(query: ExpenseQuery) {
-        _expenses.value = emptyMap()
-        _expenses.value = sampleExpenses
-        return
+    override fun startListening(subscriptionId: String, query: ExpenseQuery) {
+        // クエリに基づいたフィルタリングは一旦省略し、サンプルデータをそのまま入れる
+        _expenses.value = _expenses.value + (subscriptionId to sampleExpenses)
     }
 
-    override fun stopListening() {
-        return
+    override fun stopListening(subscriptionId: String) {
+        _expenses.value = _expenses.value - subscriptionId
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
@@ -47,16 +45,17 @@ class FakeExpenseRepository : ExpenseRepository {
             id = UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis()
         )
-        _expenses.value += (newExpense.id!! to newExpense)
+        // 全ての購読に対して反映させる（簡易的な実装）
+        _expenses.value = _expenses.value.mapValues { it.value + (newExpense.id!! to newExpense) }
         return newExpense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        _expenses.value += (expense.id!! to expense)
+        _expenses.value = _expenses.value.mapValues { it.value + (expense.id!! to expense) }
         return expense
     }
 
     override suspend fun removeExpense(id: String) {
-        _expenses.value -= id
+        _expenses.value = _expenses.value.mapValues { it.value - id }
     }
 }
