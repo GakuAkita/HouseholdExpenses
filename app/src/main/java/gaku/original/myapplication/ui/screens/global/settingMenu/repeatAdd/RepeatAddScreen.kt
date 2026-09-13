@@ -40,7 +40,6 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.toDisplayName
@@ -70,17 +69,7 @@ fun RepeatAddScreenRoot(
         },
         onRepeatAddEdit = {
             Timber.d("${it}")
-            if (it.frequencyInfo is RepeatFrequency.EveryWeek) {
-                Timber.d("This is Everyweek. ${it.frequencyInfo.dayOfWeek}")
-                it.frequencyInfo.dayOfWeek.forEach { day ->
-                    Timber.d("week = ${day.name}")
-                }
-//                it.frequencyInfo.dayOfWeek.forEach { week->
-//                    Timber.d("day=$week, class=${week::class.java}")
-//                }
-            }
-//            Json.encodeToString(it)
-            //navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
+            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
         },
         onRepeatAddDelete = {
             Timber.d("Delete tapped??")

@@ -6,21 +6,6 @@ import kotlinx.serialization.Serializable
 import timber.log.Timber
 import java.time.DayOfWeek
 
-/**
- * kotlin(java) DayOfWeek can't be serialized.
- * I create new class to serialize it.
- */
-@Serializable
-enum class DayOfWeekSerializable {
-    MONDAY,
-    TUESDAY,
-    WEDNESDAY,
-    THURSDAY,
-    FRIDAY,
-    SATURDAY,
-    SUNDAY
-}
-
 @Serializable
 @Parcelize
 sealed interface RepeatFrequency : Parcelable {
