@@ -151,7 +151,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
         is RepeatFrequency.EveryWeek -> {
             mapOf(
                 "frequency" to RepeatFrequency.EveryWeek.NAME,
-                "dayOfWeek" to dayOfWeek.map { it.value },
+                "dayOfWeek" to dayOfWeek,
                 "hour" to hour,
                 "minute" to minute
             )
