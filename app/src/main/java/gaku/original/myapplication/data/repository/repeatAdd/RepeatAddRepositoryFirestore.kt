@@ -63,6 +63,7 @@ class RepeatAddRepositoryFirestore(
         val document = repeatAddCollection.document()
         val newRepeatAdd = repeatAdd.copy(id = document.id, timestamp = System.currentTimeMillis())
         document.set(newRepeatAdd.toFirestore()).await()
+        Timber.d("addRepeatAdd Success: $newRepeatAdd")
         return newRepeatAdd
     }
 

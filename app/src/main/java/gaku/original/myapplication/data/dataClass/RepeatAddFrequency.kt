@@ -3,12 +3,15 @@ package gaku.original.myapplication.data.dataClass
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import timber.log.Timber
 import java.time.DayOfWeek
 
 @Serializable
 @Parcelize
 sealed interface RepeatFrequency : Parcelable {
 
+    @Serializable
+    @Parcelize
     data class EveryYear(
         val month: Int = 1,
         val day: Int = 1,
@@ -20,6 +23,8 @@ sealed interface RepeatFrequency : Parcelable {
         }
     }
 
+    @Serializable
+    @Parcelize
     data class EveryMonth(
         val day: Int = 1,
         val hour: Int = 1,
@@ -30,6 +35,8 @@ sealed interface RepeatFrequency : Parcelable {
         }
     }
 
+    @Serializable
+    @Parcelize
     data class EveryWeek(
         val dayOfWeek: List<DayOfWeek> = emptyList(),
         val hour: Int = 0,
@@ -40,6 +47,8 @@ sealed interface RepeatFrequency : Parcelable {
         }
     }
 
+    @Serializable
+    @Parcelize
     data class Weekdays(
         val hour: Int = 0,
         val minute: Int = 0
@@ -49,6 +58,8 @@ sealed interface RepeatFrequency : Parcelable {
         }
     }
 
+    @Serializable
+    @Parcelize
     data class Weekends(
         val hour: Int = 0,
         val minute: Int = 0
@@ -58,6 +69,8 @@ sealed interface RepeatFrequency : Parcelable {
         }
     }
 
+    @Serializable
+    @Parcelize
     data class Everyday(
         val hour: Int = 0,
         val minute: Int = 0
@@ -147,56 +160,62 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 }
 
 fun Map<String, Any?>.toRepeatFrequency(): RepeatFrequency {
-    when (get("frequency")) {
+    Timber.d("Converting :${this}")
+
+    val hour = (get("hour") as? Number)?.toInt()
+    val minute = (get("minute") as? Number)?.toInt()
+
+    return when (get("frequency")) {
         RepeatFrequency.EveryYear.NAME -> {
+            Timber.d("Converting :${this} ${get("month")}")
+
             RepeatFrequency.EveryYear(
-                month = get("month") as? Int ?: error("month is null"),
-                day = get("day") as? Int ?: error("day is null"),
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                month = (get("month") as? Number)?.toInt() ?: error("month is null"),
+                day = (get("day") as? Number)?.toInt() ?: error("day is null"),
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         RepeatFrequency.EveryMonth.NAME -> {
             RepeatFrequency.EveryMonth(
-                day = get("day") as? Int ?: error("day is null"),
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                day = (get("day") as? Number)?.toInt() ?: error("day is null"),
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         RepeatFrequency.EveryWeek.NAME -> {
             RepeatFrequency.EveryWeek(
                 dayOfWeek = get("dayOfWeek") as? List<DayOfWeek> ?: error("dayOfWeek is null"),
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         RepeatFrequency.Weekends.NAME -> {
             RepeatFrequency.Weekends(
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         RepeatFrequency.Weekdays.NAME -> {
             RepeatFrequency.Weekdays(
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         RepeatFrequency.Everyday.NAME -> {
             RepeatFrequency.Everyday(
-                hour = get("hour") as? Int ?: error("hour is null"),
-                minute = get("minute") as? Int ?: error("minute is null")
+                hour = hour ?: error("hour is null"),
+                minute = minute ?: error("minute is null")
             )
         }
 
         else -> {
-            throw Exception("Unknown RepeatFrequency: ${get("frequency")}")
+            throw Exception("Unknown RepeatFrequency: ${get("frequencyInfo")}")
         }
     }
-    throw Exception("Unknown RepeatFrequency: ${get("frequency")}")
 }
