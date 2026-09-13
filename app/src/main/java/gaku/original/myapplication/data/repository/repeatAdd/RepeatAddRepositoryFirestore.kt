@@ -5,6 +5,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
+import gaku.original.myapplication.data.dataClass.toRepeatFrequency
+import gaku.original.myapplication.data.repository.expense.toExpense
 import gaku.original.myapplication.data.repository.expense.toFirestore
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,15 +54,14 @@ class RepeatAddRepositoryFirestore(
     override suspend fun getAllRepeatAdds(): Map<String, RepeatAdd> {
         val snapshots = repeatAddCollection.get().await()
         val repeatAdds = snapshots.documents.mapNotNull { document ->
-            document.toObject(RepeatAdd::class.java)
-                ?.let { document.id to it }
+            document.toRepeatAdd().let { document.id to it }
         }.toMap()
         return repeatAdds
     }
 
     override suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
         val document = repeatAddCollection.document()
-        val newRepeatAdd = repeatAdd.copy(id = document.id)
+        val newRepeatAdd = repeatAdd.copy(id = document.id, timestamp = System.currentTimeMillis())
         document.set(newRepeatAdd.toFirestore()).await()
         return newRepeatAdd
     }
@@ -88,5 +89,13 @@ fun RepeatAdd.toFirestore(): Map<String, Any?> {
 }
 
 fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
-    
+    val expenseRaw = get("expense") as? Map<String, Any?>
+    val frequencyInfoRaw = get("frequencyInfo") as? Map<String, Any?>
+
+    return RepeatAdd(
+        id = getString("id"),
+        timestamp = getLong("timestamp"),
+        expense = expenseRaw?.toExpense() ?: error("expense is null"),
+        frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
+    )
 }

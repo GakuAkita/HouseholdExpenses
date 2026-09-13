@@ -8,39 +8,64 @@ import java.time.DayOfWeek
 @Serializable
 @Parcelize
 sealed interface RepeatFrequency : Parcelable {
+
     data class EveryYear(
         val month: Int = 1,
         val day: Int = 1,
         val hour: Int = 0,
         val minute: Int = 0
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "every_year"
+        }
+    }
 
     data class EveryMonth(
         val day: Int = 1,
         val hour: Int = 1,
         val minute: Int = 1
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "every_month"
+        }
+    }
 
     data class EveryWeek(
         val dayOfWeek: List<DayOfWeek> = emptyList(),
         val hour: Int = 0,
         val minute: Int = 0
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "every_week"
+        }
+    }
 
     data class Weekdays(
         val hour: Int = 0,
         val minute: Int = 0
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "weekdays"
+        }
+    }
 
     data class Weekends(
         val hour: Int = 0,
         val minute: Int = 0
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "weekends"
+        }
+    }
 
     data class Everyday(
         val hour: Int = 0,
         val minute: Int = 0
-    ) : RepeatFrequency
+    ) : RepeatFrequency {
+        companion object {
+            val NAME = "everyday"
+        }
+    }
 
     companion object {
         val types = listOf(
@@ -69,7 +94,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
     return when (this) {
         is RepeatFrequency.EveryYear -> {
             mapOf(
-                "frequency" to "every_year",
+                "frequency" to RepeatFrequency.EveryYear.NAME,
                 "month" to month,
                 "day" to day,
                 "hour" to hour,
@@ -79,7 +104,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 
         is RepeatFrequency.EveryMonth -> {
             mapOf(
-                "frequency" to "every_month",
+                "frequency" to RepeatFrequency.EveryMonth.NAME,
                 "day" to day,
                 "hour" to hour,
                 "minute" to minute
@@ -88,7 +113,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 
         is RepeatFrequency.Everyday -> {
             mapOf(
-                "frequency" to "everyday",
+                "frequency" to RepeatFrequency.Everyday.NAME,
                 "hour" to hour,
                 "minute" to minute
             )
@@ -96,7 +121,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 
         is RepeatFrequency.Weekdays -> {
             mapOf(
-                "frequency" to "weekdays",
+                "frequency" to RepeatFrequency.Weekdays.NAME,
                 "hour" to hour,
                 "minute" to minute
             )
@@ -104,7 +129,7 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 
         is RepeatFrequency.Weekends -> {
             mapOf(
-                "frequency" to "weekends",
+                "frequency" to RepeatFrequency.Weekends.NAME,
                 "hour" to hour,
                 "minute" to minute
             )
@@ -112,11 +137,66 @@ fun RepeatFrequency.toFirestore(): Map<String, Any?> {
 
         is RepeatFrequency.EveryWeek -> {
             mapOf(
-                "frequency" to "every_week",
+                "frequency" to RepeatFrequency.EveryWeek.NAME,
                 "dayOfWeek" to dayOfWeek,
                 "hour" to hour,
                 "minute" to minute
             )
         }
     }
+}
+
+fun Map<String, Any?>.toRepeatFrequency(): RepeatFrequency {
+    when (get("frequency")) {
+        RepeatFrequency.EveryYear.NAME -> {
+            RepeatFrequency.EveryYear(
+                month = get("month") as? Int ?: error("month is null"),
+                day = get("day") as? Int ?: error("day is null"),
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        RepeatFrequency.EveryMonth.NAME -> {
+            RepeatFrequency.EveryMonth(
+                day = get("day") as? Int ?: error("day is null"),
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        RepeatFrequency.EveryWeek.NAME -> {
+            RepeatFrequency.EveryWeek(
+                dayOfWeek = get("dayOfWeek") as? List<DayOfWeek> ?: error("dayOfWeek is null"),
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        RepeatFrequency.Weekends.NAME -> {
+            RepeatFrequency.Weekends(
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        RepeatFrequency.Weekdays.NAME -> {
+            RepeatFrequency.Weekdays(
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        RepeatFrequency.Everyday.NAME -> {
+            RepeatFrequency.Everyday(
+                hour = get("hour") as? Int ?: error("hour is null"),
+                minute = get("minute") as? Int ?: error("minute is null")
+            )
+        }
+
+        else -> {
+            throw Exception("Unknown RepeatFrequency: ${get("frequency")}")
+        }
+    }
+    throw Exception("Unknown RepeatFrequency: ${get("frequency")}")
 }
