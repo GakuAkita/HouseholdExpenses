@@ -40,8 +40,6 @@ import androidx.navigation.NavController
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
-import gaku.original.myapplication.data.dataClass.GeneratedType
-import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplay
 import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.utility.LogAkitaDebug
 import java.time.LocalDateTime
@@ -421,30 +419,30 @@ fun FilterSheetContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        val availableTypes = listOf(
-            GeneratedType.MANUAL,
-            GeneratedType.REPEAT_ADD,
-            GeneratedType.MAIL_EXTRACTION
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            availableTypes.forEach { type ->
-                FilterChip(
-                    selected = type in generatedTypes,
-                    onClick = {
-                        generatedTypes = if (type in generatedTypes) {
-                            generatedTypes - type
-                        } else {
-                            generatedTypes + type
-                        }
-                    },
-                    label = { Text(convertGeneratedTypeToDisplay(type)) }
-                )
-            }
-        }
+//        val availableTypes = listOf(
+//            GeneratedType.MANUAL,
+//            GeneratedType.REPEAT_ADD,
+//            GeneratedType.MAIL_EXTRACTION
+//        )
+//
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            availableTypes.forEach { type ->
+//                FilterChip(
+//                    selected = type in generatedTypes,
+//                    onClick = {
+//                        generatedTypes = if (type in generatedTypes) {
+//                            generatedTypes - type
+//                        } else {
+//                            generatedTypes + type
+//                        }
+//                    },
+//                    label = { Text(convertGeneratedTypeToDisplay(type)) }
+//                )
+//            }
+//        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

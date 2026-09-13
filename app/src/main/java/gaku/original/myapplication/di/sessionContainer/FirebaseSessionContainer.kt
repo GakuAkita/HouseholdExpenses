@@ -21,8 +21,8 @@ import gaku.original.myapplication.data.repository.mailboxExtraction.FakeMailbox
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
-import gaku.original.myapplication.data.repository.repeatAdd.FakeRepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
+import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepositoryFirestore
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.service.ocr.OcrService
 
@@ -55,7 +55,6 @@ class FirebaseSessionContainer(
     override val payPayReceiptExtractor: Extractor = _paypayReceiptExtractor
     override val payPayReceiptValidator: PayPayReceiptValidator = _paypayReceiptExtractor
 
-
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
         appUser = appUser,
         firestore = firestore
@@ -68,7 +67,10 @@ class FirebaseSessionContainer(
         appUser = appUser,
         firestore = firestore
     )
-    override val repeatAddRepository: RepeatAddRepository = FakeRepeatAddRepository()
+    override val repeatAddRepository: RepeatAddRepository = RepeatAddRepositoryFirestore(
+        appUser = appUser,
+        firestore = firestore
+    )
     override val mailboxExtractionRepository: MailboxExtractionRepository =
         FakeMailboxExtractionRepository()
     override val emailConnectionRepository: EmailConnectionRepository =

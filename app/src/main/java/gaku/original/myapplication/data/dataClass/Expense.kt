@@ -3,19 +3,15 @@ package gaku.original.myapplication.data.dataClass
 import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.Interface.CommonProperty
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import gaku.original.myapplication.utility.separateStringByBars
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Serializable
-@Parcelize
 data class Expense(
     override var id: String? = null,
-    var generatedType: String? = null,//自動生成なのか手動生成なのか
+    var generatedType: GeneratedType? = null,//自動生成なのか手動生成なのか
     var datetime: String? = null,//ISO_LOCAL_DATE_TIME
     override var timestamp: Long? = System.currentTimeMillis(),
     var amount: Long? = null,
@@ -23,7 +19,7 @@ data class Expense(
     var note: String? = null,
     var storeName: String? = null,//必要だったらいれる。
     var itemName: String? = null,//必要だったらいれる
-) : CommonProperty, Parcelable
+) : CommonProperty
 
 @Serializable
 @Parcelize
@@ -34,65 +30,56 @@ data class Category(
     val enabled: Boolean? = true
 ) : CommonProperty, Parcelable
 
+sealed interface GeneratedType {
+    /* サーバー側の関数と一致させる必要がある */
+    val name: String
+    fun toSerialized(): String
 
-val defaultCategory = Category(
-    id = null,
-    timestamp = System.currentTimeMillis(),
-    name = null,
-    enabled = true
-)
+    data object Manual : GeneratedType {
+        override val name: String = "manual"
+        override fun toSerialized(): String = name
+    }
 
+    data class RepeatAdd(val repeatAddId: String) : GeneratedType {
+        override val name: String = "repeat_add"
 
-fun getDefaultExpense(): Expense {
-    return Expense(
-        id = null,
-        /* This should not be used... */
-        datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo")),
-        amount = null,
-        category = null,
-        note = null,
-        generatedType = null
-    )
-}
+        override fun toSerialized(): String = "${name}___${repeatAddId}"
+    }
 
-/* firebase functions側と一致させないとまずい */
-class GeneratedType {
-    companion object {
-        const val AUTO = "auto"
-        const val MANUAL = "manual"
-        const val REPEAT_ADD = "repeat_add" // 繰り返し追加で追加するやつ
-        const val MAIL_EXTRACTION = "mailbox_extraction"
+    data class MailExtraction(val templateTypeName: String) : GeneratedType {
+        override val name: String = "mailbox_extraction"
+        override fun toSerialized(): String = "${name}___${templateTypeName}"
     }
 }
 
-fun convertGeneratedTypeToDisplay(type: String): String {
-    return when (type) {
-        GeneratedType.AUTO -> "自動生成"
-        GeneratedType.MANUAL -> "手動生成"
-        GeneratedType.REPEAT_ADD -> "繰り返し追加"
-        GeneratedType.MAIL_EXTRACTION -> "メール抽出"
-        else -> "不明"
-    }
-}
+//fun convertGeneratedTypeToDisplay(type: String): String {
+//    return when (type) {
+//        GeneratedType.AUTO -> "自動生成"
+//        GeneratedType.MANUAL -> "手動生成"
+//        GeneratedType.REPEAT_ADD -> "繰り返し追加"
+//        GeneratedType.MAIL_EXTRACTION -> "メール抽出"
+//        else -> "不明"
+//    }
+//}
 
 /**
  * これ増えてきたときに、どうしようか。
  * とりあえずはこのままでいいか。data classにしたほうが拡張性は高いらしい
  */
-fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
-    val parts = separateStringByBars(generatedType)
-    return when (parts.size) {
-        2 -> {
-            val mainType = convertGeneratedTypeToDisplay(parts[0])
-            val subType =
-                if (mainType == GeneratedType.MAIL_EXTRACTION) TODO() else ""
-            mainType to subType
-        }
-
-        1 -> convertGeneratedTypeToDisplay(parts[0]) to null
-        else -> "不明" to null
-    }
-}
+//fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
+//    val parts = separateStringByBars(generatedType)
+//    return when (parts.size) {
+//        2 -> {
+//            val mainType = convertGeneratedTypeToDisplay(parts[0])
+//            val subType =
+//                if (mainType == GeneratedType.MAIL_EXTRACTION) TODO() else ""
+//            mainType to subType
+//        }
+//
+//        1 -> convertGeneratedTypeToDisplay(parts[0]) to null
+//        else -> "不明" to null
+//    }
+//}
 
 /**
  * @TODO 今はEmailTemplateTypeだけど、
@@ -110,15 +97,14 @@ fun convertGeneratedTypeToDefaultInstance(generatedType: String): EmailTemplateT
 
     var instance: EmailTemplateType? = null
     when (mainType) {
-        GeneratedType.MAIL_EXTRACTION -> {
-            if (subType != null) {
-                instance = TODO()//getEmailTemplateTypeByNodeName(subType)
-            }
-            /* nodeNameに対応するinstanceを返す */
-        }
+//        GeneratedType.MAIL_EXTRACTION -> {
+//            if (subType != null) {
+//                instance = TODO()//getEmailTemplateTypeByNodeName(subType)
+//            }
+//            /* nodeNameに対応するinstanceを返す */
+//        }
 
-        else -> {
-            /* 何もしないnullのまま */
+        else -> {/* 何もしないnullのまま */
         }
     }
 

@@ -25,7 +25,8 @@ data class RepeatAdd(
 /* This should be moved to Firestore!!! */
 @Serializable
 @Parcelize
-data class Frequency(/* This is only Firestore!! */
+data class Frequency(
+    /* This is only Firestore!! */
     val frequency: String? = null,
     val month: Int? = null,
     val day: Int? = null,//日付
@@ -33,24 +34,3 @@ data class Frequency(/* This is only Firestore!! */
     val hour: Int? = null,
     val minute: Int? = null,
 ) : Parcelable
-
-/* Not used. */
-val defaultFrequency = Frequency(
-    frequency = null,
-    month = null,
-    day = null,
-    dayOfWeek = null,
-    hour = null,
-    minute = null,
-)
-
-val defaultRepeatAdd = RepeatAdd(
-    id = null,
-    timestamp = null,
-    expense = getDefaultExpense().copy(
-        id = null,
-        datetime = null,
-        timestamp = null
-    ),
-    frequencyInfo = null,
-)

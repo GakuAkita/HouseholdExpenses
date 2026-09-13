@@ -70,3 +70,12 @@ class CategoryRepositoryFirestore(
         listenerRegistration.remove()
     }
 }
+
+fun Category.toFirestore(): Map<String, Any?> {
+    return mapOf(
+        "id" to id,
+        "timestamp" to timestamp,
+        "name" to name,
+        "enabled" to enabled
+    )
+}

@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.repository.category.toFirestore
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,16 +97,31 @@ class ExpenseRepositoryFirestore(
     override suspend fun addExpense(expense: Expense): Expense {
         val document = expenseCollection.document()
         val newExpense = expense.copy(id = document.id)
-        document.set(newExpense).await()
+        document.set(newExpense.toFirestore()).await()
         return newExpense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        expenseCollection.document(expense.id!!).set(expense).await()
+        expenseCollection.document(expense.id!!).set(expense.toFirestore()).await()
         return expense
     }
 
     override suspend fun removeExpense(id: String) {
         expenseCollection.document(id).delete().await()
     }
+}
+
+fun Expense.toFirestore(): Map<String, Any?> {
+    /* Firestore functionsとルールを一致させる */
+    return mapOf(
+        "id" to id,
+        "timestamp" to timestamp,
+        "datetime" to datetime,
+        "amount" to amount,
+        "category" to category?.toFirestore(),
+        "note" to note,
+        "storeName" to storeName,
+        "itemName" to itemName,
+        "generatedType" to generatedType?.toSerialized()
+    )
 }
