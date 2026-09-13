@@ -168,6 +168,9 @@ fun ExpenseAddEditScreenRoot(
         onProductNameChange = { index, productName ->
             viewModel.onProductNameChange(index, productName)
         },
+        onPlaceChange = {
+            viewModel.onPlaceNameChange(it)
+        },
         onSaveClick = {
             viewModel.onSaveClick()
         },
@@ -202,6 +205,7 @@ fun ExpenseAddEditScreen(
     onCategoryEditClick: () -> Unit,
     onCategoryRefreshClick: () -> Unit,
     onNoteChange: (Int, String) -> Unit,
+    onPlaceChange: (String) -> Unit,
     onProductNameChange: (Int, String) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -472,7 +476,9 @@ fun ExpenseAddEditScreen(
             TextField(
                 modifier = basicModifier.padding(horizontal = 4.dp, vertical = 4.dp),
                 value = uiState.placeName,
-                onValueChange = {},
+                onValueChange = {
+                    onPlaceChange(it)
+                },
                 label = { Text(text = "Place(空欄可)") },
             )
 
@@ -560,6 +566,7 @@ fun ExpenseAddEditScreenPreview() {
         onCategoryRefreshClick = {},
         onNoteChange = { _, _ -> },
         onProductNameChange = { _, _ -> },
+        onPlaceChange = {},
         onSaveClick = {},
         onDeleteClick = {},
         onAddClick = {}

@@ -60,7 +60,7 @@ class RepeatAddRepositoryFirestore(
     override suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
         val document = repeatAddCollection.document()
         val newRepeatAdd = repeatAdd.copy(id = document.id)
-        document.set(newRepeatAdd).await()
+        document.set(newRepeatAdd.toFirestore()).await()
         return newRepeatAdd
     }
 
@@ -68,7 +68,7 @@ class RepeatAddRepositoryFirestore(
         if (repeatAdd.id == null) {
             throw Exception("Program Error: repeatAdd.id is null when updating")
         }
-        repeatAddCollection.document(repeatAdd.id!!).set(repeatAdd).await()
+        repeatAddCollection.document(repeatAdd.id!!).set(repeatAdd.toFirestore()).await()
         return repeatAdd
     }
 
@@ -78,7 +78,6 @@ class RepeatAddRepositoryFirestore(
 }
 
 fun RepeatAdd.toFirestore(): Map<String, Any?> {
-
     return mapOf(
         "id" to id,
         "timestamp" to timestamp,

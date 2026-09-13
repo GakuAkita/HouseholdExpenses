@@ -52,7 +52,8 @@ data class ExpenseEditItem(
     val amount: Long? = null,
     val category: Category? = null,
     val note: String? = null,
-    val productName: String? = null
+    val productName: String? = null,
+    val placeName: String? = null,
 )
 
 sealed interface ExpenseInputError : AppError {
@@ -134,7 +135,7 @@ class ExpenseAddEditViewModel(
             amount = initialExpense?.amount,
             category = initialExpense?.category,
             note = initialExpense?.note,
-            productName = initialExpense?.itemName,
+            productName = initialExpense?.itemName
         )
 
         /* based on the selected timezone, decide initial Date and Time */
@@ -426,6 +427,14 @@ class ExpenseAddEditViewModel(
                         note = note
                     )
                 }
+            )
+        }
+    }
+
+    fun onPlaceNameChange(placeName: String?) {
+        _uiState.update {
+            it.copy(
+                placeName = placeName ?: ""
             )
         }
     }
