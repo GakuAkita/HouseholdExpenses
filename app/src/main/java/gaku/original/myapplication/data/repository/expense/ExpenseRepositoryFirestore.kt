@@ -154,9 +154,9 @@ fun Map<String, Any?>.toExpense(): Expense {
         datetime = get("datetime") as? String ?: error("datetime is null"),
         amount = get("amount") as? Long ?: error("amount is null"),
         category = categoryRaw?.toCategory(),
-        note = get("note") as? String ?: error("note is null"),
-        storeName = get("storeName") as? String ?: error("storeName is null"),
-        itemName = get("itemName") as? String ?: error("itemName is null"),
+        note = get("note") as? String,
+        storeName = get("storeName") as? String,
+        itemName = get("itemName") as? String,
         generatedType = generatedType?.toGeneratedType() ?: error("generatedType is null")
     )
 }

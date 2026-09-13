@@ -3,10 +3,11 @@ package gaku.original.myapplication.data.repository.repeatAdd
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
 import gaku.original.myapplication.data.dataClass.toRepeatFrequency
-import gaku.original.myapplication.data.repository.expense.toExpense
+import gaku.original.myapplication.data.repository.category.toCategory
 import gaku.original.myapplication.data.repository.expense.toFirestore
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +38,7 @@ class RepeatAddRepositoryFirestore(
             if (snapshots == null) return@addSnapshotListener
 
             val repeatAdds = snapshots.documents.mapNotNull { doc ->
-                doc.toObject(RepeatAdd::class.java)
-                    ?.let { doc.id to it }
+                doc.toRepeatAdd().let { doc.id to it }
             }.toMap()
 
             _repeatAdds.value = repeatAdds
@@ -95,7 +95,18 @@ fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
     return RepeatAdd(
         id = getString("id"),
         timestamp = getLong("timestamp"),
-        expense = expenseRaw?.toExpense() ?: error("expense is null"),
+        expense = expenseRaw?.toExpenseForRepeatAdd() ?: error("expense is null"),
         frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
+    )
+}
+
+fun Map<String, Any?>.toExpenseForRepeatAdd(): Expense {
+    val categoryRaw = get("category") as? Map<String, Any?>
+    return Expense(
+        category = categoryRaw?.toCategory() ?: error("category is null"),
+        amount = get("amount") as Long? ?: error("amount is null"),
+        storeName = get("storeName") as String?,
+        itemName = get("itemName") as String?,
+        note = get("note") as String?,
     )
 }

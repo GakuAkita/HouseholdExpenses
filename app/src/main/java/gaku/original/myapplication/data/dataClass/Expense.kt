@@ -3,8 +3,6 @@ package gaku.original.myapplication.data.dataClass
 import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.data.Interface.CommonProperty
-import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
-import gaku.original.myapplication.utility.separateStringByBars
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -76,65 +74,6 @@ fun String.toGeneratedType(): GeneratedType {
 
         else -> throw IllegalArgumentException("Invalid GeneratedType: $this")
     }
-}
-
-//fun convertGeneratedTypeToDisplay(type: String): String {
-//    return when (type) {
-//        GeneratedType.AUTO -> "自動生成"
-//        GeneratedType.MANUAL -> "手動生成"
-//        GeneratedType.REPEAT_ADD -> "繰り返し追加"
-//        GeneratedType.MAIL_EXTRACTION -> "メール抽出"
-//        else -> "不明"
-//    }
-//}
-
-/**
- * これ増えてきたときに、どうしようか。
- * とりあえずはこのままでいいか。data classにしたほうが拡張性は高いらしい
- */
-//fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
-//    val parts = separateStringByBars(generatedType)
-//    return when (parts.size) {
-//        2 -> {
-//            val mainType = convertGeneratedTypeToDisplay(parts[0])
-//            val subType =
-//                if (mainType == GeneratedType.MAIL_EXTRACTION) TODO() else ""
-//            mainType to subType
-//        }
-//
-//        1 -> convertGeneratedTypeToDisplay(parts[0]) to null
-//        else -> "不明" to null
-//    }
-//}
-
-/**
- * @TODO 今はEmailTemplateTypeだけど、
- * 将来的にPayPayとか他の方法で取るようになったときには
- * 共通のinterfaceを定義してそれを返り値にする。
- */
-fun convertGeneratedTypeToDefaultInstance(generatedType: String): EmailTemplateType? {
-    val parts = separateStringByBars(generatedType)
-    val mainType = parts.getOrNull(0)/* GeneratedType */
-    val subType = parts.getOrNull(1) /* nodeName */
-
-    if (mainType == null) {
-        return null
-    }
-
-    var instance: EmailTemplateType? = null
-    when (mainType) {
-//        GeneratedType.MAIL_EXTRACTION -> {
-//            if (subType != null) {
-//                instance = TODO()//getEmailTemplateTypeByNodeName(subType)
-//            }
-//            /* nodeNameに対応するinstanceを返す */
-//        }
-
-        else -> {/* 何もしないnullのまま */
-        }
-    }
-
-    return instance
 }
 
 object InitialCategories {
