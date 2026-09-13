@@ -67,7 +67,7 @@ fun RepeatAddScreenRoot(
         onBackNavClick = {
             navHostController.popBackStack()
         },
-        onRepeatAddEdit = { it ->
+        onRepeatAddEdit = {
             navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
         },
         onRepeatAddDelete = {
@@ -127,7 +127,7 @@ fun RepeatAddScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-                LazyColumn() {
+                LazyColumn {
                     itemsIndexed(
                         uiState.repeatAdds,
                         /* if key is not assigned, not properly recomposed. */

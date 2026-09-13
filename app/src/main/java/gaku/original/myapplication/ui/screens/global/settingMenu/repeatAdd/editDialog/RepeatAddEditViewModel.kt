@@ -151,16 +151,89 @@ class RepeatAddEditViewModel(
                 )
             }
         } else {
-            //編集
-            _uiState.update {
-                it.copy(
-                    amount = initialRepeatAdd.expense.amount,
-                    note = initialRepeatAdd.expense.note,
-                    itemName = initialRepeatAdd.expense.itemName,
-                    storeName = initialRepeatAdd.expense.storeName,
-                    category = initialRepeatAdd.expense.category,
-                    frequency = initialRepeatAdd.frequencyInfo
-                )
+            try {
+                val freq = initialRepeatAdd.frequencyInfo
+                //編集
+                _uiState.update {
+                    it.copy(
+                        amount = initialRepeatAdd.expense.amount,
+                        note = initialRepeatAdd.expense.note,
+                        itemName = initialRepeatAdd.expense.itemName,
+                        storeName = initialRepeatAdd.expense.storeName,
+                        category = initialRepeatAdd.expense.category,
+                        frequency = initialRepeatAdd.frequencyInfo,
+                    )
+                }
+                /* assign time parameters to the UI state */
+                when (freq) {
+                    is RepeatFrequency.EveryYear -> {
+                        _uiState.update {
+                            it.copy(
+                                month = freq.month,
+                                day = freq.day,
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    is RepeatFrequency.EveryMonth -> {
+                        _uiState.update {
+                            it.copy(
+                                day = freq.day,
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    is RepeatFrequency.Everyday -> {
+                        _uiState.update {
+                            it.copy(
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    is RepeatFrequency.EveryWeek -> {
+                        _uiState.update {
+                            it.copy(
+                                dayOfWeek = freq.dayOfWeek,
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    is RepeatFrequency.Weekends -> {
+                        _uiState.update {
+                            it.copy(
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    is RepeatFrequency.Weekdays -> {
+                        _uiState.update {
+                            it.copy(
+                                hour = freq.hour,
+                                minute = freq.minute
+                            )
+                        }
+                    }
+
+                    null -> {
+                        throw Exception("Coding Error: Frequency is not assigned")
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message
+                    )
+                }
             }
         }
     }
@@ -359,8 +432,7 @@ class RepeatAddEditViewModel(
                     )
                 }
                 val current = _uiState.value
-                val ret = current.toRepeatAdd(initialRepeatAdd)
-                when (ret) {
+                when (val ret = current.toRepeatAdd(initialRepeatAdd)) {
                     is AppResult.Success -> {
                         val newRepeatAdd = ret.value
                         if (newRepeatAdd.id == null) {
