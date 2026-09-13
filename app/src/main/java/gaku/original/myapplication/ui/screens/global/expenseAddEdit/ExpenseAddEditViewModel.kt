@@ -10,6 +10,7 @@ import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
@@ -120,7 +121,6 @@ class ExpenseAddEditViewModel(
 
     private val _uiState = MutableStateFlow(ExpenseAddEditUiState())
     val uiState get() = _uiState.asStateFlow()
-
 
     init {
         Timber.d("Created. ${hashCode()}")
@@ -497,36 +497,27 @@ class ExpenseAddEditViewModel(
         val datetime = localDateTime.toIsoUtcString(zoneId)
 
         return state.expenseEditList.mapIndexed { index, item ->
+            val baseExpense = Expense(
+                datetime = datetime,
+                amount = item.amount,
+                category = item.category,
+                note = item.note,
+                itemName = item.productName,
+                storeName = state.placeName,
+                generatedType = initialExpense?.generatedType ?: GeneratedType.Manual
+            )
             if (state.isEdit) {
                 if (index == 0) {
-                    initialExpense!!.copy(
-                        datetime = datetime,
-                        amount = item.amount,
-                        category = item.category,
-                        note = item.note,
-                        itemName = item.productName,
-                        storeName = state.placeName
-                    )
+                    baseExpense
                 } else {
                     /* This is the new expense */
-                    initialExpense!!.copy(
-                        id = null,
-                        datetime = datetime,
-                        amount = item.amount,
-                        category = item.category,
-                        note = item.note,
-                        itemName = item.productName,
-                        storeName = state.placeName
+                    baseExpense.copy(
+                        id = null
                     )
                 }
             } else {
-                Expense(
-                    id = null,
-                    datetime = datetime,
-                    amount = item.amount,
-                    category = item.category,
-                    note = item.note,
-                    storeName = item.productName
+                baseExpense.copy(
+                    id = null
                 )
             }
         }
@@ -543,7 +534,8 @@ class ExpenseAddEditViewModel(
             if (validate is AppResult.Failure) {
                 _uiState.update {
                     it.copy(
-                        message = validate.error.message
+                        message = validate.error.message,
+                        isLoading = false
                     )
                 }
                 return
@@ -552,6 +544,7 @@ class ExpenseAddEditViewModel(
             viewModelScope.launch {
                 try {
                     val expenses = generateExpense()
+                    Timber.d("Expenses generated:${expenses}")
                     for (expense in expenses) {
                         if (expense.id == null) {
                             expenseRepository.addExpense(expense)
@@ -561,10 +554,12 @@ class ExpenseAddEditViewModel(
                     }
                     _uiState.update {
                         it.copy(
-                            isSaveDone = true
+                            isSaveDone = true,
+                            message = "Expense Saved"
                         )
                     }
                 } catch (e: Exception) {
+                    Timber.d("Catched error:${e.message}")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -573,29 +568,12 @@ class ExpenseAddEditViewModel(
                     }
                 }
             }
-
-            _uiState.update {
-                it.copy(
-                    isSaveDone = true,
-                    message = "Expense Saved"
-                )
-            }
         } catch (e: Exception) {
             _uiState.update {
                 it.copy(
+                    isLoading = false,
                     message = e.message
                 )
-            }
-        } finally {
-            _uiState.update {
-                /* if isSaveDone, don't reverse Loading status. */
-                if (it.isSaveDone) {
-                    it
-                } else {
-                    it.copy(
-                        isLoading = false
-                    )
-                }
             }
         }
     }

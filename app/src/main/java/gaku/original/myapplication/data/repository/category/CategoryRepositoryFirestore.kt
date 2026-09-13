@@ -32,10 +32,9 @@ class CategoryRepositoryFirestore(
             val categories = snapshots.documents
                 .mapNotNull { document ->
                     Timber.d("document=$document")
-                    document.toObject(Category::class.java)
-                        ?.let { document.id to it }
+                    document.data?.toCategory()
                 }
-                .toMap()
+                .associateBy { it.id!! }
 
             Timber.d("categories=$categories")
             _categories.value = categories
@@ -77,5 +76,15 @@ fun Category.toFirestore(): Map<String, Any?> {
         "timestamp" to timestamp,
         "name" to name,
         "enabled" to enabled
+    )
+}
+
+fun Map<String, Any?>.toCategory(): Category {
+
+    return Category(
+        id = get("id") as? String ?: error("id is null"),
+        name = get("name") as? String ?: error("name is null"),
+        timestamp = get("timestamp") as? Long ?: error("timestamp is null"),
+        enabled = get("enabled") as? Boolean ?: error("enabled is null")
     )
 }

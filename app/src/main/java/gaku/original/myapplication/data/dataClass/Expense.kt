@@ -30,15 +30,18 @@ data class Category(
     val enabled: Boolean? = true
 ) : CommonProperty, Parcelable
 
+@Serializable
 sealed interface GeneratedType {
     /* サーバー側の関数と一致させる必要がある */
     fun toSerialized(): String
 
+    @Serializable
     data object Manual : GeneratedType {
         const val NAME = "manual"
         override fun toSerialized(): String = NAME
     }
 
+    @Serializable
     data class RepeatAdd(val repeatAddId: String) : GeneratedType {
         companion object {
             val NAME = "repeat_add"
@@ -47,6 +50,7 @@ sealed interface GeneratedType {
         override fun toSerialized(): String = "${NAME}___${repeatAddId}"
     }
 
+    @Serializable
     data class MailExtraction(val templateTypeName: String) : GeneratedType {
         companion object {
             val NAME = "mail_extraction"

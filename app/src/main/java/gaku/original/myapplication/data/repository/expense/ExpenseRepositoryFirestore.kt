@@ -1,10 +1,13 @@
 package gaku.original.myapplication.data.repository.expense
 
 import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.toGeneratedType
+import gaku.original.myapplication.data.repository.category.toCategory
 import gaku.original.myapplication.data.repository.category.toFirestore
 import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,7 +69,7 @@ class ExpenseRepositoryFirestore(
                     currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
                 for (dc in snapshots.documentChanges) {
-                    val expense = dc.document.toObject(Expense::class.java)
+                    val expense = dc.document.toExpense()
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                             subscriptionExpenses[expense.id!!] = expense
@@ -95,6 +98,7 @@ class ExpenseRepositoryFirestore(
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
+        Timber.d("addExpense: ${expense.toFirestore()}")
         val document = expenseCollection.document()
         val newExpense = expense.copy(id = document.id)
         document.set(newExpense.toFirestore()).await()
@@ -126,3 +130,17 @@ fun Expense.toFirestore(): Map<String, Any?> {
     )
 }
 
+fun DocumentSnapshot.toExpense(): Expense {
+    val categoryRaw = get("category") as? Map<String, Any?>
+    return Expense(
+        id = getString("id"),
+        timestamp = getLong("timestamp"),
+        datetime = getString("datetime"),
+        amount = getLong("amount"),
+        category = categoryRaw?.toCategory(),
+        note = getString("note"),
+        storeName = getString("storeName"),
+        itemName = getString("itemName"),
+        generatedType = getString("generatedType")?.toGeneratedType()
+    )
+}
