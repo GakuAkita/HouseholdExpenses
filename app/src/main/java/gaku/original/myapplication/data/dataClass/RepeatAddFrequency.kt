@@ -4,6 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import timber.log.Timber
+import java.time.DayOfWeek
 
 /**
  * kotlin(java) DayOfWeek can't be serialized.
@@ -52,7 +53,7 @@ sealed interface RepeatFrequency : Parcelable {
     @Serializable
     @Parcelize
     data class EveryWeek(
-        val dayOfWeek: List<DayOfWeekSerializable> = emptyList(),
+        val dayOfWeek: List<DayOfWeek> = listOf(),
         val hour: Int = 0,
         val minute: Int = 0
     ) : RepeatFrequency {
@@ -200,9 +201,14 @@ fun Map<String, Any?>.toRepeatFrequency(): RepeatFrequency {
         }
 
         RepeatFrequency.EveryWeek.NAME -> {
+            /* data is stored as List<String>. Then explicitly convert it to List<DayOfWeek> */
+            /* Warning: Only Firestore. If different DB is used, split this function */
+            val dayOfWeekAsString = get("dayOfWeek") as? List<String> ?: error("dayOfWeek is null")
+            val dayOfWeek = dayOfWeekAsString.map {
+                DayOfWeek.valueOf(it)
+            }
             RepeatFrequency.EveryWeek(
-                dayOfWeek = get("dayOfWeek") as? List<DayOfWeekSerializable>
-                    ?: error("dayOfWeek is null"),
+                dayOfWeek = dayOfWeek,
                 hour = hour ?: error("hour is null"),
                 minute = minute ?: error("minute is null")
             )

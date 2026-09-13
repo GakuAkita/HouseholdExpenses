@@ -44,6 +44,7 @@ import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.IntegerTextField
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
+import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -128,7 +129,7 @@ fun RepeatAddEditDialog(
     onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
     onMonthChange: (String) -> Unit,
     onDayChange: (String) -> Unit,
-    onDayOfWeekChange: (DayOfWeekSerializable, Boolean) -> Unit,
+    onDayOfWeekChange: (DayOfWeek, Boolean) -> Unit,
     onHourChange: (String) -> Unit,
     onMinuteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
@@ -297,7 +298,7 @@ fun RepeatAddEditDialog(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                DayOfWeekSerializable.entries.forEach {
+                                DayOfWeek.entries.forEach {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
