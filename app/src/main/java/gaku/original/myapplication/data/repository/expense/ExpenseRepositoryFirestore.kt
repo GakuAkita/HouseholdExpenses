@@ -133,14 +133,30 @@ fun Expense.toFirestore(): Map<String, Any?> {
 fun DocumentSnapshot.toExpense(): Expense {
     val categoryRaw = get("category") as? Map<String, Any?>
     return Expense(
-        id = getString("id"),
+        id = getString("id") ?: error("id is null"),
         timestamp = getLong("timestamp"),
-        datetime = getString("datetime"),
+        datetime = getString("datetime") ?: error("datetime is null"),
         amount = getLong("amount"),
         category = categoryRaw?.toCategory(),
         note = getString("note"),
         storeName = getString("storeName"),
         itemName = getString("itemName"),
         generatedType = getString("generatedType")?.toGeneratedType()
+    )
+}
+
+fun Map<String, Any?>.toExpense(): Expense {
+    val categoryRaw = get("category") as? Map<String, Any?>
+    val generatedType = get("generatedType") as? String?
+    return Expense(
+        id = get("id") as? String ?: error("id is null"),
+        timestamp = get("timestamp") as? Long ?: error("timestamp is null"),
+        datetime = get("datetime") as? String ?: error("datetime is null"),
+        amount = get("amount") as? Long ?: error("amount is null"),
+        category = categoryRaw?.toCategory(),
+        note = get("note") as? String ?: error("note is null"),
+        storeName = get("storeName") as? String ?: error("storeName is null"),
+        itemName = get("itemName") as? String ?: error("itemName is null"),
+        generatedType = generatedType?.toGeneratedType() ?: error("generatedType is null")
     )
 }

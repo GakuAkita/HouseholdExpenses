@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.repository.repeatAdd
 
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.RepeatAdd
@@ -84,4 +85,8 @@ fun RepeatAdd.toFirestore(): Map<String, Any?> {
         "expense" to expense.toFirestore(),
         "frequencyInfo" to frequencyInfo?.toFirestore()
     )
+}
+
+fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
+    
 }
