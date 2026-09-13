@@ -10,6 +10,7 @@ import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.DayOfWeekSerializable
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 data class RepeatAddEditDialogState(
@@ -41,7 +41,7 @@ data class RepeatAddEditDialogState(
 
     val month: Int? = null,
     val day: Int? = null,
-    val dayOfWeek: List<DayOfWeek> = emptyList(),
+    val dayOfWeek: List<DayOfWeekSerializable> = emptyList(),
     val hour: Int? = null,
     val minute: Int? = null
 )
@@ -479,7 +479,7 @@ class RepeatAddEditViewModel(
         }
     }
 
-    fun onDayOfWeekChange(dayOfWeek: DayOfWeek, status: Boolean) {
+    fun onDayOfWeekChange(dayOfWeek: DayOfWeekSerializable, status: Boolean) {
         val current = _uiState.value.dayOfWeek
         if (status) {
             _uiState.update {

@@ -4,7 +4,21 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import timber.log.Timber
-import java.time.DayOfWeek
+
+/**
+ * kotlin(java) DayOfWeek can't be serialized.
+ * I create new class to serialize it.
+ */
+@Serializable
+enum class DayOfWeekSerializable {
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY,
+    SUNDAY
+}
 
 @Serializable
 @Parcelize
@@ -38,7 +52,7 @@ sealed interface RepeatFrequency : Parcelable {
     @Serializable
     @Parcelize
     data class EveryWeek(
-        val dayOfWeek: List<DayOfWeek> = emptyList(),
+        val dayOfWeek: List<DayOfWeekSerializable> = emptyList(),
         val hour: Int = 0,
         val minute: Int = 0
     ) : RepeatFrequency {
@@ -187,7 +201,8 @@ fun Map<String, Any?>.toRepeatFrequency(): RepeatFrequency {
 
         RepeatFrequency.EveryWeek.NAME -> {
             RepeatFrequency.EveryWeek(
-                dayOfWeek = get("dayOfWeek") as? List<DayOfWeek> ?: error("dayOfWeek is null"),
+                dayOfWeek = get("dayOfWeek") as? List<DayOfWeekSerializable>
+                    ?: error("dayOfWeek is null"),
                 hour = hour ?: error("hour is null"),
                 minute = minute ?: error("minute is null")
             )

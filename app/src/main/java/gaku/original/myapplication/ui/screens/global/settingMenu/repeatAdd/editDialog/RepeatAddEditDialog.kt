@@ -38,12 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.DayOfWeekSerializable
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.IntegerTextField
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
-import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -128,7 +128,7 @@ fun RepeatAddEditDialog(
     onRepeatFrequencySelected: (RepeatFrequency) -> Unit,
     onMonthChange: (String) -> Unit,
     onDayChange: (String) -> Unit,
-    onDayOfWeekChange: (DayOfWeek, Boolean) -> Unit,
+    onDayOfWeekChange: (DayOfWeekSerializable, Boolean) -> Unit,
     onHourChange: (String) -> Unit,
     onMinuteChange: (String) -> Unit,
     onSaveClick: () -> Unit,
@@ -297,7 +297,7 @@ fun RepeatAddEditDialog(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                DayOfWeek.entries.forEach {
+                                DayOfWeekSerializable.entries.forEach {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
@@ -448,4 +448,67 @@ fun RepeatFrequencyDropDownMenuItem(freq: RepeatFrequency, onClick: (RepeatFrequ
             onClick(freq)
         }
     )
+}
+
+fun DayOfWeekSerializable.getDisplayName(
+    style: TextStyle,
+    locale: Locale
+): String {
+    return when (locale) {
+        Locale.JAPAN -> {
+            when (style) {
+                TextStyle.FULL -> when (this) {
+                    DayOfWeekSerializable.MONDAY -> "月曜日"
+                    DayOfWeekSerializable.TUESDAY -> "火曜日"
+                    DayOfWeekSerializable.WEDNESDAY -> "水曜日"
+                    DayOfWeekSerializable.THURSDAY -> "木曜日"
+                    DayOfWeekSerializable.FRIDAY -> "金曜日"
+                    DayOfWeekSerializable.SATURDAY -> "土曜日"
+                    DayOfWeekSerializable.SUNDAY -> "日曜日"
+                }
+
+                TextStyle.SHORT -> when (this) {
+                    DayOfWeekSerializable.MONDAY -> "月"
+                    DayOfWeekSerializable.TUESDAY -> "火"
+                    DayOfWeekSerializable.WEDNESDAY -> "水"
+                    DayOfWeekSerializable.THURSDAY -> "木"
+                    DayOfWeekSerializable.FRIDAY -> "金"
+                    DayOfWeekSerializable.SATURDAY -> "土"
+                    DayOfWeekSerializable.SUNDAY -> "日"
+                }
+
+                else -> throw Exception("Unsupported TextStyle:$style")
+            }
+        }
+
+        Locale.ENGLISH -> {
+            when (style) {
+                TextStyle.FULL -> when (this) {
+                    DayOfWeekSerializable.MONDAY -> "Monday"
+                    DayOfWeekSerializable.TUESDAY -> "Tuesday"
+                    DayOfWeekSerializable.WEDNESDAY -> "Wednesday"
+                    DayOfWeekSerializable.THURSDAY -> "Thursday"
+                    DayOfWeekSerializable.FRIDAY -> "Friday"
+                    DayOfWeekSerializable.SATURDAY -> "Saturday"
+                    DayOfWeekSerializable.SUNDAY -> "Sunday"
+                }
+
+                TextStyle.SHORT -> when (this) {
+                    DayOfWeekSerializable.MONDAY -> "Mon"
+                    DayOfWeekSerializable.TUESDAY -> "Tue"
+                    DayOfWeekSerializable.WEDNESDAY -> "Wed"
+                    DayOfWeekSerializable.THURSDAY -> "Thu"
+                    DayOfWeekSerializable.FRIDAY -> "Fri"
+                    DayOfWeekSerializable.SATURDAY -> "Sat"
+                    DayOfWeekSerializable.SUNDAY -> "Sun"
+                }
+
+                else -> throw Exception("Unsupported TextStyle:$style")
+            }
+        }
+
+        else -> {
+            throw Exception("Unsupported Locale:$locale")
+        }
+    }
 }
