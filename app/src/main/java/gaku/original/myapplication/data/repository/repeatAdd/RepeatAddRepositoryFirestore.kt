@@ -38,6 +38,7 @@ class RepeatAddRepositoryFirestore(
             if (snapshots == null) return@addSnapshotListener
 
             val repeatAdds = snapshots.documents.mapNotNull { doc ->
+                Timber.d("RepeatAdd: ${doc.toRepeatAdd()}")
                 doc.toRepeatAdd().let { doc.id to it }
             }.toMap()
 
