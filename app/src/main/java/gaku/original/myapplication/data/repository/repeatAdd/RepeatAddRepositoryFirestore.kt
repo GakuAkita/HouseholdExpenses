@@ -4,8 +4,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
+import gaku.original.myapplication.data.repository.expense.toFirestore
 import gaku.original.myapplication.domain.AppUser
-import gaku.original.myapplication.utility.toMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
@@ -82,7 +82,7 @@ fun RepeatAdd.toFirestore(): Map<String, Any?> {
     return mapOf(
         "id" to id,
         "timestamp" to timestamp,
-        "expense" to expense.toMap(),
+        "expense" to expense.toFirestore(),
         "frequencyInfo" to frequencyInfo?.toFirestore()
     )
 }

@@ -1,11 +1,9 @@
 package gaku.original.myapplication.ui.screens.bottom.search
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,11 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
-import gaku.original.myapplication.data.dataClass.convertGeneratedTypeToDisplayName
 import gaku.original.myapplication.utility.LogAkitaDebug
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -580,40 +575,40 @@ fun FilterSheetContent(
     }
 }
 
-@Composable
-fun SearchedExpenseItem(
-    expense: Expense,
-    onClick: (Expense) -> Unit = {}
-) {
-    val fontSize = 18.sp
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 50.dp) // 最小高さを指定
-            .clickable { onClick(expense) }
-            .padding(10.dp)
-    ) {
-        val localDateTime: LocalDateTime = TODO()
-        if (localDateTime == null) {
-            Text(modifier = Modifier.weight(1f), text = "datetime error", fontSize = fontSize)
-        } else {
-            val year = localDateTime.year
-            val month = localDateTime.monthValue
-            val day = localDateTime.dayOfMonth
-            Text("$year/$month/$day", modifier = Modifier.weight(1f), fontSize = fontSize)
-        }
-        Text("${expense.amount}円", modifier = Modifier.weight(1f), fontSize = fontSize)
-
-        val generatedType: String? = expense.generatedType
-        if (generatedType == null) {
-            Text("タイプエラー", modifier = Modifier.weight(1f), fontSize = fontSize)
-        } else {
-            val (mainType, subType) = convertGeneratedTypeToDisplayName(generatedType)
-            Text(
-                if (subType != null) "${mainType}/${subType}" else mainType,
-                modifier = Modifier.weight(1f),
-                fontSize = fontSize
-            )
-        }
-    }
-}
+//@Composable
+//fun SearchedExpenseItem(
+//    expense: Expense,
+//    onClick: (Expense) -> Unit = {}
+//) {
+//    val fontSize = 18.sp
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .defaultMinSize(minHeight = 50.dp) // 最小高さを指定
+//            .clickable { onClick(expense) }
+//            .padding(10.dp)
+//    ) {
+//        val localDateTime: LocalDateTime = TODO()
+//        if (localDateTime == null) {
+//            Text(modifier = Modifier.weight(1f), text = "datetime error", fontSize = fontSize)
+//        } else {
+//            val year = localDateTime.year
+//            val month = localDateTime.monthValue
+//            val day = localDateTime.dayOfMonth
+//            Text("$year/$month/$day", modifier = Modifier.weight(1f), fontSize = fontSize)
+//        }
+//        Text("${expense.amount}円", modifier = Modifier.weight(1f), fontSize = fontSize)
+//
+//        val generatedType: String? = expense.generatedType
+//        if (generatedType == null) {
+//            Text("タイプエラー", modifier = Modifier.weight(1f), fontSize = fontSize)
+//        } else {
+//            val (mainType, subType) = convertGeneratedTypeToDisplayName(generatedType)
+//            Text(
+//                if (subType != null) "${mainType}/${subType}" else mainType,
+//                modifier = Modifier.weight(1f),
+//                fontSize = fontSize
+//            )
+//        }
+//    }
+//}

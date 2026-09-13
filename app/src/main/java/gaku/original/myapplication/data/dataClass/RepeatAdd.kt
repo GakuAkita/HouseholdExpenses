@@ -6,7 +6,6 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Parcelize
 data class RepeatAdd(
     override var id: String? = null,
     override var timestamp: Long? = null,/* When this RepeatAdd was registered */
@@ -20,7 +19,7 @@ data class RepeatAdd(
      * yearly:何月何日の何時?
      */
     /* Timezone ID, e.g., "Asia/Tokyo" */
-) : CommonProperty, Parcelable
+) : CommonProperty
 
 /* This should be moved to Firestore!!! */
 @Serializable

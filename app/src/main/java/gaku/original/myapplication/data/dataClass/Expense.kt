@@ -32,23 +32,45 @@ data class Category(
 
 sealed interface GeneratedType {
     /* サーバー側の関数と一致させる必要がある */
-    val name: String
     fun toSerialized(): String
 
     data object Manual : GeneratedType {
-        override val name: String = "manual"
-        override fun toSerialized(): String = name
+        const val NAME = "manual"
+        override fun toSerialized(): String = NAME
     }
 
     data class RepeatAdd(val repeatAddId: String) : GeneratedType {
-        override val name: String = "repeat_add"
+        companion object {
+            val NAME = "repeat_add"
+        }
 
-        override fun toSerialized(): String = "${name}___${repeatAddId}"
+        override fun toSerialized(): String = "${NAME}___${repeatAddId}"
     }
 
     data class MailExtraction(val templateTypeName: String) : GeneratedType {
-        override val name: String = "mailbox_extraction"
-        override fun toSerialized(): String = "${name}___${templateTypeName}"
+        companion object {
+            val NAME = "mail_extraction"
+        }
+
+        override fun toSerialized(): String = "${NAME}___${templateTypeName}"
+    }
+}
+
+fun String.toGeneratedType(): GeneratedType {
+    val parts = split("___", limit = 2)
+    return when (parts[0]) {
+        GeneratedType.Manual.NAME -> GeneratedType.Manual
+        GeneratedType.RepeatAdd.NAME -> GeneratedType.RepeatAdd(
+            repeatAddId = parts.getOrNull(1)
+                ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
+        )
+
+        GeneratedType.MailExtraction.NAME -> GeneratedType.MailExtraction(
+            templateTypeName = parts.getOrNull(1)
+                ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
+        )
+
+        else -> throw IllegalArgumentException("Invalid GeneratedType: $this")
     }
 }
 

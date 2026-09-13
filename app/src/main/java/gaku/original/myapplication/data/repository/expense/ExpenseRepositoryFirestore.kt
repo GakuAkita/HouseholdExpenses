@@ -125,3 +125,4 @@ fun Expense.toFirestore(): Map<String, Any?> {
         "generatedType" to generatedType?.toSerialized()
     )
 }
+
