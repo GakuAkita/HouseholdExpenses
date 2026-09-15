@@ -17,8 +17,8 @@ import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionR
 import gaku.original.myapplication.data.repository.emailConnect.FakeEmailConnectionRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepositoryFirestore
-import gaku.original.myapplication.data.repository.mailboxExtraction.FakeMailboxExtractionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
+import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.paypayReceipt.FakePayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
@@ -72,7 +72,10 @@ class FirebaseSessionContainer(
         firestore = firestore
     )
     override val mailboxExtractionRepository: MailboxExtractionRepository =
-        FakeMailboxExtractionRepository()
+        MailboxExtractionRepositoryRealtimeDb(
+            appUser = appUser,
+            firebaseRealtimeDb = firebaseRealtimeDb
+        )
     override val emailConnectionRepository: EmailConnectionRepository =
         FakeEmailConnectionRepository()
 
