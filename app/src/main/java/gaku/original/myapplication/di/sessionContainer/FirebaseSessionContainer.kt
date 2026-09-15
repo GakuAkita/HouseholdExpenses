@@ -5,6 +5,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
+import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -41,6 +43,16 @@ class FirebaseSessionContainer(
         }
     }
 
+    private val firestoreReference = FirestoreUserReference(
+        firestore = firestore,
+        appUser = appUser
+    )
+
+    private val realtimeDbReference = RealtimeDbUserReference(
+        appUser = appUser,
+        realtimeDb = firebaseRealtimeDb
+    )
+
     /* order is important */
     private val _paypayReceiptConfigRepository = FakePayPayReceiptConfigRepository()
 
@@ -57,11 +69,11 @@ class FirebaseSessionContainer(
 
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
         appUser = appUser,
-        firestore = firestore
+        firestoreReference
     )
     override val expenseRepository: ExpenseRepository = ExpenseRepositoryFirestore(
         appUser = appUser,
-        firestore = firestore
+        firestoreReference
     )
     override val appTimeZoneRepository: AppTimeZoneRepository = AppTimeZoneRepositoryFirestore(
         appUser = appUser,

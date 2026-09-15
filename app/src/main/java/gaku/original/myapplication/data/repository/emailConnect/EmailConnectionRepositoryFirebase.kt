@@ -11,7 +11,9 @@ class EmailConnectionRepositoryFirebase(
     private val firebaseAuth: FirebaseAuth,
     private val firebaseRealtimeDb: FirebaseDatabase
 ) : EmailConnectionRepository {
-    private val reference = firebaseRealtimeDb.reference.child("users").
+    private val reference =
+        firebaseRealtimeDb.reference.child("users").child(firebaseAuth.currentUser!!.uid)
+            .child("mailgox_extraction")
 
     private fun generateOAuthUrl(idToken: String): String {
         val baseUrl = "https://accounts.google.com/o/oauth2/v2/auth"

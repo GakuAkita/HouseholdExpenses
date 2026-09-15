@@ -2,11 +2,11 @@ package gaku.original.myapplication.data.repository.expense
 
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.toGeneratedType
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.category.toCategory
 import gaku.original.myapplication.data.repository.category.toFirestore
 import gaku.original.myapplication.domain.AppUser
@@ -17,11 +17,10 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 class ExpenseRepositoryFirestore(
-    appUser: AppUser, firestore: FirebaseFirestore
+    appUser: AppUser,
+    reference: FirestoreUserReference
 ) : ExpenseRepository {
-    private val expenseCollection = firestore.collection("users").document(appUser.id!!).collection(
-        "expenses"
-    )
+    private val expenseCollection = reference.expenseReference
 
     /* key is subscription id. */
     private val listeners = mutableMapOf<String, ListenerRegistration>()
