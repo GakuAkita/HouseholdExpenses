@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.firebaseReference
 
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.domain.AppUser
@@ -13,13 +14,14 @@ class FirestoreUserReference(
 ) {
     val firestoreUser = firestore.collection("users").document(appUser.id!!)
 
-    val expenseReference = firestoreUser.collection("expenses")
+    val expenseCollection = firestoreUser.collection("expenses")
 
-    val categoryReference = firestoreUser.collection("categories")
+    val categoryCollection = firestoreUser.collection("categories")
 
-    val userPreferencesReference = firestoreUser.collection("settings").document("user_preferences")
+    val settingsCollection = firestoreUser.collection("settings")
+    val userPreferencesDocument = settingsCollection.document("user_preferences")
 
-    val
+    val repeatAddCollection = firestoreUser.collection("repeat_add")
 }
 
 class RealtimeDbUserReference(
@@ -28,4 +30,14 @@ class RealtimeDbUserReference(
 ) {
     val realtimeDbUser = realtimeDb.reference.child("users").child(appUser.id!!)
 
+    val mailboxExtractionReference = realtimeDbUser.child("mailbox_extraction")
+
+    val emailTemplateSettingsReference = mailboxExtractionReference.child("email_template_settings")
+
+
+    val gmailTokensReference = mailboxExtractionReference.child("gmail_tokens")
+
+    fun singleGmailTokenReference(id: String): DatabaseReference {
+        return gmailTokensReference.child(id)
+    }
 }

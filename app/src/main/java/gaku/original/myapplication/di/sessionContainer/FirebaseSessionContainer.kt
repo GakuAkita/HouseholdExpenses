@@ -68,25 +68,20 @@ class FirebaseSessionContainer(
     override val payPayReceiptValidator: PayPayReceiptValidator = _paypayReceiptExtractor
 
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
-        appUser = appUser,
         firestoreReference
     )
     override val expenseRepository: ExpenseRepository = ExpenseRepositoryFirestore(
-        appUser = appUser,
         firestoreReference
     )
     override val appTimeZoneRepository: AppTimeZoneRepository = AppTimeZoneRepositoryFirestore(
-        appUser = appUser,
-        firestore = firestore
+        firestoreReference
     )
     override val repeatAddRepository: RepeatAddRepository = RepeatAddRepositoryFirestore(
-        appUser = appUser,
-        firestore = firestore
+        firestoreReference
     )
     override val mailboxExtractionRepository: MailboxExtractionRepository =
         MailboxExtractionRepositoryRealtimeDb(
-            appUser = appUser,
-            firebaseRealtimeDb = firebaseRealtimeDb
+            realtimeDbReference = realtimeDbReference
         )
     override val emailConnectionRepository: EmailConnectionRepository =
         FakeEmailConnectionRepository()

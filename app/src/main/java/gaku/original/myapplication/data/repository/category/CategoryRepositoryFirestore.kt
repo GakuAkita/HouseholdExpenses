@@ -2,18 +2,16 @@ package gaku.original.myapplication.data.repository.category
 
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 class CategoryRepositoryFirestore(
-    appUser: AppUser,
     reference: FirestoreUserReference
 ) : CategoryRepository {
 
-    private val categoryCollection = reference.categoryReference
+    private val categoryCollection = reference.categoryCollection
 
     private val _categories = MutableStateFlow<Map<String, Category>>(emptyMap())
     override val categories: StateFlow<Map<String, Category>>

@@ -1,27 +1,24 @@
 package gaku.original.myapplication.data.repository.repeatAdd
 
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
 import gaku.original.myapplication.data.dataClass.toRepeatFrequency
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.category.toCategory
 import gaku.original.myapplication.data.repository.expense.toFirestore
-import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 class RepeatAddRepositoryFirestore(
-    private val appUser: AppUser,
-    private val firestore: FirebaseFirestore
+    private val reference: FirestoreUserReference
 ) : RepeatAddRepository {
 
-    private val repeatAddCollection =
-        firestore.collection("users").document(appUser.id!!).collection("repeat_add")
+    private val repeatAddCollection = reference.repeatAddCollection
 
     private val _repeatAdds = MutableStateFlow<Map<String, RepeatAdd>>(emptyMap())
     override val repeatAdds: StateFlow<Map<String, RepeatAdd>> = _repeatAdds

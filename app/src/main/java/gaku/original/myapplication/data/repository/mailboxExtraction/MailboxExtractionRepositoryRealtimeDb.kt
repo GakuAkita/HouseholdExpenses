@@ -1,19 +1,18 @@
 package gaku.original.myapplication.data.repository.mailboxExtraction
 
-import com.google.firebase.database.FirebaseDatabase
-import gaku.original.myapplication.domain.AppUser
+import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 
 class MailboxExtractionRepositoryRealtimeDb(
-    private val appUser: AppUser,
-    private val firebaseRealtimeDb: FirebaseDatabase
+    private val realtimeDbReference: RealtimeDbUserReference
 ) : MailboxExtractionRepository {
+    private val reference = realtimeDbReference.emailTemplateSettingsReference
+
     override suspend fun getAllMailTypeSetting(): List<EmailTemplateType> {
         TODO("Not yet implemented")
     }
 
     override suspend fun getMailTypeSetting(type: EmailTemplateType): EmailTemplateType {
-        TODO("Not yet implemented")
     }
 
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
@@ -21,3 +20,15 @@ class MailboxExtractionRepositoryRealtimeDb(
     }
 
 }
+
+
+fun EmailTemplateType.getNodeName(): String =
+    when (this) {
+        is EmailTemplateType.AmazonKindle -> "amazon_kindle"
+        is EmailTemplateType.AmazonItem -> "amazon_item"
+        is EmailTemplateType.AmazonSubscribe -> "amazon_subscribe"
+        is EmailTemplateType.RakutenPay -> "rakuten_pay"
+        is EmailTemplateType.ShikokuElectricPower -> "shikoku_electric_power"
+        is EmailTemplateType.Udemy -> "udemy"
+        is EmailTemplateType.RakutenCardETC -> "rakuten_card_etc"
+    }

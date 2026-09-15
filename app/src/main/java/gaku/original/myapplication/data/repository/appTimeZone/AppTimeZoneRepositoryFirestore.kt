@@ -1,8 +1,7 @@
 package gaku.original.myapplication.data.repository.appTimeZone
 
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import gaku.original.myapplication.domain.AppUser
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,12 +10,9 @@ import timber.log.Timber
 import java.time.ZoneId
 
 class AppTimeZoneRepositoryFirestore(
-    private val appUser: AppUser,
-    private val firestore: FirebaseFirestore
+    private val reference: FirestoreUserReference
 ) : AppTimeZoneRepository {
-    private val document =
-        firestore.collection("users").document(appUser.id!!).collection("settings")
-            .document("user_preferences")
+    private val document = reference.userPreferencesDocument
 
     private var registration: ListenerRegistration? = null
 

@@ -9,7 +9,6 @@ import gaku.original.myapplication.data.dataClass.toGeneratedType
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.category.toCategory
 import gaku.original.myapplication.data.repository.category.toFirestore
-import gaku.original.myapplication.domain.AppUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -17,10 +16,9 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 class ExpenseRepositoryFirestore(
-    appUser: AppUser,
     reference: FirestoreUserReference
 ) : ExpenseRepository {
-    private val expenseCollection = reference.expenseReference
+    private val expenseCollection = reference.expenseCollection
 
     /* key is subscription id. */
     private val listeners = mutableMapOf<String, ListenerRegistration>()
