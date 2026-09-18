@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.repository.mailboxExtraction
 
+import com.google.firebase.database.DataSnapshot
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
@@ -11,11 +12,76 @@ class MailboxExtractionRepositoryRealtimeDb(
     private val reference = realtimeDbReference.emailTemplateSettingsReference
 
     override suspend fun getAllMailTypeSetting(): List<EmailTemplateType> {
-        TODO("Not implemented")
+        return reference.get().await().children.mapNotNull { it.toMailTypeSetting() }
     }
 
-    override suspend fun getMailTypeSetting(type: EmailTemplateType): EmailTemplateType {
-        TODO("Not yet implemented")
+    private suspend fun <T : EmailTemplateTypeFirebase> getSetting(
+        default: T, clazz: Class<T>
+    ): EmailTemplateType {
+        val snapshot = reference.child(default.nodeName).get().await()
+        return snapshot.getValue(clazz)?.toDomain() ?: default.toDomain()
+    }
+
+    override suspend fun getMailTypeSetting(type: EmailTemplateType): EmailTemplateType {/* I'm not sure this is the best way. *//* By constructing Unit tests, we might be able to confirm the data can be saved and loaded properly */
+
+        val domain = when (type) {
+            is EmailTemplateType.AmazonItem -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.AmazonItem(),
+                    EmailTemplateTypeFirebase.AmazonItem::class.java
+                )
+            }
+
+            is EmailTemplateType.RakutenPay -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.RakutenPay(),
+                    EmailTemplateTypeFirebase.RakutenPay::class.java
+                )
+            }
+
+            is EmailTemplateType.Udemy -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.Udemy(), EmailTemplateTypeFirebase.Udemy::class.java
+                )
+            }
+
+            is EmailTemplateType.RakutenCardETC -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.RakutenCardETC(),
+                    EmailTemplateTypeFirebase.RakutenCardETC::class.java
+                )
+            }
+
+            is EmailTemplateType.AmazonSubscribe -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.AmazonSubscribe(),
+                    EmailTemplateTypeFirebase.AmazonSubscribe::class.java
+                )
+            }
+
+            is EmailTemplateType.AmazonKindle -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.AmazonKindle(),
+                    EmailTemplateTypeFirebase.AmazonKindle::class.java
+                )
+            }
+
+            is EmailTemplateType.ShikokuElectricPower -> {
+                getSetting(
+                    EmailTemplateTypeFirebase.ShikokuElectricPower(),
+                    EmailTemplateTypeFirebase.ShikokuElectricPower::class.java
+                )
+            }
+        }
+
+
+        if (domain.javaClass != type.javaClass) {
+            throw IllegalStateException(
+                "Coding error: expected ${type.javaClass.simpleName}, " + "but got ${domain.javaClass.simpleName}"
+            )
+        }
+
+        return domain
     }
 
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
@@ -73,7 +139,30 @@ class MailboxExtractionRepositoryRealtimeDb(
         val node = reference.child(firebaseType.nodeName)
         node.setValue(firebaseType).await()
     }
+}
 
+/**
+ * When new type is added, it should be added here.!!!!!!!!
+ */
+private fun DataSnapshot.toMailTypeSetting(): EmailTemplateType? {
+    return when (key) {
+        EmailTemplateTypeFirebase.AmazonItem().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonItem::class.java)?.toDomain()
+
+        EmailTemplateTypeFirebase.RakutenPay().nodeName -> getValue(EmailTemplateTypeFirebase.RakutenPay::class.java)?.toDomain()
+
+        EmailTemplateTypeFirebase.RakutenCardETC().nodeName -> getValue(EmailTemplateTypeFirebase.RakutenCardETC::class.java)?.toDomain()
+
+        EmailTemplateTypeFirebase.AmazonKindle().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonKindle::class.java)?.toDomain()
+        EmailTemplateTypeFirebase.AmazonSubscribe().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonSubscribe::class.java)?.toDomain()
+
+        EmailTemplateTypeFirebase.ShikokuElectricPower().nodeName -> getValue(
+            EmailTemplateTypeFirebase.ShikokuElectricPower::class.java
+        )?.toDomain()
+
+        EmailTemplateTypeFirebase.Udemy().nodeName -> getValue(EmailTemplateTypeFirebase.Udemy::class.java)?.toDomain()
+
+        else -> null
+    }
 }
 
 /**
