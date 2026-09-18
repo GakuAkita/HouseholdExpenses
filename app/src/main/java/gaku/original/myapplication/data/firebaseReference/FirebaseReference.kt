@@ -1,6 +1,5 @@
 package gaku.original.myapplication.data.firebaseReference
 
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.domain.AppUser
@@ -34,10 +33,5 @@ class RealtimeDbUserReference(
 
     val emailTemplateSettingsReference = mailboxExtractionReference.child("email_template_settings")
 
-
     val gmailTokensReference = mailboxExtractionReference.child("gmail_tokens")
-
-    fun singleGmailTokenReference(id: String): DatabaseReference {
-        return gmailTokensReference.child(id)
-    }
 }

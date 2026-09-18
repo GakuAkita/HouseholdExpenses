@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
-import EmailProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -8,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.data.Constants.Status.FuncStatus
-import gaku.original.myapplication.data.FuncStatusInfo
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.repository.category.CategoryRepository
@@ -23,6 +20,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Collections.emptyList
+
 
 data class MailboxExtractionUiState(
     val isLoading: Boolean = false,
@@ -96,6 +95,16 @@ data class EmailTemplateUiState<T : EmailTemplateType>(
     val type: T,
     val isLoading: Boolean = false
 )
+
+enum class EmailProvider {
+    GMAIL,
+    OUTLOOK,
+    YAHOO;
+
+    companion object {
+        fun fromString(value: String): EmailProvider? = entries.find { it.name == value }
+    }
+}
 
 sealed interface EmailTemplateType {
     val enabled: Boolean
@@ -406,13 +415,3 @@ class MailboxExtractionViewModel(
         super.onCleared()
     }
 }
-
-
-data class EmailTemplateSettingState(
-    val type: EmailTemplateType,/* これは変えない */
-    val setting: EmailTemplateType?,/* これが実際の値 */
-    var status: FuncStatusInfo = FuncStatusInfo(
-        FuncStatus.SUCCESS,
-        "Not loaded yet"
-    )
-)
