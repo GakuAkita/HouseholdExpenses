@@ -8,7 +8,7 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.
 import kotlinx.coroutines.tasks.await
 
 /* THis can be used only when Firebase is used for SignIn */
-class EmailConnectionRepositoryFirebase(
+open class EmailConnectionRepositoryFirebase(
     private val appUser: AppUser,
     private val firebaseAuth: FirebaseAuth,
     private val realtimeDbReference: RealtimeDbUserReference
@@ -75,5 +75,18 @@ class EmailConnectionRepositoryFirebase(
             }
         }
     }
+}
 
+class FakeEmailConnectionRepositoryFirebase(
+    private val appUser: AppUser,
+    private val firebaseAuth: FirebaseAuth,
+    private val realtimeDbReference: RealtimeDbUserReference
+) : EmailConnectionRepositoryFirebase(
+    appUser = appUser,
+    firebaseAuth = firebaseAuth,
+    realtimeDbReference = realtimeDbReference
+) {
+    override suspend fun isConnected(provider: EmailProvider): Boolean {
+        return false
+    }
 }

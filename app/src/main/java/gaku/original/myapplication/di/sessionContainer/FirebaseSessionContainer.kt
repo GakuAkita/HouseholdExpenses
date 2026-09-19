@@ -87,6 +87,7 @@ class FirebaseSessionContainer(
         )
     override val emailConnectionRepository: EmailConnectionRepository =
         EmailConnectionRepositoryFirebase(
+            appUser = appUser,
             firebaseAuth = firebaseAuth,
             realtimeDbReference = realtimeDbReference
         )
