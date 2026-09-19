@@ -9,11 +9,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -36,7 +36,7 @@ fun RootNavigation(
     appContainer: AppContainer,
     viewModel: RootViewModel = viewModel(factory = RootViewModel.Factory)
 ) {
-    val authState by viewModel.authState.collectAsState()
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 

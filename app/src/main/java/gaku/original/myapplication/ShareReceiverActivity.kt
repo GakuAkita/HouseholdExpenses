@@ -17,13 +17,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -64,7 +64,7 @@ class ShareReceiverActivity : ComponentActivity() {
                     Surface(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        val authState by rootViewModel.authState.collectAsState()
+                        val authState by rootViewModel.authState.collectAsStateWithLifecycle()
                         LaunchedEffect(authState) {
                             when (authState) {
                                 is AuthState.Loading -> {

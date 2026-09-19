@@ -46,8 +46,8 @@ fun SearchView(
 ) {
     val funcName = "SearchView"
 
-//    val currentFilter = viewModel.currentFilter.collectAsState()
-//    val allCategories = viewModel.allCategories.collectAsState()
+//    val currentFilter = viewModel.currentFilter.collectAsStateWithLifecycle()
+//    val allCategories = viewModel.allCategories.collectAsStateWithLifecycle()
 //
 //    var showFilterSheet by remember { mutableStateOf(false) }
 //    val snackbarHostState = remember { SnackbarHostState() }

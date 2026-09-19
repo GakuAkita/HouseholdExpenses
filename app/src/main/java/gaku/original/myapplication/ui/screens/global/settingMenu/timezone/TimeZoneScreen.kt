@@ -39,7 +39,7 @@ fun TimeZoneScreenRoot(
     viewModel: TimeZoneViewModel = viewModel(factory = TimeZoneViewModel.Factory),
     navHostController: NavHostController
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = LocalSnackBarHostState.current
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
