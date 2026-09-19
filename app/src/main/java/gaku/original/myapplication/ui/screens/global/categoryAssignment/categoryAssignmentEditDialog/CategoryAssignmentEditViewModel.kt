@@ -100,6 +100,14 @@ class CategoryAssignmentEditViewModel(
         }
     }
 
+    fun onNameChange(name: String) {
+        _uiState.update {
+            it.copy(
+                name = name
+            )
+        }
+    }
+
     override fun onCleared() {
         Timber.d("Cleared. ${hashCode()}")
         super.onCleared()

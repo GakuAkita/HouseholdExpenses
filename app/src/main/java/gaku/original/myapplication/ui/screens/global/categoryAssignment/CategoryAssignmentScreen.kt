@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryDropDown
@@ -67,7 +68,12 @@ fun CategoryAssignmentScreenRoot(
         onBackNavClick = {
             navController.popBackStack()
         },
-        onAddClick = {},
+        onAddClick = {
+            navController.navigate(MainGraph.Global.ICategoryAssignment.EditDialog(null))
+        },
+        onEditClick = {
+
+        },
         onCategorySelected = { assignment, categoryId ->
             viewModel.onCategorySelected(assignment, categoryId)
         },
@@ -83,6 +89,7 @@ fun CategoryAssignmentScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
     onAddClick: () -> Unit,
+    onEditClick: (CategoryAssignment) -> Unit,
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
     onDeleteClick: (CategoryAssignment) -> Unit
 ) {
@@ -149,6 +156,9 @@ fun CategoryAssignmentScreen(
                             onCategorySelected = { assignmentUi, category ->
                                 onCategorySelected(assignmentUi, category.id)
                             },
+                            onEditClick = {
+                                onEditClick(it)
+                            },
                             onDeleteClick = {
                                 onDeleteClick(it)
                             }
@@ -163,6 +173,9 @@ fun CategoryAssignmentScreen(
                             onCategorySelected = { assignmentUi, category ->
                                 onCategorySelected(assignmentUi, category.id)
                             },
+                            onEditClick = {
+                                onEditClick(it)
+                            },
                             onDeleteClick = {
                                 onDeleteClick(it)
                             }
@@ -176,6 +189,9 @@ fun CategoryAssignmentScreen(
                             .padding(4.dp),
                         assignmentUiList = storeNameAssignment,
                         categories = uiState.categories,
+                        onEditClick = {
+                            onEditClick(it)
+                        },
                         onCategorySelected = { assignmentUi, category ->
                             onCategorySelected(assignmentUi, category.id)
                         },
@@ -194,6 +210,9 @@ fun CategoryAssignmentScreen(
                         onCategorySelected = { assignmentUi, category ->
                             onCategorySelected(assignmentUi, category.id)
                         },
+                        onEditClick = {
+                            onEditClick(it)
+                        },
                         onDeleteClick = {
                             onDeleteClick(it)
                         }
@@ -209,6 +228,7 @@ fun StoreNameAssignmentColumn(
     modifier: Modifier = Modifier,
     assignmentUiList: List<AssignmentUiState<CategoryAssignment.Store>>,
     categories: List<Category>,
+    onEditClick: (CategoryAssignment) -> Unit,
     onDeleteClick: (CategoryAssignment) -> Unit,
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
 ) {
@@ -301,6 +321,7 @@ fun ProductNameAssignmentColumn(
     modifier: Modifier,
     assignmentUiList: List<AssignmentUiState<CategoryAssignment.Product>>,
     categories: List<Category>,
+    onEditClick: (CategoryAssignment) -> Unit,
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
     onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
@@ -453,6 +474,7 @@ fun CategoryAssignmentScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onAddClick = {},
+        onEditClick = {},
         onCategorySelected = { _, _ -> },
         onDeleteClick = {}
     )
