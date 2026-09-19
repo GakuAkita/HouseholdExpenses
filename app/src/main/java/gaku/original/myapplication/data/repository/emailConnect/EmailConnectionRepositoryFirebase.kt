@@ -1,19 +1,17 @@
 package gaku.original.myapplication.data.repository.emailConnect
 
-import EmailProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import gaku.original.myapplication.BuildConfig
+import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import kotlinx.coroutines.tasks.await
 
 /* THis can be used only when Firebase is used for SignIn */
 class EmailConnectionRepositoryFirebase(
     private val firebaseAuth: FirebaseAuth,
-    private val firebaseRealtimeDb: FirebaseDatabase
+    private val realtimeDbReference: RealtimeDbUserReference
 ) : EmailConnectionRepository {
-    private val reference =
-        firebaseRealtimeDb.reference.child("users").child(firebaseAuth.currentUser!!.uid)
-            .child("mailgox_extraction")
+    private val reference = realtimeDbReference.gmailTokensReference
 
     private fun generateOAuthUrl(idToken: String): String {
         val baseUrl = "https://accounts.google.com/o/oauth2/v2/auth"

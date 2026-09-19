@@ -1,5 +1,6 @@
 package gaku.original.myapplication.di.sessionContainer
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.data.extractor.Extractor
@@ -16,7 +17,7 @@ import gaku.original.myapplication.data.repository.category.CategoryRepositoryFi
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import gaku.original.myapplication.data.repository.categoryAssignment.FakeCategoryAssignmentRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
-import gaku.original.myapplication.data.repository.emailConnect.FakeEmailConnectionRepository
+import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepositoryFirebase
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepositoryFirestore
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
@@ -30,6 +31,7 @@ import gaku.original.myapplication.service.ocr.OcrService
 
 class FirebaseSessionContainer(
     override val appUser: AppUser,
+    private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val firebaseRealtimeDb: FirebaseDatabase,
     private val ocrService: OcrService
@@ -84,7 +86,10 @@ class FirebaseSessionContainer(
             realtimeDbReference = realtimeDbReference
         )
     override val emailConnectionRepository: EmailConnectionRepository =
-        FakeEmailConnectionRepository()
+        EmailConnectionRepositoryFirebase(
+            firebaseAuth = firebaseAuth,
+            realtimeDbReference = realtimeDbReference
+        )
 
     override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository =
         FakeAmazonSubscribeItemRepository()
