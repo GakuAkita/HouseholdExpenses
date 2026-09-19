@@ -28,6 +28,7 @@ sealed interface CategoryAssignment : HasId {
     ) : CategoryAssignment
 }
 
+@Serializable
 enum class MatchCondition {
     EXACT,
     CONTAINS

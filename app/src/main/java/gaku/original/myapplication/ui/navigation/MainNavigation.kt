@@ -9,6 +9,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
@@ -67,10 +68,13 @@ fun NavGraphBuilder.mainGraph(
         }
 
         dialog<MainGraph.Global.ICategoryAssignment.EditDialog>(
+            typeMap = mapOf(typeOf<CategoryAssignment?>() to nullableNavTypeOf<CategoryAssignment>()),
             dialogProperties = DialogProperties(
                 dismissOnClickOutside = false
             )
-        ) {
+        ) { backStackEntry ->
+            val assignment =
+                backStackEntry.toRoute<MainGraph.Global.ICategoryAssignment.EditDialog>().assignment
             CategoryAssignmentEditDialogRoot()
         }
 

@@ -1,5 +1,6 @@
 package gaku.original.myapplication
 
+import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import kotlinx.serialization.Serializable
@@ -93,7 +94,9 @@ data object MainGraph {
             data object Screen : ICategoryAssignment
 
             @Serializable
-            data object EditDialog : ICategoryAssignment
+            data class EditDialog(
+                val assignment: CategoryAssignment?
+            ) : ICategoryAssignment
         }
     }
 }
