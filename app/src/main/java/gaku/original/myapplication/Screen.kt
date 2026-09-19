@@ -88,8 +88,13 @@ data object MainGraph {
         @Serializable
         data object CategoryAddEdit : Global
 
-        @Serializable
-        data object CategoryAssignment : Global
+        sealed interface ICategoryAssignment : Global {
+            @Serializable
+            data object Screen : ICategoryAssignment
+
+            @Serializable
+            data object EditDialog : ICategoryAssignment
+        }
     }
 }
 

@@ -13,6 +13,7 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
+import gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog.CategoryAssignmentEditDialog
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
@@ -59,10 +60,14 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<MainGraph.Global.CategoryAssignment> {
+        composable<MainGraph.Global.ICategoryAssignment.Screen> {
             CategoryAssignmentScreenRoot(
                 navController = navController
             )
+        }
+
+        composable<MainGraph.Global.ICategoryAssignment.EditDialog> {
+            CategoryAssignmentEditDialog()
         }
 
         /* -------------- Setting ------------------ */
