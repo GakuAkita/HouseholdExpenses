@@ -15,7 +15,7 @@ import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneReposi
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepositoryFirestore
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
-import gaku.original.myapplication.data.repository.categoryAssignment.FakeCategoryAssignmentRepository
+import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepositoryFirebase
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -97,5 +97,7 @@ class FirebaseSessionContainer(
             realtimeDbReference = realtimeDbReference
         )
     override val categoryAssignmentRepository: CategoryAssignmentRepository =
-        FakeCategoryAssignmentRepository()
+        CategoryAssignmentRepositoryRealtimeDb(
+            realtimeDbReference = realtimeDbReference
+        )
 }
