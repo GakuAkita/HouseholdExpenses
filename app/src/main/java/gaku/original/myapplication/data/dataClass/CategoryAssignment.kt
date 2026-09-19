@@ -1,11 +1,15 @@
 package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.Interface.HasId
+import kotlinx.serialization.Serializable
 
 /**
  * これ正規表現とか将来的には使えないかな？
  */
+@Serializable
 sealed interface CategoryAssignment : HasId {
+
+    @Serializable
     data class Store(
         override var id: String? = null,
         val categoryId: String? = null,
@@ -14,6 +18,7 @@ sealed interface CategoryAssignment : HasId {
         val regex: Boolean = false,
     ) : CategoryAssignment
 
+    @Serializable
     data class Product(
         override var id: String? = null,
         val categoryId: String? = null,
