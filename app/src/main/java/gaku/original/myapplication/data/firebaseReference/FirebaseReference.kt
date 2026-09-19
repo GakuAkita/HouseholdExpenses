@@ -37,4 +37,6 @@ class RealtimeDbUserReference(
 
     val amazonSubscribeMonitorReference =
         mailboxExtractionReference.child("amazon_subscribe_monitor")
+
+    val categoryAssignmentReference = realtimeDbUser.child("category_assignment_data")
 }
