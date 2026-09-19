@@ -1,11 +1,10 @@
 package gaku.original.myapplication.data.repository.mailboxExtraction
 
-import EmailProvider
-import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import kotlinx.coroutines.delay
 
-class FakeMailboxExtractionRepository: MailboxExtractionRepository {
+class FakeMailboxExtractionRepository : MailboxExtractionRepository {
     override suspend fun getAllMailTypeSetting(): List<EmailTemplateType> {
         return listOf(
             EmailTemplateType.RakutenPay(

@@ -18,11 +18,13 @@ class FirebaseAuthTestAppContainer(
         firebaseAuth = firebaseAuth
     )
 
+
     override fun createSessionContainer(): SessionContainer {
         return FakeSessionContainer(
             emailConnectionRepository = EmailConnectionRepositoryFirebase(
-                firebaseAuth
-            )
+                firebaseAuth,
+
+                )
         )
     }
 }

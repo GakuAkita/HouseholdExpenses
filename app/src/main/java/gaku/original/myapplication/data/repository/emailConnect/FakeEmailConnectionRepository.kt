@@ -1,9 +1,9 @@
 package gaku.original.myapplication.data.repository.emailConnect
 
-import EmailProvider
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import kotlinx.coroutines.delay
 
-class FakeEmailConnectionRepository: EmailConnectionRepository {
+class FakeEmailConnectionRepository : EmailConnectionRepository {
     override suspend fun isConnected(provider: EmailProvider): Boolean {
         return false
     }
