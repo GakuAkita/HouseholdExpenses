@@ -9,7 +9,7 @@ import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptVal
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
-import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepositoryFirestore
 import gaku.original.myapplication.data.repository.category.CategoryRepository
@@ -93,7 +93,9 @@ class FirebaseSessionContainer(
         )
 
     override val amazonSubscribeItemRepository: AmazonSubscribeItemRepository =
-        FakeAmazonSubscribeItemRepository()
+        AmazonSubscribeItemRepositoryRealtimeDb(
+            realtimeDbReference = realtimeDbReference
+        )
     override val categoryAssignmentRepository: CategoryAssignmentRepository =
         FakeCategoryAssignmentRepository()
 }

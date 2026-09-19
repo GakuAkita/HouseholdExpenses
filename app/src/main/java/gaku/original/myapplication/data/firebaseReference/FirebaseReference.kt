@@ -34,4 +34,7 @@ class RealtimeDbUserReference(
     val emailTemplateSettingsReference = mailboxExtractionReference.child("email_template_settings")
 
     val gmailTokensReference = mailboxExtractionReference.child("gmail_tokens")
+
+    val amazonSubscribeMonitorReference =
+        mailboxExtractionReference.child("amazon_subscribe_monitor")
 }

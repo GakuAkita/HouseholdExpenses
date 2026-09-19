@@ -2,6 +2,9 @@ package gaku.original.myapplication.data.dataClass
 
 import gaku.original.myapplication.data.Interface.HasId
 
+/**
+ * It might better to separate data class to the data class for storing in Realtime Database
+ */
 data class AmazonSubscribeItem(
     override var id: String? = null,
     val productName: String? = null,
