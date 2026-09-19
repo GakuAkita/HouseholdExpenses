@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.repository.categoryAssignment
 
+import com.google.firebase.database.DataSnapshot
 import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
@@ -17,7 +18,8 @@ class CategoryAssignmentRepositoryRealtimeDb(
     override suspend fun getCategoryAssignments(): Map<String, CategoryAssignment> {
         val snapshot = reference.get().await()
         val children = snapshot.children
-
+        val assignments = children.mapNotNull { it.toCategoryAssignment() }
+        return assignments.associateBy { it.id!! }
     }
 
     override suspend fun addCategoryAssignment(assignment: CategoryAssignment) {
@@ -158,4 +160,12 @@ fun CategoryAssignment.toFirebase(): CategoryAssignmentFirebase {
             )
         }
     }
+}
+
+private fun DataSnapshot.toCategoryAssignment(): CategoryAssignment {
+    return when (key) {
+        CategoryAssignmentFirebase.Product().nodeName -> getValue(CategoryAssignmentFirebase.Product::class.java)?.toDomain()
+        CategoryAssignmentFirebase.Store().nodeName -> getValue(CategoryAssignmentFirebase.Store::class.java)?.toDomain()
+        else -> throw Exception("Unexpected node name: ${key}")
+    }!!
 }
