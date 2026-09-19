@@ -17,6 +17,8 @@ material3 = "1.4.0"
 foundation = "1.12.0"
 uiTestManifest = "1.11.4"
 lifecycleViewmodelKtx = "2.11.0"
+lifecycleRuntimeCompose = "2.11.0"
+ui = "1.12.1"
 
 [libraries]
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestManifest" }
@@ -44,6 +46,8 @@ text-recognition-japanese = { module = "com.google.mlkit:text-recognition-japane
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-lifecycle-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

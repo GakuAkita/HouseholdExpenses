@@ -18,6 +18,7 @@ data class CategoryAssignmentEditUiState(
     val message: String? = null,
     val type: CategoryAssignmentType = CategoryAssignmentType.PRODUCT,
     val name: String = "",
+    val
 )
 
 enum class CategoryAssignmentType {

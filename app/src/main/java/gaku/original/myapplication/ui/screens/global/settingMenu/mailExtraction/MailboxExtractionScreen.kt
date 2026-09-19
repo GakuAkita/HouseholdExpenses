@@ -125,7 +125,7 @@ fun MailboxExtractionScreenRoot(
             viewModel.onSwitchClick(it)
         },
         onCategoryAssignmentClick = {
-            navHostController.navigate(MainGraph.Global.CategoryAssignment)
+            navHostController.navigate(MainGraph.Global.ICategoryAssignment.Screen)
         },
         onCategorySelect = { state, categoryId ->
             viewModel.onCategorySelect(state, categoryId)

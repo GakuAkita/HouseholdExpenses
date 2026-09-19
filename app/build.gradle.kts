@@ -119,6 +119,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     /* これがないとjava.lang.SecurityException: Unknown calling package name 'com.google.android.gms'というエラーが出る */
     /* ビルドで失敗するから一旦無視 */
