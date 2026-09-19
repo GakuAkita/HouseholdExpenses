@@ -15,6 +15,7 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog.CategoryAssignmentEditDialogRoot
+import gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog.CategoryAssignmentEditViewModel
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
@@ -75,7 +76,9 @@ fun NavGraphBuilder.mainGraph(
         ) { backStackEntry ->
             val assignment =
                 backStackEntry.toRoute<MainGraph.Global.ICategoryAssignment.EditDialog>().assignment
-            CategoryAssignmentEditDialogRoot()
+            CategoryAssignmentEditDialogRoot(
+                viewModel = viewModel(factory = CategoryAssignmentEditViewModel.Factory(assignment))
+            )
         }
 
         /* -------------- Setting ------------------ */
