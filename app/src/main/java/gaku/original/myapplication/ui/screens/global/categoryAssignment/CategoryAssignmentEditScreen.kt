@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +67,7 @@ fun CategoryAssignmentScreenRoot(
         onBackNavClick = {
             navController.popBackStack()
         },
+        onAddClick = {},
         onCategorySelected = { assignment, categoryId ->
             viewModel.onCategorySelected(assignment, categoryId)
         },
@@ -78,6 +82,7 @@ fun CategoryAssignmentScreen(
     uiState: CategoryAssignmentUiState,
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
+    onAddClick: () -> Unit,
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
     onDeleteClick: (CategoryAssignment) -> Unit
 ) {
@@ -92,7 +97,19 @@ fun CategoryAssignmentScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    onAddClick()
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add"
+                )
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -319,7 +336,22 @@ fun ProductNameAssignmentColumn(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
                     ) {
-                        Text("${productUi.assignment.name}")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("${productUi.assignment.name}", modifier = Modifier.weight(1f))
+                            IconButton(
+                                modifier = Modifier.width(54.dp),
+                                onClick = {}
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit"
+                                )
+                            }
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -418,6 +450,7 @@ fun CategoryAssignmentScreenPreview() {
         uiState = uiState,
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
+        onAddClick = {},
         onCategorySelected = { _, _ -> },
         onDeleteClick = {}
     )
