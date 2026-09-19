@@ -6,7 +6,10 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
+import gaku.original.myapplication.data.dataClass.MatchCondition
+import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +20,11 @@ data class CategoryAssignmentEditUiState(
     val isEdit: Boolean = false,
     val message: String? = null,
     val type: CategoryAssignmentType = CategoryAssignmentType.PRODUCT,
-    val name: String = "",
-    val
+    val name: String? = "",
+    val condition: MatchCondition = MatchCondition.EXACT,
+    val categoryId: String? = null,
+
+    val categories: List<Category> = emptyList()
 )
 
 enum class CategoryAssignmentType {
@@ -28,7 +34,8 @@ enum class CategoryAssignmentType {
 
 class CategoryAssignmentEditViewModel(
     private val assignment: CategoryAssignment?,
-    private val categoryAssignmentRepository: CategoryAssignmentRepository
+    private val categoryAssignmentRepository: CategoryAssignmentRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryAssignmentEditUiState())
@@ -42,7 +49,8 @@ class CategoryAssignmentEditViewModel(
                 val session = container.sessionContainer!!
                 CategoryAssignmentEditViewModel(
                     assignment,
-                    session.categoryAssignmentRepository
+                    session.categoryAssignmentRepository,
+                    session.categoryRepository
                 )
             }
         }
@@ -50,23 +58,22 @@ class CategoryAssignmentEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
-        if (assignment == null) {
-            _uiState.update {
-                it.copy(
-                    isEdit = false
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(
-                    isEdit = true
-                )
-            }
+        _uiState.update {
+            it.copy(
+                isEdit = assignment != null,
+                categories = categoryRepository.categories.value.values.toList()
+            )
+        }
+
+        if (assignment != null) {
             when (assignment) {
                 is CategoryAssignment.Product -> {
                     _uiState.update {
                         it.copy(
-                            type = CategoryAssignmentType.PRODUCT
+                            type = CategoryAssignmentType.PRODUCT,
+                            name = assignment.name,
+                            condition = assignment.condition,
+                            categoryId = assignment.categoryId
                         )
                     }
                 }
@@ -74,7 +81,10 @@ class CategoryAssignmentEditViewModel(
                 is CategoryAssignment.Store -> {
                     _uiState.update {
                         it.copy(
-                            type = CategoryAssignmentType.STORE
+                            type = CategoryAssignmentType.STORE,
+                            name = assignment.name,
+                            condition = assignment.condition,
+                            categoryId = assignment.categoryId
                         )
                     }
                 }
