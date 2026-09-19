@@ -339,7 +339,9 @@ fun ProductNameAssignmentColumn(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            //verticalAlignment = Alignment.CenterVertically
+
+
                         ) {
                             Text("${productUi.assignment.name}", modifier = Modifier.weight(1f))
                             IconButton(
