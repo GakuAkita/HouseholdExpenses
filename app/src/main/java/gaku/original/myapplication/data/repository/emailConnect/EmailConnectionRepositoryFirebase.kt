@@ -6,6 +6,7 @@ import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReferenc
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 /* THis can be used only when Firebase is used for SignIn */
 open class EmailConnectionRepositoryFirebase(
@@ -13,7 +14,13 @@ open class EmailConnectionRepositoryFirebase(
     private val firebaseAuth: FirebaseAuth,
     private val realtimeDbReference: RealtimeDbUserReference
 ) : EmailConnectionRepository {
-    private val reference = realtimeDbReference.gmailTokensReference.child(appUser.email!!)
+    private val convertedEmail = appUser.email!!.replace(".", "__dot__").replace("@", "__at__")
+
+    init {
+        Timber.d("Converted email = $convertedEmail")
+    }
+
+    private val reference = realtimeDbReference.gmailTokensReference.child(convertedEmail)
 
     private fun generateOAuthUrl(idToken: String): String {
         val baseUrl = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -35,6 +42,8 @@ open class EmailConnectionRepositoryFirebase(
         if (appUser.email == null) {
             throw Exception("Coding Error: Email is null")
         }
+
+        Timber.d("Checking if connected to $provider")
         when (provider) {
             EmailProvider.GMAIL -> {
                 val snapshot = reference.get().await()

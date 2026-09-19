@@ -209,12 +209,14 @@ class MailboxExtractionViewModel(
     }
 
     private suspend fun initializeGmailTemplates() {
+        Timber.d("initializeGmailTemplates called")
         val isGmailConnected = emailConnectionRepository.isConnected(EmailProvider.GMAIL)
         _uiState.update {
             it.copy(
                 isGmailConnected = isGmailConnected
             )
         }
+        Timber.d("isGmailConnected: $isGmailConnected")
         if (isGmailConnected) {
             fetchEmailTemplaSettings()
         }
@@ -244,6 +246,7 @@ class MailboxExtractionViewModel(
                     )
                 }
                 initializeGmailTemplates()
+                Timber.d("initializeGmailTemplates done.")
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
