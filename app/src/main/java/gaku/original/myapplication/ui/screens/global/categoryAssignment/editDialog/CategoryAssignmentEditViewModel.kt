@@ -1,4 +1,4 @@
-package gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog
+package gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

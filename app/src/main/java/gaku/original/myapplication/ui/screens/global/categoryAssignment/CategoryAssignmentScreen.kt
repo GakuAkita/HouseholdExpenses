@@ -72,7 +72,7 @@ fun CategoryAssignmentScreenRoot(
             navController.navigate(MainGraph.Global.ICategoryAssignment.EditDialog(null))
         },
         onEditClick = {
-
+            navController.navigate(MainGraph.Global.ICategoryAssignment.EditDialog(it))
         },
         onCategorySelected = { assignment, categoryId ->
             viewModel.onCategorySelected(assignment, categoryId)

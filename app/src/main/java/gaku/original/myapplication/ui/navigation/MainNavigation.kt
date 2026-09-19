@@ -14,8 +14,8 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
-import gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog.CategoryAssignmentEditDialogRoot
-import gaku.original.myapplication.ui.screens.global.categoryAssignment.categoryAssignmentEditDialog.CategoryAssignmentEditViewModel
+import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditDialogRoot
+import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditViewModel
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
