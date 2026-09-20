@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.MatchCondition
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -58,6 +59,11 @@ fun CategoryAssignmentEditDialogRoot(
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
+            // https://developer.android.com/guide/navigation/navigation-3/migration-guide?authuser=102&utm_source=chatgpt.com#result-migration
+            navHostController
+                .previousBackStackEntry
+                ?.savedStateHandle
+                ?.set(MainGraph.Global.ICategoryAssignment.EditDialog.KEY_UPDATED, true)
             navHostController.popBackStack()
         }
     }

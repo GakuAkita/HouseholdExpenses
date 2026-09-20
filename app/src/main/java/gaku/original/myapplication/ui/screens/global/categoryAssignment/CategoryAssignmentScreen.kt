@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -49,6 +50,7 @@ import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import timber.log.Timber
 
 @Composable
 fun CategoryAssignmentScreenRoot(
@@ -68,6 +70,18 @@ fun CategoryAssignmentScreenRoot(
             snackbarHostState.showSnackbar(it)
             viewModel.onMessageShown()
         }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(MainGraph.Global.ICategoryAssignment.EditDialog.KEY_UPDATED)
+            ?.observe(lifecycleOwner) { updated ->
+                if (updated) {
+                    Timber.d("Category assignment was updated.")
+                    /* load again because value is updated */
+                    viewModel.initialize()
+                }
+            }
     }
 
     CategoryAssignmentScreen(

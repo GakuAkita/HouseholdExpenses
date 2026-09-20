@@ -62,6 +62,10 @@ class CategoryAssignmentViewModel(
             }
         }
 
+        initialize()
+    }
+
+    fun initialize() {
         viewModelScope.launch {
             try {
                 _uiState.update {

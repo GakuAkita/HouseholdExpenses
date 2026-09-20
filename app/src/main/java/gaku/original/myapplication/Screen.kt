@@ -96,7 +96,11 @@ data object MainGraph {
             @Serializable
             data class EditDialog(
                 val assignment: CategoryAssignment?
-            ) : ICategoryAssignment
+            ) : ICategoryAssignment {
+                companion object {
+                    const val KEY_UPDATED = "assignment_updated"
+                }
+            }
         }
     }
 }
