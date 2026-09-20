@@ -69,6 +69,10 @@ class CategoryAssignmentViewModel(
                         isLoading = true
                     )
                 }
+                /* if I use collectAsStateWithLifecycle and have error while initializing, even after I close the screen and reopen it, it's loading forever. */
+                Timber.d(
+                    "Loading = ${uiState.value.isLoading}, message=${uiState.value.message}"
+                )
                 val data = categoryAssignmentRepository.getCategoryAssignments()
                 _uiState.update {
                     it.copy(
@@ -82,6 +86,7 @@ class CategoryAssignmentViewModel(
                     )
                 }
             } catch (e: Exception) {
+                Timber.d("Error: ${e.message}")
                 _uiState.update {
                     it.copy(
                         message = e.message,

@@ -17,9 +17,7 @@ class CategoryAssignmentRepositoryRealtimeDb(
 
     override suspend fun getCategoryAssignments(): Map<String, CategoryAssignment> {
         val snapshot = reference.get().await()
-        val children = snapshot.children
-        val assignments = children.mapNotNull { it.toCategoryAssignment() }
-        return assignments.associateBy { it.id!! }
+        return snapshot.toCategoryAssignments()
     }
 
     override suspend fun addCategoryAssignment(assignment: CategoryAssignment) {
@@ -162,10 +160,25 @@ fun CategoryAssignment.toFirebase(): CategoryAssignmentFirebase {
     }
 }
 
-private fun DataSnapshot.toCategoryAssignment(): CategoryAssignment {
-    return when (key) {
-        CategoryAssignmentFirebase.Product().nodeName -> getValue(CategoryAssignmentFirebase.Product::class.java)?.toDomain()
-        CategoryAssignmentFirebase.Store().nodeName -> getValue(CategoryAssignmentFirebase.Store::class.java)?.toDomain()
-        else -> throw Exception("Unexpected node name: ${key}")
-    }!!
+
+private fun DataSnapshot.toCategoryAssignments(): Map<String, CategoryAssignment> {
+    return children.flatMap { child ->
+        when (child.key) {
+            CategoryAssignmentFirebase.Product().nodeName -> {
+                child.children.map { item ->
+                    item.key!! to item.getValue(CategoryAssignmentFirebase.Product::class.java)!!
+                        .toDomain()
+                }
+            }
+
+            CategoryAssignmentFirebase.Store().nodeName -> {
+                child.children.map { item ->
+                    item.key!! to item.getValue(CategoryAssignmentFirebase.Store::class.java)!!
+                        .toDomain()
+                }
+            }
+
+            else -> throw Exception("Unexpected node name: ${child.key}")
+        }
+    }.toMap()
 }

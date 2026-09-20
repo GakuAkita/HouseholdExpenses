@@ -265,46 +265,68 @@ fun StoreNameAssignmentColumn(
                                 color = MaterialTheme.colorScheme.tertiary
                             )
                     ) {
-                        Text("${assignmentUi.assignment.name}")
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CategoryDropDown(
-                                modifier = Modifier.widthIn(max = 220.dp),
-                                selectedCategoryId = assignmentUi.assignment.categoryId,
-                                categories = categories,
-                                onCategorySelected = { category ->
-                                    onCategorySelected(
-                                        assignmentUi,
-                                        category
-                                    )
-                                },
-                                enabled = !assignmentUi.isLoading,
-                                nullOption = true
-                            )
+                            Text("${assignmentUi.assignment.name}")
                             Column(
                                 modifier = Modifier.width(54.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 if (assignmentUi.isLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(40.dp)
-                                    )
+                                    CircularProgressIndicator()
                                 } else {
                                     IconButton(
                                         onClick = {
-                                            onDeleteClick(assignmentUi.assignment)
+                                            onEditClick(assignmentUi.assignment)
                                         }
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "削除"
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit"
                                         )
+                                    }
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                CategoryDropDown(
+                                    modifier = Modifier.widthIn(max = 220.dp),
+                                    selectedCategoryId = assignmentUi.assignment.categoryId,
+                                    categories = categories,
+                                    onCategorySelected = { category ->
+                                        onCategorySelected(
+                                            assignmentUi,
+                                            category
+                                        )
+                                    },
+                                    enabled = !assignmentUi.isLoading,
+                                    nullOption = true
+                                )
+                                Column(
+                                    modifier = Modifier.width(54.dp),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    if (assignmentUi.isLoading) {
+                                        CircularProgressIndicator()
+                                    } else {
+                                        IconButton(
+                                            onClick = {
+                                                onDeleteClick(assignmentUi.assignment)
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "削除"
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -360,19 +382,28 @@ fun ProductNameAssignmentColumn(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            //verticalAlignment = Alignment.CenterVertically
-
-
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("${productUi.assignment.name}", modifier = Modifier.weight(1f))
-                            IconButton(
+                            Column(
                                 modifier = Modifier.width(54.dp),
-                                onClick = {}
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit"
-                                )
+                                if (productUi.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            onEditClick(productUi.assignment)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit"
+                                        )
+                                    }
+                                }
                             }
                         }
                         Row(
@@ -428,7 +459,7 @@ fun CategoryAssignmentScreenPreview() {
     val uiState = CategoryAssignmentUiState(
         assignments = listOf(
             AssignmentUiState(
-                isLoading = false,
+                isLoading = true,
                 assignment = CategoryAssignment.Product(
                     id = "1",
                     name = "水",
