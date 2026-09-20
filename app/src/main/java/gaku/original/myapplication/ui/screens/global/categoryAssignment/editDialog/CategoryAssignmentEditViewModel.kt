@@ -26,7 +26,7 @@ data class CategoryAssignmentEditUiState(
     val message: String? = null,
     val isSaved: Boolean = false,
 
-    val type: CategoryAssignmentType = CategoryAssignmentType.PRODUCT,
+    val type: CategoryAssignmentType? = null,
     val name: String? = "",
     val condition: MatchCondition = MatchCondition.EXACT,
     val categoryId: String? = null,
@@ -41,6 +41,11 @@ enum class CategoryAssignmentType {
 }
 
 sealed interface CategoryAssignmentError : AppError {
+    data object TypeIsEmpty : CategoryAssignmentError {
+        override val message: String
+            get() = "Assignment Type is empty."
+    }
+
     data object NameIsEmpty : CategoryAssignmentError {
         override val message: String
             get() = "Name is empty."
@@ -127,6 +132,14 @@ class CategoryAssignmentEditViewModel(
         }
     }
 
+    fun onTypeSelected(type: CategoryAssignmentType) {
+        _uiState.update {
+            it.copy(
+                type = type
+            )
+        }
+    }
+
     fun onNameChange(name: String) {
         _uiState.update {
             it.copy(
@@ -162,6 +175,10 @@ class CategoryAssignmentEditViewModel(
     fun createCategoryAssignment(): AppResult<CategoryAssignment, CategoryAssignmentError> {
         val type = _uiState.value.type
         val name = _uiState.value.name
+
+        if (type == null) {
+            return AppResult.Failure(CategoryAssignmentError.TypeIsEmpty)
+        }
 
         if (name == null || name.isEmpty()) {
             return AppResult.Failure(CategoryAssignmentError.NameIsEmpty)

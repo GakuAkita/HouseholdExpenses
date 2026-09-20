@@ -64,6 +64,9 @@ fun CategoryAssignmentEditDialogRoot(
     CategoryAssignmentEditDialog(
         uiState = uiState,
         snackbarHostState,
+        onTypeSelected = {
+            viewModel.onTypeSelected(it)
+        },
         onNameChange = {
             viewModel.onNameChange(it)
         },
@@ -89,6 +92,7 @@ fun CategoryAssignmentEditDialogRoot(
 fun CategoryAssignmentEditDialog(
     uiState: CategoryAssignmentEditUiState,
     snackbarHostState: SnackbarHostState,
+    onTypeSelected: (CategoryAssignmentType) -> Unit,
     onNameChange: (String) -> Unit,
     onRegexClick: () -> Unit,
     onMatchConditionSelected: (MatchCondition) -> Unit,
@@ -96,7 +100,9 @@ fun CategoryAssignmentEditDialog(
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
+    var typeExpanded by rememberSaveable { mutableStateOf(false) }
     var matchConditionExpanded by rememberSaveable { mutableStateOf(false) }
+    val FieldWidth = 300.dp
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -115,6 +121,45 @@ fun CategoryAssignmentEditDialog(
                 text = "Assign category automatically when the name is found in product name or store name",
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
+
+            Box {
+                TextField(
+                    modifier = Modifier
+                        .width(FieldWidth)
+                        .padding(4.dp)
+                        .clickable(
+                            onClick = {
+                                typeExpanded = true
+                            }
+                        ),
+                    value = uiState.type?.toDisplayName() ?: "",
+                    onValueChange = {},
+                    label = {
+                        Text("Assignment Type")
+                    },
+                    readOnly = true,
+                    enabled = false,
+                    colors = enabledTextFiledColorSet(),
+                )
+                DropdownMenu(
+                    expanded = typeExpanded,
+                    onDismissRequest = {
+                        typeExpanded = false
+                    }
+                ) {
+                    CategoryAssignmentType.entries.forEach { type ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(type.toDisplayName())
+                            },
+                            onClick = {
+                                onTypeSelected(type)
+                                typeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth()
@@ -151,8 +196,8 @@ fun CategoryAssignmentEditDialog(
             Box {
                 TextField(
                     modifier = Modifier
-                        .width(300.dp)
-                        .padding(4.dp)
+                        .width(FieldWidth)
+                        .padding(horizontal = 4.dp, vertical = 8.dp)
                         .clickable(
                             onClick = {
                                 matchConditionExpanded = true
@@ -191,7 +236,7 @@ fun CategoryAssignmentEditDialog(
 
             CategoryDropDown(
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(FieldWidth)
                     .padding(4.dp),
                 selectedCategoryId = uiState.categoryId,
                 categories = uiState.categories,
@@ -208,7 +253,7 @@ fun CategoryAssignmentEditDialog(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    modifier = Modifier.width(80.dp),
+                    modifier = Modifier.width(100.dp),
                     onClick = {
                         if (uiState.isLoading) {
                             return@Button
@@ -229,7 +274,7 @@ fun CategoryAssignmentEditDialog(
                 }
 
                 Button(
-                    modifier = Modifier.width(80.dp),
+                    modifier = Modifier.width(100.dp),
                     onClick = {
                         if (uiState.isLoading) {
                             return@Button
@@ -268,6 +313,7 @@ fun CategoryAssignmentEditDialogPreview() {
     CategoryAssignmentEditDialog(
         uiState,
         SnackbarHostState(),
+        onTypeSelected = {},
         onNameChange = {},
         onRegexClick = {},
         onMatchConditionSelected = {},
@@ -281,4 +327,10 @@ fun MatchCondition.toDisplayName(): String =
     when (this) {
         MatchCondition.EXACT -> "Exact Match"
         MatchCondition.CONTAINS -> "Contains"
+    }
+
+fun CategoryAssignmentType.toDisplayName(): String =
+    when (this) {
+        CategoryAssignmentType.PRODUCT -> "Assign by product name"
+        CategoryAssignmentType.STORE -> "Assign by store name"
     }
