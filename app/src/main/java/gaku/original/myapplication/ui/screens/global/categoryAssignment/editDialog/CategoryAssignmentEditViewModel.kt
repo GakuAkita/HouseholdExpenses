@@ -23,6 +23,9 @@ data class CategoryAssignmentEditUiState(
     val name: String? = "",
     val condition: MatchCondition = MatchCondition.EXACT,
     val categoryId: String? = null,
+    val isRegex: Boolean = false,
+
+    val conditionExpanded: Boolean = false,
 
     val categories: List<Category> = emptyList()
 )
@@ -73,7 +76,8 @@ class CategoryAssignmentEditViewModel(
                             type = CategoryAssignmentType.PRODUCT,
                             name = assignment.name,
                             condition = assignment.condition,
-                            categoryId = assignment.categoryId
+                            categoryId = assignment.categoryId,
+                            isRegex = assignment.regex
                         )
                     }
                 }
@@ -84,7 +88,8 @@ class CategoryAssignmentEditViewModel(
                             type = CategoryAssignmentType.STORE,
                             name = assignment.name,
                             condition = assignment.condition,
-                            categoryId = assignment.categoryId
+                            categoryId = assignment.categoryId,
+                            isRegex = assignment.regex
                         )
                     }
                 }
