@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.MatchCondition
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
@@ -44,11 +47,17 @@ fun CategoryAssignmentEditDialogRoot(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val snackbarHostState = LocalSnackBarHostState.current
+    val snackbarHostState = SnackbarHostState()
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
             snackbarHostState.showSnackbar(it, actionLabel = "OK")
             viewModel.onMessageShown()
+        }
+    }
+
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            navHostController.popBackStack()
         }
     }
 
@@ -68,7 +77,7 @@ fun CategoryAssignmentEditDialogRoot(
             viewModel.onCategorySelected(it)
         },
         onSaveClick = {
-
+            viewModel.onSaveClick()
         },
         onCancelClick = {
             navHostController.popBackStack()
@@ -96,7 +105,10 @@ fun CategoryAssignmentEditDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp)
-                .background(MaterialTheme.colorScheme.onSecondary),
+                .background(MaterialTheme.colorScheme.onSecondary)
+                .verticalScroll(
+                    rememberScrollState()
+                ),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
@@ -196,25 +208,45 @@ fun CategoryAssignmentEditDialog(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
+                    modifier = Modifier.width(80.dp),
                     onClick = {
+                        if (uiState.isLoading) {
+                            return@Button
+                        }
                         onCancelClick()
                     },
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Cancel")
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text("Cancel")
+                    }
                 }
 
                 Button(
+                    modifier = Modifier.width(80.dp),
                     onClick = {
+                        if (uiState.isLoading) {
+                            return@Button
+                        }
                         onSaveClick()
                     },
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Save")
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text("Save")
+                    }
                 }
             }
         }
@@ -230,7 +262,7 @@ fun CategoryAssignmentEditDialog(
 @Composable
 fun CategoryAssignmentEditDialogPreview() {
     val uiState = CategoryAssignmentEditUiState(
-
+        isLoading = true
     )
 
     CategoryAssignmentEditDialog(

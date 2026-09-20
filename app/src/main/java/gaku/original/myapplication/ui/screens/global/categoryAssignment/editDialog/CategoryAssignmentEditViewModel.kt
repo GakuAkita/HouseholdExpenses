@@ -3,9 +3,12 @@ package gaku.original.myapplication.ui.screens.global.categoryAssignment.editDia
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
@@ -14,12 +17,15 @@ import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 data class CategoryAssignmentEditUiState(
     val isEdit: Boolean = false,
     val isLoading: Boolean = false,
     val message: String? = null,
+    val isSaved: Boolean = false,
+
     val type: CategoryAssignmentType = CategoryAssignmentType.PRODUCT,
     val name: String? = "",
     val condition: MatchCondition = MatchCondition.EXACT,
@@ -32,6 +38,23 @@ data class CategoryAssignmentEditUiState(
 enum class CategoryAssignmentType {
     PRODUCT,
     STORE
+}
+
+sealed interface CategoryAssignmentError : AppError {
+    data object NameIsEmpty : CategoryAssignmentError {
+        override val message: String
+            get() = "Name is empty."
+    }
+
+    data object MatchConditionEmpty : CategoryAssignmentError {
+        override val message: String
+            get() = "Match condition is empty."
+    }
+
+    data object CategoryIsEmpty : CategoryAssignmentError {
+        override val message: String
+            get() = "Category is empty."
+    }
 }
 
 class CategoryAssignmentEditViewModel(
@@ -133,6 +156,89 @@ class CategoryAssignmentEditViewModel(
             it.copy(
                 categoryId = categoryId
             )
+        }
+    }
+
+    fun createCategoryAssignment(): AppResult<CategoryAssignment, CategoryAssignmentError> {
+        val type = _uiState.value.type
+        val name = _uiState.value.name
+
+        if (name == null || name.isEmpty()) {
+            return AppResult.Failure(CategoryAssignmentError.NameIsEmpty)
+        }
+
+        val condition = _uiState.value.condition
+        val categoryId = _uiState.value.categoryId
+        val isRegex = _uiState.value.isRegex
+        when (type) {
+            CategoryAssignmentType.PRODUCT -> {
+                return AppResult.Success(
+                    CategoryAssignment.Product(
+                        id = assignment?.id,
+                        name = name,
+                        condition = condition,
+                        categoryId = categoryId,
+                        regex = isRegex
+                    )
+                )
+            }
+
+            CategoryAssignmentType.STORE -> {
+                return AppResult.Success(
+                    CategoryAssignment.Store(
+                        id = assignment?.id,
+                        name = name,
+                        condition = condition,
+                        categoryId = categoryId,
+                        regex = isRegex
+                    )
+                )
+            }
+        }
+    }
+
+    fun onSaveClick() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+
+                when (val assignmentRet = createCategoryAssignment()) {
+                    is AppResult.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                message = assignmentRet.error.message,
+                                isLoading = false
+                            )
+                        }
+                        return@launch
+                    }
+
+                    is AppResult.Success -> {
+                        val assignment = assignmentRet.value
+                        if (assignment.id == null) {
+                            categoryAssignmentRepository.addCategoryAssignment(assignment)
+                        } else {
+                            categoryAssignmentRepository.updateCategoryAssignment(assignment)
+                        }
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isSaved = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
+            }
         }
     }
 
