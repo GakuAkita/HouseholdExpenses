@@ -29,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -42,6 +45,7 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -54,6 +58,10 @@ fun CategoryAssignmentScreenRoot(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = LocalSnackBarHostState.current
+
+    var assignmentToDelete by remember {
+        mutableStateOf<CategoryAssignment?>(null)
+    }
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -78,9 +86,22 @@ fun CategoryAssignmentScreenRoot(
             viewModel.onCategorySelected(assignment, categoryId)
         },
         onDeleteClick = {
-            viewModel.onDeleteClick(it)
+            assignmentToDelete = it
         }
     )
+    assignmentToDelete?.let { assignment ->
+        ConfirmAlertDialog(
+            onDismissRequest = {
+                assignmentToDelete = null
+            },
+            onClick = {
+                viewModel.onDeleteClick(assignment)
+                assignmentToDelete = null
+            }
+        ) {
+            Text("Are you sure to Delete?")
+        }
+    }
 }
 
 @Composable
@@ -94,6 +115,7 @@ fun CategoryAssignmentScreen(
     onDeleteClick: (CategoryAssignment) -> Unit
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Scaffold(
         topBar = {
             TopBarView(

@@ -74,6 +74,7 @@ class CategoryAssignmentViewModel(
                     "Loading = ${uiState.value.isLoading}, message=${uiState.value.message}"
                 )
                 val data = categoryAssignmentRepository.getCategoryAssignments()
+                Timber.d("data: $data")
                 _uiState.update {
                     it.copy(
                         assignments = data.values.map {

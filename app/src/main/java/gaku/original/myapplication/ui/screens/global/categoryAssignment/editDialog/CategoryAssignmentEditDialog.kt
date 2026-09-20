@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -104,6 +105,18 @@ fun CategoryAssignmentEditDialog(
     var matchConditionExpanded by rememberSaveable { mutableStateOf(false) }
     val FieldWidth = 300.dp
 
+    val typeDescription = remember {
+        if (uiState.isEdit) {
+            when (uiState.type) {
+                CategoryAssignmentType.PRODUCT -> "product name"
+                CategoryAssignmentType.STORE -> "store name"
+                null -> "???"
+            }
+        } else {
+            "product name or store name"
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -118,45 +131,47 @@ fun CategoryAssignmentEditDialog(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Assign category automatically when the name is found in product name or store name",
+                text = "Assign category automatically when the name is found in $typeDescription",
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
 
-            Box {
-                TextField(
-                    modifier = Modifier
-                        .width(FieldWidth)
-                        .padding(4.dp)
-                        .clickable(
-                            onClick = {
-                                typeExpanded = true
-                            }
-                        ),
-                    value = uiState.type?.toDisplayName() ?: "",
-                    onValueChange = {},
-                    label = {
-                        Text("Assignment Type")
-                    },
-                    readOnly = true,
-                    enabled = false,
-                    colors = enabledTextFiledColorSet(),
-                )
-                DropdownMenu(
-                    expanded = typeExpanded,
-                    onDismissRequest = {
-                        typeExpanded = false
-                    }
-                ) {
-                    CategoryAssignmentType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(type.toDisplayName())
-                            },
-                            onClick = {
-                                onTypeSelected(type)
-                                typeExpanded = false
-                            }
-                        )
+            if (!uiState.isEdit) {
+                Box {
+                    TextField(
+                        modifier = Modifier
+                            .width(FieldWidth)
+                            .padding(4.dp)
+                            .clickable(
+                                onClick = {
+                                    typeExpanded = true
+                                }
+                            ),
+                        value = uiState.type?.toDisplayName() ?: "",
+                        onValueChange = {},
+                        label = {
+                            Text("Assignment Type")
+                        },
+                        readOnly = true,
+                        enabled = false,
+                        colors = enabledTextFiledColorSet(),
+                    )
+                    DropdownMenu(
+                        expanded = typeExpanded,
+                        onDismissRequest = {
+                            typeExpanded = false
+                        }
+                    ) {
+                        CategoryAssignmentType.entries.forEach { type ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(type.toDisplayName())
+                                },
+                                onClick = {
+                                    onTypeSelected(type)
+                                    typeExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
