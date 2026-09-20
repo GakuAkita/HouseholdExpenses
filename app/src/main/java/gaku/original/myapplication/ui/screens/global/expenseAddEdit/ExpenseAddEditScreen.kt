@@ -62,6 +62,7 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.utility.LogAkitaDebug
@@ -91,6 +92,8 @@ fun ExpenseAddEditScreenRoot(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackBarHostState.current
+
+    var isDeleteConfirmDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -175,12 +178,26 @@ fun ExpenseAddEditScreenRoot(
             viewModel.onSaveClick()
         },
         onDeleteClick = {
-            viewModel.onDeleteClick()
+            isDeleteConfirmDialog = true
         },
         onAddClick = {
             viewModel.onAddClick()
         }
     )
+
+    if (isDeleteConfirmDialog) {
+        ConfirmAlertDialog(
+            onDismissRequest = {
+                isDeleteConfirmDialog = false
+            },
+            onClick = {
+                viewModel.onDeleteClick()
+                isDeleteConfirmDialog = false
+            }
+        ) {
+            Text("Are you sure to Delete?")
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
