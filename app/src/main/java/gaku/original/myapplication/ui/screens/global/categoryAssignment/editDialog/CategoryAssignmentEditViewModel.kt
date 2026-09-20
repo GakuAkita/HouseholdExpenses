@@ -18,14 +18,13 @@ import timber.log.Timber
 
 data class CategoryAssignmentEditUiState(
     val isEdit: Boolean = false,
+    val isLoading: Boolean = false,
     val message: String? = null,
     val type: CategoryAssignmentType = CategoryAssignmentType.PRODUCT,
     val name: String? = "",
     val condition: MatchCondition = MatchCondition.EXACT,
     val categoryId: String? = null,
     val isRegex: Boolean = false,
-
-    val conditionExpanded: Boolean = false,
 
     val categories: List<Category> = emptyList()
 )
@@ -109,6 +108,30 @@ class CategoryAssignmentEditViewModel(
         _uiState.update {
             it.copy(
                 name = name
+            )
+        }
+    }
+
+    fun onRegexClick() {
+        _uiState.update {
+            it.copy(
+                isRegex = !it.isRegex
+            )
+        }
+    }
+
+    fun onMatchConditionSelected(condition: MatchCondition) {
+        _uiState.update {
+            it.copy(
+                condition = condition
+            )
+        }
+    }
+
+    fun onCategorySelected(categoryId: String?) {
+        _uiState.update {
+            it.copy(
+                categoryId = categoryId
             )
         }
     }

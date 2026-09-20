@@ -77,7 +77,8 @@ fun NavGraphBuilder.mainGraph(
             val assignment =
                 backStackEntry.toRoute<MainGraph.Global.ICategoryAssignment.EditDialog>().assignment
             CategoryAssignmentEditDialogRoot(
-                viewModel = viewModel(factory = CategoryAssignmentEditViewModel.Factory(assignment))
+                viewModel = viewModel(factory = CategoryAssignmentEditViewModel.Factory(assignment)),
+                navHostController = navController
             )
         }
 
