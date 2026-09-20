@@ -289,44 +289,44 @@ fun StoreNameAssignmentColumn(
                                     }
                                 }
                             }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 4.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.End
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            CategoryDropDown(
+                                modifier = Modifier.widthIn(max = 220.dp),
+                                selectedCategoryId = assignmentUi.assignment.categoryId,
+                                categories = categories,
+                                onCategorySelected = { category ->
+                                    onCategorySelected(
+                                        assignmentUi,
+                                        category
+                                    )
+                                },
+                                enabled = !assignmentUi.isLoading,
+                                nullOption = true
+                            )
+                            Column(
+                                modifier = Modifier.width(54.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                CategoryDropDown(
-                                    modifier = Modifier.widthIn(max = 220.dp),
-                                    selectedCategoryId = assignmentUi.assignment.categoryId,
-                                    categories = categories,
-                                    onCategorySelected = { category ->
-                                        onCategorySelected(
-                                            assignmentUi,
-                                            category
-                                        )
-                                    },
-                                    enabled = !assignmentUi.isLoading,
-                                    nullOption = true
-                                )
-                                Column(
-                                    modifier = Modifier.width(54.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    if (assignmentUi.isLoading) {
-                                        CircularProgressIndicator()
-                                    } else {
-                                        IconButton(
-                                            onClick = {
-                                                onDeleteClick(assignmentUi.assignment)
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = "削除"
-                                            )
+                                if (assignmentUi.isLoading) {
+                                    CircularProgressIndicator()
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            onDeleteClick(assignmentUi.assignment)
                                         }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "削除"
+                                        )
                                     }
                                 }
                             }

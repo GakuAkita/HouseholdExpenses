@@ -287,7 +287,8 @@ fun CategoryAssignmentEditDialog(
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text("Save")
