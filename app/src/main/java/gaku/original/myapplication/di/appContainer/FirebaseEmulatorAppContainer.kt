@@ -39,7 +39,8 @@ class FirebaseEmulatorAppContainer(
             firebaseAuth = firebaseAuth,
             firestore = firestore,
             firebaseRealtimeDb = firebaseRealtimeDb,
-            ocrService = ocrService
+            ocrService = ocrService,
+            context = context
         )
     }
 }
