@@ -12,9 +12,9 @@ data class PayPayReceiptOCRSetting(
 
 sealed interface MaskConfig {
     data class Percent(
-        val widthPercent: Double?,
-        val heightPercent: Double?,
-        val topPercent: Double?,
-        val leftPercent: Double?
+        val widthPercent: Double,
+        val heightPercent: Double,
+        val topPercent: Double = 0.0,
+        val leftPercent: Double = 0.0
     ) : MaskConfig
 }

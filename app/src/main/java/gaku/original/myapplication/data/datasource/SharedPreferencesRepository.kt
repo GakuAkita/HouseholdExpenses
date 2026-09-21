@@ -4,8 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 
 class SharedPreferencesDataSource(
-    private val userId: String,
-    private val context: Context
+    private val userId: String, private val context: Context
 ) {
     private val prefs = context.getSharedPreferences("user_prefs_$userId", Context.MODE_PRIVATE)
 
@@ -30,18 +29,43 @@ class SharedPreferencesDataSource(
     fun setBoolean(key: String, value: Boolean) = prefs.edit { putBoolean(key, value) }
 }
 
-object PrefKeys {
-    const val PAYPAY_RECEIPT_LEFT_MASK_RATIO = "paypay_receipt_left_mask_ratio"
-    const val PAYPAY_RECEIPT_TOP_MASK_RATIO = "paypay_receipt_top_mask_ratio"
+sealed class PrefKey(
+    private val prefix: String, private val name: String
+) {
+    val key: String
+        get() = "${prefix}_$name"
 
-    // SearchFilter用のキー
-    const val SEARCH_FILTER_GENERATED_TYPES = "search_filter_generated_types"
-    const val SEARCH_FILTER_CATEGORY_IDS = "search_filter_category_ids"
-    const val SEARCH_FILTER_DATE_FROM = "search_filter_date_from"
-    const val SEARCH_FILTER_DATE_TO = "search_filter_date_to"
-    const val SEARCH_FILTER_AMOUNT_MIN = "search_filter_amount_min"
-    const val SEARCH_FILTER_AMOUNT_MAX = "search_filter_amount_max"
-    const val SEARCH_FILTER_STORE_NAME = "search_filter_store_name"
-    const val SEARCH_FILTER_ITEM_NAME = "search_filter_item_name"
-    const val SEARCH_FILTER_NOTE = "search_filter_note"
+    sealed class PayPayReceiptOCR(name: String) : PrefKey("paypay_receipt_ocr", name) {
+
+        sealed class Mask(name: String) : PayPayReceiptOCR("mask_$name") {
+            data object LeftStartPercent : Mask("left_start_percent")
+
+            data object TopStartPercent : Mask("top_start_percent")
+
+            object WidthPercent : Mask("width_percent")
+
+            data object HeightPercent : Mask("height_percent")
+        }
+    }
+
+    sealed class SearchFilter(name: String) : PrefKey("search_filter", name) {
+
+        data object GeneratedTypes : SearchFilter("generated_types")
+
+        data object CategoryIds : SearchFilter("category_ids")
+
+        data object DateFrom : SearchFilter("date_from")
+
+        data object DateTo : SearchFilter("date_to")
+
+        data object AmountMin : SearchFilter("amount_min")
+
+        data object AmountMax : SearchFilter("amount_max")
+
+        data object StoreName : SearchFilter("store_name")
+
+        data object ItemName : SearchFilter("item_name")
+
+        data object Note : SearchFilter("note")
+    }
 }
