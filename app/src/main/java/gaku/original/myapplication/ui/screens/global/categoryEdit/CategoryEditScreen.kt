@@ -37,7 +37,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
-import gaku.original.myapplication.data.Constants.CATEGORY_NULL_REPLACEMENT
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.TopBarView
@@ -87,6 +86,8 @@ fun CategoryEditScreenRoot(
         }
     )
 }
+
+val CATEGORY_NULL_REPLACEMENT = "category Not Set"
 
 @Composable
 fun CategoryEditScreen(
