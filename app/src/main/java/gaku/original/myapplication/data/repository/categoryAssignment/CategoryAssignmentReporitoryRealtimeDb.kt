@@ -132,6 +132,12 @@ fun String?.toMatchCondition(): MatchCondition {
         /* When already saved in Firestore once, this should not be null. */
         throw Exception("Coding Error: MatchCondition should not be null.")
     } else {
+        /* For backward compatibility */
+        if (this == "exact_match") {
+            return MatchCondition.EXACT
+        } else if (this == "contains") {
+            return MatchCondition.CONTAINS
+        }
         return MatchCondition.valueOf(this)
     }
 }
