@@ -11,10 +11,11 @@ data class PayPayReceiptOCRSetting(
 )
 
 sealed interface MaskConfig {
+    /* if the property is null, it means not saved. */
     data class Percent(
-        val widthPercent: Double,
-        val heightPercent: Double,
-        val topPercent: Double = 0.0,
-        val leftPercent: Double = 0.0
+        val widthPercent: Double? = null,
+        val heightPercent: Double? = null,
+        val topPercent: Double? = null,
+        val leftPercent: Double? = null
     ) : MaskConfig
 }

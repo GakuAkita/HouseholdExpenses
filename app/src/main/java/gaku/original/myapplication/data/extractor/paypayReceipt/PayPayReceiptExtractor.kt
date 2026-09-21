@@ -48,7 +48,11 @@ class PayPayReceiptExtractor(
         bitmap: Bitmap,
         maskConfig: MaskConfig.Percent
     ): AppResult<ExtractedData, ExtractorError> {
-        if (maskConfig.widthPercent == null || maskConfig.heightPercent == null) {
+        if (maskConfig.widthPercent == null ||
+            maskConfig.heightPercent == null ||
+            maskConfig.leftPercent == null ||
+            maskConfig.topPercent == null
+        ) {
             return AppResult.Failure(
                 ExtractorError.MaskNotSetError(
                     bitmap

@@ -19,10 +19,10 @@ class PayPayReceiptRepositorySharedPreferences(
             sharedPreferencesDataSource.getFloat(PrefKey.PayPayReceiptOCR.Mask.HeightPercent.key)
 
         val config = MaskConfig.Percent(
-            widthPercent = widthPercent.toDouble(),
-            heightPercent = heightPercent.toDouble(),
-            topPercent = topPercent.toDouble(),
-            leftPercent = leftPercent.toDouble()
+            widthPercent = widthPercent?.toDouble(),
+            heightPercent = heightPercent?.toDouble(),
+            topPercent = topPercent?.toDouble(),
+            leftPercent = leftPercent?.toDouble()
         )
         return PayPayReceiptOCRSetting(config)
     }
@@ -30,6 +30,18 @@ class PayPayReceiptRepositorySharedPreferences(
     override suspend fun saveOCRSetting(setting: PayPayReceiptOCRSetting) {
         when (setting.mask) {
             is MaskConfig.Percent -> {
+                if (setting.mask.leftPercent == null ||
+                    setting.mask.topPercent == null ||
+                    setting.mask.widthPercent == null ||
+                    setting.mask.heightPercent == null
+                ) {
+                    throw Exception(
+                        "Invalid mask config. Mask is not set." +
+                                "left=${setting.mask.leftPercent} topPercent=${setting.mask.topPercent}" +
+                                "widthPercent=${setting.mask.widthPercent} heightPercent=${setting.mask.heightPercent}"
+                    )
+                }
+
                 sharedPreferencesDataSource.setFloat(
                     PrefKey.PayPayReceiptOCR.Mask.LeftStartPercent.key,
                     setting.mask.leftPercent.toFloat()

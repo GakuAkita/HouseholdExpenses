@@ -24,7 +24,7 @@ class FirebaseEmulatorAppContainer(
 
     init {
         Timber.d("Use emulators")
-        firebaseAuth.useEmulator("10.0.2.2", 9099)
+        firebaseAuth.useEmulator("192.168.1.39", 9099)
         firestore.useEmulator("10.0.2.2", 5002)
         firebaseRealtimeDb.useEmulator("10.0.2.2", 9000)
     }
