@@ -59,8 +59,11 @@ data object MainGraph {
             data object Screen : IRepeatAdd
 
             @Serializable
-            data class Dialog(val repeatAdd: RepeatAdd? = null) :
+            data class EditDialog(val repeatAdd: RepeatAdd? = null) :
                 IRepeatAdd
+
+            @Serializable
+            data class ExecuteDialog(val repeatAdd: RepeatAdd)
         }
 
         @Serializable

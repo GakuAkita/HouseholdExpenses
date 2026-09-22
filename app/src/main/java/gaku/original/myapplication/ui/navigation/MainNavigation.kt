@@ -109,18 +109,29 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        dialog<MainGraph.SettingMenu.IRepeatAdd.Dialog>(
+        dialog<MainGraph.SettingMenu.IRepeatAdd.EditDialog>(
             typeMap = mapOf(typeOf<RepeatAdd?>() to nullableNavTypeOf<RepeatAdd>()),
             dialogProperties = DialogProperties(
                 dismissOnClickOutside = false
             )
         ) { backStackEntry ->
             val repeatAdd =
-                backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.Dialog>().repeatAdd
+                backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.EditDialog>().repeatAdd
             RepeatAddEditDialogRoot(
                 viewModel = viewModel(factory = RepeatAddEditViewModel.Factory(repeatAdd)),
                 navHostController = navController
             )
+        }
+
+        dialog<MainGraph.SettingMenu.IRepeatAdd.ExecuteDialog>(
+            typeMap = mapOf(typeOf<RepeatAdd>() to navTypeOf<RepeatAdd>()),
+            dialogProperties = DialogProperties(
+                dismissOnClickOutside = false
+            )
+        ) { backStackEntry ->
+            val repeatAdd =
+                backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.ExecuteDialog>().repeatAdd
+            
         }
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {

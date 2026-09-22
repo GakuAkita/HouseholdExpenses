@@ -1,0 +1,3 @@
+package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.executeDialog
+
+class RepeatAddExecuteViewModel
