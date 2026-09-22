@@ -77,7 +77,9 @@ fun RepeatAddEditDialogRoot(
                         uiState.newRepeatAdd!!
                     )
                 ) {
-
+                    popUpTo<MainGraph.SettingMenu.IRepeatAdd.EditDialog> {
+                        inclusive = true
+                    }
                 }
             }
         }

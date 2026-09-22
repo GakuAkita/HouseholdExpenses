@@ -134,7 +134,8 @@ fun NavGraphBuilder.mainGraph(
             val repeatAdd =
                 backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.ExecuteDialog>().repeatAdd
             RepeatAddExecuteDialogRoot(
-                viewModel = viewModel(factory = RepeatAddExecuteViewModel.Factory(repeatAdd))
+                viewModel = viewModel(factory = RepeatAddExecuteViewModel.Factory(repeatAdd)),
+                navHostController = navController
             )
         }
 
