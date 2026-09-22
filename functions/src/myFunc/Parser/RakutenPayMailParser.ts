@@ -5,7 +5,7 @@ import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 
 export class RakutenPayMailParser {
-  constructor(private rawText: string) {}
+  constructor(private rawText: string) { }
 
   extractDate(): string | null {
     const match = this.rawText.match(
@@ -59,6 +59,7 @@ export class RakutenPayMailParser {
     const storeName = this.extractStoreName();
     const datetime = this.extractDate();
     const usedPoint = this.extractUsedPoint();
+    logger.debug(`${this.rawText}`);
     if (amount === null || !storeName || !datetime || !usedPoint) {
       return {
         status: FuncStatus.ERROR,
