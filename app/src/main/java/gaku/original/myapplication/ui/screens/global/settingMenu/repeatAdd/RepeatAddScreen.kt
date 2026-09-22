@@ -69,14 +69,14 @@ fun RepeatAddScreenRoot(
         },
         onRepeatAddEdit = {
             Timber.d("${it}")
-            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(it))
+            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.EditDialog(it))
         },
         onRepeatAddDelete = {
             Timber.d("Delete tapped??")
             viewModel.onDeleteClick(it)
         },
         onRepeatAddAddClick = {
-            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.Dialog(null))
+            navHostController.navigate(MainGraph.SettingMenu.IRepeatAdd.EditDialog(null))
         }
     )
 }

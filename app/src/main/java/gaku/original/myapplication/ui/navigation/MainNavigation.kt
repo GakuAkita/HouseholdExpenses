@@ -25,6 +25,8 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.paypayReceiptRe
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.RepeatAddScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditDialogRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.RepeatAddEditViewModel
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.executeDialog.RepeatAddExecuteDialogRoot
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.executeDialog.RepeatAddExecuteViewModel
 import gaku.original.myapplication.ui.screens.global.settingMenu.timezone.TimeZoneScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.userInfo.UserInfoScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.version.VersionScreen
@@ -131,7 +133,9 @@ fun NavGraphBuilder.mainGraph(
         ) { backStackEntry ->
             val repeatAdd =
                 backStackEntry.toRoute<MainGraph.SettingMenu.IRepeatAdd.ExecuteDialog>().repeatAdd
-            
+            RepeatAddExecuteDialogRoot(
+                viewModel = viewModel(factory = RepeatAddExecuteViewModel.Factory(repeatAdd))
+            )
         }
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {
