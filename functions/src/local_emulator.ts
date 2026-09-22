@@ -39,7 +39,8 @@ import {
 } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
-const userId = "testUser"; // テスト用のユーザーID
+// const userId = "testUser"; // テスト用のユーザーID
+const userId = "vvfiDpgUTzdV9z0ZLPOBlLiXxOPN";
 
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
@@ -328,7 +329,7 @@ const schedule_func = async () => {
     logger.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
-schedule_func();
+//schedule_func();
 
 /**
  * 引数にrefresh_tokenを受取、
@@ -465,4 +466,4 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-// processMailTest();
+processMailTest();

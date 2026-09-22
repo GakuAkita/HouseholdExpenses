@@ -268,7 +268,7 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
       if (schedule.id === "daily") {
         /**
          * CloudSchedulerは合計3つしか無料で使えないらしい
-         * RepeatAddで毎月実行は必要だから、他の歯dailyとshortPeriodの2つしか使えない。
+         * RepeatAddで毎月実行は必要だから、他のはdailyとshortPeriodの2つしか使えない。
          * したがって、なにか増えたときはこのようにidで条件分岐をして加えていく
          */
         await amazonSubscribeMonitor();

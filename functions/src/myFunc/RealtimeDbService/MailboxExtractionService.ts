@@ -350,6 +350,7 @@ export class MailboxExtractionService {
         userId,
         type
       );
+      logger.log(`${JSON.stringify(ref)}`)
       const snapshot = await ref.get(); //ここで止まっているな
       const data: AllMailType | null = snapshot.val();
       if (data == null) {
