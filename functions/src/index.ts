@@ -7,6 +7,7 @@ import { TriggerTimeZone } from "./constants/TimeZone";
 import { admin } from "./myFunc/firebaseAdmin";
 import { loadGoogleOAuthSecrets } from "./myFunc/googleOAuthSecrets";
 import { initializeServices } from "./myFunc/initializeServices";
+import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { FuncStatus } from "./type/FuncStatus";
 import { GoogleOAuthSecrets } from "./type/GoogleOAuthSecrets";
@@ -15,7 +16,6 @@ import {
   mailboxExtractionSchedules,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
-import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
 const {
   userService,
   repeatAddProcessor,
@@ -45,11 +45,11 @@ const schedule_repeatAdd = async () => {
     const addResult = await repeatAddProcessor.addExpensesFromAllRepeatAdd(uid);
     if (addResult.status !== FuncStatus.SUCCESS) {
       logger.error(
-        `Failed to add expenses from repeat adds for user ${uid}: ${addResult.message}`
+        `Failed to add expenses from repeat adds for user ${uid}: ${addResult.message}`,
       );
     } else {
       logger.log(
-        `Successfully added expenses from repeat adds for user ${uid}.`
+        `Successfully added expenses from repeat adds for user ${uid}.`,
       );
     }
   }
@@ -65,16 +65,16 @@ exports.monthly_repeatAddJob = onSchedule(
   async (_) => {
     logger.log("Starting monthly repeatAdd job...");
     await schedule_repeatAdd();
-  }
+  },
 );
 
-exports.repeatAddTest = functions.https.onRequest(async (req, res) => {
-  logger.log("Starting repeatAdd test...");
-  const addResult = await repeatAddProcessor.addExpensesFromAllRepeatAdd(
-    "mJrkPOf5AthGokZEG3uufSpqn9E3"
-  );
-  res.send("repeatAdd test completed.");
-});
+// exports.repeatAddTest = functions.https.onRequest(async (req, res) => {
+//   logger.log("Starting repeatAdd test...");
+//   const addResult = await repeatAddProcessor.addExpensesFromAllRepeatAdd(
+//     "mJrkPOf5AthGokZEG3uufSpqn9E3"
+//   );
+//   res.send("repeatAdd test completed.");
+// });
 /**
  * ユーザーが作成されたときに走らせる
  * 注意：Node.js 18は2025-10-30に廃止されたため、Node.js 20以上が必須。2025/11/2
@@ -121,7 +121,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     const decodedToken = await admin.auth().verifyIdToken(state);
     if (!decodedToken || !decodedToken.uid) {
       throw new Error(
-        "Invalid state parameter: Unable to decode Firebase ID token."
+        "Invalid state parameter: Unable to decode Firebase ID token.",
       );
     }
     const uid = decodedToken.uid;
@@ -151,7 +151,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-      }
+      },
     );
 
     const { access_token, refresh_token } = tokenRes.data;
@@ -167,7 +167,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
-      }
+      },
     );
     const gmailEmail = userInfoRes.data.email;
 
@@ -197,24 +197,24 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
       await mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
         uid,
         mailboxToken,
-        secrets.encryptionKey
+        secrets.encryptionKey,
       );
 
     if (ret.status !== FuncStatus.SUCCESS) {
       throw new Error(
-        `Failed to set mailbox extraction token for user ${uid}: ${ret.message}`
+        `Failed to set mailbox extraction token for user ${uid}: ${ret.message}`,
       );
     } else {
       logger.log(`Successfully set mailbox extraction token for user ${uid}.`);
     }
     res.send(
-      `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`
+      `<h1>I'm God Akita.</h1><h2>Process finished.<br>Please close this window.</h2>`,
     );
   } catch (err) {
     if (axios.isAxiosError(err)) {
       logger.error(
         "Axios error:",
-        JSON.stringify(err.response?.data ?? err.message)
+        JSON.stringify(err.response?.data ?? err.message),
       );
     } else {
       logger.error("Unexpected error:", err);
@@ -244,7 +244,7 @@ const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
       mailboxExtractionService,
       expenseService,
       categoryService,
-      categoryAssignmentService
+      categoryAssignmentService,
     );
     /* ユーザーごとに実行 */
     await mailboxExtrInstance.processAllMailTypeList(mailTypeList);
@@ -263,7 +263,7 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
       await scheduledMailboxExtraction(schedule.mailTypes);
 
       /**
-       * 
+       *
        */
       if (schedule.id === "daily") {
         /**
@@ -273,7 +273,7 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
          */
         await amazonSubscribeMonitor();
       }
-    }
+    },
   );
 }
 
@@ -296,11 +296,13 @@ const amazonSubscribeMonitor = async () => {
   for (const uid of userIds) {
     const processor = new AmazonSubscribeMonitorItemsProcessor(
       uid,
-      mailboxExtractionService
+      mailboxExtractionService,
     );
     const ret = await processor.handleAmazonSubscribeItems();
     if (ret.status !== FuncStatus.SUCCESS) {
-      logger.error(`Failed to handle Amazon Subscribe items: ${ret.message ?? "No message"}`);
+      logger.error(
+        `Failed to handle Amazon Subscribe items: ${ret.message ?? "No message"}`,
+      );
     }
   }
 };

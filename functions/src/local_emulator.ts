@@ -138,9 +138,9 @@ const init_add = async () => {
     timestamp: Date.now(),
     expense: sampleExpense,
     frequencyInfo: {
-      frequency: RepeatFrequency.WEEKDAYS, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
-      month: 6,
-      day: 2,
+      frequency: RepeatFrequency.EVERY_YEAR, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
+      month: 9,
+      day: 23,
       hour: 9,
       minute: 30,
     },
@@ -328,7 +328,7 @@ const schedule_func = async () => {
     logger.log(`addExpensesFromAllRepeatAdd ${ret.message}`);
   }
 };
-//schedule_func();
+schedule_func();
 
 /**
  * 引数にrefresh_tokenを受取、
@@ -441,12 +441,12 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    //createRakutenPaySettingInstance(),
+    createRakutenPaySettingInstance(),
     //createAmazonItemSettingInstance(),
     //createAmazonKindleSettingInstance(),
     //createAmazonSubscribeSettingInstance(),
     //createShikokuElectricPowerSettingInstance(),
-    createUdemySettingInstance(),
+    // createUdemySettingInstance(),
     //createRakutenCardETCSettingInstance(),
   ];
 
@@ -465,6 +465,4 @@ const processMailTest = async () => {
   logger.debug("process Done");
 };
 
-processMailTest();
-
-
+// processMailTest();
