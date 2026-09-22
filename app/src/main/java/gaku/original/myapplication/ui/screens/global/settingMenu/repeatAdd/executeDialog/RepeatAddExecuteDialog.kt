@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,23 +58,31 @@ fun RepeatAddExecuteDialog(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier
+                    .width(120.dp),
                 onClick = {
                     onNoClick()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
             ) {
                 Text("No")
             }
 
             Button(
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier
+                    .width(120.dp),
                 onClick = {
                     onYesClick()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
             ) {
                 Text("Yes")
             }
