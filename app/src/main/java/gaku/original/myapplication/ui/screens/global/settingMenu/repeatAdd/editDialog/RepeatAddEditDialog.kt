@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.CancelButton
@@ -67,7 +68,18 @@ fun RepeatAddEditDialogRoot(
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
-            navHostController.popBackStack()
+            if (uiState.newRepeatAdd == null) {
+                navHostController.popBackStack()
+            } else {
+                /* when newly added, ask the user if they add expense for the rest of the days this month */
+                navHostController.navigate(
+                    MainGraph.SettingMenu.IRepeatAdd.ExecuteDialog(
+                        uiState.newRepeatAdd!!
+                    )
+                ) {
+
+                }
+            }
         }
     }
 

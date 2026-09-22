@@ -2,6 +2,7 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.exec
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -26,10 +27,11 @@ fun RepeatAddExecuteDialog(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
+        Text("This is Execute route dialog.")
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun RepeatAddExecuteDialogPreview() {
     val uiState = RepeatAddExecuteUiState()

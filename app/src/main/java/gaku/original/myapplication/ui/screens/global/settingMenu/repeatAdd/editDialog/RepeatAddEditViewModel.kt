@@ -30,6 +30,7 @@ data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
     val message: String? = null,
     val isSaved: Boolean = false,
+    val newRepeatAdd: RepeatAdd? = null,/* used to detect */
 
     val amount: Long? = null,
     val note: String? = null,
@@ -377,11 +378,11 @@ class RepeatAddEditViewModel(
             }
             return
         } else if (hourInt !in 0..23) {
-//            _uiState.update {
-//                it.copy(
-//                    message = "Bug: Hour must be between 0 and 23"
-//                )
-//            }
+            _uiState.update {
+                it.copy(
+                    message = "Bug: Hour must be between 0 and 23"
+                )
+            }
             /* Out of range */
             return
         } else {
@@ -436,7 +437,12 @@ class RepeatAddEditViewModel(
                     is AppResult.Success -> {
                         val newRepeatAdd = ret.value
                         if (newRepeatAdd.id == null) {
-                            repeatAddRepository.addRepeatAdd(newRepeatAdd)
+                            val new = repeatAddRepository.addRepeatAdd(newRepeatAdd)
+                            _uiState.update {
+                                it.copy(
+                                    newRepeatAdd = new
+                                )
+                            }
                         } else {
                             repeatAddRepository.updateRepeatAdd(newRepeatAdd)
                         }
@@ -585,7 +591,7 @@ fun RepeatAddEditDialogState.toRepeatAdd(initial: RepeatAdd?): AppResult<RepeatA
         }
     }
 
-    var newRepeatAdd = if (initial == null) RepeatAdd() else initial
+    var newRepeatAdd = initial ?: RepeatAdd()
 
     /* these are common parameters */
     newRepeatAdd = newRepeatAdd.copy(
