@@ -49,6 +49,12 @@ fun RepeatAddExecuteDialogRoot(
         }
     }
 
+    LaunchedEffect(uiState.isDone) {
+        if (uiState.isDone) {
+            navHostController.popBackStack()
+        }
+    }
+
     RepeatAddExecuteDialog(
         uiState,
         snackbarHostState = snackbarHostState,

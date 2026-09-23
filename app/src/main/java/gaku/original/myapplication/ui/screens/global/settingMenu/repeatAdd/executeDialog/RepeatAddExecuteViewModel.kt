@@ -8,10 +8,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.CodingErrorException
+import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +29,7 @@ import java.time.ZoneId
 data class RepeatAddExecuteUiState(
     val inProgressPercent: Double = 0.0,
     val isWorking: Boolean = false,
+    val isDone: Boolean = false,
 
     val message: String? = null,
 
@@ -104,7 +107,32 @@ class RepeatAddExecuteViewModel(
                         )
                     }
                 } else {
+                    var progress = 0.0
+                    for (target in targets) {
+                        Timber.d("target:$target now:${Instant.now()}")
+                        if (target.isAfter(Instant.now())) {
+                            val expense = repeatAdd.expense.copy(
+                                datetime = target.toString(),
+                                generatedType = GeneratedType.RepeatAdd(
+                                    repeatAdd.id!!
+                                )
+                            )
+                            delay(3000)
+                            expenseRepository.addExpense(expense)
+                        }
 
+                        progress += 100.0 / targets.size
+                        _uiState.update {
+                            it.copy(
+                                inProgressPercent = progress
+                            )
+                        }
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isDone = true
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.update {
