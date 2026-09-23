@@ -2,7 +2,10 @@ package gaku.original.myapplication.di.appContainer
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
@@ -34,6 +37,24 @@ class FirebaseEmulatorAppContainer(
         firebaseAuth.useEmulator("10.0.2.2", 9099)
         firestore.useEmulator("10.0.2.2", 5002)
         firebaseRealtimeDb.useEmulator("10.0.2.2", 9000)
+
+        /* .info/connected is booked reference */
+        firebaseRealtimeDb.getReference(".info/connected").addValueEventListener(
+            object : ValueEventListener {
+                override fun onDataChange(p0: DataSnapshot) {
+                    val connected = p0.getValue(Boolean::class.java) ?: false
+                    if (connected) {
+                        Timber.d("Connected to Realtime Database")
+                    } else {
+                        Timber.d("Disconnected from Realtime Database")
+                    }
+                }
+
+                override fun onCancelled(p0: DatabaseError) {
+                    Timber.d("Realtime Database Error: ${p0.message}")
+                }
+            }
+        )
     }
 
     override val ocrService: OcrService = MlkitOcrService()

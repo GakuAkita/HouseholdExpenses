@@ -46,14 +46,6 @@ class FirebaseSessionContainer(
         context = context
     )
 
-    init {
-        if (appUser.id == null) {
-            throw CodingErrorException("AppUser id is null!")
-        } else if (appUser.email == null) {
-            throw CodingErrorException("AppUser email is null!")
-        }
-    }
-
     private val firestoreReference = FirestoreUserReference(
         firestore = firestore,
         appUser = appUser
@@ -63,6 +55,15 @@ class FirebaseSessionContainer(
         appUser = appUser,
         realtimeDb = firebaseRealtimeDb
     )
+
+    init {
+        if (appUser.id == null) {
+            throw CodingErrorException("AppUser id is null!")
+        } else if (appUser.email == null) {
+            throw CodingErrorException("AppUser email is null!")
+        }
+    }
+
 
     /* order is important */
     private val _paypayReceiptConfigRepository = PayPayReceiptRepositorySharedPreferences(
