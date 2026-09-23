@@ -1,11 +1,11 @@
 package gaku.original.myapplication.data.repository.appTimeZone
 
-import com.google.type.TimeZone
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+/* Closed when HomeViewModel is closed. */
 interface AppTimeZoneRepository {
     val zoneId: StateFlow<ZoneId>
 
@@ -20,10 +20,10 @@ interface AppTimeZoneRepository {
 
 fun String.toLocalDateTime(zoneId: ZoneId): LocalDateTime {
     val instant = Instant.parse(this)
-    return LocalDateTime.ofInstant(instant,zoneId)
+    return LocalDateTime.ofInstant(instant, zoneId)
 }
 
-fun LocalDateTime.toIsoUtcString(zoneId: ZoneId): String{
+fun LocalDateTime.toIsoUtcString(zoneId: ZoneId): String {
     return this.atZone(zoneId).toInstant().toString()
 }
 

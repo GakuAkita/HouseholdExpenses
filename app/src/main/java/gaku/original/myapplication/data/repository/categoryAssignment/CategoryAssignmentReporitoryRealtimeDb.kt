@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.categoryAssignment
 
 import com.google.firebase.database.DataSnapshot
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.Interface.HasId
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
@@ -45,7 +46,7 @@ class CategoryAssignmentRepositoryRealtimeDb(
 
     override suspend fun updateCategoryAssignment(assignment: CategoryAssignment) {
         if (assignment.id == null) {
-            throw Exception("Coding Error: assignment.id is null!")
+            throw CodingErrorException("assignment.id is null!")
         }
 
         when (assignment) {
@@ -65,7 +66,7 @@ class CategoryAssignmentRepositoryRealtimeDb(
 
     override suspend fun deleteCategoryAssignment(assignment: CategoryAssignment) {
         if (assignment.id == null) {
-            throw Exception("Coding Error: assignment.id is null!")
+            throw CodingErrorException("assignment.id is null!")
         }
         when (assignment) {
             is CategoryAssignment.Product -> {
@@ -130,7 +131,7 @@ sealed interface CategoryAssignmentFirebase : HasId {
 fun String?.toMatchCondition(): MatchCondition {
     if (this == null) {
         /* When already saved in Firestore once, this should not be null. */
-        throw Exception("Coding Error: MatchCondition should not be null.")
+        throw CodingErrorException("MatchCondition should not be null.")
     } else {
         /* For backward compatibility */
         if (this == "exact_match") {

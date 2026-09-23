@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.repository.emailConnect
 
 import com.google.firebase.auth.FirebaseAuth
 import gaku.original.myapplication.BuildConfig
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
@@ -40,7 +41,7 @@ open class EmailConnectionRepositoryFirebase(
 
     override suspend fun isConnected(provider: EmailProvider): Boolean {
         if (appUser.email == null) {
-            throw Exception("Coding Error: Email is null")
+            throw CodingErrorException("Email is null")
         }
 
         Timber.d("Checking if connected to $provider")

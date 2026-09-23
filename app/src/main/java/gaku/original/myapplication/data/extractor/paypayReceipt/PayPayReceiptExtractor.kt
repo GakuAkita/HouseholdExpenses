@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.extractor.ExtractedData
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.ExtractorError
@@ -38,7 +39,7 @@ class PayPayReceiptExtractor(
 
         val config = paypayReceiptConfigRepository.getOCRSetting()
         if (config.mask !is MaskConfig.Percent) {
-            throw Exception("Coding Error: Invalid mask config. PayPay should set by percent")
+            throw CodingErrorException("Invalid mask config. PayPay should set by percent")
         }
 
         return extract(bitmap, config.mask)

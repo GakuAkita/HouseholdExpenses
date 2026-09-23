@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.mailboxExtraction
 
 import com.google.firebase.database.DataSnapshot
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
@@ -76,8 +77,8 @@ class MailboxExtractionRepositoryRealtimeDb(
 
 
         if (domain.javaClass != type.javaClass) {
-            throw IllegalStateException(
-                "Coding error: expected ${type.javaClass.simpleName}, " + "but got ${domain.javaClass.simpleName}"
+            throw CodingErrorException(
+                "expected ${type.javaClass.simpleName}, " + "but got ${domain.javaClass.simpleName}"
             )
         }
 

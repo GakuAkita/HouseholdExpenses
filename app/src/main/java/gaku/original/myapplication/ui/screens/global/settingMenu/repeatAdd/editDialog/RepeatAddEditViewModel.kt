@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
@@ -226,7 +227,7 @@ class RepeatAddEditViewModel(
                     }
 
                     null -> {
-                        throw Exception("Coding Error: Frequency is not assigned")
+                        throw CodingErrorException("Frequency is not assigned")
                     }
                 }
             } catch (e: Exception) {

@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.datasource.SharedPreferencesDataSource
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
@@ -47,9 +48,9 @@ class FirebaseSessionContainer(
 
     init {
         if (appUser.id == null) {
-            throw Exception("Coding Error:AppUser id is null!")
+            throw CodingErrorException("AppUser id is null!")
         } else if (appUser.email == null) {
-            throw Exception("Coding Error:AppUser email is null!")
+            throw CodingErrorException("AppUser email is null!")
         }
     }
 

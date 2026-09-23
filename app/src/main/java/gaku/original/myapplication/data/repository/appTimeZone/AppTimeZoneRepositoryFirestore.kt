@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.appTimeZone
 
 import com.google.firebase.firestore.ListenerRegistration
+import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ class AppTimeZoneRepositoryFirestore(
 
     override fun startListening() {
         if (registration != null) {
-            throw Exception("Coding Error: Already listening to AppTimeZone")
+            throw CodingErrorException("Already listening to AppTimeZone")
         }
         registration = document.addSnapshotListener { snapshot, exception ->
             if (exception != null) {
