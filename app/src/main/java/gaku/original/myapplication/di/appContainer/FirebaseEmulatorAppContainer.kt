@@ -38,6 +38,20 @@ class FirebaseEmulatorAppContainer(
         firestore.useEmulator("10.0.2.2", 5002)
         firebaseRealtimeDb.useEmulator("10.0.2.2", 9000)
 
+        firestore.collection("_connection_test").document("status")
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    Timber.d("Firestore Error: ${exception.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) return@addSnapshotListener
+
+                Timber.d(
+                    "Firestore: fromCache=${snapshot.metadata.isFromCache}"
+                )
+            }
+
         /* .info/connected is booked reference */
         firebaseRealtimeDb.getReference(".info/connected").addValueEventListener(
             object : ValueEventListener {
