@@ -20,6 +20,7 @@ class MyApplication : Application() {
 
         appContainer =
             if (BuildConfig.DEBUG) FirebaseEmulatorAppContainer(this) else FirebaseAppContainer(this)
+        //appContainer = FirebaseAppContainer(this)
 
         Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }

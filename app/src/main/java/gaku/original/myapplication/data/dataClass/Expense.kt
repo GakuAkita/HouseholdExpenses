@@ -51,7 +51,7 @@ sealed interface GeneratedType {
     @Serializable
     data class MailExtraction(val templateTypeName: String) : GeneratedType {
         companion object {
-            val NAME = "mail_extraction"
+            val NAME = "mailbox_extraction"
         }
 
         override fun toSerialized(): String = "${NAME}___${templateTypeName}"
