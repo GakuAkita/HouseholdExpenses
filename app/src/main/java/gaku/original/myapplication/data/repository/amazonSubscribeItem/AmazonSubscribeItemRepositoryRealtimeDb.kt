@@ -3,13 +3,15 @@ package gaku.original.myapplication.data.repository.amazonSubscribeItem
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class AmazonSubscribeItemRepositoryRealtimeDb(
     private val realtimeDbReference: RealtimeDbUserReference
 ) : AmazonSubscribeItemRepository {
-    private val reference = realtimeDbReference.amazonSubscribeMonitorReference
+    private val reference = realtimeDbReference.amazonSubscribeItemReference
 
     override suspend fun getAllAmazonSubscribeItems(): Map<String, AmazonSubscribeItem> {
+        Timber.d("AmazonSubscribeItems reference = $reference")
         val snapshots = reference.get().await().children
         val amazonSubscribeItems = mutableMapOf<String, AmazonSubscribeItem>()
         for (snapshot in snapshots) {

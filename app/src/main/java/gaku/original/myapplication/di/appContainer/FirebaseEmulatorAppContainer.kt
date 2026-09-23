@@ -17,7 +17,6 @@ import timber.log.Timber
 
 /**
  * I totally forgot why I need to write this url.
- * Without it, even if this app is connected to Realtime Database, the connection is lost in several seconds....
  */
 val REALTIME_DATABASE_URL =
     "https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -53,6 +52,8 @@ class FirebaseEmulatorAppContainer(
             }
 
         /* .info/connected is booked reference */
+        /* I have no idea what's happening. Even if this app is connected to Realtime Database Emulator, the connection is lost in several seconds....*/
+        /* In the production environment, this doesn't happen. */
         firebaseRealtimeDb.getReference(".info/connected").addValueEventListener(
             object : ValueEventListener {
                 override fun onDataChange(p0: DataSnapshot) {

@@ -76,9 +76,10 @@ class AmazonSubscribeViewModel(
                 val mapData = amazonSubscribeItemRepository.getAllAmazonSubscribeItems()
                 _uiState.update {
                     it.copy(
-                        amazonSubscribeItems = mapData.values.map { it ->
+                        amazonSubscribeItems = mapData.values.map { item ->
+                            Timber.d("item: $item")
                             AmazonSubscribeItemUiState(
-                                subscribeItem = it,
+                                subscribeItem = item,
                                 isLoading = false
                             )
                         },
