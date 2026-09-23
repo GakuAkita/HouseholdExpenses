@@ -326,8 +326,12 @@ fun LazyExpensesColumn(
             userScrollEnabled = true
         ) {
             items(uiState.shownExpenses) { expense ->
+                /* if it is today, highlight the background */
+                val isToday =
+                    expense.datetime?.atZone(uiState.zoneId)?.dayOfMonth == LocalDate.now().dayOfMonth
                 ExpenseItem(
                     expenseUi = expense,
+                    isToday = isToday,
                     onEdit = {
                         /* idだけ渡してAdd/Editする */
                         onExpenseClick(expense.id)

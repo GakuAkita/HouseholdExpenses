@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -41,7 +42,8 @@ data class HomeUiState(
     val selectedMonth: YearMonth = YearMonth.now(),
     val shownExpenses: List<ExpenseUi> = emptyList(),
     val monthlyTotal: Long = 0L,
-    val dailyAmounts: Map<LocalDate, Long> = emptyMap()
+    val dailyAmounts: Map<LocalDate, Long> = emptyMap(),
+    val zoneId: ZoneId = ZoneId.systemDefault()
 )
 
 sealed interface ExpenseEditError : AppError {
@@ -81,9 +83,14 @@ class HomeViewModel(
         appTimeZoneRepository.startListening()
 
         viewModelScope.launch {
-            appTimeZoneRepository.zoneId.collect {
+            appTimeZoneRepository.zoneId.collect { zoneId ->
                 /* reorganize the expenses list based on the new zoneId */
                 Timber.d("ZoneId was updated!")
+                _uiState.update {
+                    it.copy(
+                        zoneId = zoneId
+                    )
+                }
             }
         }
 
@@ -102,7 +109,7 @@ class HomeViewModel(
         /* filter only selected month */
         val expenseUiList = cachedExpenses.values.filter {
             it.datetime?.toLocalDateTime(zoneId)?.monthValue == _uiState.value.selectedMonth.monthValue
-        }.map { it.toUi(zoneId) }
+        }.sortedBy { Instant.parse(it.datetime) }.map { it.toUi(zoneId) }
 
         /* calculate statistics and each day amount */
         val monthlyTotal = expenseUiList.sumOf { it.amount ?: 0L }
