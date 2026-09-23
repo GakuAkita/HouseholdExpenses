@@ -27,35 +27,44 @@ jobs:
         id: version
         shell: bash
         run: |
-          # 最新のタグを取得(vで始まるタグのみ)
-          LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
+          REF_TYPE="${{ github.ref_type }}"
+          REF_NAME="${{ github.ref_name }}"
 
-          if [ -z "$LATEST_TAG" ]; then
-            # タグが存在しない場合は v1.0.0 から開始
-            NEW_TAG="v1.0.0"
-            HAS_CHANGES=true
-            echo "No existing tags found, starting with $NEW_TAG"
+          if [ "$REF_TYPE" = "tag" ]; then
+            echo "Workflow executed on tag ref: $REF_NAME"
+            NEW_TAG="$REF_NAME"
+            HAS_CHANGES=false
           else
-            echo "Latest tag: $LATEST_TAG"
-            
-            # タグのコミットと現在のコミットを比較
-            TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
-            CURRENT_COMMIT=$(git rev-parse HEAD)
-            
-            if [ "$TAG_COMMIT" = "$CURRENT_COMMIT" ]; then
-              # 変更がない場合は既存のタグを使用
-              NEW_TAG="$LATEST_TAG"
-              HAS_CHANGES=false
-              echo "No changes since $LATEST_TAG, using existing tag"
-            else
-              # 変更がある場合は一番下の位を1つ繰り上げ
-              # v1.0.0 -> v1.0.1, v1.2.3 -> v1.2.4
-              VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
-              IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-              PATCH=$((PATCH + 1))
-              NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+            # 最新のタグを取得(vで始まるタグのみ)
+            LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
+
+            if [ -z "$LATEST_TAG" ]; then
+              # タグが存在しない場合は v1.0.0 から開始
+              NEW_TAG="v1.0.0"
               HAS_CHANGES=true
-              echo "Changes detected, creating new tag: $NEW_TAG"
+              echo "No existing tags found, starting with $NEW_TAG"
+            else
+              echo "Latest tag: $LATEST_TAG"
+              
+              # タグのコミットと現在のコミットを比較
+              TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
+              CURRENT_COMMIT=$(git rev-parse HEAD)
+              
+              if [ "$TAG_COMMIT" = "$CURRENT_COMMIT" ]; then
+                # 変更がない場合は既存のタグを使用
+                NEW_TAG="$LATEST_TAG"
+                HAS_CHANGES=false
+                echo "No changes since $LATEST_TAG, using existing tag"
+              else
+                # 変更がある場合は一番下の位を1つ繰り上げ
+                # v1.0.0 -> v1.0.1, v1.2.3 -> v1.2.4
+                VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
+                IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+                PATCH=$((PATCH + 1))
+                NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+                HAS_CHANGES=true
+                echo "Changes detected, creating new tag: $NEW_TAG"
+              fi
             fi
           fi
 
