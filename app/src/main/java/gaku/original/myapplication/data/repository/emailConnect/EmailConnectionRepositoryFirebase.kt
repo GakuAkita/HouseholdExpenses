@@ -49,6 +49,7 @@ open class EmailConnectionRepositoryFirebase(
         Timber.d("Checking if connected to $provider")
         when (provider) {
             EmailProvider.GMAIL -> {
+                /* I have no idea what's happening. Immediately after installing, it works fine, but several seconds later, disconnected? */
                 Timber.d("Checking if connected to Gmail. ref=$reference")
                 val snapshot = withTimeout(5000.milliseconds) { reference.get().await() }
                 Timber.d("Checking if connected to Gmail done.")
