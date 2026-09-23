@@ -39,6 +39,7 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.ui.common.CancelButton
+import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 
 @Composable
@@ -113,7 +114,14 @@ fun CategoryEditScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButtonWithIcon(
+                onClick = {
+                    onCategoryAddClick()
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -134,17 +142,20 @@ fun CategoryEditScreen(
                         }
                     )
                 }
-            }
 
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 100.dp, vertical = 16.dp),
-                onClick = {
-                    onCategoryAddClick()
-                }
-            ) {
-                Text("Add Category")
+                /* Move to Floating Action button */
+//                item(span = { GridItemSpan(maxLineSpan) }) {
+//                    Button(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 100.dp, vertical = 16.dp),
+//                        onClick = {
+//                            onCategoryAddClick()
+//                        }
+//                    ) {
+//                        Text("Add Category")
+//                    }
+//                }
             }
 
             if (uiState.isShowEditDialog) {

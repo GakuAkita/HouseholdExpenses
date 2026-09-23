@@ -7,7 +7,9 @@ import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReferenc
 import gaku.original.myapplication.domain.AppUser
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
+import kotlin.time.Duration.Companion.milliseconds
 
 /* THis can be used only when Firebase is used for SignIn */
 open class EmailConnectionRepositoryFirebase(
@@ -47,7 +49,9 @@ open class EmailConnectionRepositoryFirebase(
         Timber.d("Checking if connected to $provider")
         when (provider) {
             EmailProvider.GMAIL -> {
-                val snapshot = reference.get().await()
+                Timber.d("Checking if connected to Gmail. ref=$reference")
+                val snapshot = withTimeout(5000.milliseconds) { reference.get().await() }
+                Timber.d("Checking if connected to Gmail done.")
                 return snapshot.exists()
             }
 

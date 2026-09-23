@@ -254,6 +254,7 @@ class MailboxExtractionViewModel(
                     )
                 }
             } finally {
+                Timber.d("Came to finally")
                 _uiState.update {
                     it.copy(
                         isLoading = false
