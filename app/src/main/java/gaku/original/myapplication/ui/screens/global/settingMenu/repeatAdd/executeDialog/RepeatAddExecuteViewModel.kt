@@ -13,7 +13,6 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -117,10 +116,8 @@ class RepeatAddExecuteViewModel(
                                     repeatAdd.id!!
                                 )
                             )
-                            delay(3000)
                             expenseRepository.addExpense(expense)
                         }
-
                         progress += 100.0 / targets.size
                         _uiState.update {
                             it.copy(
@@ -129,6 +126,8 @@ class RepeatAddExecuteViewModel(
                         }
                     }
                 }
+                /* I didn't think about when the user suspended and wanted to resume. */
+                /* Implement it if needed. */
                 _uiState.update {
                     it.copy(
                         isDone = true
