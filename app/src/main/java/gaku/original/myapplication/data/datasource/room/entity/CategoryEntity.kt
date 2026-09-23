@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.local.entity
+package gaku.original.myapplication.data.datasource.room.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

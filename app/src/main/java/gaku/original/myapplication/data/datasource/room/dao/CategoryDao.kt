@@ -1,4 +1,4 @@
-package gaku.original.myapplication.data.local.dao
+package gaku.original.myapplication.data.datasource.room.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import gaku.original.myapplication.data.local.entity.CategoryEntity
+import gaku.original.myapplication.data.datasource.room.entity.CategoryEntity
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface CategoryDao {
-    
+
     /**
      * 全てのカテゴリを取得
      * @return カテゴリのリスト

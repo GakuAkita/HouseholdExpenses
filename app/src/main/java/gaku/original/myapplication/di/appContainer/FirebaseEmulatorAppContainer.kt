@@ -12,13 +12,22 @@ import gaku.original.myapplication.service.ocr.MlkitOcrService
 import gaku.original.myapplication.service.ocr.OcrService
 import timber.log.Timber
 
+/**
+ * I totally forgot why I need to write this url.
+ * Without it, even if this app is connected to Realtime Database, the connection is lost in several seconds....
+ */
+val REALTIME_DATABASE_URL =
+    "https://householdexpenses2-default-rtdb.asia-southeast1.firebasedatabase.app"
+
 class FirebaseEmulatorAppContainer(
     context: Context
 ) : AppContainer(context = context) {
 
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-    val firebaseRealtimeDb: FirebaseDatabase = FirebaseDatabase.getInstance()
+
+    val firebaseRealtimeDb: FirebaseDatabase =
+        FirebaseDatabase.getInstance(REALTIME_DATABASE_URL)
 
     init {
         Timber.d("Use emulators")

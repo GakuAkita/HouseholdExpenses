@@ -1,9 +1,9 @@
-package gaku.original.myapplication.data.local
+package gaku.original.myapplication.data.datasource.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import gaku.original.myapplication.data.local.dao.CategoryDao
-import gaku.original.myapplication.data.local.entity.CategoryEntity
+import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
+import gaku.original.myapplication.data.datasource.room.entity.CategoryEntity
 
 /**
  * Roomデータベースのメインクラス
