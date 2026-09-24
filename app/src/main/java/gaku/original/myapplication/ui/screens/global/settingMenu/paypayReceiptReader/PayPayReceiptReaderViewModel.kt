@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptOCRSetting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -16,12 +19,14 @@ import timber.log.Timber
 data class PayPayReceiptReaderUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val topRatio: Float? = null,
-    val leftRatio: Float? = null,
+    val topPercent: Float? = null,
+    val leftPercent: Float? = null,
     val isLoadError: Boolean = false
 )
 
-class PayPayReceiptReaderViewModel : ViewModel() {
+class PayPayReceiptReaderViewModel(
+    private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(PayPayReceiptReaderUiState())
     val uiState get() = _uiState.asStateFlow()
 
@@ -32,6 +37,7 @@ class PayPayReceiptReaderViewModel : ViewModel() {
                 val container = app.appContainer
                 val session = container.sessionContainer!!
                 PayPayReceiptReaderViewModel(
+                    session.payPayReceiptConfigRepository
                 )
             }
         }
@@ -47,16 +53,27 @@ class PayPayReceiptReaderViewModel : ViewModel() {
                         isLoading = true
                     )
                 }
-//                val setting = paypay
-//                val topRatio = setting.topRatio
-//                val leftRatio = setting.leftRatio
-//                _uiState.update {
-//                    it.copy(
-//                        isLoading = false,
-//                        topRatio = topRatio,
-//                        leftRatio = leftRatio
-//                    )
-//                }
+                val ocrConfig = payPayReceiptConfigRepository.getOCRSetting()
+                when (val mask = ocrConfig.mask) {
+                    is MaskConfig.Percent -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                message = "Masking Setting is done.",
+                                isLoadError = false,
+                                topPercent = mask.topPercent?.toFloat(),
+                                leftPercent = mask.leftPercent?.toFloat()
+                            )
+                        }
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = "Masking Setting is done.",
+                        isLoadError = false
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -77,13 +94,23 @@ class PayPayReceiptReaderViewModel : ViewModel() {
                         isLoading = true
                     )
                 }
-
+                val setting = PayPayReceiptOCRSetting(
+                    mask = MaskConfig.Percent(
+                        widthPercent = null,
+                        heightPercent = null,
+                        topPercent = null,
+                        leftPercent = null
+                    )
+                )
+                payPayReceiptConfigRepository.saveOCRSetting(
+                    setting
+                )
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         message = "Reset Success",
-                        topRatio = null,
-                        leftRatio = null
+                        topPercent = null,
+                        leftPercent = null
                     )
                 }
             } catch (e: Exception) {
@@ -108,47 +135,3 @@ class PayPayReceiptReaderViewModel : ViewModel() {
         super.onCleared()
     }
 }
-
-//@HiltViewModel
-//class PayPayReceiptReaderViewModel @Inject constructor(
-//    private val prefRepository: SharedPreferencesRepository
-//) : ViewModel() {
-//
-//    private val _isLeftRatioSet = mutableStateOf(false)
-//    val isLeftRatioSet: State<Boolean> = _isLeftRatioSet
-//
-//    private val _isTopRatioSet = mutableStateOf(false)
-//    val isTopRatioSet: State<Boolean> = _isTopRatioSet
-//
-//    private val _leftRatio = mutableStateOf(0f)
-//    val leftRatio: State<Float> = _leftRatio
-//    private val _topRatio = mutableStateOf(0f)
-//    val topRatio: State<Float> = _topRatio
-//
-//    init {
-//        getIsRatioSet()
-//        if (checkBothRatioSet()) {
-//            getRatios()
-//        }
-//    }
-//
-//    fun getIsRatioSet() {
-//        _isLeftRatioSet.value = prefRepository.hasKey(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
-//        _isTopRatioSet.value = prefRepository.hasKey(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
-//    }
-//
-//    fun checkBothRatioSet(): Boolean {
-//        return _isLeftRatioSet.value && _isTopRatioSet.value
-//    }
-//
-//    fun getRatios() {
-//        _leftRatio.value = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO, 0f)
-//        _topRatio.value = prefRepository.getFloat(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO, 0f)
-//    }
-//
-//    fun resetRatio() {
-//        prefRepository.remove(PrefKeys.PAYPAY_RECEIPT_LEFT_MASK_RATIO)
-//        prefRepository.remove(PrefKeys.PAYPAY_RECEIPT_TOP_MASK_RATIO)
-//    }
-//
-//}

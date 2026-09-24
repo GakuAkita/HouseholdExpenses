@@ -3,6 +3,7 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.paypayReceiptR
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -74,7 +76,7 @@ fun PayPayReceiptReaderScreen(
             modifier = Modifier
                 .padding(innerPadding)
         ) {
-            if (uiState.topRatio == null || uiState.leftRatio == null) {
+            if (uiState.topPercent == null || uiState.leftPercent == null) {
                 Text("Masking Setting is not done.")
                 Text("When you use PayPay Receipt Reader function, you need to set masking setting.")
             } else {
@@ -83,6 +85,14 @@ fun PayPayReceiptReaderScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text("Top Ratio:${uiState.topPercent}")
+                        Text("Left Ratio:${uiState.leftPercent}")
+                    }
                     Button(
                         onClick = {
                             onResetClick()
@@ -102,8 +112,8 @@ fun PayPayReceiptReaderScreenPreview() {
     val uiState = PayPayReceiptReaderUiState(
         isLoading = false,
         message = null,
-        topRatio = 0.1f,
-        leftRatio = 0.2f,
+        topPercent = 0.1f,
+        leftPercent = 0.2f,
         isLoadError = false
     )
     PayPayReceiptReaderScreen(
