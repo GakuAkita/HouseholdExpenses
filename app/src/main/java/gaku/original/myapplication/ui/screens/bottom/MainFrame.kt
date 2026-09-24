@@ -29,8 +29,10 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.home.HomeViewModel
+import gaku.original.myapplication.ui.screens.bottom.search.SearchScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingViewModel
+import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsScreenRoot
 
 @Composable
 fun MainFrame(
@@ -51,7 +53,7 @@ fun MainFrame(
             SnackbarHost(snackbarHostState)
         },
         bottomBar = {
-            NavigationBar() {
+            NavigationBar {
                 NavigationBarItem(
                     selected = currentDestination?.hasRoute<MainGraph.Bottom.Home>() == true,
                     onClick = {
@@ -126,8 +128,10 @@ fun MainFrame(
                 )
             }
             composable<MainGraph.Bottom.Search> {
+                SearchScreenRoot()
             }
             composable<MainGraph.Bottom.Statistics> {
+                StatisticsScreenRoot()
             }
             composable<MainGraph.Bottom.Setting> { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
