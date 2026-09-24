@@ -58,9 +58,6 @@ class PayPayReceiptReaderViewModel(
                     is MaskConfig.Percent -> {
                         _uiState.update {
                             it.copy(
-                                isLoading = false,
-                                message = "Masking Setting is done.",
-                                isLoadError = false,
                                 topPercent = mask.topPercent?.toFloat(),
                                 leftPercent = mask.leftPercent?.toFloat()
                             )
@@ -70,7 +67,6 @@ class PayPayReceiptReaderViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        message = "Masking Setting is done.",
                         isLoadError = false
                     )
                 }
