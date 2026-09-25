@@ -25,9 +25,9 @@ export const assignCategoryFromAssignmentData = (
    */
   const retExpense = category
     ? {
-        ...baseExpense,
-        category: category,
-      }
+      ...baseExpense,
+      category: category,
+    }
     : baseExpense;
 
   return retExpense;
@@ -60,7 +60,8 @@ export const findCategoryFromAssignmentData = (
       logger.error(`You need to check the assignment data.↑`);
     }
 
-    if (assignment.condition === AssignmentCondition.EXACT_MATCH) {
+    /* backward compatibility */
+    if (assignment.condition === AssignmentCondition.EXACT_MATCH || assignment.condition === "exact_match") {
       // 完全一致の場合
       if (name === assignment.name) {
         return categories[assignment.categoryId] ?? null;
@@ -70,7 +71,8 @@ export const findCategoryFromAssignmentData = (
 
   // 次に CONTAINS を探す
   for (const assignment of Object.values(assignments)) {
-    if (assignment.condition === AssignmentCondition.CONTAINS) {
+    /* backward compatibility */
+    if (assignment.condition === AssignmentCondition.CONTAINS || assignment.condition === "contains") {
       if (name.includes(assignment.name)) {
         return categories[assignment.categoryId] ?? null;
       }

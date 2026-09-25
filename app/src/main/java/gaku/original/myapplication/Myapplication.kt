@@ -2,18 +2,25 @@ package gaku.original.myapplication
 
 
 import android.app.Application
-import android.util.Log
-import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.firestore
-import dagger.hilt.android.HiltAndroidApp
+import gaku.original.myapplication.di.appContainer.AppContainer
+import gaku.original.myapplication.di.appContainer.FirebaseAppContainer
+import gaku.original.myapplication.di.appContainer.FirebaseEmulatorAppContainer
+import timber.log.Timber
 
-@HiltAndroidApp
 class MyApplication : Application() {
+    lateinit var appContainer: AppContainer
+        private set
 
     override fun onCreate() {
         // Firebase Local Emulatorの設定は、FirestoreReferenceとRealtimeDbReferenceのコンストラクタで行う
-        // 注意: Firebase Authは本番環境を使用（Googleサインイン等のOAuthプロバイダー認証のため）
         super.onCreate()
+
+        Timber.plant(Timber.DebugTree())
+
+        appContainer =
+            if (BuildConfig.DEBUG) FirebaseEmulatorAppContainer(this) else FirebaseAppContainer(this)
+        //appContainer = FirebaseAppContainer(this)
+
+        Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }
 }

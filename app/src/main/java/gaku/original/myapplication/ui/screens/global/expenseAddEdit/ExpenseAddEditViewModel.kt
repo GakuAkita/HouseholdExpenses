@@ -1,0 +1,1034 @@
+package gaku.original.myapplication.ui.screens.global.expenseAddEdit
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.common.AppError
+import gaku.original.myapplication.common.AppResult
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.GeneratedType
+import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
+import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
+import gaku.original.myapplication.data.repository.category.CategoryRepository
+import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.utility.roundToLongOrNull
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+
+data class ExpenseAddEditUiState(
+    val isEdit: Boolean = false,
+    val message: String? = null,
+    val isLoading: Boolean = false,
+
+    val selectedDate: LocalDate? = null,
+    val selectedTime: LocalTime? = null,
+    val expenseEditList: List<ExpenseEditItem> = emptyList(),
+    val categories: List<Category> = emptyList(),
+    val totalAmount: Long = 0L,
+    val isShowCalculator: Boolean = false,
+    val selectedIndex: Int? = null,/* this is used to show calculator*/
+    val isDatePickerVisible: Boolean = false,
+    val isTimePickerVisible: Boolean = false,
+    val isSplitInputEnabled: Boolean = false,
+
+    val placeName: String = "",
+
+    val isSaveDone: Boolean = false,
+    val isDeleteDone: Boolean = false,
+)
+
+data class ExpenseEditItem(
+    val amount: Long? = null,
+    val category: Category? = null,
+    val note: String? = null,
+    val productName: String? = null,
+    val placeName: String? = null,
+)
+
+sealed interface ExpenseInputError : AppError {
+    data object DateEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Date is empty"
+    }
+
+    data object TimeEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Time is empty"
+    }
+
+    data object AmountNegative : ExpenseInputError {
+        override val message: String
+            get() = "Amount is negative"
+    }
+
+    data object AmountEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Amount is empty"
+    }
+
+    data object CategoryEmpty : ExpenseInputError {
+        override val message: String
+            get() = "Category is empty"
+    }
+
+    data class TotalExpenseNotMatch(val amountInput: Long, val amountCalc: Long) :
+        ExpenseInputError {
+        override val message: String
+            get() = "Total amount not match. Input:$amountInput, Calc:$amountCalc"
+    }
+}
+
+class ExpenseAddEditViewModel(
+    private val initialExpense: Expense?,
+    private val expenseRepository: ExpenseRepository,
+    private val appTimeZoneRepository: AppTimeZoneRepository,
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
+    val totalAmountIndex = -1
+
+    val zoneId: ZoneId = appTimeZoneRepository.zoneId.value
+
+    companion object {
+        fun Factory(initialExpense: Expense?): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app =
+                    this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
+                val expenseRepository = app.appContainer.sessionContainer!!.expenseRepository
+                val appTimeZoneRepository =
+                    app.appContainer.sessionContainer!!.appTimeZoneRepository
+                val categoryRepository = app.appContainer.sessionContainer!!.categoryRepository
+                ExpenseAddEditViewModel(
+                    initialExpense,
+                    expenseRepository,
+                    appTimeZoneRepository,
+                    categoryRepository
+                )
+            }
+        }
+    }
+
+    private val _uiState = MutableStateFlow(ExpenseAddEditUiState())
+    val uiState get() = _uiState.asStateFlow()
+
+    init {
+        Timber.d("Created. ${hashCode()}")
+        val isEdit = initialExpense?.id != null
+        _uiState.update {
+            it.copy(
+                isEdit = isEdit
+            )
+        }
+
+        val expenseItem = ExpenseEditItem(
+            amount = initialExpense?.amount,
+            category = initialExpense?.category,
+            note = initialExpense?.note,
+            productName = initialExpense?.itemName
+        )
+
+        /* based on the selected timezone, decide initial Date and Time */
+        /* Only when it is ADD!! */
+
+        _uiState.update {
+            it.copy(
+                expenseEditList = listOf(expenseItem),
+                placeName = initialExpense?.storeName ?: ""
+            )
+        }
+        if (isEdit) {
+            val expense = initialExpense
+            val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
+            _uiState.update {
+                it.copy(
+                    selectedDate = localDateTime?.toLocalDate(),
+                    selectedTime = localDateTime?.toLocalTime(),
+                )
+            }
+        } else {
+            /* Add */
+            _uiState.update {
+                it.copy(
+                    selectedDate = LocalDate.now(zoneId),
+                    selectedTime = LocalTime.now(zoneId),
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            try {
+                categoryRepository.categories.collect { categories ->
+                    _uiState.update {
+                        it.copy(
+                            categories = categories.values.toList()
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = "Failed to fetch categories.:${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun onMessageShown() {
+        _uiState.update {
+            it.copy(
+                message = null
+            )
+        }
+    }
+
+    fun onDateFieldClick() {
+        if (_uiState.value.isTimePickerVisible) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isDatePickerVisible = true
+            )
+        }
+    }
+
+    fun onDateSelected(dateMillis: Long?) {
+        if (dateMillis == null) {
+            return
+        }
+
+        /* first accept it as local date in the selected timezone */
+        /* when save it to the database, converted to UTC */
+        val localDate = Instant.ofEpochMilli(dateMillis)
+            .atZone(zoneId).toLocalDate()
+        _uiState.update {
+            it.copy(
+                selectedDate = localDate,
+                isDatePickerVisible = false
+            )
+        }
+    }
+
+    fun onDatePickerDismiss() {
+        _uiState.update {
+            it.copy(
+                isDatePickerVisible = false
+            )
+        }
+    }
+
+    fun onTimeFieldClick() {
+        if (_uiState.value.isDatePickerVisible) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isTimePickerVisible = true
+            )
+        }
+    }
+
+    fun onTimeSelected(time: LocalTime) {
+        /* This time is current timezone. */
+        _uiState.update {
+            it.copy(
+                selectedTime = time,
+                isTimePickerVisible = false
+            )
+        }
+    }
+
+    fun onTimePickerDismiss() {
+        _uiState.update {
+            it.copy(
+                isTimePickerVisible = false
+            )
+        }
+    }
+
+    fun onSwitchClick() {
+        val currentStatus = _uiState.value.isSplitInputEnabled
+
+        /* when switched to on, create the array  */
+        if (currentStatus) {
+            /* switched to off */
+            _uiState.update {
+                it.copy(
+                    isSplitInputEnabled = false,
+                    expenseEditList = listOf(it.expenseEditList[0])/* Only head element remains */
+                )
+            }
+        } else {
+            /* switched to on */
+            if (_uiState.value.expenseEditList[0].amount == null ||
+                _uiState.value.expenseEditList[0].amount == 0L
+            ) {
+                /* any value should be input beforehand */
+                _uiState.update {
+                    it.copy(
+                        message = "Unable to turn on split input. Please input the amount first."
+                    )
+                }
+            } else if (_uiState.value.expenseEditList.size != 1) {
+                _uiState.update {
+                    it.copy(
+                        message = "Expense should be always only one. Something wrong. Please contact the developer"
+                    )
+                }
+            } else {
+                /* Add One more expense */
+                val totalAmount = _uiState.value.expenseEditList[0].amount!!
+                _uiState.update {
+                    it.copy(
+                        isSplitInputEnabled = true,
+                        totalAmount = totalAmount,
+                        expenseEditList = it.expenseEditList + ExpenseEditItem(
+                            amount = 0,
+                            category = null
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun onTotalAmountClick() {
+        _uiState.update {
+            it.copy(
+                selectedIndex = totalAmountIndex,/* Define total amount's index as -1 */
+                isShowCalculator = true
+            )
+        }
+    }
+
+    fun onAmountClick(
+        index: Int
+    ) {
+        _uiState.update {
+            it.copy(
+                selectedIndex = index,
+                isShowCalculator = true
+            )
+        }
+    }
+
+    fun onCalculatorDecide(value: String) {
+        if (value.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    message = "Value is empty."
+                )
+            }
+            return
+        }
+        //Timber.d("value:$value")
+        val amount = value.roundToLongOrNull()
+        if (amount == null) {
+            _uiState.update {
+                it.copy(
+                    message = "Unable to read the value. It might be too big."
+                )
+            }
+            return
+        }
+        val index = _uiState.value.selectedIndex!!
+        _uiState.update {
+            if (index == totalAmountIndex) {
+                it.copy(
+                    totalAmount = amount
+                )
+            } else {
+                /* In this case, calculate the last expense amount if split input is enabled */
+                it.copy(
+                    expenseEditList = it.expenseEditList.toMutableList().apply {
+                        this[index] = it.expenseEditList[index].copy(
+                            amount = amount
+                        )
+                    }
+                )
+            }
+        }
+
+        /* last amount is the remaining of the rest */
+        if (_uiState.value.isSplitInputEnabled) {
+            val sumBeforeLast = _uiState.value.expenseEditList.dropLast(1).sumOf { it.amount ?: 0L }
+            var remaining = _uiState.value.totalAmount - sumBeforeLast
+            if (remaining < 0) {
+                remaining = 0
+            }
+            _uiState.update {
+                it.copy(
+                    expenseEditList = it.expenseEditList.toMutableList().apply {
+                        val size = this.size
+                        this[size - 1] = this[size - 1].copy(
+                            amount = remaining
+                        )
+                    }
+                )
+            }
+        }
+
+        _uiState.update {
+            it.copy(
+                selectedIndex = null,
+                isShowCalculator = false
+            )
+        }
+    }
+
+    fun onCalculatorDismiss() {
+        _uiState.update {
+            it.copy(
+                selectedIndex = null,
+                isShowCalculator = false
+            )
+        }
+    }
+
+    fun onCategorySelected(index: Int, category: Category?) {
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        category = category
+                    )
+                }
+            )
+        }
+    }
+
+    fun onCategoryRefreshClick() {
+        _uiState.update {
+            it.copy(
+                message = "Not implemented yet."
+            )
+        }
+    }
+
+    fun onNoteChange(index: Int, note: String) {
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        note = note
+                    )
+                }
+            )
+        }
+    }
+
+    fun onPlaceNameChange(placeName: String?) {
+        _uiState.update {
+            it.copy(
+                placeName = placeName ?: ""
+            )
+        }
+    }
+
+    fun onProductNameChange(index: Int, productName: String) {
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList.toMutableList().apply {
+                    this[index] = it.expenseEditList[index].copy(
+                        productName = productName
+                    )
+                }
+            )
+        }
+    }
+
+    private fun validateExpenseInput(): AppResult<Unit, ExpenseInputError> {
+        if (_uiState.value.selectedDate == null) {
+            return AppResult.Failure(ExpenseInputError.DateEmpty)
+        }
+        if (_uiState.value.selectedTime == null) {
+            return AppResult.Failure(ExpenseInputError.TimeEmpty)
+        }
+
+        val expenseList = _uiState.value.expenseEditList
+        for (expense in expenseList) {
+            if (expense.amount == null) {
+                return AppResult.Failure(ExpenseInputError.AmountEmpty)
+            }
+
+            if (expense.amount < 0) {
+                return AppResult.Failure(ExpenseInputError.AmountNegative)
+            }
+
+            if (expense.category == null) {
+                return AppResult.Failure(ExpenseInputError.CategoryEmpty)
+            }
+        }
+
+        if (expenseList.size > 1) {
+            val totalAmountCalc = expenseList.sumOf { it.amount ?: 0L }
+            if (totalAmountCalc != _uiState.value.totalAmount) {
+                return AppResult.Failure(
+                    ExpenseInputError.TotalExpenseNotMatch(
+                        _uiState.value.totalAmount,
+                        totalAmountCalc
+                    )
+                )
+            }
+        }
+
+        return AppResult.Success(Unit)
+    }
+
+    /* When this function is called, uiState should be validated. */
+    private fun generateExpense(): List<Expense> {
+        val state = _uiState.value
+
+        val localDateTime = state.selectedDate!!.atTime(state.selectedTime!!)
+        val datetime = localDateTime.toIsoUtcString(zoneId)
+
+        return state.expenseEditList.mapIndexed { index, item ->
+            val baseExpense = Expense(
+                datetime = datetime,
+                amount = item.amount,
+                category = item.category,
+                note = item.note,
+                itemName = item.productName,
+                storeName = state.placeName,
+                generatedType = initialExpense?.generatedType ?: GeneratedType.Manual
+            )
+            if (state.isEdit) {
+                if (index == 0) {
+                    baseExpense
+                } else {
+                    /* This is the new expense */
+                    baseExpense.copy(
+                        id = null
+                    )
+                }
+            } else {
+                baseExpense.copy(
+                    id = null
+                )
+            }
+        }
+    }
+
+    fun onSaveClick() {
+        try {
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+            val validate = validateExpenseInput()
+            if (validate is AppResult.Failure) {
+                _uiState.update {
+                    it.copy(
+                        message = validate.error.message,
+                        isLoading = false
+                    )
+                }
+                return
+            }
+
+            viewModelScope.launch {
+                try {
+                    val expenses = generateExpense()
+                    Timber.d("Expenses generated:${expenses}")
+                    for (expense in expenses) {
+                        if (expense.id == null) {
+                            expenseRepository.addExpense(expense)
+                        } else {
+                            expenseRepository.updateExpense(expense)
+                        }
+                    }
+                    _uiState.update {
+                        it.copy(
+                            isSaveDone = true,
+                            message = "Expense Saved"
+                        )
+                    }
+                } catch (e: Exception) {
+                    Timber.d("Catched error:${e.message}")
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            message = e.message
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    message = e.message
+                )
+            }
+        }
+    }
+
+    fun onDeleteClick() {
+        if (!_uiState.value.isEdit ||
+            initialExpense?.id == null
+        ) {
+            _uiState.update {
+                it.copy(
+                    message = "Coding Error: Delete should not exist when add."
+                )
+            }
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                isLoading = true
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val id = initialExpense.id!!
+                expenseRepository.removeExpense(id)
+                _uiState.update {
+                    it.copy(
+                        isDeleteDone = true,
+                        message = "Expense Deleted"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = e.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun onAddClick() {
+        val lastExpense = _uiState.value.expenseEditList.last()
+        if (lastExpense.amount == null || lastExpense.amount == 0L) {
+            _uiState.update {
+                it.copy(
+                    message = "Last Expense amount should not be empty"
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                expenseEditList = it.expenseEditList + ExpenseEditItem(
+                    amount = 0,
+                    category = null
+                )
+            )
+        }
+    }
+
+    override fun onCleared() {
+        Timber.d("Cleared. ${hashCode()}")
+        super.onCleared()
+    }
+}
+
+//@HiltViewModel
+//class ExpenseAddEditViewModel @Inject constructor(
+//    private val expenseSharedViewModel: ExpenseSharedViewModel,
+//    private val tmpExpenseViewModel: TemporaryExpenseViewModel,
+//    private val categoryAssignmentUseCase: CategoryAssignmentUseCase,
+//) : ViewModel() {
+
+//    override fun onCleared() {
+//        super.onCleared()
+//        LogAkitaDebug("ExpenseAddEditViewModel cleared")
+//    }
+//
+//    private val _initialExpenseList = tmpExpenseViewModel.tmpExpenseList
+//
+//    /* 初期値だけTempExpenseから受け取ってあとはこっちで保持 */
+//    private val _expenseList = MutableStateFlow(
+//        _initialExpenseList
+//    )
+//    val expenseList: StateFlow<List<Expense>> = _expenseList
+//
+//    //これリアルタイム同期するのか？ 他端末からCategoryを追加してみて、反映されるかみてみる
+//    val allCategories: StateFlow<List<Category>> get() = expenseSharedViewModel.allCategories
+//
+//    private val _splitInputEnabled = MutableStateFlow(false)
+//    val splitInputEnabled: StateFlow<Boolean> = _splitInputEnabled
+//
+//    /* 分割入力のときの合計金額 */
+//    private val _totalAmount = MutableStateFlow<Long?>(0L)
+//    val totalAmount: StateFlow<Long?> = _totalAmount
+//    private var _initTotalAmount = false/* こいつはview側で見る必要はない */
+//
+//    private val _loadingState = MutableStateFlow(false)
+//    val loadingState: StateFlow<Boolean> = _loadingState
+//
+//    /* 分割入力で選択したindexを覚えておくだけ */
+//    private var selectedIndex: Int? = null
+//    fun setSelectedIndex(index: Int) {
+//        selectedIndex = index
+//    }
+//
+//    fun updateTotalAmount(amount: Long?) {
+//        _totalAmount.value = amount
+//    }
+//
+//    fun switchSplitInput() {
+//        /* ここで合計金額を転写しておく */
+//        if (!_initTotalAmount) {
+//            _initTotalAmount = true
+//            /* 転写するのは一度だけ。その後はViewで編集 */
+//            /* まあ入力制限しているのでamountがnullのときはないのだが、、 */
+//            _totalAmount.value = getHeadExpense().amount ?: 0L
+//
+//            /* 先頭費用は0にしておいた方が良い */
+//            updateExpenseAmountAt(index = 0, 0L)
+//        }
+//        _splitInputEnabled.value = !_splitInputEnabled.value
+//
+//        /**
+//         * スイッチしたあと、ONにしたときはExpenseを自動で加えてもいいかもな。
+//         */
+//        if (_splitInputEnabled.value) {
+//            /* 分割代入をONにした場合、Expenseを足しておく。 */
+//            addExpenseToList()
+//            calcLastExpenseAmount()
+//        } else {
+//            /**
+//             *  ボタンをオフに戻した時
+//             *  リストの先頭以外を消す
+//             * */
+//            removeExpenseExceptHead()
+//            /* totalAmountを先頭にコピーしたほうがいいか */
+//            updateExpenseAmountAt(0, _totalAmount.value)
+//        }
+//    }
+//
+//    fun setLoadingState(state: Boolean) {
+//        _loadingState.value = state
+//    }
+//
+//    /* 設定のタイムゾーンに合わせて現在日付 */
+//    fun getTimeZoneDate(): LocalDate {
+//        /* とりあえず日本で固定 */
+//        AppTimeZone.isoStringToLocalDateTime(getHeadExpense().datetime)?.let {
+//            return it.toLocalDate()
+//        }
+//        return AppTimeZone.getCurrentTimeInZone().toLocalDate()
+//    }
+//
+//    /* 設定のタイムゾーンに合わせた現在時間 */
+//    fun getTimeZoneTime(): LocalTime {
+//        AppTimeZone.isoStringToLocalDateTime(getHeadExpense().datetime)?.let {
+//            return it.toLocalTime()
+//        }
+//        return AppTimeZone.getCurrentTimeInZone().toLocalTime()
+//    }
+//
+//    fun getSeparatedGeneratedType(): List<String> {
+//        val buf = getHeadExpense().generatedType
+//            ?: /* ここに来ることはない */
+//            return emptyList()
+//        return separateStringByBars(buf)
+//    }
+//
+//    fun getGeneratedTypeDisplay(): String {
+//        val buf = getHeadExpense().generatedType
+//            ?: /* ここに来ることはない */
+//            return "エラー"
+//
+//        val (mainType, subType) = convertGeneratedTypeToDisplayName(buf)
+//        if (subType == null) {
+//            return mainType
+//        } else {
+//            return "${mainType}/${subType}"
+//        }
+//    }
+//
+//    fun getHeadExpense(): Expense {
+//        return expenseList.value.first()
+//    }
+//
+//    fun addExpenseToList(newExpense: Expense = getDefaultExpense()) {
+//        _expenseList.value += newExpense
+//    }
+//
+//    fun updateExpense(newExpense: Expense) {
+//        updateExpenseAt(0, newExpense)
+//    }
+//
+//    fun updateExpenseAt(index: Int, newExpense: Expense) {
+//        _expenseList.value = _expenseList.value.toMutableList().apply {
+//            if (index in indices) {
+//                this[index] = newExpense
+//            }
+//        }
+//    }
+//
+//    fun removeExpenseExceptHead() {
+//        _expenseList.value = _expenseList.value.take(1)
+//    }
+//
+//    fun removeExpenseAt(index: Int) {
+//        if (_expenseList.value.size > 1) {
+//            _expenseList.value = _expenseList.value.toMutableList().apply {
+//                if (index in indices) {
+//                    removeAt(index)
+//                }
+//            }
+//        }
+//    }
+//
+//    fun updateExpenseDatetime(datetimeStr: String) {
+//        /* 先頭のdatetimeを更新して保存するときに全部コピーするので更新するのは先頭だけで良い */
+//        updateExpense(
+//            getHeadExpense().copy(datetime = datetimeStr)
+//        )
+//    }
+//
+//    fun calcLastExpenseAmount() {
+//        val arr = _expenseList.value
+//        val size = arr.size
+//        if (size > 1) {
+//            val sumBeforeLast = arr.dropLast(1).sumOf { it.amount ?: 0L }
+//            val remaining = (_totalAmount.value ?: 0L) - sumBeforeLast
+//            updateExpenseAt(
+//                size - 1,
+//                arr[size - 1].copy(
+//                    amount = remaining
+//                )
+//            )
+//        }
+//    }
+//
+//    fun calcExpenseListSum(): Long {
+//        val arr = expenseList.value
+//        val sum = arr.sumOf { it.amount ?: 0L }
+//        return sum
+//    }
+//
+//    /* selectedIndexを使って更新 */
+//    fun updateExpenseAmountAtSelectedIndex(newAmount: Long?) {
+//        val index = selectedIndex ?: return
+//        updateExpenseAmountAt(index, newAmount)
+//    }
+//
+//    // 各項目を個別に更新するメソッド
+//    fun updateExpenseAmountAt(index: Int = 0, newAmount: Long?) {
+//        updateExpenseAt(
+//            index,
+//            _expenseList.value[index].copy(
+//                amount = newAmount
+//            )
+//        )
+//        /**
+//         * expenseListのサイズが1以上のとき、最後の要素は自動計算
+//         */
+//        calcLastExpenseAmount()
+//    }
+//
+//    fun updateExpenseCategoryAt(index: Int = 0, newCategory: Category?) {
+//        updateExpenseAt(
+//            index,
+//            _expenseList.value[index].copy(
+//                category = newCategory
+//            )
+//        )
+//    }
+//
+//    fun updateExpenseNoteAt(index: Int = 0, newNote: String) {
+//        updateExpenseAt(
+//            index,
+//            _expenseList.value[index].copy(
+//                note = newNote
+//            )
+//        )
+//    }
+//
+//    fun updateExpenseItemNameAt(index: Int = 0, itemName: String) {
+//        updateExpenseAt(
+//            index,
+//            _expenseList.value[index].copy(
+//                itemName = itemName
+//            )
+//        )
+//    }
+//
+//    /**
+//     * こいつらは共通なのでheadだけ変更して、追加するときに
+//     * すべて代入する
+//     */
+//    fun updateExpenseStoreName(storeName: String) {
+//        updateExpense(
+//            getHeadExpense().copy(
+//                storeName = storeName
+//            )
+//        )
+//    }
+//
+//    fun resetExpenseList() {
+//        _expenseList.value = _initialExpenseList
+//    }
+//
+//    fun copyCommonPropertyToList() {
+//        val head = getHeadExpense()
+//        val updatedList = _expenseList.value.mapIndexed { index, expense ->
+//            if (index == 0) {
+//                expense // 先頭はそのまま
+//            } else {
+//                expense.copy(
+//                    datetime = head.datetime,
+//                    generatedType = head.generatedType,
+//                    storeName = head.storeName
+//                )
+//            }
+//        }
+//        _expenseList.value = updatedList
+//    }
+//
+//    fun addExpenseToDb(callback: (FuncStatusInfo) -> Unit) {
+//
+//        setLoadingState(true)
+//        /**
+//         * ここで中身チェックを行った方が良い。
+//         * あくまでViewではこいつを呼び出すだけで。
+//         */
+//        copyCommonPropertyToList()
+//        var cnt = 0
+//        viewModelScope.launch {
+//            for (ex in _expenseList.value) {
+//                val ret = expenseSharedViewModel.addExpense(
+//                    ex
+//                )
+//                if (ret is FuncResultWithData.Success) {
+//                    cnt++
+//                }
+//            }
+//
+//            if (_expenseList.value.size == cnt) {
+//                callback(
+//                    FuncStatusInfo(
+//                        FuncStatus.SUCCESS,
+//                        "追加に成功しました"
+//                    )
+//                )
+//            } else {
+//                setLoadingState(false)
+//                callback(
+//                    FuncStatusInfo(
+//                        status = FuncStatus.FAILED, errorMessage = "追加に失敗しました"
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    fun updateExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
+//        setLoadingState(true)
+//        onStart()
+//        var cnt: Int = 0
+//        copyCommonPropertyToList()
+//        viewModelScope.launch {
+//            for (ex in _expenseList.value) {
+//                if (ex.id == null) {
+//                    /* 新規作成 */
+//                    val addRet = expenseSharedViewModel.addExpense(ex)
+//                    if (addRet is FuncResultWithData.Success) {
+//                        cnt++
+//                    }
+//                } else {
+//                    /* update */
+//                    val updateRet = expenseSharedViewModel.updateExpense(ex)
+//                    if (updateRet.status == FuncStatus.SUCCESS) {
+//                        cnt++
+//                    }
+//                }
+//            }
+//            if (cnt == _expenseList.value.size) {
+//                callback(
+//                    FuncStatusInfo(
+//                        FuncStatus.SUCCESS,
+//                        "更新に成功しました"
+//                    )
+//                )
+//            } else {
+//                callback(
+//                    FuncStatusInfo(
+//                        status = FuncStatus.FAILED, errorMessage = "更新に失敗しました"
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    fun removeExpenseToDb(onStart: () -> Unit, callback: (FuncStatusInfo) -> Unit) {
+//        /**
+//         * 分割入力のときは、
+//         * それをオフにしてからにする
+//         */
+//        onStart()
+//        viewModelScope.launch {
+//            val ret = expenseSharedViewModel.removeExpense(getHeadExpense())
+//            callback(ret)
+//        }
+//    }
+//
+//    /* カテゴリーを更新する。通信エラーが起きているとカテゴリーが取れていないときがある */
+//    fun updateStoredCategories(
+//        callback: (FuncStatusInfo) -> Unit
+//    ) {
+//        expenseSharedViewModel.clearAllCategories()
+//        viewModelScope.launch {
+//            val ret = expenseSharedViewModel.fetchAllCategories()
+//            val listenerRet = expenseSharedViewModel.addCategoryListeners()
+//            callback(ret)
+//        }
+//    }
+//
+//    /* ------------------カテゴリー割当を扱う----------------------- */
+//    fun addCategoryAssignment(
+//        onStart: () -> Unit = {},
+//        assignment: CategoryAssignment,
+//        namePattern: CategoryAssignNamePattern,
+//        callback: (FuncStatusInfo) -> Unit = {}
+//    ) {
+//        onStart()
+//        viewModelScope.launch {
+////            val ret =
+////                categoryAssignmentUseCase.addCategoryAssignmentWithCheck(assignment, namePattern)
+////            callback(ret.toFuncStatusInfo())
+//        }
+//    }
+//
+//    /*******************************/
+//    /* 費用を追加/削除する */
+//    /*******************************/
+//    fun removeExpenseFromListAtSelectedIndex() {
+//        val index = selectedIndex ?: return
+//        removeExpenseFromListAt(index)
+//    }
+//
+//    fun removeExpenseFromListAt(index: Int) {
+//        removeExpenseAt(index)
+//        calcLastExpenseAmount()
+//    }
+//
+//    fun getExpenseAmountAtSelectedIndex(): Long {
+//        val index = selectedIndex ?: return 0L
+//        return _expenseList.value[index].amount ?: 0L
+//    }
+//}

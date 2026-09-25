@@ -21,9 +21,9 @@
 .cxx
 local.properties
 /app/google-services.json
-/firebase-debug.log
-/firestore-debug.log
-/database-debug.log
+firebase-debug.log
+firestore-debug.log
+database-debug.log
 /emu_data
 /emulator_data
 *.jks

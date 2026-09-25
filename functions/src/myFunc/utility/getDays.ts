@@ -1,4 +1,7 @@
 import { WEEKDAYS, WEEKENDS } from "../../constants/DayOfWeek";
+import { logger } from "firebase-functions";
+import { DateTime } from "luxon";
+import { TimeZone } from "../../constants/TimeZone";
 
 /**
  * 引数に曜日の配列を渡すと、
@@ -74,16 +77,23 @@ export function getSingleDayOfMonth(
 }
 
 /**
- * Date[]の配列に時間をセットする
+ * Date[]の配列にタイムゾーンを指定して時間をセットする
  */
 export function setTimeToDates(
   dates: Date[],
   hour: number,
-  minute: number
+  minute: number,
+  timeZone: string = TimeZone.JST
 ): Date[] {
   return dates.map((date) => {
-    const newDate = new Date(date); // コピーを作る
-    newDate.setHours(hour, minute, 0, 0);
-    return newDate;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    const dt = DateTime.fromObject(
+      { year, month, day, hour, minute, second: 0, millisecond: 0 },
+      { zone: timeZone }
+    );
+    return dt.toJSDate();
   });
 }

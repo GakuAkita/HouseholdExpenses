@@ -1,25 +1,19 @@
 import java.util.Properties
-import java.io.ByteArrayOutputStream
 
 // Gitタグからバージョンを取得する関数
 fun Project.getVersionName(): String {
     return try {
-        val stdout = ByteArrayOutputStream()
-        exec {
+        val tag = providers.exec {
             commandLine("git", "describe", "--tags", "--abbrev=0")
-            standardOutput = stdout
-            isIgnoreExitValue = true
-        }
-        val tag = stdout.toString().trim()
-        if (tag.isNotEmpty() && tag.startsWith("v")) {
-            tag.substring(1) // "v"を削除
-        } else if (tag.isNotEmpty()) {
-            tag
-        } else {
-            "1.0.0" // デフォルト値
+        }.standardOutput.asText.get().trim()
+
+        when {
+            tag.isEmpty() -> "1.0.0"
+            tag.startsWith("v") -> tag.substring(1)
+            else -> tag
         }
     } catch (e: Exception) {
-        "1.0.0" // エラー時はデフォルト値
+        "1.0.0"
     }
 }
 
@@ -42,18 +36,21 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")//version宣言しなくて大丈夫かな。kotlin("kapt") version "2.0.21"だとエラーでからこの書き方だけど。
     id("com.google.gms.google-services")
-    id("dagger.hilt.android.plugin")
+    //id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+    alias(libs.plugins.compose.compiler)
+
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
     namespace = "gaku.original.myapplication"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "gaku.original.myapplication"
         minSdk = 31//ここを上げる。上げないとkizitonwoseが使いづらくなる
-        
+
         // Gitタグからバージョンを取得
         val versionNameFromGit = project.getVersionName()
         versionName = versionNameFromGit
@@ -79,7 +76,7 @@ android {
         // USE_FIREBASE_EMULATOR=true のときはエミュレータを使用、false または未設定のときは本番環境を使用
         val useEmulator = (localProperties["USE_FIREBASE_EMULATOR"] as String?)?.toBoolean() ?: true
         buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", useEmulator.toString())
-        
+
         // Firebase Emulator Host設定（Androidエミュレータ: 10.0.2.2, 実機: PCのIPアドレス）
         val emulatorHost = localProperties["FIREBASE_EMULATOR_HOST"] as String? ?: "10.0.2.2"
         buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")
@@ -95,11 +92,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -116,6 +113,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     /* これがないとjava.lang.SecurityException: Unknown calling package name 'com.google.android.gms'というエラーが出る */
     /* ビルドで失敗するから一旦無視 */
 //    implementation("com.google.android.gms:play-services:17.0.0")
@@ -124,14 +124,18 @@ dependencies {
     implementation(libs.firebase.database.ktx)
 
     implementation(platform("androidx.compose:compose-bom:2025.01.01"))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.foundation)
 
     val calendar_version = "2.6.0"
     val scrollbar_version = "2.2.0"
     val viewModel_version = "2.8.5"
-    val nav_version = "2.7.5"
-    val room_version = "2.6.1"
+    val nav_version = "2.8.0"
+    val room_version = "2.7.2"
     val hilt_version = "2.51.1"
     val gson_version = "2.10.1"
+    val serialize_version = "1.7.3"
+    val timber_version = "5.0.1"
 
     //外部のライブラリいただく
     // The compose calendar library for Android
@@ -158,6 +162,9 @@ dependencies {
     /* coil-compose paypayの画像共有で表示するために使用 */
     implementation(libs.coil.kt.coil.compose)
 
+    // JSON serialization library, works with the Kotlin serialization plugin
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${serialize_version}")
+
     /**************************Room DB用************************************/
     // Roomのコアライブラリ
     implementation("androidx.room:room-runtime:$room_version")
@@ -176,17 +183,25 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     /************************** Dagger-hilt ***********************************/
-    implementation("com.google.dagger:hilt-android:$hilt_version")
-    kapt("com.google.dagger:hilt-compiler:$hilt_version")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")//hiltViewModelを使うために必要
+//    implementation("com.google.dagger:hilt-android:$hilt_version")
+//    kapt("com.google.dagger:hilt-compiler:$hilt_version")
+//    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")//hiltViewModelを使うために必要
 
     //OpenInNewってアイコンがこれを追加しないと使えない？
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("com.jakewharton.timber:timber:$timber_version")
 
     /************************** OCR 関連 ***********************************/
     implementation(libs.text.recognition)
     // To recognize Japanese script
     implementation(libs.text.recognition.japanese)
+
+    /**************** Test ******************/
+    // Test rules and transitive dependencies:
+//    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
+    // Needed for createComposeRule(), but not for createAndroidComposeRule<YourActivity>():
+//    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -206,8 +221,8 @@ dependencies {
     implementation(kotlin("reflect"))
 }
 
-kapt {
-    javacOptions {
-        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-    }
-}
+//kapt {
+//    javacOptions {
+//        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
+//    }
+//}

@@ -12,7 +12,6 @@ import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
 import { SettingsService } from "../FirestoreService/SettingsService";
-import { reinterpretAsZone } from "../utility/dateConverter";
 import {
   getEverydayOfMonth,
   getSingleDayOfMonth,
@@ -27,7 +26,7 @@ export class RepeatAddProcessor {
     private repeatAddService: RepeatAddService,
     private expenseService: ExpenseService,
     private settingsService: SettingsService
-  ) {}
+  ) { }
 
   /**
    * repeatAddを引数にして、そこから日付と時間を抽出する。
@@ -38,7 +37,8 @@ export class RepeatAddProcessor {
     repeatAdd: RepeatAdd,
     year: number,
     month: number /* 1~12 */,
-    filter_datetime: Date | null = null /* フィルター用のdatetime。nullならフィルターなし */
+    filter_datetime: Date | null = null /* フィルター用のdatetime。nullならフィルターなし */,
+    userTimeZone: string = TimeZone.JST
   ): FuncResultWithData<Date[]> {
     /* 時間だけは共通なので、時間を取得しておく */
     const hour = repeatAdd.frequencyInfo.hour;
@@ -131,14 +131,9 @@ export class RepeatAddProcessor {
         };
     }
 
-    /**
-     * こいつはUTCの時間になっている。
-     * ここで一度タイムゾーンに変換したほうが良いのか？
-     * yyyy年-mm月-dd日00:00:00(UTC)になっている。
-     */
     logger.log(`datesArr: ${datesArr}`);
 
-    const retDates = setTimeToDates(datesArr, hour, minute);
+    const retDates = setTimeToDates(datesArr, hour, minute, userTimeZone);
     if (filter_datetime != null) {
       /* filter_datetimeが指定されている場合は、filter_datetime以降のものだけを返す */
       const filteredDates = retDates.filter((date) => date >= filter_datetime);
@@ -242,7 +237,7 @@ export class RepeatAddProcessor {
     /* 次で使うので現在の年と月を取得 */
     const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
     const triggerRegionTime =
-      DateTime.now().setZone(TriggerTimeZone); /* トリガーに合わせる */
+      DateTime.now().setZone(TriggerTimeZone); /* RepeatAdd function is triggered based on Japan time. */
     const currentYear = triggerRegionTime.year;
     const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1
     logger.log(
@@ -257,7 +252,9 @@ export class RepeatAddProcessor {
       const targetResult = this.getTargetDateFromRepeatAdd(
         repeatAdd,
         currentYear,
-        currentMonth
+        currentMonth,
+        null,
+        userTimeZone
       );
       if (targetResult.status !== FuncStatus.SUCCESS) {
         logger.error(
@@ -266,22 +263,11 @@ export class RepeatAddProcessor {
         continue;
       }
 
-      /**
-       * yyyy年-mm月-dd日HH:MM:00(UTC)になっている。
-       * HHとMMはrepeatAddで指定された時間。
-       */
-      const _targetDates = targetResult.data;
-      if (_targetDates == null) {
+      const targetDates = targetResult.data;
+      if (targetDates == null) {
         logger.error(`No target dates found for repeat add ${repeatAdd.id}.`);
         continue;
       }
-
-      /**
-       * UTCの時間になっているので、ユーザーのタイムゾーンに変換する
-       */
-      const targetDates = _targetDates.map((date) => {
-        return reinterpretAsZone(date, userTimeZone);
-      });
 
       /* targetDatesをループして、expenseに加えていく */
       for (const targetDate of targetDates) {
@@ -293,8 +279,7 @@ export class RepeatAddProcessor {
         );
         if (addExpenseStatus.status !== FuncStatus.SUCCESS) {
           logger.error(
-            `Failed to add expense for repeat add ${
-              repeatAdd.id
+            `Failed to add expense for repeat add ${repeatAdd.id
             } on ${targetDate.toISOString()}: ${addExpenseStatus.message}`
           );
         } else {

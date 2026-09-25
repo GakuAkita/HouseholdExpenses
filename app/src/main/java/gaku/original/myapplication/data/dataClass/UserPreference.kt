@@ -1,9 +1,10 @@
 package gaku.original.myapplication.data.dataClass
 
-import gaku.original.myapplication.data.Constants.TimeZoneOption
+import gaku.original.myapplication.data.Constants.TimeZone
+
 
 data class UserPreferences(
-    var timeZone: String = TimeZoneOption.JAPAN.id // Default time zone
+    var timeZone: String = TimeZone.JAPAN.id // Default time zone
     //    var isDarkMode: Boolean = false
 //    var isNotificationEnabled: Boolean = true
 ) {
@@ -24,7 +25,7 @@ fun UserPreferences.toMap(): Map<String, Any> {
 
 fun getDefaultUserPreferences(): UserPreferences {
     return UserPreferences(
-        timeZone = TimeZoneOption.JAPAN.id
+        timeZone = TimeZone.JAPAN.id
         // isDarkMode = false,
         // isNotificationEnabled = true
     )

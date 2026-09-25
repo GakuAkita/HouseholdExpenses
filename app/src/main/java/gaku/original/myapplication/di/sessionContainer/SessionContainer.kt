@@ -1,0 +1,40 @@
+package gaku.original.myapplication.di.sessionContainer
+
+import gaku.original.myapplication.data.extractor.Extractor
+import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
+import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
+import gaku.original.myapplication.data.repository.category.CategoryRepository
+import gaku.original.myapplication.data.repository.categoryAssignment.CategoryAssignmentRepository
+import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
+import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
+import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
+import gaku.original.myapplication.domain.AppUser
+
+interface SessionContainer {
+    val appUser: AppUser
+    
+    val expenseRepository: ExpenseRepository
+
+    val categoryRepository: CategoryRepository
+
+    val appTimeZoneRepository: AppTimeZoneRepository
+
+    val repeatAddRepository: RepeatAddRepository
+
+    val mailboxExtractionRepository: MailboxExtractionRepository
+
+    val emailConnectionRepository: EmailConnectionRepository
+
+    val amazonSubscribeItemRepository: AmazonSubscribeItemRepository
+
+    val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
+
+    val categoryAssignmentRepository: CategoryAssignmentRepository
+
+    val payPayReceiptExtractor: Extractor
+
+    val payPayReceiptValidator: PayPayReceiptValidator
+}

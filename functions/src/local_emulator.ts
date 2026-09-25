@@ -39,7 +39,8 @@ import {
 } from "./type/Mailbox";
 import { UserPreferences } from "./type/UserPreferences";
 
-const userId = "testUser"; // テスト用のユーザーID
+// const userId = "testUser"; // テスト用のユーザーID
+const userId = "vvfiDpgUTzdV9z0ZLPOBlLiXxOPN";
 
 // 環境変数を読み込む
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
@@ -138,9 +139,9 @@ const init_add = async () => {
     timestamp: Date.now(),
     expense: sampleExpense,
     frequencyInfo: {
-      frequency: RepeatFrequency.WEEKDAYS, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
-      month: 6,
-      day: 2,
+      frequency: RepeatFrequency.EVERY_YEAR, //everydayはOK、every_weekはOK、weekendsはOK、weekdaysはOK、every_monthはOK
+      month: 9,
+      day: 23,
       hour: 9,
       minute: 30,
     },
@@ -441,12 +442,12 @@ const processMailTest = async () => {
   );
 
   const testTypes = [
-    //createRakutenPaySettingInstance(),
+    createRakutenPaySettingInstance(),
     //createAmazonItemSettingInstance(),
     //createAmazonKindleSettingInstance(),
     //createAmazonSubscribeSettingInstance(),
     //createShikokuElectricPowerSettingInstance(),
-    createUdemySettingInstance(),
+    // createUdemySettingInstance(),
     //createRakutenCardETCSettingInstance(),
   ];
 
@@ -466,5 +467,3 @@ const processMailTest = async () => {
 };
 
 processMailTest();
-
-

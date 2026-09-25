@@ -1,13 +1,15 @@
 package gaku.original.myapplication.data.dataClass
 
+import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
-import gaku.original.myapplication.data.AppTimeZone
 import gaku.original.myapplication.data.Interface.CommonProperty
-import gaku.original.myapplication.utility.separateStringByBars
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Expense(
     override var id: String? = null,
-    var generatedType: String? = null,//自動生成なのか手動生成なのか
+    var generatedType: GeneratedType? = null,//自動生成なのか手動生成なのか
     var datetime: String? = null,//ISO_LOCAL_DATE_TIME
     override var timestamp: Long? = System.currentTimeMillis(),
     var amount: Long? = null,
@@ -17,101 +19,61 @@ data class Expense(
     var itemName: String? = null,//必要だったらいれる
 ) : CommonProperty
 
+@Serializable
+@Parcelize
 data class Category(
     override var id: String? = null,
     override var timestamp: Long? = System.currentTimeMillis(),
     val name: String? = null,
     val enabled: Boolean? = true
-) : CommonProperty
+) : CommonProperty, Parcelable
 
+@Serializable
+sealed interface GeneratedType {
+    /* サーバー側の関数と一致させる必要がある */
+    fun toSerialized(): String
 
-val defaultCategory = Category(
-    id = null,
-    timestamp = System.currentTimeMillis(),
-    name = null,
-    enabled = true
-)
-
-
-fun getDefaultExpense(): Expense {
-    return Expense(
-        id = null,
-        datetime = AppTimeZone.getCurrentTimeInUTCString(),
-        amount = null,
-        category = null,
-        note = null,
-        generatedType = null
-    )
-}
-
-/* firebase functions側と一致させないとまずい */
-class GeneratedType {
-    companion object {
-        const val AUTO = "auto"
-        const val MANUAL = "manual"
-        const val REPEAT_ADD = "repeat_add" // 繰り返し追加で追加するやつ
-        const val MAIL_EXTRACTION = "mailbox_extraction"
+    @Serializable
+    data object Manual : GeneratedType {
+        const val NAME = "manual"
+        override fun toSerialized(): String = NAME
     }
-}
 
-fun convertGeneratedTypeToDisplay(type: String): String {
-    return when (type) {
-        GeneratedType.AUTO -> "自動生成"
-        GeneratedType.MANUAL -> "手動生成"
-        GeneratedType.REPEAT_ADD -> "繰り返し追加"
-        GeneratedType.MAIL_EXTRACTION -> "メール抽出"
-        else -> "不明"
-    }
-}
-
-/**
- * これ増えてきたときに、どうしようか。
- * とりあえずはこのままでいいか。data classにしたほうが拡張性は高いらしい
- */
-fun convertGeneratedTypeToDisplayName(generatedType: String): Pair<String, String?> {
-    val parts = separateStringByBars(generatedType)
-    return when (parts.size) {
-        2 -> {
-            val mainType = convertGeneratedTypeToDisplay(parts[0])
-            val subType =
-                if (mainType == GeneratedType.MAIL_EXTRACTION) convertNodeNameToMenuName(parts[1]) else ""
-            mainType to subType
+    @Serializable
+    data class RepeatAdd(val repeatAddId: String) : GeneratedType {
+        companion object {
+            val NAME = "repeat_add"
         }
 
-        1 -> convertGeneratedTypeToDisplay(parts[0]) to null
-        else -> "不明" to null
+        override fun toSerialized(): String = "${NAME}___${repeatAddId}"
+    }
+
+    @Serializable
+    data class MailExtraction(val templateTypeName: String) : GeneratedType {
+        companion object {
+            val NAME = "mailbox_extraction"
+        }
+
+        override fun toSerialized(): String = "${NAME}___${templateTypeName}"
     }
 }
 
-/**
- * @TODO 今はEmailTemplateTypeだけど、
- * 将来的にPayPayとか他の方法で取るようになったときには
- * 共通のinterfaceを定義してそれを返り値にする。
- */
-fun convertGeneratedTypeToDefaultInstance(generatedType: String): EmailTemplateType? {
-    val parts = separateStringByBars(generatedType)
-    val mainType = parts.getOrNull(0)/* GeneratedType */
-    val subType = parts.getOrNull(1) /* nodeName */
+fun String.toGeneratedType(): GeneratedType {
+    val parts = split("___", limit = 2)
+    return when (parts[0]) {
+        GeneratedType.Manual.NAME -> GeneratedType.Manual
+        GeneratedType.RepeatAdd.NAME -> GeneratedType.RepeatAdd(
+            repeatAddId = parts.getOrNull(1)
+                ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
+        )
 
-    if (mainType == null) {
-        return null
+        GeneratedType.MailExtraction.NAME -> GeneratedType.MailExtraction(
+            templateTypeName = parts.getOrNull(1)
+                ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
+        )
+
+        else -> throw IllegalArgumentException("Invalid GeneratedType: $this")
     }
-
-    var instance: EmailTemplateType? = null
-    when (mainType) {
-        GeneratedType.MAIL_EXTRACTION -> {
-            if (subType != null) {
-                instance = getEmailTemplateTypeByNodeName(subType)
-            }
-            /* nodeNameに対応するinstanceを返す */
-        }
-
-        else -> {
-            /* 何もしないnullのまま */
-        }
-    }
-
-    return instance
 }
 
 object InitialCategories {

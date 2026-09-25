@@ -1,4 +1,5 @@
 import { Firestore } from "firebase-admin/firestore";
+import { convertDaysToNums } from "../../constants/DayOfWeek";
 import {
   FuncResult,
   FuncResultWithData,
@@ -89,7 +90,16 @@ export class RepeatAddService {
       }
 
       snapshot.forEach((doc) => {
+        const rawData = doc.data() as any;
         const data = doc.data() as RepeatAdd;
+
+        if (rawData.frequencyInfo?.dayOfWeek) {
+          /* when every_week, saved by string (e.g. Kotlin DayOfWeek). Convert it into TS number */
+          const rawDays = rawData.frequencyInfo.dayOfWeek;
+          if (Array.isArray(rawDays)) {
+            data.frequencyInfo.dayOfWeek = convertDaysToNums(rawDays);
+          }
+        }
         repeatAddMap[doc.id] = data;
       });
 

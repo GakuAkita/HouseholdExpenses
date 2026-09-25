@@ -3,23 +3,52 @@ import { AmazonMailSubjects } from "../../../type/AmazonMailSubjects";
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
 import { GmailApiClient } from "../../Client/GmailApiClient";
 
+// export async function getRakutenPayMailIds(
+//   gmailClient: GmailApiClient,
+//   startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
+//   endTime: number /* 時間で絞るための終了時刻(秒:整数) */
+// ): Promise<FuncResultWithData<string[]>> {
+//   /* まずはクエリをして楽天Payを抽出する */
+//   const subjectIncluded = "楽天ペイアプリご利用内容確認メール";
+//   const mailFrom = "no-reply@pay.rakuten.co.jp";
+
+//   /**
+//    * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
+//    * したがって、endTimeに+1をしてendTimeも含めるようにする
+//    * ちょっとここらへんが怖いな、
+//    */
+//   const endTimeAdded = endTime + 1;
+//   const query = `subject:${subjectIncluded} from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
+//   logger.debug(`Query:${query}`);
+//   const funcResult = await gmailClient.queryMessages(query);
+//   return funcResult;
+// }
 export async function getRakutenPayMailIds(
   gmailClient: GmailApiClient,
   startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
   endTime: number /* 時間で絞るための終了時刻(秒:整数) */
 ): Promise<FuncResultWithData<string[]>> {
   /* まずはクエリをして楽天Payを抽出する */
-  const subjectIncluded = "楽天ペイアプリご利用内容確認メール";
+  const subjects = [
+    "楽天ペイアプリご利用内容確認メール",
+    "楽天ペイお支払い完了のお知らせ",
+  ];
   const mailFrom = "no-reply@pay.rakuten.co.jp";
 
   /**
    * gmailのクエリは秒数+1~秒数-1でクエリがかかるらしい。
    * したがって、endTimeに+1をしてendTimeも含めるようにする
-   * ちょっとここらへんが怖いな、
    */
   const endTimeAdded = endTime + 1;
-  const query = `subject:${subjectIncluded} from:${mailFrom} after:${startTime} before:${endTimeAdded}`;
+
+  const query =
+    `subject:{${subjects.join(" ")}} ` +
+    `from:${mailFrom} ` +
+    `after:${startTime} ` +
+    `before:${endTimeAdded}`;
+
   logger.debug(`Query:${query}`);
+
   const funcResult = await gmailClient.queryMessages(query);
   return funcResult;
 }
