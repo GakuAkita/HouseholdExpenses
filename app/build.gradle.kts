@@ -1,25 +1,19 @@
-import java.io.ByteArrayOutputStream
 import java.util.Properties
 
 // Gitタグからバージョンを取得する関数
 fun Project.getVersionName(): String {
     return try {
-        val stdout = ByteArrayOutputStream()
-//        exec {
-//            commandLine("git", "describe", "--tags", "--abbrev=0")
-//            standardOutput = stdout
-//            isIgnoreExitValue = true
-//        }
-        val tag = stdout.toString().trim()
-        if (tag.isNotEmpty() && tag.startsWith("v")) {
-            tag.substring(1) // "v"を削除
-        } else if (tag.isNotEmpty()) {
-            tag
-        } else {
-            "1.0.0" // デフォルト値
+        val tag = providers.exec {
+            commandLine("git", "describe", "--tags", "--abbrev=0")
+        }.standardOutput.asText.get().trim()
+
+        when {
+            tag.isEmpty() -> "1.0.0"
+            tag.startsWith("v") -> tag.substring(1)
+            else -> tag
         }
     } catch (e: Exception) {
-        "1.0.0" // エラー時はデフォルト値
+        "1.0.0"
     }
 }
 
