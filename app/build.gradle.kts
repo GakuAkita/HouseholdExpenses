@@ -198,10 +198,9 @@ dependencies {
     implementation(libs.text.recognition.japanese)
 
     /**************** Test ******************/
-    // Test rules and transitive dependencies:
-//    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
-    // Needed for createComposeRule(), but not for createAndroidComposeRule<YourActivity>():
-//    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Junit5
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
