@@ -408,6 +408,7 @@ fun Day(
                 } else {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                 },
+                fontSize = 16.sp
             )
             /* when the value is too big, use the expression like 1.23K */
             Text(
