@@ -104,6 +104,7 @@ fun HomeScreenRoot(
                 }
             }
         },
+        onDayClick = {},
         onFABClick = {
             // Honestly, I just want to pass null.
             // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
@@ -121,6 +122,7 @@ fun HomeScreen(
     isWide: Boolean = false,
     onMonthChanged: (YearMonth) -> Unit,
     onExpenseClick: (String?) -> Unit,
+    onDayClick: (LocalDate) -> Unit,
     onFABClick: () -> Unit
 ) {
 
@@ -163,7 +165,8 @@ fun HomeScreen(
                 HomeHorizontalCalendar(
                     uiState = uiState,
                     calendarState = calendarState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    onDayClick = onDayClick
                 )
 
                 LazyExpensesColumn(
@@ -182,7 +185,8 @@ fun HomeScreen(
                 HomeHorizontalCalendar(
                     uiState = uiState,
                     calendarState = calendarState,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1.3f),
+                    onDayClick = onDayClick
                 )
 
                 LazyExpensesColumn(
@@ -255,6 +259,7 @@ fun HomeScreenPreview() {
         uiState = uiState,
         onMonthChanged = {},
         onExpenseClick = {},
+        onDayClick = {},
         onFABClick = {}
     )
 }
@@ -264,7 +269,8 @@ fun HomeScreenPreview() {
 fun HomeHorizontalCalendar(
     uiState: HomeUiState,
     calendarState: CalendarState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDayClick: (LocalDate) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -300,7 +306,9 @@ fun HomeHorizontalCalendar(
                         day = it,
                         price = uiState.dailyAmounts[it.date] ?: 0L,
                         isToday = it.date == LocalDate.now(),
-                        onDayClick = {}
+                        onDayClick = {
+                            onDayClick(it.date)
+                        }
                     )
                 }
             )
@@ -390,7 +398,7 @@ fun Day(
     )
     {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
