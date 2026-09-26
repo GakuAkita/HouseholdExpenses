@@ -29,6 +29,6 @@ class AmazonSubscribeItemRepositoryRealtimeDb(
             throw Exception("item.id is null. This is a programming error.")
         }
 
-        reference.child(item.id!!).setValue(item)
+        reference.child(item.id!!).setValue(item).await()
     }
 }
