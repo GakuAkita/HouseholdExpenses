@@ -158,11 +158,21 @@ class ExpenseAddEditViewModel(
             }
         } else {
             /* Add */
-            _uiState.update {
-                it.copy(
-                    selectedDate = LocalDate.now(zoneId),
-                    selectedTime = LocalTime.now(zoneId),
-                )
+            if (initialExpense?.datetime == null) {
+                _uiState.update {
+                    it.copy(
+                        selectedDate = LocalDate.now(zoneId),
+                        selectedTime = LocalTime.now(zoneId),
+                    )
+                }
+            } else {
+                val localDateTime = initialExpense.datetime!!.toLocalDateTime(zoneId)
+                _uiState.update {
+                    it.copy(
+                        selectedDate = localDateTime.toLocalDate(),
+                        selectedTime = localDateTime.toLocalTime(),
+                    )
+                }
             }
         }
 

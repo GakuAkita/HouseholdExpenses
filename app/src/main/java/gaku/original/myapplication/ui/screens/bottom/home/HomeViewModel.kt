@@ -14,6 +14,7 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.toInstant
+import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
@@ -287,6 +288,18 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    fun onDayClick(date: LocalDate): Expense {
+        val zoneId = appTimeZoneRepository.zoneId.value
+        val nowTime = LocalDateTime.now(zoneId).toLocalTime()
+        val localDateTime = date.atTime(nowTime)
+        Timber.d("localDateTime = $localDateTime")
+
+        return Expense(
+            datetime = localDateTime.toIsoUtcString(zoneId),
+            generatedType = GeneratedType.Manual
+        )
     }
 
     override fun onCleared() {

@@ -104,7 +104,14 @@ fun HomeScreenRoot(
                 }
             }
         },
-        onDayClick = {},
+        onDayClick = {
+            val expense = viewModel.onDayClick(it)
+            rootNavController.navigate(
+                MainGraph.Global.ExpenseAddEdit(
+                    expense
+                )
+            )
+        },
         onFABClick = {
             // Honestly, I just want to pass null.
             // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
