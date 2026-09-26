@@ -242,6 +242,7 @@ fun HomeScreenPreview() {
             ),
         ),
         message = null,
+        estimatedAmount = 10.0,
         monthlyTotal = 10000,
         dailyAmounts = mapOf(
             LocalDate.now() to 1000,
@@ -275,6 +276,9 @@ fun HomeHorizontalCalendar(
             Spacer(modifier = Modifier.padding(10.dp))
             Column {
                 Text("Monthly Total:${uiState.monthlyTotal} yen")
+                uiState.estimatedAmount?.let {
+                    Text("Estimated Amount:${"%.0f".format(it)} yen")
+                }
             }
         }
 
