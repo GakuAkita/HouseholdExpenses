@@ -41,6 +41,7 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.toDisplayName
@@ -170,10 +171,12 @@ fun RepeatAddScreenPreview() {
         repeatAdds = listOf(
             RepeatAdd(
                 id = "1",
+                timestamp = 0L,
                 expense = ExpenseTemplate(
                     amount = 200L,
                     category = Category(id = "食費", timestamp = 0L, name = "食費", enabled = true)
-                )
+                ),
+                frequencyInfo = RepeatFrequency.EveryMonth(day = 25, hour = 9, minute = 0)
             )
         )
     )
@@ -229,7 +232,7 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () ->
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${repeatAdd.frequencyInfo?.toDisplayName()}",
+                text = repeatAdd.frequencyInfo.toDisplayName(),
                 modifier = Modifier.weight(1f),
                 fontSize = fontSize,
                 textAlign = TextAlign.Left//左寄せ

@@ -72,7 +72,7 @@ class RepeatAddViewModel(
                         isLoading = true
                     )
                 }
-                repeatAddRepository.deleteRepeatAdd(repeatAdd.id!!)
+                repeatAddRepository.deleteRepeatAdd(repeatAdd.id)
                 _uiState.update {
                     it.copy(
                         message = "Deleted!"

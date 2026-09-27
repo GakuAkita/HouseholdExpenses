@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
-import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
@@ -67,7 +66,7 @@ class RepeatAddExecuteViewModel(
             it.copy(
                 amount = repeatAdd.expense.amount,
                 categoryName = repeatAdd.expense.category.name,
-                frequency = repeatAdd.frequencyInfo!!
+                frequency = repeatAdd.frequencyInfo
             )
         }
     }
@@ -91,13 +90,9 @@ class RepeatAddExecuteViewModel(
                 val now = Instant.now().atZone(zoneId)
                 Timber.d("${now.year} / ${now.monthValue} ")
                 val yearMonth = YearMonth.of(now.year, now.monthValue)
-                val targets = repeatAdd.frequencyInfo?.getRepeatAddTargetDaysOfMonth(
+                val targets = repeatAdd.frequencyInfo.getRepeatAddTargetDaysOfMonth(
                     yearMonth, zoneId
                 )
-
-                if (targets == null) {
-                    throw CodingErrorException("targets is null")
-                }
 
                 if (targets.isEmpty()) {
                     _uiState.update {
@@ -113,7 +108,7 @@ class RepeatAddExecuteViewModel(
                             val expense = repeatAdd.expense.toExpense(
                                 datetime = target,
                                 generatedType = GeneratedType.RepeatAdd(
-                                    repeatAdd.id!!
+                                    repeatAdd.id
                                 )
                             )
                             expenseRepository.addExpense(expense)

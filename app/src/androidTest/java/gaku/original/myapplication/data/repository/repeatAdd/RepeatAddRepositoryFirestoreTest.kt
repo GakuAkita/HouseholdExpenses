@@ -13,12 +13,12 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.DayOfWeek
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class RepeatAddRepositoryFirestoreTest {
@@ -44,13 +44,12 @@ class RepeatAddRepositoryFirestoreTest {
     }
 
     @Test
-    fun addRepeatAdd_assignsIdAndTimestamp() = runBlocking<Unit> {
-        val before = System.currentTimeMillis()
+    fun addRepeatAdd_savesWithGivenIdAndTimestamp() = runBlocking<Unit> {
+        val repeatAdd = sampleRepeatAdd()
 
-        val added = repository.addRepeatAdd(sampleRepeatAdd())
+        val added = repository.addRepeatAdd(repeatAdd)
 
-        assertNotNull(added.id)
-        assertTrue(added.timestamp!! >= before)
+        assertEquals(repeatAdd, added)
     }
 
     @Test
@@ -58,10 +57,7 @@ class RepeatAddRepositoryFirestoreTest {
         val added = repository.addRepeatAdd(sampleRepeatAdd())
 
         val saved = repository.getAllRepeatAdds()[added.id]!!
-        assertEquals(added.id, saved.id)
-        assertEquals(added.timestamp, saved.timestamp)
-        assertEquals(added.frequencyInfo, saved.frequencyInfo)
-        assertEquals(added.expense, saved.expense)
+        assertEquals(added, saved)
     }
 
     @Test
@@ -106,7 +102,7 @@ class RepeatAddRepositoryFirestoreTest {
     fun deleteRepeatAdd_removesRepeatAdd() = runBlocking<Unit> {
         val added = repository.addRepeatAdd(sampleRepeatAdd())
 
-        repository.deleteRepeatAdd(added.id!!)
+        repository.deleteRepeatAdd(added.id)
 
         assertFalse(repository.getAllRepeatAdds().containsKey(added.id))
     }
@@ -119,11 +115,13 @@ class RepeatAddRepositoryFirestoreTest {
         val repeatAdds = repository.repeatAdds.awaitValue { it.containsKey(added.id) }
         assertEquals(added.frequencyInfo, repeatAdds[added.id]!!.frequencyInfo)
 
-        repository.deleteRepeatAdd(added.id!!)
+        repository.deleteRepeatAdd(added.id)
         repository.repeatAdds.awaitValue { !it.containsKey(added.id) }
     }
 
     private fun sampleRepeatAdd() = RepeatAdd(
+        id = UUID.randomUUID().toString(),
+        timestamp = 1_780_000_000_000L,
         expense = ExpenseTemplate(
             amount = 8000L,
             category = Category(

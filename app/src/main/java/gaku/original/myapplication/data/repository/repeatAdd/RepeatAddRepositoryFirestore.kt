@@ -1,13 +1,8 @@
 package gaku.original.myapplication.data.repository.repeatAdd
 
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ListenerRegistration
 import gaku.original.myapplication.data.dataClass.RepeatAdd
-import gaku.original.myapplication.data.dataClass.toFirestore
-import gaku.original.myapplication.data.dataClass.toRepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.data.repository.expense.ExpenseDto
-import gaku.original.myapplication.data.repository.expense.toDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
@@ -33,9 +28,10 @@ class RepeatAddRepositoryFirestore(
 
             if (snapshots == null) return@addSnapshotListener
 
-            val repeatAdds = snapshots.documents.mapNotNull { doc ->
-                Timber.d("RepeatAdd: ${doc.toRepeatAdd()}")
-                doc.toRepeatAdd().let { doc.id to it }
+            val repeatAdds = snapshots.documents.map { doc ->
+                val repeatAdd = doc.toObject(RepeatAddDto::class.java)!!.toDomain()
+                Timber.d("RepeatAdd: $repeatAdd")
+                doc.id to repeatAdd
             }.toMap()
 
             _repeatAdds.value = repeatAdds
@@ -50,50 +46,24 @@ class RepeatAddRepositoryFirestore(
 
     override suspend fun getAllRepeatAdds(): Map<String, RepeatAdd> {
         val snapshots = repeatAddCollection.get().await()
-        val repeatAdds = snapshots.documents.mapNotNull { document ->
-            document.toRepeatAdd().let { document.id to it }
+        val repeatAdds = snapshots.documents.map { document ->
+            document.id to document.toObject(RepeatAddDto::class.java)!!.toDomain()
         }.toMap()
         return repeatAdds
     }
 
     override suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
-        val document = repeatAddCollection.document()
-        val newRepeatAdd = repeatAdd.copy(id = document.id, timestamp = System.currentTimeMillis())
-        document.set(newRepeatAdd.toFirestore()).await()
-        Timber.d("addRepeatAdd Success: $newRepeatAdd")
-        return newRepeatAdd
+        repeatAddCollection.document(repeatAdd.id).set(repeatAdd.toDto()).await()
+        Timber.d("addRepeatAdd Success: $repeatAdd")
+        return repeatAdd
     }
 
     override suspend fun updateRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
-        if (repeatAdd.id == null) {
-            throw Exception("Program Error: repeatAdd.id is null when updating")
-        }
-        repeatAddCollection.document(repeatAdd.id!!).set(repeatAdd.toFirestore()).await()
+        repeatAddCollection.document(repeatAdd.id).set(repeatAdd.toDto()).await()
         return repeatAdd
     }
 
     override suspend fun deleteRepeatAdd(id: String) {
         repeatAddCollection.document(id).delete().await()
     }
-}
-
-fun RepeatAdd.toFirestore(): Map<String, Any?> {
-    return mapOf(
-        "id" to id,
-        "timestamp" to timestamp,
-        "expense" to expense.toDto(),
-        "frequencyInfo" to frequencyInfo?.toFirestore()
-    )
-}
-
-fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
-    val frequencyInfoRaw = get("frequencyInfo") as? Map<String, Any?>
-
-    return RepeatAdd(
-        id = getString("id"),
-        timestamp = getLong("timestamp"),
-        expense = get("expense", ExpenseDto::class.java)?.toExpenseTemplate()
-            ?: error("expense is null"),
-        frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
-    )
 }

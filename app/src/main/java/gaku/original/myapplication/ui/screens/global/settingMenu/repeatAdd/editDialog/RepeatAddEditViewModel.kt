@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.util.UUID
 
 data class RepeatAddEditDialogState(
     val isLoading: Boolean = false,
@@ -437,7 +438,7 @@ class RepeatAddEditViewModel(
                 when (val ret = current.toRepeatAdd(initialRepeatAdd)) {
                     is AppResult.Success -> {
                         val newRepeatAdd = ret.value
-                        if (newRepeatAdd.id == null) {
+                        if (initialRepeatAdd == null) {
                             val new = repeatAddRepository.addRepeatAdd(newRepeatAdd)
                             _uiState.update {
                                 it.copy(
@@ -600,7 +601,12 @@ fun RepeatAddEditDialogState.toRepeatAdd(initial: RepeatAdd?): AppResult<RepeatA
         storeName = storeName
     )
     val newRepeatAdd = initial?.copy(expense = template, frequencyInfo = frequency)
-        ?: RepeatAdd(expense = template, frequencyInfo = frequency)
+        ?: RepeatAdd(
+            id = UUID.randomUUID().toString(),
+            timestamp = System.currentTimeMillis(),
+            expense = template,
+            frequencyInfo = frequency
+        )
 
     Timber.d("newRepeatAdd: ${newRepeatAdd}")
     return AppResult.Success(newRepeatAdd)
