@@ -17,17 +17,18 @@ import kotlin.reflect.full.primaryConstructor
 fun assertFullyPopulated(sample: Any) {
     val kClass = sample::class
     val constructor = kClass.primaryConstructor ?: return
-    val defaultInstance = constructor
-        .takeIf { c -> c.parameters.all { it.isOptional } }
-        ?.callBy(emptyMap())
+    val sampleArguments = constructor.parameters.associateWith { kClass.propertyValue(sample, it.name!!) }
 
     constructor.parameters.forEach { parameter ->
         val name = parameter.name!!
-        val value = kClass.propertyValue(sample, name)
+        val value = sampleArguments.getValue(parameter)
         if (value == null || (value is Collection<*> && value.isEmpty())) {
             fail("${kClass.simpleName}.$name is not set in the test sample. Set a non-null value.")
         }
-        if (defaultInstance != null && value == kClass.propertyValue(defaultInstance, name)) {
+        if (!parameter.isOptional) return@forEach
+        /* Take every other argument from the sample, so this also works for classes with required parameters. */
+        val defaultInstance = constructor.callBy(sampleArguments - parameter)
+        if (value == kClass.propertyValue(defaultInstance, name)) {
             fail(
                 "${kClass.simpleName}.$name in the test sample equals its default value ($value). " +
                         "Use a different value, otherwise a dropped field cannot be detected."
