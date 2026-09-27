@@ -1,10 +1,10 @@
 import { logger } from "firebase-functions";
 import { AmazonMailSubjects } from "../../../type/AmazonMailSubjects";
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
-import { GmailApiClient } from "../../Client/GmailApiClient";
+import { GmailClient } from "../../Client/GmailApiClient";
 
 // export async function getRakutenPayMailIds(
-//   gmailClient: GmailApiClient,
+//   gmailClient: GmailClient,
 //   startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
 //   endTime: number /* 時間で絞るための終了時刻(秒:整数) */
 // ): Promise<FuncResultWithData<string[]>> {
@@ -24,7 +24,7 @@ import { GmailApiClient } from "../../Client/GmailApiClient";
 //   return funcResult;
 // }
 export async function getRakutenPayMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number /* 時間で絞るための開始時刻(秒:整数) */,
   endTime: number /* 時間で絞るための終了時刻(秒:整数) */
 ): Promise<FuncResultWithData<string[]>> {
@@ -54,7 +54,7 @@ export async function getRakutenPayMailIds(
 }
 
 export async function getAmazonKindleMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -70,7 +70,7 @@ export async function getAmazonKindleMailIds(
 }
 
 export async function getAmazonSubscribeNewRegsterMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -84,7 +84,7 @@ export async function getAmazonSubscribeNewRegsterMailIds(
 }
 
 export async function getAmazonSubscribeCancelRegisterMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -98,7 +98,7 @@ export async function getAmazonSubscribeCancelRegisterMailIds(
 }
 
 export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number,
   maxResult: number = 10
@@ -120,7 +120,7 @@ export async function getAmazonSubscribeNextShipNotifyAndCancelMailIds(
 }
 
 export async function getAmazonDispatchedMailIds(
-  gmailClinet: GmailApiClient,
+  gmailClinet: GmailClient,
   startTime: number,
   endTime: number,
   maxResult: number = 5
@@ -135,7 +135,7 @@ export async function getAmazonDispatchedMailIds(
 }
 
 export async function getAmazonCurrentlyShippedMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -149,7 +149,7 @@ export async function getAmazonCurrentlyShippedMailIds(
 }
 
 export async function getShikokuElectricMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -163,7 +163,7 @@ export async function getShikokuElectricMailIds(
 }
 
 export async function getAmazonItemMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -176,7 +176,7 @@ export async function getAmazonItemMailIds(
 }
 
 export async function getUdemyMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {
@@ -189,7 +189,7 @@ export async function getUdemyMailIds(
 }
 
 export async function getRakutenCardETCMailIds(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   startTime: number,
   endTime: number
 ): Promise<FuncResultWithData<string[]>> {

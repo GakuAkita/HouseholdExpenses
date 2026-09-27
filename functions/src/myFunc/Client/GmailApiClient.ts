@@ -189,3 +189,10 @@ export class GmailApiClient {
     };
   }
 }
+
+/** The part of the Gmail API the jobs use. Tests pass a fake that returns fixture emails. */
+export type GmailClient = Pick<GmailApiClient, "queryMessages" | "getMessageDetail">;
+
+export type GmailClientFactory = (config: BaseGoogleOAuthConfig) => GmailClient;
+
+export const createGmailApiClient: GmailClientFactory = (config) => new GmailApiClient(config);

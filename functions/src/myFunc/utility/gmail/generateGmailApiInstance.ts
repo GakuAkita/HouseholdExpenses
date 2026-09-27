@@ -1,21 +1,21 @@
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../../type/GoogleOAuthSecrets";
-import { GmailApiClient } from "../../Client/GmailApiClient";
-import { GoogleOAuthSecretProvider } from "../../googleOAuthSecrets";
+import { GmailClient } from "../../Client/GmailApiClient";
+import { Runtime } from "../../../shared/runtime";
 import { MailboxExtractionService } from "./../../RealtimeDbService/MailboxExtractionService";
 
 export async function generateGmailApiInstance(
   userId: string,
   mailboxExtractionService: MailboxExtractionService,
-  secrets: GoogleOAuthSecretProvider
-): Promise<FuncResultWithData<GmailApiClient>> {
+  runtime: Pick<Runtime, "secrets" | "createGmailClient">
+): Promise<FuncResultWithData<GmailClient>> {
   /**
    * Google認証に必要な情報+暗号化キーをロードする
    */
   /**
    * Google認証に必要な情報+暗号化キーをロードする
    */
-  const secretsRet = await secrets.load();
+  const secretsRet = await runtime.secrets.load();
   if (secretsRet.status != FuncStatus.SUCCESS) {
     /**
      *  7 PERMISSION_DENIED: Permission 'secretmanager.versions.access' denied for resource .....
@@ -80,7 +80,7 @@ export async function generateGmailApiInstance(
   /**
    * configをもとにGmailApiClientのインスタンス作成
    */
-  const gmailApi = new GmailApiClient(gmailConfig);
+  const gmailApi = runtime.createGmailClient(gmailConfig);
 
   return {
     status: FuncStatus.SUCCESS,

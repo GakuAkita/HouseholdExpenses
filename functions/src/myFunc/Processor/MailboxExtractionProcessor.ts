@@ -28,7 +28,7 @@ import {
   ShikokuElectricPowerSetting,
   UdemySetting,
 } from "../../type/Mailbox";
-import { GmailApiClient } from "../Client/GmailApiClient";
+import { GmailClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { AmazonItemDispatchedMailParser } from "../Parser/AmazonItemDispatchedMailParser";
@@ -219,7 +219,7 @@ export class MailboxExtractionProcessor {
   /* *****************************Gmailのクエリ関係************************************ */
   async getMailIdsByQuery(
     type: AllMailType,
-    gmailClient: GmailApiClient,
+    gmailClient: GmailClient,
     startTime: number,
     endTime: number
   ): Promise<FuncResultWithData<string[]>> {
@@ -908,13 +908,13 @@ export class MailboxExtractionProcessor {
     const gmailClientRet = await generateGmailApiInstance(
       this.userId,
       this.mailboxExtractionService,
-      this.runtime.secrets
+      this.runtime
     );
     if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
       logger.info(`${gmailClientRet.message}`);
       return;
     }
-    const gmailClient: GmailApiClient = gmailClientRet.data;
+    const gmailClient: GmailClient = gmailClientRet.data;
 
     /**
      * クエリをして、msgIdを取得

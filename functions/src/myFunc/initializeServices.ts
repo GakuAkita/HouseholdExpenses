@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { Clock, systemClock } from "../shared/clock";
 import { Runtime } from "../shared/runtime";
 import { readRuntimeConfig, RuntimeConfig } from "../shared/runtimeConfig";
+import { createGmailApiClient, GmailClientFactory } from "./Client/GmailApiClient";
 import { initMyFirebaseAdmin } from "./firebaseAdmin";
 import { CategoryService } from "./FirestoreService/CategoryService";
 import { ExpenseService } from "./FirestoreService/ExpenseService";
@@ -21,6 +22,7 @@ export interface ServiceOptions {
   clock?: Clock;
   config?: RuntimeConfig;
   secrets?: GoogleOAuthSecretProvider;
+  createGmailClient?: GmailClientFactory;
 }
 
 /**
@@ -33,6 +35,7 @@ export const initializeServices = (options: ServiceOptions = {}) => {
     clock: options.clock ?? systemClock,
     config,
     secrets: options.secrets ?? createGoogleOAuthSecretProvider(config),
+    createGmailClient: options.createGmailClient ?? createGmailApiClient,
   };
 
   initMyFirebaseAdmin(options.appOptions);

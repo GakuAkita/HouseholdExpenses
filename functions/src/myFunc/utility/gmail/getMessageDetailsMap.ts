@@ -1,6 +1,6 @@
 import { gmail_v1 } from "googleapis";
 import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
-import { GmailApiClient } from "../../Client/GmailApiClient";
+import { GmailClient } from "../../Client/GmailApiClient";
 import { sortGmailMessagesByDate } from "./getInternalDate";
 
 /**
@@ -13,7 +13,7 @@ import { sortGmailMessagesByDate } from "./getInternalDate";
  * Detailを取得し順番を並び替える
  */
 export async function getMessageDetailsSortedList(
-  gmailClient: GmailApiClient,
+  gmailClient: GmailClient,
   msgIdList: string[]
 ): Promise<FuncResultWithData<[string, gmail_v1.Schema$Message][]>> {
   const messageMap: Record<string, gmail_v1.Schema$Message> = {};
