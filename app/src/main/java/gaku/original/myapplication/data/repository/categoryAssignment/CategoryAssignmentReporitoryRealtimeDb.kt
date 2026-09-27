@@ -13,8 +13,8 @@ class CategoryAssignmentRepositoryRealtimeDb(
 ) : CategoryAssignmentRepository {
     private val reference = realtimeDbReference.categoryAssignmentReference
 
-    private val productReference = reference.child(CategoryAssignmentFirebase.Product().nodeName)
-    private val storeReference = reference.child(CategoryAssignmentFirebase.Store().nodeName)
+    private val productReference = reference.child(CategoryAssignmentDto.Product().nodeName)
+    private val storeReference = reference.child(CategoryAssignmentDto.Store().nodeName)
 
     override suspend fun getCategoryAssignments(): Map<String, CategoryAssignment> {
         val snapshot = reference.get().await()
@@ -29,8 +29,8 @@ class CategoryAssignmentRepositoryRealtimeDb(
                     id = ref.key
                 )
                 /* Firebase用の型に変換 */
-                val assignmentFirebase = assignWithId.toFirebase()
-                ref.setValue(assignmentFirebase).await()
+                val dto = assignWithId.toDto()
+                ref.setValue(dto).await()
             }
 
             is CategoryAssignment.Store -> {
@@ -38,8 +38,8 @@ class CategoryAssignmentRepositoryRealtimeDb(
                 val assignWithId = assignment.copy(
                     id = ref.key
                 )
-                val assignmentFirebase = assignWithId.toFirebase()
-                ref.setValue(assignmentFirebase).await()
+                val dto = assignWithId.toDto()
+                ref.setValue(dto).await()
             }
         }
     }
@@ -52,14 +52,14 @@ class CategoryAssignmentRepositoryRealtimeDb(
         when (assignment) {
             is CategoryAssignment.Product -> {
                 val ref = productReference.child(assignment.id!!)
-                val assignmentFirebase = assignment.toFirebase()
-                ref.setValue(assignmentFirebase).await()
+                val dto = assignment.toDto()
+                ref.setValue(dto).await()
             }
 
             is CategoryAssignment.Store -> {
                 val ref = storeReference.child(assignment.id!!)
-                val assignmentFirebase = assignment.toFirebase()
-                ref.setValue(assignmentFirebase).await()
+                val dto = assignment.toDto()
+                ref.setValue(dto).await()
             }
         }
     }
@@ -82,7 +82,7 @@ class CategoryAssignmentRepositoryRealtimeDb(
     }
 }
 
-sealed interface CategoryAssignmentFirebase : HasId {
+sealed interface CategoryAssignmentDto : HasId {
     val nodeName: String
 
     fun toDomain(): CategoryAssignment
@@ -93,7 +93,7 @@ sealed interface CategoryAssignmentFirebase : HasId {
         val name: String? = null, /* 店の名前や商品名 */
         val condition: String? = null, /* 完全一致なのか部分一致なのか */
         val regex: Boolean = false
-    ) : CategoryAssignmentFirebase {
+    ) : CategoryAssignmentDto {
         override val nodeName: String = "productName"
 
         override fun toDomain(): CategoryAssignment {
@@ -113,7 +113,7 @@ sealed interface CategoryAssignmentFirebase : HasId {
         val name: String? = null,
         val condition: String? = null,
         val regex: Boolean = false,
-    ) : CategoryAssignmentFirebase {
+    ) : CategoryAssignmentDto {
         override val nodeName: String = "storeName"
 
         override fun toDomain(): CategoryAssignment {
@@ -143,10 +143,10 @@ fun String?.toMatchCondition(): MatchCondition {
     }
 }
 
-fun CategoryAssignment.toFirebase(): CategoryAssignmentFirebase {
+fun CategoryAssignment.toDto(): CategoryAssignmentDto {
     when (this) {
         is CategoryAssignment.Product -> {
-            return CategoryAssignmentFirebase.Product(
+            return CategoryAssignmentDto.Product(
                 id = id,
                 categoryId = categoryId,
                 name = name,
@@ -156,7 +156,7 @@ fun CategoryAssignment.toFirebase(): CategoryAssignmentFirebase {
         }
 
         is CategoryAssignment.Store -> {
-            return CategoryAssignmentFirebase.Store(
+            return CategoryAssignmentDto.Store(
                 id = id,
                 categoryId = categoryId,
                 name = name,
@@ -171,16 +171,16 @@ fun CategoryAssignment.toFirebase(): CategoryAssignmentFirebase {
 private fun DataSnapshot.toCategoryAssignments(): Map<String, CategoryAssignment> {
     return children.flatMap { child ->
         when (child.key) {
-            CategoryAssignmentFirebase.Product().nodeName -> {
+            CategoryAssignmentDto.Product().nodeName -> {
                 child.children.map { item ->
-                    item.key!! to item.getValue(CategoryAssignmentFirebase.Product::class.java)!!
+                    item.key!! to item.getValue(CategoryAssignmentDto.Product::class.java)!!
                         .toDomain()
                 }
             }
 
-            CategoryAssignmentFirebase.Store().nodeName -> {
+            CategoryAssignmentDto.Store().nodeName -> {
                 child.children.map { item ->
-                    item.key!! to item.getValue(CategoryAssignmentFirebase.Store::class.java)!!
+                    item.key!! to item.getValue(CategoryAssignmentDto.Store::class.java)!!
                         .toDomain()
                 }
             }
