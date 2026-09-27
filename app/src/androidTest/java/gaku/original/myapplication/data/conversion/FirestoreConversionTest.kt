@@ -40,7 +40,8 @@ class FirestoreConversionTest {
 
     @Before
     fun setUp() {
-        reference = FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
+        reference =
+            FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
     }
 
     @After
@@ -52,6 +53,8 @@ class FirestoreConversionTest {
 
     @Test
     fun category_sampleIsFullyPopulated() {
+        /* Even if you forget to put the value for the newly added property, this test can catch it. */
+        /* Don't worry. */
         assertFullyPopulated(sampleCategory)
     }
 
