@@ -1,6 +1,8 @@
 import { logger } from "firebase-functions";
-import { Runtime } from "../../shared/runtime";
 import { GeneratedType } from "../../constants/GeneratedType";
+import { ExtractionContext } from "../../mail/mailSource";
+import { mailSourceFor } from "../../mail/sources";
+import { Runtime } from "../../shared/runtime";
 import { Category } from "../../type/Category";
 import { CategoryAssignmentData } from "../../type/CategoryAssignment";
 import { Expense } from "../../type/Expense";
@@ -11,56 +13,19 @@ import {
 } from "../../type/FuncStatus";
 import {
   AllMailType,
-  AmazonItemSetting,
-  AmazonKindleSetting,
   AmazonSubscribeItem,
-  AmazonSubscribeSetting,
-  createAmazonItemSettingInstance,
-  createAmazonKindleSettingInstance,
-  createAmazonSubscribeSettingInstance,
-  createRakutenCardETCSettingInstance,
-  createRakutenPaySettingInstance,
-  createShikokuElectricPowerSettingInstance,
-  createUdemySettingInstance,
   LastMailboxExtractionExec,
-  RakutenCardETCSetting,
-  RakutenPaySetting,
-  ShikokuElectricPowerSetting,
-  UdemySetting,
 } from "../../type/Mailbox";
 import { GmailClient } from "../Client/GmailApiClient";
 import { CategoryService } from "../FirestoreService/CategoryService";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
-import { AmazonItemDispatchedMailParser } from "../Parser/AmazonItemDispatchedMailParser";
-import { AmazonItemMailParser } from "../Parser/AmazonItemMailParser";
-import { AmazonKindleMailParser } from "../Parser/AmazonKindleMailParser";
-import { RakutenCardETCParser } from "../Parser/RakutenCardETCParser";
-import { RakutenPayMailParser } from "../Parser/RakutenPayMailParser";
-import { ShikokuElectricPowerMailParser } from "../Parser/ShikokuElectricPowerMailParser";
-import { UdemyMailParser } from "../Parser/UdemyMailParser";
 import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
-import {
-  assignCategoryById,
-  assignCategoryFromAssignmentData,
-} from "../utility/cateogryAssign";
-import { isAmazonSubscribeProductExist } from "../utility/isAmazonSubscribeProductExist";
-import {
-  convertUnixMillisecToSec,
-} from "../utility/getCurrentUnixSec";
+import { convertUnixMillisecToSec } from "../utility/getCurrentUnixSec";
 import { extractTextBody } from "../utility/gmail/extractHtmlBody";
 import { filterMessages } from "../utility/gmail/filterMessages";
 import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
 import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
-import {
-  getAmazonDispatchedMailIds,
-  getAmazonItemMailIds,
-  getAmazonKindleMailIds,
-  getRakutenCardETCMailIds,
-  getRakutenPayMailIds,
-  getShikokuElectricMailIds,
-  getUdemyMailIds,
-} from "../utility/gmail/mailQueries";
 
 /**
  * 各ユーザーに対してインスタンスを生成することにする！
@@ -223,64 +188,14 @@ export class MailboxExtractionProcessor {
     startTime: number,
     endTime: number
   ): Promise<FuncResultWithData<string[]>> {
-    const nodeName = type.nodeName;
-
-    const rakutenPaySamp = createRakutenPaySettingInstance();
-    const amazonKindleSamp = createAmazonKindleSettingInstance();
-    const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
-    const amazonItemSamp = createAmazonItemSettingInstance();
-    const amazonSubscribeSamp = createAmazonSubscribeSettingInstance();
-    const udemySetting = createUdemySettingInstance();
-    const rakutenETCSamp = createRakutenCardETCSettingInstance();
-
-    let ret: FuncResultWithData<string[]>;
-    switch (nodeName) {
-      /**
-       * クエリの文章だけ定義して、
-       * この関数内でqueryしてもいいかもな。
-       */
-      case rakutenPaySamp.nodeName:
-        ret = await getRakutenPayMailIds(gmailClient, startTime, endTime);
-        break;
-
-      case amazonKindleSamp.nodeName:
-        /* 特に何もやらない */
-        ret = await getAmazonKindleMailIds(gmailClient, startTime, endTime);
-        break;
-
-      case shikokuElectricSamp.nodeName:
-        ret = await getShikokuElectricMailIds(gmailClient, startTime, endTime);
-        break;
-
-      case amazonItemSamp.nodeName:
-        ret = await getAmazonItemMailIds(gmailClient, startTime, endTime);
-        break;
-
-      case amazonSubscribeSamp.nodeName:
-        /**
-         *  発送済みのメールアドレスを取りに行く。
-         * その中で定期便に登録してあるものだけあとで追加
-         * 発送済みのメールは結構来るので、最大10件まで取得する。
-         * */
-        ret = await getAmazonDispatchedMailIds(gmailClient, startTime, endTime, 10);
-        break;
-
-      case udemySetting.nodeName:
-        ret = await getUdemyMailIds(gmailClient, startTime, endTime);
-        break;
-
-      case rakutenETCSamp.nodeName:
-        ret = await getRakutenCardETCMailIds(gmailClient, startTime, endTime);
-        break;
-
-      default:
-        ret = {
-          status: FuncStatus.ERROR,
-          message: `Unknown type:${nodeName}`,
-        };
-        break;
+    const source = mailSourceFor(type);
+    if (!source) {
+      return {
+        status: FuncStatus.ERROR,
+        message: `Unknown type:${type.nodeName}`,
+      };
     }
-    return ret;
+    return source.findMailIds(gmailClient, startTime, endTime);
   }
 
   /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
@@ -317,23 +232,65 @@ export class MailboxExtractionProcessor {
     sentDate?: string | null
   ): Promise<FuncResult> {
     const nodeName = setting.nodeName;
-    const rakutenPaySamp = createRakutenPaySettingInstance();
-    const amazonKindleSamp = createAmazonKindleSettingInstance();
-    const shikokuElectricSamp = createShikokuElectricPowerSettingInstance();
-    const amazonItemSamp = createAmazonItemSettingInstance();
-    const amazonSubscribeSamp = createAmazonSubscribeSettingInstance();
-    const udemySamp = createUdemySettingInstance();
-    const rakutenETCSamp = createRakutenCardETCSettingInstance();
+    const source = mailSourceFor(setting);
+    if (!source) {
+      logger.error(`Not prepared type for MailboxExtraction: ${nodeName}`);
+      return {
+        status: FuncStatus.ERROR,
+        message: `Not prepared type for MailboxExtraction: ${nodeName}`,
+      };
+    }
 
+    const context = await this.loadExtractionContext();
+    const ret = await source.toExpenses(
+      { rawText, internalDate: sentDate },
+      setting,
+      context
+    );
+    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
+      return { status: ret.status, message: ret.message };
+    }
+    if (ret.data.length === 0) {
+      /* e.g. Amazon定期便: no dispatched product is in the subscribe list */
+      return {
+        status: FuncStatus.SUCCESS,
+        message: `${nodeName}: No expense to save from this mail.`,
+      };
+    }
+
+    /* 一個でもaddできたら成功とする */
+    let addedCount = 0;
+    for (const expense of ret.data) {
+      const addRet = await this.addExpenseFromMailExtraction(expense, setting);
+      if (addRet.status == FuncStatus.SUCCESS) {
+        addedCount++;
+      } else {
+        logger.error(`${nodeName}: ${addRet.message}`);
+      }
+    }
+
+    return addedCount > 0
+      ? {
+        status: FuncStatus.SUCCESS,
+        message: `${nodeName}: ${addedCount} of ${ret.data.length} expenses were added.`,
+      }
+      : {
+        status: FuncStatus.ERROR,
+        message: `${nodeName}: No expense was added.`,
+      };
+  }
+
+  /**
+   * カテゴリーとカテゴリー割当を読み込む。
+   * 読み込みに失敗した場合はログ表示だけにして、空のまま続ける。
+   */
+  private async loadExtractionContext(): Promise<ExtractionContext> {
     let categories: Record<string, Category> = {};
     const categoryRet = await this.loadCategories();
     if (categoryRet.status != FuncStatus.SUCCESS) {
-      /* カテゴリーの読み込み失敗の場合はログ表示だけにしておく */
       logger.error(`Failed to load categories: ${categoryRet.message}`);
     } else if (categoryRet.data) {
       categories = categoryRet.data;
-    } else {
-      /* Do nothing */
     }
 
     let categoryAssignmentData: CategoryAssignmentData = {
@@ -342,495 +299,19 @@ export class MailboxExtractionProcessor {
     };
     const assignRet = await this.loadCategoryAssignmentData();
     if (assignRet.status != FuncStatus.SUCCESS) {
-      /* カテゴリー割当の読み込み失敗の場合はログ表示だけにしておく */
       logger.error(
         `Failed to load category assignment data: ${assignRet.message}`
       );
     } else if (assignRet.data) {
       categoryAssignmentData = assignRet.data;
-    } else {
-      /* Do nothing */
-      /* ここに来ることはあまりないのでは？ */
     }
 
-    let ret: FuncResult = {
-      status: FuncStatus.SUCCESS,
-      message: "Success",
+    return {
+      categories,
+      categoryAssignmentData,
+      loadEnabledAmazonSubscribeItems: () =>
+        this.loadEnabledAmazonSubscribeItems(),
     };
-    switch (nodeName) {
-      case rakutenPaySamp.nodeName:
-        ret = await this.saveExpenseFromRakutenPay(
-          rawText,
-          setting,
-          categories,
-          categoryAssignmentData
-        );
-        break;
-
-      case amazonKindleSamp.nodeName:
-        ret = await this.saveExpenseFromAmazonKindle(
-          rawText,
-          setting,
-          categories,
-          sentDate
-        );
-        break;
-
-      case shikokuElectricSamp.nodeName:
-        ret = await this.saveExpenseFromShikokuElectricPower(
-          rawText,
-          setting,
-          categories,
-          sentDate
-        );
-        break;
-
-      case amazonItemSamp.nodeName:
-        ret = await this.saveExpenseFromAmazonItem(
-          rawText,
-          setting,
-          categories,
-          categoryAssignmentData,
-          sentDate
-        );
-        break;
-
-      case amazonSubscribeSamp.nodeName:
-        ret = await this.saveExpenseFromAmazonSubscribe(
-          rawText,
-          setting,
-          categories,
-          categoryAssignmentData,
-          sentDate
-        );
-        break;
-
-      case udemySamp.nodeName:
-        ret = await this.saveExpenseFromUdemmy(
-          rawText,
-          setting,
-          categories,
-          sentDate
-        );
-        break;
-
-      case rakutenETCSamp.nodeName:
-        ret = await this.saveExpenseFromRakutenCardETC(
-          rawText,
-          setting,
-          categories
-        );
-        break;
-
-      default:
-        ret = {
-          status: FuncStatus.ERROR,
-          message: `Not prepared type for MailboxExtraction: ${nodeName}`,
-        };
-        logger.error(`Not prepared type for MailboxExtraction: ${nodeName}`);
-        break;
-    }
-
-    return ret;
-  }
-
-  async saveExpenseFromRakutenPay(
-    rawText: string,
-    setting: RakutenPaySetting,
-    categories: Record<string, Category>,
-    assignmentData: CategoryAssignmentData
-  ): Promise<FuncResult> {
-    const parser = new RakutenPayMailParser(rawText);
-    const ret = parser.toExpense(); /* この時点では最低限しかいれていない */
-    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      return ret;
-    }
-
-    const baseExpense: Expense = ret.data;
-    /**
-     * baseExpenseに店名が入っていて
-     * かつ、
-     * ユーザーが登録した店名のカテゴリー割当データが存在すれば
-     * 見つけてカテゴリー割当をする。(ヒットしない可能性もあるが)
-     */
-    const expenseWithCategory =
-      assignmentData.storeName && baseExpense.storeName
-        ? assignCategoryFromAssignmentData(
-          baseExpense,
-          baseExpense.storeName,
-          assignmentData.storeName,
-          categories
-        )
-        : baseExpense;
-
-    const addRet = await this.addExpenseFromMailExtraction(
-      expenseWithCategory,
-      setting
-    );
-
-    return addRet;
-  }
-
-  async saveExpenseFromAmazonKindle(
-    rawText: string,
-    setting: AmazonKindleSetting,
-    categories: Record<string, Category>,
-    internalDate?: string | null
-  ): Promise<FuncResult> {
-    if (!internalDate) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `when sving AmazonKindle, internalDate should not be empty.`,
-      };
-    }
-
-    const parser = new AmazonKindleMailParser(rawText, internalDate);
-    const ret = parser.toExpense();
-    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      return ret;
-    }
-
-    const baseExpense: Expense = ret.data;
-    const expenseWithCategory = assignCategoryById(
-      baseExpense,
-      setting.categoryId /* カテゴリーidが何もなければ無割当で返ってくる。それも関数内でやっている */,
-      categories
-    );
-
-    const addRet = await this.addExpenseFromMailExtraction(
-      expenseWithCategory,
-      setting
-    );
-
-    return addRet;
-  }
-
-  async saveExpenseFromShikokuElectricPower(
-    rawText: string,
-    setting: ShikokuElectricPowerSetting,
-    categories: Record<string, Category>,
-    internalDate?: string | null
-  ): Promise<FuncResult> {
-    if (!internalDate) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `when saving ShikokuElectricPower, internal Date should not be empty.`,
-      };
-    }
-
-    const parser = new ShikokuElectricPowerMailParser(rawText, internalDate);
-    const ret = parser.toExpense();
-    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      return ret;
-    }
-    const baseExpense = ret.data;
-    const expenseWithCategory = assignCategoryById(
-      baseExpense,
-      setting.categoryId,
-      categories
-    );
-
-    const addRet = this.addExpenseFromMailExtraction(
-      expenseWithCategory,
-      setting
-    );
-
-    return addRet;
-  }
-
-  async saveExpenseFromAmazonItem(
-    rawText: string,
-    setting: AmazonItemSetting,
-    categories: Record<string, Category>,
-    assignmentData: CategoryAssignmentData,
-    internalDate?: string | null
-  ): Promise<FuncResult> {
-    if (!internalDate) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `when saving AmazonItem, internal Date should not be empty.`,
-      };
-    }
-    const parser = new AmazonItemMailParser(rawText, internalDate);
-    const parseRet = parser.toExpenses();
-    if (parseRet.status != FuncStatus.SUCCESS) {
-      return parseRet;
-    } else if (!parseRet.data) {
-      return {
-        status: FuncStatus.ERROR,
-        message:
-          "saveExepnseFromAmazonItem : funcStatus was success, but data was not attached.",
-      };
-    } else {
-      /* Do nothing */
-    }
-
-    const expensesAdded = parseRet.data;
-
-    /* 一個でもaddできたらtrueに戻す */
-    let expenseAddedFlag = false;
-    /* 配列にExpenseが入っているので全部ループする。 */
-    for (const expense of expensesAdded) {
-      /* 製品名でカテゴリー割当をする */
-      const expenseWithCategory =
-        assignmentData.productName && expense.itemName
-          ? assignCategoryFromAssignmentData(
-            expense,
-            expense.itemName,
-            assignmentData.productName,
-            categories
-          )
-          : expense;
-
-      /* Firestoreに保存する */
-      /**
-       * 1個も保存できていなかったら、エラーを吐く
-       * なぜならメールのフォーマットが変わって何も取得できなかったか、addができなかった可能性があるから。
-       *  */
-      const addRet = await this.addExpenseFromMailExtraction(
-        expenseWithCategory,
-        setting
-      );
-      if (addRet.status == FuncStatus.SUCCESS) {
-        expenseAddedFlag = true;
-      } else {
-        logger.error(`error at saveExpenseFromAmazonItem:${addRet.message}`);
-      }
-    }
-
-    return expenseAddedFlag
-      ? {
-        status: FuncStatus.SUCCESS,
-        message: `at least one expense was added`,
-      }
-      : {
-        status: FuncStatus.ERROR,
-        message: `No expense was added. Unable to extract any expenses`,
-      };
-  }
-
-  async saveExpenseFromAmazonSubscribe(
-    rawText: string,
-    setting: AmazonSubscribeSetting,
-    categories: Record<string, Category>,
-    assignmentData: CategoryAssignmentData,
-    internalDate?: string | null
-  ): Promise<FuncResult> {
-    if (!internalDate) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `When saving from AmazonSubscribe, internalDate should be given.`,
-      };
-    }
-
-    const parser = new AmazonItemDispatchedMailParser(rawText, internalDate);
-    const parserRet = parser.toExpenses();
-    if (parserRet.status != FuncStatus.SUCCESS) {
-      return parserRet;
-    } else if (!parserRet.data) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `AmazonItemDispatchedMailParser was success, but data was not attached`,
-      };
-    } else {
-      /* do nothing */
-    }
-
-    const expensesAdded = parserRet.data;
-
-    /* Amazon定期便アイテムリストを取得（キャッシュから） */
-    const subscribeItemsRet = await this.loadEnabledAmazonSubscribeItems();
-    if (subscribeItemsRet.status == FuncStatus.EMPTY) {
-      logger.warn(`Amazon Subscirbe items are not registered, yet.`);
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `Amazon Subscirbe items are not registered, yet.`
-      }
-    }
-    else if (subscribeItemsRet.status !== FuncStatus.SUCCESS) {
-      logger.error(`Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`);
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to load Amazon Subscribe items: ${subscribeItemsRet.message}`,
-      };
-    } else {
-      /* Do nothing */
-    }
-
-    const subscribeItems = subscribeItemsRet.data || {};
-
-    /* 一個でもaddできたらtrueに設定する */
-    let expenseAddedFlag = false;
-    let success_cnt: number = 0;
-    for (const expense of expensesAdded) {
-      /* 製品名がAmazon定期便リストに含まれているかチェック */
-      if (!expense.itemName) {
-        logger.warn(`Expense has no itemName, skipping: ${JSON.stringify(expense)}`);
-        continue;
-      }
-
-      /* 定期便アイテムリストに含まれているかチェック */
-      const expenseItem = {
-        productName: expense.itemName,
-      };
-      const existRet = isAmazonSubscribeProductExist(expenseItem, subscribeItems);
-
-      if (existRet.status !== FuncStatus.SUCCESS) {
-        logger.debug(`Item "${expense.itemName}" is not in Amazon Subscribe list, skipping`);
-        success_cnt++;/* ヒットしなかったのもカウント */
-        continue;
-      }
-
-      /* Amazon定期便でもカテゴリー割当を行う（商品名で割当） */
-      // 商品名でカテゴリー割当
-      const expenseWithCategory =
-        assignmentData.productName && expense.itemName
-          ? assignCategoryFromAssignmentData(
-            expense,
-            expense.itemName,
-            assignmentData.productName,
-            categories
-          )
-          : expense;
-
-      const addRet = await this.addExpenseFromMailExtraction(
-        expenseWithCategory,
-        setting
-      );
-
-      if (addRet.status == FuncStatus.SUCCESS) {
-        expenseAddedFlag = true;
-        success_cnt++;
-        logger.info(`Added Amazon Subscribe expense for item: ${expense.itemName}`);
-      } else {
-        logger.error(`saveExpenseFromAmazonSubscribe: ${addRet.message}`);
-      }
-    }
-
-
-    return success_cnt === expensesAdded.length
-      ? {
-        status: FuncStatus.SUCCESS,
-        message: "No expenses were added from Amazon Subscribe - no items matched the subscribe list",
-      }
-      : expenseAddedFlag
-        ? {
-          status: FuncStatus.SUCCESS,
-          message: `At least one expense was added from Amazon Subscribe.`,
-        }
-        : {
-          status: FuncStatus.ERROR,
-          message: `There might be some problems with the Amazon Subscribe Add.`,
-        };
-  }
-
-  async saveExpenseFromUdemmy(
-    rawText: string,
-    setting: UdemySetting,
-    categories: Record<string, Category>,
-    internalDate?: string | null
-  ): Promise<FuncResult> {
-    if (!internalDate) {
-      return {
-        status: FuncStatus.ERROR,
-        message: "when saving from udemy, internalDate should be given.",
-      };
-    }
-    const parser = new UdemyMailParser(rawText, internalDate);
-    const parseRet = parser.toExpenses();
-    if (parseRet.status != FuncStatus.SUCCESS) {
-      return parseRet;
-    } else if (!parseRet.data) {
-      return {
-        status: FuncStatus.ERROR,
-        message: "toExpenses status was Success, but data was not attached.",
-      };
-    } else {
-      /* Do nothing */
-    }
-
-    const expensesAdded = parseRet.data;
-
-    /* 一個でもaddできたらtrueに設定する */
-    let expenseAddedFlag = false;
-    for (const expense of expensesAdded) {
-      const expenseWithCategory = assignCategoryById(
-        expense,
-        setting.categoryId,
-        categories
-      );
-
-      const addRet = await this.addExpenseFromMailExtraction(
-        expenseWithCategory,
-        setting
-      );
-
-      if (addRet.status == FuncStatus.SUCCESS) {
-        expenseAddedFlag = true;
-      } else {
-        logger.error(`saveExpenseFromUdemy: ${addRet.message}`);
-      }
-    }
-
-    return expenseAddedFlag
-      ? {
-        status: FuncStatus.SUCCESS,
-        message: `At least one expense was added.`,
-      }
-      : {
-        status: FuncStatus.ERROR,
-        message: `No expense was added`,
-      };
-  }
-
-  async saveExpenseFromRakutenCardETC(
-    rawText: string,
-    setting: RakutenCardETCSetting,
-    categories: Record<string, Category>
-  ): Promise<FuncResult> {
-    const parser = new RakutenCardETCParser(rawText);
-
-    const ret = parser.toExpenses();
-    if (ret.status != FuncStatus.SUCCESS) {
-      return ret;
-    } else if (!ret.data) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `data was not attached. ${ret.message}`,
-      };
-    } else {
-      /* 特に問題ない */
-    }
-
-    const expenses = ret.data;
-    let expensesAdded = false;
-    for (const expense of expenses) {
-      const expenseWithCategory = assignCategoryById(
-        expense,
-        setting.categoryId,
-        categories
-      );
-
-      const addRet = await this.addExpenseFromMailExtraction(
-        expenseWithCategory,
-        setting
-      );
-      if (addRet.status == FuncStatus.SUCCESS) {
-        expensesAdded = true;
-      } else {
-        logger.error(addRet.message);
-      }
-    }
-
-    return expensesAdded
-      ? {
-        status: FuncStatus.SUCCESS,
-        message: `More than 1 expense was added from Rakuten ETC`,
-      }
-      : {
-        status: FuncStatus.ERROR,
-        message: "No expense was added from Rakuten ETC",
-      };
   }
 
   /* ******************************実際に呼び出す処理(全体)************************************* */
