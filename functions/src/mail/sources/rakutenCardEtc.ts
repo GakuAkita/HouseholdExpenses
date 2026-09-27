@@ -1,6 +1,6 @@
-import { RakutenCardETCParser } from "../../myFunc/Parser/RakutenCardETCParser";
-import { assignCategoryById } from "../../myFunc/utility/cateogryAssign";
-import { getRakutenCardETCMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { RakutenCardETCParser } from "../parsers/RakutenCardETCParser";
+import { assignCategoryById } from "../../domain/categoryAssign";
+import { getRakutenCardETCMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { RakutenCardETCSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

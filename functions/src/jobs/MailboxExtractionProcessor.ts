@@ -1,31 +1,31 @@
 import { logger } from "firebase-functions";
-import { GeneratedType } from "../../constants/GeneratedType";
-import { ExtractionContext } from "../../mail/mailSource";
-import { mailSourceFor } from "../../mail/sources";
-import { Runtime } from "../../shared/runtime";
-import { Category } from "../../type/Category";
-import { CategoryAssignmentData } from "../../type/CategoryAssignment";
-import { Expense } from "../../type/Expense";
+import { GeneratedType } from "../constants/GeneratedType";
+import { ExtractionContext } from "../mail/mailSource";
+import { mailSourceFor } from "../mail/sources";
+import { Runtime } from "../shared/runtime";
+import { Category } from "../type/Category";
+import { CategoryAssignmentData } from "../type/CategoryAssignment";
+import { Expense } from "../type/Expense";
 import {
   FuncResult,
   FuncResultWithData,
   FuncStatus,
-} from "../../type/FuncStatus";
+} from "../type/FuncStatus";
 import {
   AllMailType,
   AmazonSubscribeItem,
   LastMailboxExtractionExec,
-} from "../../type/Mailbox";
-import { GmailClient } from "../Client/GmailApiClient";
-import { CategoryService } from "../FirestoreService/CategoryService";
-import { ExpenseService } from "../FirestoreService/ExpenseService";
-import { CategoryAssignmentService } from "../RealtimeDbService/CategoryAssignmentService";
-import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
-import { convertUnixMillisecToSec } from "../utility/getCurrentUnixSec";
-import { extractTextBody } from "../utility/gmail/extractHtmlBody";
-import { filterMessages } from "../utility/gmail/filterMessages";
-import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
-import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
+} from "../type/Mailbox";
+import { GmailClient } from "../infra/gmail/GmailApiClient";
+import { CategoryService } from "../infra/firestore/CategoryService";
+import { ExpenseService } from "../infra/firestore/ExpenseService";
+import { CategoryAssignmentService } from "../infra/rtdb/CategoryAssignmentService";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
+import { convertUnixMillisecToSec } from "../shared/unixTime";
+import { extractTextBody } from "../infra/gmail/extractHtmlBody";
+import { filterMessages } from "../infra/gmail/filterMessages";
+import { generateGmailApiInstance } from "../infra/gmail/generateGmailApiInstance";
+import { getMessageDetailsSortedList } from "../infra/gmail/getMessageDetailsMap";
 
 /**
  * 各ユーザーに対してインスタンスを生成することにする！

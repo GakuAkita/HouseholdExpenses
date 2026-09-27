@@ -1,8 +1,8 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { logger } from "firebase-functions";
-import { RuntimeConfig } from "../shared/runtimeConfig";
-import { FuncResultWithData, FuncStatus } from "../type/FuncStatus";
-import { GoogleOAuthSecrets } from "../type/GoogleOAuthSecrets";
+import { RuntimeConfig } from "../../shared/runtimeConfig";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { GoogleOAuthSecrets } from "../../type/GoogleOAuthSecrets";
 
 const SECRET_NAME = "GOOGLE_OAUTH2";
 

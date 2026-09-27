@@ -2,20 +2,20 @@ import * as admin from "firebase-admin";
 import { Clock, systemClock } from "../shared/clock";
 import { Runtime } from "../shared/runtime";
 import { readRuntimeConfig, RuntimeConfig } from "../shared/runtimeConfig";
-import { createGmailApiClient, GmailClientFactory } from "./Client/GmailApiClient";
-import { GoogleOAuthApi, googleOAuthApi } from "./Client/GoogleOAuthApi";
-import { initMyFirebaseAdmin } from "./firebaseAdmin";
-import { CategoryService } from "./FirestoreService/CategoryService";
-import { ExpenseService } from "./FirestoreService/ExpenseService";
-import { RepeatAddService } from "./FirestoreService/RepeatAddService";
-import { SettingsService } from "./FirestoreService/SettingsService";
-import { UserService } from "./FirestoreService/UserService";
-import { createGoogleOAuthSecretProvider, GoogleOAuthSecretProvider } from "./googleOAuthSecrets";
-import { RepeatAddProcessor } from "./Processor/RepeatAddProcessor";
-import { UserSettingsProcessor } from "./Processor/UserSettingsProcessor";
-import { CategoryAssignmentService } from "./RealtimeDbService/CategoryAssignmentService";
-import { MailboxExtractionService } from "./RealtimeDbService/MailboxExtractionService";
-import { UserRTDbService } from "./RealtimeDbService/UserRTDbService";
+import { createGmailApiClient, GmailClientFactory } from "../infra/gmail/GmailApiClient";
+import { GoogleOAuthApi, googleOAuthApi } from "../infra/gmail/GoogleOAuthApi";
+import { initMyFirebaseAdmin } from "../infra/firebaseAdmin";
+import { CategoryService } from "../infra/firestore/CategoryService";
+import { ExpenseService } from "../infra/firestore/ExpenseService";
+import { RepeatAddService } from "../infra/firestore/RepeatAddService";
+import { SettingsService } from "../infra/firestore/SettingsService";
+import { UserService } from "../infra/firestore/UserService";
+import { createGoogleOAuthSecretProvider, GoogleOAuthSecretProvider } from "../infra/secrets/googleOAuthSecrets";
+import { RepeatAddProcessor } from "../jobs/RepeatAddProcessor";
+import { UserSettingsProcessor } from "../jobs/UserSettingsProcessor";
+import { CategoryAssignmentService } from "../infra/rtdb/CategoryAssignmentService";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
+import { UserRTDbService } from "../infra/rtdb/UserRTDbService";
 
 export interface ServiceOptions {
   /** Passed to admin.initializeApp(). Needed for the emulator (projectId, databaseURL). */

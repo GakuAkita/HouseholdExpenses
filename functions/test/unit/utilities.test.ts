@@ -1,13 +1,13 @@
 import { randomBytes } from "crypto";
 import { describe, expect, it } from "vitest";
 import { convertDaysToNums, convertDayToNum, DayOfWeekNum } from "../../src/constants/DayOfWeek";
-import { convertyyyymmddToUTCIsoString } from "../../src/myFunc/utility/dateConverter";
-import { decryptWithKey, encryptWithKey } from "../../src/myFunc/utility/encryption";
+import { convertyyyymmddToUTCIsoString } from "../../src/shared/dateConverter";
+import { decryptWithKey, encryptWithKey } from "../../src/shared/encryption";
 import {
   convertUnixMillisecToDateString,
   convertUnixMillisecToSec,
-} from "../../src/myFunc/utility/getCurrentUnixSec";
-import { isAmazonSubscribeProductExist } from "../../src/myFunc/utility/isAmazonSubscribeProductExist";
+} from "../../src/shared/unixTime";
+import { isAmazonSubscribeProductExist } from "../../src/domain/isAmazonSubscribeProductExist";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 describe("convertDayToNum", () => {

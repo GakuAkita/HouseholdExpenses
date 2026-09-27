@@ -1,6 +1,6 @@
-import { GmailClientFactory } from "../myFunc/Client/GmailApiClient";
-import { GoogleOAuthApi } from "../myFunc/Client/GoogleOAuthApi";
-import { GoogleOAuthSecretProvider } from "../myFunc/googleOAuthSecrets";
+import { GmailClientFactory } from "../infra/gmail/GmailApiClient";
+import { GoogleOAuthApi } from "../infra/gmail/GoogleOAuthApi";
+import { GoogleOAuthSecretProvider } from "../infra/secrets/googleOAuthSecrets";
 import { Clock } from "./clock";
 import { RuntimeConfig } from "./runtimeConfig";
 

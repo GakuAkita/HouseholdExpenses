@@ -16,8 +16,8 @@ import {
 } from "../../type/Mailbox";
 import { Clock } from "../../shared/clock";
 import { RuntimeConfig } from "../../shared/runtimeConfig";
-import { sanitizeEmail } from "../utility/emailEncode";
-import { decryptWithKey, encryptWithKey } from "../utility/encryption";
+import { sanitizeEmail } from "./emailEncode";
+import { decryptWithKey, encryptWithKey } from "../../shared/encryption";
 
 /**
  * あくまでRealtime Databaseとのやりとりのみに務める

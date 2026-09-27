@@ -1,7 +1,7 @@
 import { logger } from "firebase-functions";
-import { AmazonMailSubjects } from "../../../type/AmazonMailSubjects";
-import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
-import { GmailClient } from "../../Client/GmailApiClient";
+import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { GmailClient } from "./GmailApiClient";
 
 // export async function getRakutenPayMailIds(
 //   gmailClient: GmailClient,

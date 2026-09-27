@@ -8,7 +8,7 @@ import {
   runMailboxExtractionJob,
   runRepeatAddJob,
 } from "./jobs/scheduledJobs";
-import { initializeServices, Services } from "./myFunc/initializeServices";
+import { initializeServices, Services } from "./app/services";
 import { mailboxExtractionSchedules } from "./type/Mailbox";
 
 /*

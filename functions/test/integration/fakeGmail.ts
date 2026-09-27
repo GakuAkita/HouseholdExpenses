@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import { GmailClient, GmailClientFactory } from "../../src/myFunc/Client/GmailApiClient";
+import { GmailClient, GmailClientFactory } from "../../src/infra/gmail/GmailApiClient";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { BaseGoogleOAuthConfig } from "../../src/type/GoogleOAuthSecrets";
 

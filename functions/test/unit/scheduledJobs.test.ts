@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { forEachUser } from "../../src/jobs/forEachUser";
 import { runRepeatAddJob } from "../../src/jobs/scheduledJobs";
-import { Services } from "../../src/myFunc/initializeServices";
+import { Services } from "../../src/app/services";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 const userService = (userIds: string[]) => ({

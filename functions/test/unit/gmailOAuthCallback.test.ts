@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { GmailOAuthCallbackDeps, handleGmailOAuthCallback } from "../../src/jobs/gmailOAuthCallback";
-import { GoogleOAuthApi } from "../../src/myFunc/Client/GoogleOAuthApi";
+import { GoogleOAuthApi } from "../../src/infra/gmail/GoogleOAuthApi";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 const secrets = {

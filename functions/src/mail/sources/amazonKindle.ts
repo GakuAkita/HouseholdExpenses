@@ -1,6 +1,6 @@
-import { AmazonKindleMailParser } from "../../myFunc/Parser/AmazonKindleMailParser";
-import { assignCategoryById } from "../../myFunc/utility/cateogryAssign";
-import { getAmazonKindleMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { AmazonKindleMailParser } from "../parsers/AmazonKindleMailParser";
+import { assignCategoryById } from "../../domain/categoryAssign";
+import { getAmazonKindleMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { AmazonKindleSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

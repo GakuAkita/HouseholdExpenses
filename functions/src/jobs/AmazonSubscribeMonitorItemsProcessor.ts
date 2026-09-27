@@ -1,36 +1,36 @@
 import { logger } from "firebase-functions";
-import { Runtime } from "../../shared/runtime";
-import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
+import { Runtime } from "../shared/runtime";
+import { AmazonMailSubjects } from "../type/AmazonMailSubjects";
 import {
   FuncResult,
   FuncResultWithData,
   FuncStatus,
   toFuncResult,
-} from "../../type/FuncStatus";
+} from "../type/FuncStatus";
 import {
   AmazonSubscribeItem,
   createAmazonSubscribeSettingInstance,
   LastMailboxExtractionExec,
-} from "../../type/Mailbox";
-import { GmailClient } from "../Client/GmailApiClient";
-import { AmazonSubscribeCancelParser } from "../Parser/AmazonSubscribeCancelParser";
-import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeNextShipmentMailParser";
-import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
+} from "../type/Mailbox";
+import { GmailClient } from "../infra/gmail/GmailApiClient";
+import { AmazonSubscribeCancelParser } from "../mail/parsers/AmazonSubscribeCancelParser";
+import { AmazonSubscribeNextShipmentMailParser } from "../mail/parsers/AmazonSubscribeNextShipmentMailParser";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
 import {
   convertUnixMillisecToSec,
-} from "../utility/getCurrentUnixSec";
+} from "../shared/unixTime";
 import {
   extractHtmlBody,
   extractTextBody,
   getSubjectFromMessage,
   stripHtmlTags,
-} from "../utility/gmail/extractHtmlBody";
-import { filterMessages } from "../utility/gmail/filterMessages";
-import { generateGmailApiInstance } from "../utility/gmail/generateGmailApiInstance";
-import { sortGmailMessagesByDate } from "../utility/gmail/getInternalDate";
-import { getMessageDetailsSortedList } from "../utility/gmail/getMessageDetailsMap";
-import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../utility/gmail/mailQueries";
-import { isAmazonSubscribeProductExist } from "../utility/isAmazonSubscribeProductExist";
+} from "../infra/gmail/extractHtmlBody";
+import { filterMessages } from "../infra/gmail/filterMessages";
+import { generateGmailApiInstance } from "../infra/gmail/generateGmailApiInstance";
+import { sortGmailMessagesByDate } from "../infra/gmail/getInternalDate";
+import { getMessageDetailsSortedList } from "../infra/gmail/getMessageDetailsMap";
+import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../infra/gmail/mailQueries";
+import { isAmazonSubscribeProductExist } from "../domain/isAmazonSubscribeProductExist";
 
 /**
  * Gmailをモニターし、

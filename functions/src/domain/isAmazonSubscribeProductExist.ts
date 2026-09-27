@@ -1,6 +1,6 @@
 import { logger } from "firebase-functions";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { AmazonSubscribeItem } from "../../type/Mailbox";
+import { FuncResultWithData, FuncStatus } from "../type/FuncStatus";
+import { AmazonSubscribeItem } from "../type/Mailbox";
 
 export function isAmazonSubscribeProductExist(
   item: AmazonSubscribeItem,

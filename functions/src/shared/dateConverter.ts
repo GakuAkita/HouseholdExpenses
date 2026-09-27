@@ -1,5 +1,5 @@
 import { logger } from "firebase-functions";
-import { TimeZone } from "../../constants/TimeZone";
+import { TimeZone } from "../constants/TimeZone";
 
 /**
  * !!使われない!!

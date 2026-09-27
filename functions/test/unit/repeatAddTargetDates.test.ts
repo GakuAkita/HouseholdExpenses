@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RepeatFrequency } from "../../src/constants/RepeatFrequency";
 import { TimeZone } from "../../src/constants/TimeZone";
-import { RepeatAddProcessor } from "../../src/myFunc/Processor/RepeatAddProcessor";
+import { RepeatAddProcessor } from "../../src/jobs/RepeatAddProcessor";
 import { systemClock } from "../../src/shared/clock";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { Frequency, RepeatAdd } from "../../src/type/RepeatAdd";

@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AmazonSubscribeMonitorItemsProcessor } from "../../src/myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
+import { AmazonSubscribeMonitorItemsProcessor } from "../../src/jobs/AmazonSubscribeMonitorItemsProcessor";
 import { fixedClock } from "../../src/shared/clock";
 import { AmazonMailSubjects } from "../../src/type/AmazonMailSubjects";
 import { FuncStatus } from "../../src/type/FuncStatus";

@@ -1,8 +1,8 @@
-import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
-import { BaseGoogleOAuthConfig } from "../../../type/GoogleOAuthSecrets";
-import { GmailClient } from "../../Client/GmailApiClient";
-import { Runtime } from "../../../shared/runtime";
-import { MailboxExtractionService } from "./../../RealtimeDbService/MailboxExtractionService";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
+import { GmailClient } from "./GmailApiClient";
+import { Runtime } from "../../shared/runtime";
+import { MailboxExtractionService } from "../rtdb/MailboxExtractionService";
 
 export async function generateGmailApiInstance(
   userId: string,

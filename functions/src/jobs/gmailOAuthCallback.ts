@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Auth } from "firebase-admin/auth";
 import { logger } from "firebase-functions";
-import { MailboxExtractionService } from "../myFunc/RealtimeDbService/MailboxExtractionService";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
 import { Runtime } from "../shared/runtime";
 import { FuncStatus } from "../type/FuncStatus";
 import { MailboxGmailTokenType } from "../type/Mailbox";

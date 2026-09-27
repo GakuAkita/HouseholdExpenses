@@ -4,7 +4,7 @@ import {
   assignCategoryById,
   assignCategoryFromAssignmentData,
   findCategoryFromAssignmentData,
-} from "../../src/myFunc/utility/cateogryAssign";
+} from "../../src/domain/categoryAssign";
 import { Category } from "../../src/type/Category";
 import { CategoryAssignment } from "../../src/type/CategoryAssignment";
 import { Expense } from "../../src/type/Expense";
