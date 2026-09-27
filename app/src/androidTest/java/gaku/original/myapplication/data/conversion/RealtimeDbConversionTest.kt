@@ -6,7 +6,7 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
-import gaku.original.myapplication.data.repository.categoryAssignment.toFirebase
+import gaku.original.myapplication.data.repository.categoryAssignment.toDto
 import gaku.original.myapplication.data.repository.deleteAll
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepositoryRealtimeDb
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
@@ -70,13 +70,13 @@ class RealtimeDbConversionTest {
     @Test
     fun categoryAssignment_roundTrip() = runBlocking<Unit> {
         categoryAssignmentSamples.forEach { expected ->
-            val firebase = expected.toFirebase()
+            val dto = expected.toDto()
             val node = reference.categoryAssignmentReference
-                .child(firebase.nodeName)
+                .child(dto.nodeName)
                 .child(expected.id!!)
-            node.setValue(firebase).await()
+            node.setValue(dto).await()
 
-            val actual = node.get().await().getValue(firebase.javaClass)!!.toDomain()
+            val actual = node.get().await().getValue(dto.javaClass)!!.toDomain()
 
             assertSameProperties(expected, actual)
             assertEquals(expected, actual)

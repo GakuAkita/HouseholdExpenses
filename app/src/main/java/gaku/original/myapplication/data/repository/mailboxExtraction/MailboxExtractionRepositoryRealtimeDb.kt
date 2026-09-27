@@ -16,7 +16,7 @@ class MailboxExtractionRepositoryRealtimeDb(
         return reference.get().await().children.mapNotNull { it.toMailTypeSetting() }
     }
 
-    private suspend fun <T : EmailTemplateTypeFirebase> getSetting(
+    private suspend fun <T : EmailTemplateTypeDto> getSetting(
         default: T, clazz: Class<T>
     ): EmailTemplateType {
         val snapshot = reference.child(default.nodeName).get().await()
@@ -28,49 +28,49 @@ class MailboxExtractionRepositoryRealtimeDb(
         val domain = when (type) {
             is EmailTemplateType.AmazonItem -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.AmazonItem(),
-                    EmailTemplateTypeFirebase.AmazonItem::class.java
+                    EmailTemplateTypeDto.AmazonItem(),
+                    EmailTemplateTypeDto.AmazonItem::class.java
                 )
             }
 
             is EmailTemplateType.RakutenPay -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.RakutenPay(),
-                    EmailTemplateTypeFirebase.RakutenPay::class.java
+                    EmailTemplateTypeDto.RakutenPay(),
+                    EmailTemplateTypeDto.RakutenPay::class.java
                 )
             }
 
             is EmailTemplateType.Udemy -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.Udemy(), EmailTemplateTypeFirebase.Udemy::class.java
+                    EmailTemplateTypeDto.Udemy(), EmailTemplateTypeDto.Udemy::class.java
                 )
             }
 
             is EmailTemplateType.RakutenCardETC -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.RakutenCardETC(),
-                    EmailTemplateTypeFirebase.RakutenCardETC::class.java
+                    EmailTemplateTypeDto.RakutenCardETC(),
+                    EmailTemplateTypeDto.RakutenCardETC::class.java
                 )
             }
 
             is EmailTemplateType.AmazonSubscribe -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.AmazonSubscribe(),
-                    EmailTemplateTypeFirebase.AmazonSubscribe::class.java
+                    EmailTemplateTypeDto.AmazonSubscribe(),
+                    EmailTemplateTypeDto.AmazonSubscribe::class.java
                 )
             }
 
             is EmailTemplateType.AmazonKindle -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.AmazonKindle(),
-                    EmailTemplateTypeFirebase.AmazonKindle::class.java
+                    EmailTemplateTypeDto.AmazonKindle(),
+                    EmailTemplateTypeDto.AmazonKindle::class.java
                 )
             }
 
             is EmailTemplateType.ShikokuElectricPower -> {
                 getSetting(
-                    EmailTemplateTypeFirebase.ShikokuElectricPower(),
-                    EmailTemplateTypeFirebase.ShikokuElectricPower::class.java
+                    EmailTemplateTypeDto.ShikokuElectricPower(),
+                    EmailTemplateTypeDto.ShikokuElectricPower::class.java
                 )
             }
         }
@@ -86,21 +86,21 @@ class MailboxExtractionRepositoryRealtimeDb(
     }
 
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
-        val firebaseType: EmailTemplateTypeFirebase = when (type) {
+        val dto: EmailTemplateTypeDto = when (type) {
             is EmailTemplateType.AmazonItem -> {
-                EmailTemplateTypeFirebase.AmazonItem(
+                EmailTemplateTypeDto.AmazonItem(
                     enabled = type.enabled, emailProvider = type.emailProvider.name
                 )
             }
 
             is EmailTemplateType.RakutenPay -> {
-                EmailTemplateTypeFirebase.RakutenPay(
+                EmailTemplateTypeDto.RakutenPay(
                     enabled = type.enabled, emailProvider = type.emailProvider.name
                 )
             }
 
             is EmailTemplateType.AmazonKindle -> {
-                EmailTemplateTypeFirebase.AmazonKindle(
+                EmailTemplateTypeDto.AmazonKindle(
                     enabled = type.enabled,
                     emailProvider = type.emailProvider.name,
                     categoryId = type.categoryId
@@ -108,13 +108,13 @@ class MailboxExtractionRepositoryRealtimeDb(
             }
 
             is EmailTemplateType.AmazonSubscribe -> {
-                EmailTemplateTypeFirebase.AmazonSubscribe(
+                EmailTemplateTypeDto.AmazonSubscribe(
                     enabled = type.enabled, emailProvider = type.emailProvider.name
                 )
             }
 
             is EmailTemplateType.ShikokuElectricPower -> {
-                EmailTemplateTypeFirebase.ShikokuElectricPower(
+                EmailTemplateTypeDto.ShikokuElectricPower(
                     enabled = type.enabled,
                     emailProvider = type.emailProvider.name,
                     categoryId = type.categoryId
@@ -122,7 +122,7 @@ class MailboxExtractionRepositoryRealtimeDb(
             }
 
             is EmailTemplateType.Udemy -> {
-                EmailTemplateTypeFirebase.Udemy(
+                EmailTemplateTypeDto.Udemy(
                     enabled = type.enabled,
                     emailProvider = type.emailProvider.name,
                     categoryId = type.categoryId
@@ -130,15 +130,15 @@ class MailboxExtractionRepositoryRealtimeDb(
             }
 
             is EmailTemplateType.RakutenCardETC -> {
-                EmailTemplateTypeFirebase.RakutenCardETC(
+                EmailTemplateTypeDto.RakutenCardETC(
                     enabled = type.enabled,
                     emailProvider = type.emailProvider.name,
                     categoryId = type.categoryId
                 )
             }
         }
-        val node = reference.child(firebaseType.nodeName)
-        node.setValue(firebaseType).await()
+        val node = reference.child(dto.nodeName)
+        node.setValue(dto).await()
     }
 }
 
@@ -147,31 +147,31 @@ class MailboxExtractionRepositoryRealtimeDb(
  */
 private fun DataSnapshot.toMailTypeSetting(): EmailTemplateType? {
     return when (key) {
-        EmailTemplateTypeFirebase.AmazonItem().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonItem::class.java)?.toDomain()
+        EmailTemplateTypeDto.AmazonItem().nodeName -> getValue(EmailTemplateTypeDto.AmazonItem::class.java)?.toDomain()
 
-        EmailTemplateTypeFirebase.RakutenPay().nodeName -> getValue(EmailTemplateTypeFirebase.RakutenPay::class.java)?.toDomain()
+        EmailTemplateTypeDto.RakutenPay().nodeName -> getValue(EmailTemplateTypeDto.RakutenPay::class.java)?.toDomain()
 
-        EmailTemplateTypeFirebase.RakutenCardETC().nodeName -> getValue(EmailTemplateTypeFirebase.RakutenCardETC::class.java)?.toDomain()
+        EmailTemplateTypeDto.RakutenCardETC().nodeName -> getValue(EmailTemplateTypeDto.RakutenCardETC::class.java)?.toDomain()
 
-        EmailTemplateTypeFirebase.AmazonKindle().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonKindle::class.java)?.toDomain()
-        EmailTemplateTypeFirebase.AmazonSubscribe().nodeName -> getValue(EmailTemplateTypeFirebase.AmazonSubscribe::class.java)?.toDomain()
+        EmailTemplateTypeDto.AmazonKindle().nodeName -> getValue(EmailTemplateTypeDto.AmazonKindle::class.java)?.toDomain()
+        EmailTemplateTypeDto.AmazonSubscribe().nodeName -> getValue(EmailTemplateTypeDto.AmazonSubscribe::class.java)?.toDomain()
 
-        EmailTemplateTypeFirebase.ShikokuElectricPower().nodeName -> getValue(
-            EmailTemplateTypeFirebase.ShikokuElectricPower::class.java
+        EmailTemplateTypeDto.ShikokuElectricPower().nodeName -> getValue(
+            EmailTemplateTypeDto.ShikokuElectricPower::class.java
         )?.toDomain()
 
-        EmailTemplateTypeFirebase.Udemy().nodeName -> getValue(EmailTemplateTypeFirebase.Udemy::class.java)?.toDomain()
+        EmailTemplateTypeDto.Udemy().nodeName -> getValue(EmailTemplateTypeDto.Udemy::class.java)?.toDomain()
 
         else -> null
     }
 }
 
 /**
- * Intentionally separate the data class used for Firestore and the one used for this App.
- * It's because by defining Firestore-specific data class, I can use toObject()..
+ * Intentionally separate the data class stored in the database and the one used for this App.
+ * It's because by defining a storage-specific data class, I can use getValue().
  */
-sealed interface EmailTemplateTypeFirebase {
-    /* all parameters should simple type *//* To use doc.toObject, all properties should be nullable. */
+sealed interface EmailTemplateTypeDto {
+    /* all parameters should simple type *//* To use getValue(), all properties should be nullable. */
     val enabled: Boolean?
     val emailProvider: String?
 
@@ -194,7 +194,7 @@ sealed interface EmailTemplateTypeFirebase {
 
     data class RakutenPay(
         override val enabled: Boolean? = null, override val emailProvider: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName get() = "rakuten_pay"
 
         override fun toDomain(): EmailTemplateType {
@@ -216,7 +216,7 @@ sealed interface EmailTemplateTypeFirebase {
         override val enabled: Boolean? = null,
         override val emailProvider: String? = null,
         val categoryId: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName: String get() = "amazon_kindle"
 
         override fun toDomain(): EmailTemplateType {
@@ -237,7 +237,7 @@ sealed interface EmailTemplateTypeFirebase {
     data class AmazonSubscribe(
         override val enabled: Boolean? = null,
         override val emailProvider: String? = null,
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName get() = "amazon_subscribe"
 
         override fun toDomain(): EmailTemplateType {
@@ -257,7 +257,7 @@ sealed interface EmailTemplateTypeFirebase {
 
     data class AmazonItem(
         override val enabled: Boolean? = null, override val emailProvider: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName get() = "amazon_item"
 
         override fun toDomain(): EmailTemplateType {
@@ -279,7 +279,7 @@ sealed interface EmailTemplateTypeFirebase {
         override val enabled: Boolean? = null,
         override val emailProvider: String? = null,
         val categoryId: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName get() = "shikoku_electric_power"
         override fun toDomain(): EmailTemplateType {
             val _emailProvider = EmailTemplateType.ShikokuElectricPower(
@@ -300,7 +300,7 @@ sealed interface EmailTemplateTypeFirebase {
         override val enabled: Boolean? = null,
         override val emailProvider: String? = null,
         val categoryId: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName: String
             get() = "udemy"
 
@@ -323,7 +323,7 @@ sealed interface EmailTemplateTypeFirebase {
         override val enabled: Boolean? = null,
         override val emailProvider: String? = null,
         val categoryId: String? = null
-    ) : EmailTemplateTypeFirebase {
+    ) : EmailTemplateTypeDto {
         override val nodeName: String
             get() = "rakuten_card_etc"
 
