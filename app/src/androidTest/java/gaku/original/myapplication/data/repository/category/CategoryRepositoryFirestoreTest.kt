@@ -10,11 +10,11 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class CategoryRepositoryFirestoreTest {
@@ -41,10 +41,11 @@ class CategoryRepositoryFirestoreTest {
     }
 
     @Test
-    fun addCategory_assignsIdAndSavesCategory() = runBlocking<Unit> {
-        val added = repository.addCategory(sampleCategory())
+    fun addCategory_savesCategoryWithGivenId() = runBlocking<Unit> {
+        val category = sampleCategory()
+        val added = repository.addCategory(category)
 
-        assertNotNull(added.id)
+        assertEquals(category, added)
         assertEquals(mapOf(added.id to added), repository.getAllCategories())
     }
 
@@ -72,13 +73,14 @@ class CategoryRepositoryFirestoreTest {
         val added = repository.addCategory(sampleCategory())
         repository.categories.awaitValue { it.containsKey(added.id) }
 
-        repository.deleteCategory(added.id!!)
+        repository.deleteCategory(added.id)
 
         assertFalse(repository.getAllCategories().containsKey(added.id))
         repository.categories.awaitValue { !it.containsKey(added.id) }
     }
 
     private fun sampleCategory() = Category(
+        id = UUID.randomUUID().toString(),
         timestamp = 1_770_000_000_000L,
         name = "食費",
         enabled = true

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
 
 data class CategoryEditUiState(
     val message: String? = null,
@@ -88,7 +89,7 @@ class CategoryEditViewModel(
     fun onCategoryAddClick() {
         _uiState.update {
             it.copy(
-                selectedCategory = Category(id = null, name = null),
+                selectedCategory = null, /* null means adding a new category */
                 isShowEditDialog = true
             )
         }
@@ -103,20 +104,20 @@ class CategoryEditViewModel(
         }
     }
 
-    private suspend fun validateCategory(category: Category): AppResult<Unit, CategoryInputError> {
-        if(category.name == null ||
-            category.name.isEmpty()){
+    private suspend fun validateCategory(name: String): AppResult<Unit, CategoryInputError> {
+        if (name.isEmpty()) {
             return AppResult.Failure(CategoryInputError.EmptyName)
         }
 
         val allCategories = categoryRepository.getAllCategories()
-        if(allCategories.values.any{it.name == category.name}){
+        if(allCategories.values.any { it.name == name }){
             return AppResult.Failure(CategoryInputError.DuplicateName)
         }
         return AppResult.Success(Unit)
     }
 
-    fun onSave(category: Category) {
+    fun onSave(name: String) {
+        val editing = _uiState.value.selectedCategory
         viewModelScope.launch {
             try {
                 _uiState.update {
@@ -125,7 +126,7 @@ class CategoryEditViewModel(
                     )
                 }
 
-                val validateRet = validateCategory(category)
+                val validateRet = validateCategory(name)
                 when(validateRet){
                     is AppResult.Failure ->{
                         _uiState.update {
@@ -137,16 +138,23 @@ class CategoryEditViewModel(
                     }
 
                     is AppResult.Success->{
-                        Timber.d("Category(${category.name}) validated.")
+                        Timber.d("Category($name) validated.")
                     }
                 }
 
-                if (category.id == null) {
+                if (editing == null) {
                     /* Add new category */
-                    categoryRepository.addCategory(category)
+                    categoryRepository.addCategory(
+                        Category(
+                            id = UUID.randomUUID().toString(),
+                            timestamp = System.currentTimeMillis(),
+                            name = name,
+                            enabled = true
+                        )
+                    )
                 } else {
                     /* update category */
-                    categoryRepository.updateCategory(category)
+                    categoryRepository.updateCategory(editing.copy(name = name))
                 }
 
                 _uiState.update {
@@ -186,7 +194,7 @@ class CategoryEditViewModel(
                         isLoading = true
                     )
                 }
-                categoryRepository.deleteCategory(category.id!!)
+                categoryRepository.deleteCategory(category.id)
                 closeDeleteDialog()
             } catch (e: Exception) {
                 _uiState.update {

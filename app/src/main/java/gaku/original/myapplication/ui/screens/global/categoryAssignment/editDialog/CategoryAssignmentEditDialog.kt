@@ -261,8 +261,8 @@ fun CategoryAssignmentEditDialog(
                     .padding(4.dp),
                 selectedCategoryId = uiState.categoryId,
                 categories = uiState.categories,
-                onCategorySelected = {
-                    onCategorySelected(it.id)
+                onCategoryIdSelected = {
+                    onCategorySelected(it)
                 },
                 nullOption = true
             )

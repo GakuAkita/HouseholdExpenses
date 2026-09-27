@@ -24,7 +24,7 @@ fun CategoryEntity.toCategory(): Category {
     return Category(
         id = this.id,
         timestamp = this.timestamp,
-        name = this.name,
+        name = this.name ?: error("name is null"),
         enabled = this.enabled
     )
 }
@@ -32,13 +32,12 @@ fun CategoryEntity.toCategory(): Category {
 /**
  * CategoryからCategoryEntityへの変換
  */
-fun Category.toEntity(): CategoryEntity? {
-    val categoryId = this.id ?: return null
+fun Category.toEntity(): CategoryEntity {
     return CategoryEntity(
-        id = categoryId,
-        timestamp = this.timestamp ?: System.currentTimeMillis(),
+        id = this.id,
+        timestamp = this.timestamp,
         name = this.name,
-        enabled = this.enabled ?: true
+        enabled = this.enabled
     )
 }
 

@@ -29,7 +29,8 @@ fun CategoryDropDown(
     selectedCategory: Category?,
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
-    nullOption: Boolean = false,
+    /* When this is set, "(null)" is shown as an option. */
+    onNullSelected: (() -> Unit)? = null,
     enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -66,21 +67,18 @@ fun CategoryDropDown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if (nullOption) {
+            if (onNullSelected != null) {
                 DropdownMenuItem(
                     text = { Text(text = "(null)", color = MaterialTheme.colorScheme.tertiary) },
                     onClick = {
                         expanded = false
-                        onCategorySelected(Category(id = null, name = null))
+                        onNullSelected()
                     }
                 )
             }
 
             // 現在選択されているカテゴリーが削除されたカテゴリーの場合は表示
-            if (selectedCategory != null &&
-                selectedCategory !in categories &&
-                selectedCategory.name != null/* when nullOption is true, this exists in options which should be avoided. */
-            ) {
+            if (selectedCategory != null && selectedCategory !in categories) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -97,7 +95,7 @@ fun CategoryDropDown(
 
             categories.forEach { category ->
                 DropdownMenuItem(
-                    text = { Text(text = category.name ?: "") },
+                    text = { Text(text = category.name) },
                     onClick = {
                         expanded = false
                         onCategorySelected(category)
@@ -114,7 +112,8 @@ fun CategoryDropDown(
     modifier: Modifier = Modifier,
     selectedCategoryId: String?,
     categories: List<Category>,
-    onCategorySelected: (Category) -> Unit,
+    /* null when "(null)" is selected */
+    onCategoryIdSelected: (String?) -> Unit,
     nullOption: Boolean = false,
     enabled: Boolean = true
 ) {
@@ -123,7 +122,9 @@ fun CategoryDropDown(
         if (selectedCategoryId != null) {
             categories.find { it.id == selectedCategoryId } ?: Category(
                 id = selectedCategoryId,
-                name = "削除されたカテゴリー"
+                timestamp = 0L,
+                name = "削除されたカテゴリー",
+                enabled = false
             )
         } else {
             null
@@ -132,8 +133,12 @@ fun CategoryDropDown(
     CategoryDropDown(
         selectedCategory = selectedCategory,
         categories = categories,
-        onCategorySelected = onCategorySelected,
-        nullOption = nullOption,
+        onCategorySelected = { onCategoryIdSelected(it.id) },
+        onNullSelected = if (nullOption) {
+            { onCategoryIdSelected(null) }
+        } else {
+            null
+        },
         modifier = modifier,
         enabled = enabled
     )

@@ -554,11 +554,11 @@ fun ExpenseAddEditScreenPreview() {
             expenseEditList = listOf(
                 ExpenseEditItem(
                     amount = 1000,
-                    category = Category(name = "Food")
+                    category = Category(id = "Food", timestamp = 0L, name = "Food", enabled = true)
                 ),
                 ExpenseEditItem(
                     amount = 2000,
-                    category = Category(name = "Waste")
+                    category = Category(id = "Waste", timestamp = 0L, name = "Waste", enabled = true)
                 )
             ),
             isSplitInputEnabled = false,

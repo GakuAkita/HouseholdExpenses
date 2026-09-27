@@ -66,7 +66,7 @@ class RepeatAddExecuteViewModel(
         _uiState.update {
             it.copy(
                 amount = repeatAdd.expense.amount,
-                categoryName = repeatAdd.expense.category.name!!,
+                categoryName = repeatAdd.expense.category.name,
                 frequency = repeatAdd.frequencyInfo!!
             )
         }

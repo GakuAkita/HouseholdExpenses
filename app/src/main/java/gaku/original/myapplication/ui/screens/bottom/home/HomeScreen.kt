@@ -246,7 +246,10 @@ fun HomeScreenPreview() {
                 amount = 3400,
                 datetime = Instant.now().atZone(ZoneId.of("Asia/Tokyo")).toLocalDateTime(),
                 category = Category(
-                    name = "食費"
+                    id = "食費",
+                    timestamp = 0L,
+                    name = "食費",
+                    enabled = true
                 )
             ),
         ),

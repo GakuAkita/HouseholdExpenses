@@ -189,8 +189,8 @@ fun CategoryAssignmentScreen(
                                 .padding(4.dp),
                             assignmentUiList = storeNameAssignment,
                             categories = uiState.categories,
-                            onCategorySelected = { assignmentUi, category ->
-                                onCategorySelected(assignmentUi, category.id)
+                            onCategorySelected = { assignmentUi, categoryId ->
+                                onCategorySelected(assignmentUi, categoryId)
                             },
                             onEditClick = {
                                 onEditClick(it)
@@ -206,8 +206,8 @@ fun CategoryAssignmentScreen(
                                 .padding(4.dp),
                             assignmentUiList = productNameAssignment,
                             categories = uiState.categories,
-                            onCategorySelected = { assignmentUi, category ->
-                                onCategorySelected(assignmentUi, category.id)
+                            onCategorySelected = { assignmentUi, categoryId ->
+                                onCategorySelected(assignmentUi, categoryId)
                             },
                             onEditClick = {
                                 onEditClick(it)
@@ -228,8 +228,8 @@ fun CategoryAssignmentScreen(
                         onEditClick = {
                             onEditClick(it)
                         },
-                        onCategorySelected = { assignmentUi, category ->
-                            onCategorySelected(assignmentUi, category.id)
+                        onCategorySelected = { assignmentUi, categoryId ->
+                            onCategorySelected(assignmentUi, categoryId)
                         },
                         onDeleteClick = {
                             onDeleteClick(it)
@@ -243,8 +243,8 @@ fun CategoryAssignmentScreen(
                             .padding(4.dp),
                         assignmentUiList = productNameAssignment,
                         categories = uiState.categories,
-                        onCategorySelected = { assignmentUi, category ->
-                            onCategorySelected(assignmentUi, category.id)
+                        onCategorySelected = { assignmentUi, categoryId ->
+                            onCategorySelected(assignmentUi, categoryId)
                         },
                         onEditClick = {
                             onEditClick(it)
@@ -266,7 +266,7 @@ fun StoreNameAssignmentColumn(
     categories: List<Category>,
     onEditClick: (CategoryAssignment) -> Unit,
     onDeleteClick: (CategoryAssignment) -> Unit,
-    onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
 ) {
     val lazyListState = rememberLazyListState()
 
@@ -337,10 +337,10 @@ fun StoreNameAssignmentColumn(
                                 modifier = Modifier.widthIn(max = 220.dp),
                                 selectedCategoryId = assignmentUi.assignment.categoryId,
                                 categories = categories,
-                                onCategorySelected = { category ->
+                                onCategoryIdSelected = { categoryId ->
                                     onCategorySelected(
                                         assignmentUi,
-                                        category
+                                        categoryId
                                     )
                                 },
                                 enabled = !assignmentUi.isLoading,
@@ -380,7 +380,7 @@ fun ProductNameAssignmentColumn(
     assignmentUiList: List<AssignmentUiState<CategoryAssignment.Product>>,
     categories: List<Category>,
     onEditClick: (CategoryAssignment) -> Unit,
-    onCategorySelected: (AssignmentUiState<CategoryAssignment>, Category) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
     onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
@@ -453,7 +453,7 @@ fun ProductNameAssignmentColumn(
                                 modifier = Modifier.widthIn(max = 220.dp),
                                 selectedCategoryId = productUi.assignment.categoryId,
                                 categories = categories,
-                                onCategorySelected = { categoryId ->
+                                onCategoryIdSelected = { categoryId ->
                                     onCategorySelected(productUi, categoryId)
                                 },
                                 nullOption = true,

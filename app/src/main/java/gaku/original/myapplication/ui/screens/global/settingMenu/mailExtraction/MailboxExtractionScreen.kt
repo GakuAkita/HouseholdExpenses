@@ -239,8 +239,7 @@ fun MailboxExtractionScreen(
                                         selectedCategoryId = typeUiState.type.categoryId,
                                         nullOption = true,
                                         categories = uiState.categories,
-                                        onCategorySelected = { category ->
-                                            val categoryId = category.id
+                                        onCategoryIdSelected = { categoryId ->
                                             onCategorySelect(
                                                 typeUiState,
                                                 categoryId
