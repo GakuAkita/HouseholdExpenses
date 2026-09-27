@@ -10,13 +10,12 @@ import {
   getShikokuElectricMailIds,
   getUdemyMailIds,
 } from "../../src/infra/gmail/mailQueries";
-import { FuncStatus } from "../../src/type/FuncStatus";
 
 /* Records the Gmail query each function sends. before: is endTime + 1. */
 const queryOf = async (
   run: (client: GmailApiClient) => Promise<unknown>
 ): Promise<{ query: string; maxResults: number | undefined }> => {
-  const queryMessages = vi.fn().mockResolvedValue({ status: FuncStatus.SUCCESS, data: [] });
+  const queryMessages = vi.fn().mockResolvedValue([]);
   await run({ queryMessages } as unknown as GmailApiClient);
   const [query, maxResults] = queryMessages.mock.calls[0];
   return { query, maxResults };

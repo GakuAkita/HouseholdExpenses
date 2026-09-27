@@ -2,7 +2,6 @@ import * as admin from "firebase-admin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { handleGmailOAuthCallback } from "../../src/jobs/gmailOAuthCallback";
 import { GoogleOAuthApi } from "../../src/infra/gmail/GoogleOAuthApi";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { createTestServices, deleteTestUser, newTestUserId, testGmailOf, testSecrets } from "./emulator";
 
 /** Signs in to the Auth emulator and returns the user's Firebase ID token, like the app does. */
@@ -39,14 +38,11 @@ describe("Gmail OAuth callback", () => {
     });
 
     expect(result).toBe("connected");
-    const token = await services.mailboxExtractionService.getMailboxExtractionGmailTokenWithDecryption(
+    const token = await services.mailboxExtractionService.getGmailToken(
       userId,
       testSecrets.encryptionKey
     );
-    expect(token).toMatchObject({
-      status: FuncStatus.SUCCESS,
-      data: { refreshToken: "raw-refresh-token", gmail },
-    });
+    expect(token).toMatchObject({ refreshToken: "raw-refresh-token", gmail });
   });
 
   it("fails for a state that isn't a Firebase ID token", async () => {

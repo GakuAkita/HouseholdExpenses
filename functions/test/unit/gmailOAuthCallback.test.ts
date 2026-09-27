@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { GmailOAuthCallbackDeps, handleGmailOAuthCallback } from "../../src/jobs/gmailOAuthCallback";
 import { GoogleOAuthApi } from "../../src/infra/gmail/GoogleOAuthApi";
-import { FuncStatus } from "../../src/type/FuncStatus";
 
 const secrets = {
   clientId: "client-id",
@@ -15,7 +14,7 @@ const setUp = (overrides: {
   userEmail?: string;
   verifyIdToken?: () => Promise<unknown>;
 } = {}) => {
-  const saveToken = vi.fn().mockResolvedValue({ status: FuncStatus.SUCCESS });
+  const saveToken = vi.fn().mockResolvedValue(undefined);
   const exchangeCode = vi.fn().mockResolvedValue({ accessToken: "access", refreshToken: "refresh" });
   const deps = {
     auth: {
@@ -23,14 +22,14 @@ const setUp = (overrides: {
       getUser: vi.fn().mockResolvedValue({ email: overrides.userEmail ?? "user@gmail.com" }),
     },
     runtime: {
-      secrets: { load: async () => ({ status: FuncStatus.SUCCESS, data: secrets }) },
+      secrets: { load: async () => secrets },
       googleOAuthApi: {
         exchangeCode,
         fetchEmail: vi.fn().mockResolvedValue("user@gmail.com"),
         ...overrides.googleOAuthApi,
       },
     },
-    mailboxExtractionService: { setMailboxExtractionTokenWithEncryption: saveToken },
+    mailboxExtractionService: { saveGmailToken: saveToken },
   } as unknown as GmailOAuthCallbackDeps;
   return { deps, saveToken, exchangeCode };
 };

@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createGoogleOAuthSecretProvider } from "../../src/infra/secrets/googleOAuthSecrets";
 import { RuntimeConfig } from "../../src/shared/runtimeConfig";
-import { FuncStatus } from "../../src/type/FuncStatus";
 
 const secrets = {
   clientId: "client-id",
@@ -29,7 +28,7 @@ describe("createGoogleOAuthSecretProvider", () => {
     expect(fetchSecret).toHaveBeenCalledTimes(1);
     expect(fetchSecret).toHaveBeenCalledWith("GOOGLE_OAUTH2");
     for (const result of results) {
-      expect(result).toMatchObject({ status: FuncStatus.SUCCESS, data: secrets });
+      expect(result).toEqual(secrets);
     }
   });
 
@@ -40,8 +39,8 @@ describe("createGoogleOAuthSecretProvider", () => {
       .mockResolvedValue(JSON.stringify(secrets));
     const provider = createGoogleOAuthSecretProvider(production, fetchSecret);
 
-    expect(await provider.load()).toMatchObject({ status: FuncStatus.ERROR, message: "PERMISSION_DENIED" });
-    expect(await provider.load()).toMatchObject({ status: FuncStatus.SUCCESS, data: secrets });
+    await expect(provider.load()).rejects.toThrow("PERMISSION_DENIED");
+    expect(await provider.load()).toEqual(secrets);
     expect(fetchSecret).toHaveBeenCalledTimes(2);
   });
 
@@ -51,10 +50,7 @@ describe("createGoogleOAuthSecretProvider", () => {
       production,
       vi.fn().mockResolvedValue(JSON.stringify(incomplete))
     );
-    expect(await provider.load()).toMatchObject({
-      status: FuncStatus.ERROR,
-      message: "Incomplete secret fields.",
-    });
+    await expect(provider.load()).rejects.toThrow("Incomplete secret fields.");
   });
 
   it("reads the environment variable in the emulator, not Secret Manager", async () => {
@@ -63,7 +59,7 @@ describe("createGoogleOAuthSecretProvider", () => {
       { ...production, isEmulator: true, emulatorGoogleOAuthSecrets: JSON.stringify(secrets) },
       fetchSecret
     );
-    expect(await provider.load()).toMatchObject({ status: FuncStatus.SUCCESS, data: secrets });
+    expect(await provider.load()).toEqual(secrets);
     expect(fetchSecret).not.toHaveBeenCalled();
   });
 });

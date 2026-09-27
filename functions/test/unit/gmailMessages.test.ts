@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { extractTextBody, stripHtmlTags } from "../../src/infra/gmail/extractHtmlBody";
 import { filterMessages } from "../../src/infra/gmail/filterMessages";
 import { sortGmailMessagesByDate } from "../../src/infra/gmail/getInternalDate";
-import { FuncStatus } from "../../src/type/FuncStatus";
 
 const message = (internalDate?: string): gmail_v1.Schema$Message => ({ internalDate });
 const base64url = (text: string) => Buffer.from(text, "utf8").toString("base64url");
@@ -34,20 +33,19 @@ describe("filterMessages", () => {
 
   it("keeps messages newer than lastMsgId", () => {
     const result = filterMessages(sorted, "m2");
-    expect(result.status).toBe(FuncStatus.SUCCESS);
-    expect(Object.keys(result.data!.filteredMessages)).toEqual(["m3"]);
-    expect(result.data!.mostRecentMsgId).toBe("m3");
+    expect(Object.keys(result.filteredMessages)).toEqual(["m3"]);
+    expect(result.mostRecentMsgId).toBe("m3");
   });
 
   it("keeps all messages without lastMsgId", () => {
     const result = filterMessages(sorted, null);
-    expect(Object.keys(result.data!.filteredMessages)).toEqual(["m3", "m2", "m1"]);
+    expect(Object.keys(result.filteredMessages)).toEqual(["m3", "m2", "m1"]);
   });
 
-  it("returns EMPTY when the newest message was already processed", () => {
+  it("returns nothing when the newest message was already processed", () => {
     const result = filterMessages(sorted, "m3");
-    expect(result.status).toBe(FuncStatus.EMPTY);
-    expect(result.data!.mostRecentMsgId).toBeNull();
+    expect(result.filteredMessages).toEqual({});
+    expect(result.mostRecentMsgId).toBeNull();
   });
 });
 

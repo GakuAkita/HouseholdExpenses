@@ -1,117 +1,27 @@
 import { Firestore } from "firebase-admin/firestore";
 import { convertDaysToNums } from "../../constants/DayOfWeek";
-import {
-  FuncResult,
-  FuncResultWithData,
-  FuncStatus,
-} from "../../type/FuncStatus";
 import { RepeatAdd } from "../../type/RepeatAdd";
 
 export class RepeatAddService {
-  private db: Firestore;
-
-  constructor(db: Firestore) {
-    this.db = db;
-  }
+  constructor(private db: Firestore) {}
 
   private getUserRepeatAddColRef(userId: string) {
     return this.db.collection("users").doc(userId).collection("repeat_add");
   }
 
-  async updateRepeatAdd(
-    userId: string,
-    repeatAddData: RepeatAdd
-  ): Promise<FuncResult> {
-    if (!repeatAddData.id)
-      return {
-        status: FuncStatus.ERROR,
-        message: "RepeatAdd ID is required for update.",
-      };
-    const repeatAddRef = this.getUserRepeatAddColRef(userId).doc(
-      repeatAddData.id
-    );
-    try {
-      const docSnapshot = await repeatAddRef.get();
-      if (!docSnapshot.exists)
-        return {
-          status: FuncStatus.ERROR,
-          message: `RepeatAdd with ID ${repeatAddData.id} does not exist.`,
-        };
-      await repeatAddRef.set(repeatAddData);
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `RepeatAdd with ID ${repeatAddData.id} updated successfully.`,
-      };
-    } catch (error: any) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to update RepeatAdd: ${error.message}`,
-      };
-    }
-  }
-
-  async addRepeatAddWithId(
-    userId: string,
-    repeatAddData: RepeatAdd
-  ): Promise<FuncResult> {
-    const repeatAddRef = this.getUserRepeatAddColRef(userId);
-    const newDocRef = repeatAddRef.doc();
-    repeatAddData.id = newDocRef.id;
-
-    try {
-      await newDocRef.set(repeatAddData);
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `RepeatAdd with ID ${repeatAddData.id} was added successfully.`,
-      };
-    } catch (error: any) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to update RepeatAdd: ${error.message}`,
-      };
-    }
-  }
-
-  async getAllRepeatAdds(
-    userId: string
-  ): Promise<FuncResultWithData<Record<string, RepeatAdd>>> {
-    try {
-      const repeatAddRef = this.getUserRepeatAddColRef(userId);
-      const snapshot = await repeatAddRef.get();
-
-      const repeatAddMap: Record<string, RepeatAdd> = {};
-
-      if (snapshot.empty) {
-        return {
-          status: FuncStatus.SUCCESS,
-          message: "No RepeatAdds found.",
-          data: {},
-        };
+  /** The user's RepeatAdds by document id. Empty when the user has none. */
+  async getAllRepeatAdds(userId: string): Promise<Record<string, RepeatAdd>> {
+    const snapshot = await this.getUserRepeatAddColRef(userId).get();
+    const repeatAdds: Record<string, RepeatAdd> = {};
+    snapshot.forEach((doc) => {
+      const data = doc.data() as RepeatAdd;
+      /* The app saves dayOfWeek as names (Kotlin DayOfWeek, e.g. "MONDAY"). Convert them to JS day numbers. */
+      const rawDays: unknown = data.frequencyInfo?.dayOfWeek;
+      if (Array.isArray(rawDays)) {
+        data.frequencyInfo.dayOfWeek = convertDaysToNums(rawDays);
       }
-
-      snapshot.forEach((doc) => {
-        const rawData = doc.data() as any;
-        const data = doc.data() as RepeatAdd;
-
-        if (rawData.frequencyInfo?.dayOfWeek) {
-          /* when every_week, saved by string (e.g. Kotlin DayOfWeek). Convert it into TS number */
-          const rawDays = rawData.frequencyInfo.dayOfWeek;
-          if (Array.isArray(rawDays)) {
-            data.frequencyInfo.dayOfWeek = convertDaysToNums(rawDays);
-          }
-        }
-        repeatAddMap[doc.id] = data;
-      });
-
-      return {
-        status: FuncStatus.SUCCESS,
-        data: repeatAddMap,
-      };
-    } catch (error: any) {
-      return {
-        status: FuncStatus.ERROR,
-        message: error.message || "Failed to get RepeatAdds",
-      };
-    }
+      repeatAdds[doc.id] = data;
+    });
+    return repeatAdds;
   }
 }

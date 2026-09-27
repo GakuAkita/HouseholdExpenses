@@ -65,7 +65,7 @@ describe("mailbox extraction", () => {
 
   const connectGmail = async () => {
     await admin.auth().createUser({ uid: userId, email: gmail });
-    await services.mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+    await services.mailboxExtractionService.saveGmailToken(
       userId,
       { refreshToken: "raw-refresh-token", gmail },
       testSecrets.encryptionKey
@@ -74,7 +74,7 @@ describe("mailbox extraction", () => {
 
   beforeEach(async () => {
     for (const category of [food, books, daily]) {
-      await services.categoryService.setCategory(userId, category);
+      await admin.firestore().doc(`users/${userId}/categories/${category.id}`).set(category);
     }
     await admin
       .database()
@@ -88,9 +88,9 @@ describe("mailbox extraction", () => {
         },
       });
     for (const setting of gmailSettings) {
-      await services.mailboxExtractionService.setMailboxExtractionMailTypeSetting(userId, setting);
+      await services.mailboxExtractionService.setMailTypeSetting(userId, setting);
     }
-    await services.mailboxExtractionService.addAmazonSubscribeMonitorItem(userId, {
+    await services.mailboxExtractionService.addAmazonSubscribeItem(userId, {
       productName: "サントリー 天然水",
     });
   });
@@ -193,11 +193,38 @@ describe("mailbox extraction", () => {
   it("skips a disabled mail type", async () => {
     await connectGmail();
     const disabled = createRakutenPaySettingInstance({ enabled: false, emailProvider: EmailProvider.GMAIL });
-    await services.mailboxExtractionService.setMailboxExtractionMailTypeSetting(userId, disabled);
+    await services.mailboxExtractionService.setMailTypeSetting(userId, disabled);
 
     await processor.processAllMailTypeList([disabled]);
 
     expect(await expenses()).toEqual([]);
+  });
+
+  it("continues when Gmail fails for one mail type, and doesn't advance that type's last_exec", async () => {
+    await connectGmail();
+    const failingGmail = createFakeGmail(mails, { failingSenders: ["no-reply@pay.rakuten.co.jp"] });
+    const failingServices = createTestServices({
+      clock: fixedClock(now),
+      createGmailClient: failingGmail.factory,
+    });
+    const failingProcessor = new MailboxExtractionProcessor(
+      userId,
+      failingServices.mailboxExtractionService,
+      failingServices.expenseService,
+      failingServices.categoryService,
+      failingServices.categoryAssignmentService,
+      failingServices.runtime
+    );
+
+    await failingProcessor.processAllMailTypeList(gmailSettings);
+
+    const saved = await expenses();
+    expect(saved.map((e) => e.generatedType)).not.toContain("mailbox_extraction___rakuten_pay");
+    expect(saved).toHaveLength(5);
+    const lastExec = (await admin.database().ref(`users/${userId}/mailbox_extraction/last_exec`).get()).val();
+    /* Not advanced, so the next run searches the same time range again. */
+    expect(lastExec.rakuten_pay).toBeUndefined();
+    expect(lastExec.amazon_kindle).toEqual({ timestamp: now.getTime(), lastMsgId: "kindle-1" });
   });
 
   it("does nothing until the user connects Gmail", async () => {

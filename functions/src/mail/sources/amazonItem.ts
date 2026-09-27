@@ -1,9 +1,8 @@
-import { AmazonItemMailParser } from "../parsers/AmazonItemMailParser";
 import { getAmazonItemMailIds } from "../../infra/gmail/mailQueries";
-import { FuncStatus } from "../../type/FuncStatus";
 import { AmazonItemSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";
-import { assignByProductName, extracted, failed, missingInternalDate, noDataAttached } from "./common";
+import { AmazonItemMailParser } from "../parsers/AmazonItemMailParser";
+import { assignByProductName, requireInternalDate } from "./common";
 
 /** Amazon order confirmation: one expense per product. The category comes from the product name rules. */
 export const amazonItemSource: MailSource<AmazonItemSetting> = {
@@ -12,10 +11,9 @@ export const amazonItemSource: MailSource<AmazonItemSetting> = {
   findMailIds: getAmazonItemMailIds,
 
   async toExpenses(mail, _setting, context) {
-    if (!mail.internalDate) return missingInternalDate("AmazonItem");
-    const parsed = new AmazonItemMailParser(mail.rawText, mail.internalDate).toExpenses();
-    if (parsed.status !== FuncStatus.SUCCESS) return failed(parsed);
-    if (!parsed.data) return noDataAttached("AmazonItem");
-    return extracted(parsed.data.map((expense) => assignByProductName(expense, context)));
+    const internalDate = requireInternalDate(mail.internalDate, "AmazonItem");
+    return new AmazonItemMailParser(mail.rawText, internalDate)
+      .toExpenses()
+      .map((expense) => assignByProductName(expense, context));
   },
 };

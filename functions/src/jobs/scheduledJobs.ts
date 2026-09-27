@@ -2,7 +2,6 @@ import { logger } from "firebase-functions";
 import { AmazonSubscribeMonitorItemsProcessor } from "./AmazonSubscribeMonitorItemsProcessor";
 import { MailboxExtractionProcessor } from "./MailboxExtractionProcessor";
 import { Services } from "../app/services";
-import { FuncStatus } from "../type/FuncStatus";
 import { AllMailType } from "../type/Mailbox";
 import { forEachUser } from "./forEachUser";
 
@@ -11,14 +10,8 @@ export const runRepeatAddJob = async (
   services: Pick<Services, "userService" | "repeatAddProcessor">
 ): Promise<void> => {
   await forEachUser(services.userService, async (userId) => {
-    const addResult = await services.repeatAddProcessor.addExpensesFromAllRepeatAdd(userId);
-    if (addResult.status !== FuncStatus.SUCCESS) {
-      logger.error(
-        `Failed to add expenses from repeat adds for user ${userId}: ${addResult.message}`
-      );
-    } else {
-      logger.log(`Successfully added expenses from repeat adds for user ${userId}.`);
-    }
+    const added = await services.repeatAddProcessor.addExpensesFromAllRepeatAdd(userId);
+    logger.log(`Added ${added} expenses from repeat adds for user ${userId}.`);
   });
 };
 
@@ -59,9 +52,6 @@ export const runAmazonSubscribeMonitorJob = async (
       services.mailboxExtractionService,
       services.runtime
     );
-    const result = await processor.handleAmazonSubscribeItems();
-    if (result.status !== FuncStatus.SUCCESS) {
-      logger.error(`Failed to handle Amazon Subscribe items: ${result.message ?? "No message"}`);
-    }
+    await processor.handleAmazonSubscribeItems();
   });
 };

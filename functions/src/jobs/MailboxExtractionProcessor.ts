@@ -1,283 +1,165 @@
 import { logger } from "firebase-functions";
 import { GeneratedType } from "../constants/GeneratedType";
-import { ExtractionContext } from "../mail/mailSource";
-import { mailSourceFor } from "../mail/sources";
-import { Runtime } from "../shared/runtime";
-import { Category } from "../type/Category";
-import { CategoryAssignmentData } from "../type/CategoryAssignment";
-import { Expense } from "../type/Expense";
-import {
-  FuncResult,
-  FuncResultWithData,
-  FuncStatus,
-} from "../type/FuncStatus";
-import {
-  AllMailType,
-  AmazonSubscribeItem,
-  LastMailboxExtractionExec,
-} from "../type/Mailbox";
-import { GmailClient } from "../infra/gmail/GmailApiClient";
 import { CategoryService } from "../infra/firestore/CategoryService";
 import { ExpenseService } from "../infra/firestore/ExpenseService";
-import { CategoryAssignmentService } from "../infra/rtdb/CategoryAssignmentService";
-import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
-import { convertUnixMillisecToSec } from "../shared/unixTime";
+import { createUserGmailClient } from "../infra/gmail/createUserGmailClient";
 import { extractTextBody } from "../infra/gmail/extractHtmlBody";
 import { filterMessages } from "../infra/gmail/filterMessages";
-import { generateGmailApiInstance } from "../infra/gmail/generateGmailApiInstance";
 import { getMessageDetailsSortedList } from "../infra/gmail/getMessageDetailsMap";
+import { CategoryAssignmentService } from "../infra/rtdb/CategoryAssignmentService";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
+import { ExtractionContext } from "../mail/mailSource";
+import { mailSourceFor } from "../mail/sources";
+import { messageOf } from "../shared/errors";
+import { Runtime } from "../shared/runtime";
+import { convertUnixMillisecToSec } from "../shared/unixTime";
+import { Category } from "../type/Category";
+import { CategoryAssignmentData } from "../type/CategoryAssignment";
+import { AllMailType, AmazonSubscribeItem } from "../type/Mailbox";
+
+/** How far back the first run for a mail type searches. */
+const FIRST_RUN_LOOKBACK_MILLIS = 5 * 60 * 1000;
 
 /**
- * 各ユーザーに対してインスタンスを生成することにする！
+ * Reads one user's mails and saves the expenses in them. 各ユーザーに対してインスタンスを生成する。
  */
 export class MailboxExtractionProcessor {
-  private userId: string;
+  /* Loaded on first use and kept for this user's run. */
   private categories: Record<string, Category> | null = null;
-  private categoryAssignmentData: CategoryAssignmentData | null =
-    null; /* 今のところ毎回全部取るが、将来的に商品名か店名の片方で良いかも */
+  private categoryAssignmentData: CategoryAssignmentData | null = null;
   private amazonSubscribeItems: Record<string, AmazonSubscribeItem> | null = null;
 
   constructor(
-    userId: string,
+    private userId: string,
     private mailboxExtractionService: MailboxExtractionService,
-    private expenseService: ExpenseService,
-    private categoryService: CategoryService,
-    private categoryAssignmentService: CategoryAssignmentService,
+    private expenseService: Pick<ExpenseService, "addExpenseWithId">,
+    private categoryService: Pick<CategoryService, "getAllCategories">,
+    private categoryAssignmentService: Pick<CategoryAssignmentService, "getCategoryAssignmentData">,
     private runtime: Runtime
-  ) {
-    this.userId = userId;
-  }
+  ) {}
 
-  /* ***************カテゴリーの読み込み************************ */
-  private async loadCategories(): Promise<
-    FuncResultWithData<Record<string, Category>>
-  > {
-    /**
-     * 各インスタンス1個に対して1回実行。
-     * mailidが見つかったときしか実行されないので、読み取り回数について気にする必要はあまりない。
-     *  */
-    if (this.categories === null) {
-      const result = await this.categoryService.getAllCategories(this.userId);
-      if (result.status !== FuncStatus.SUCCESS) {
-        return result;
-        /* 下は実行されないからcategoriesはnullのまま */
+  /** すべてのメールタイプに対して実行する. A mail type that fails is logged and the next one runs. */
+  async processAllMailTypeList(mailTypeList: AllMailType[]): Promise<void> {
+    for (const type of mailTypeList) {
+      try {
+        await this.processSingleMailType(type);
+      } catch (error) {
+        logger.error(`${type.nodeName} failed for user ${this.userId}: ${messageOf(error)}`);
       }
-
-      if (!result.data) {
-        /* カテゴリーがない可能性もあるから、成功として扱う。 */
-        this.categories = {};
-        return {
-          status: FuncStatus.SUCCESS,
-          message: "There was no error in getAllCateogries, but empty.",
-        };
-      }
-      this.categories = result.data;
     }
-
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Already loaded before.",
-      data: this.categories,
-    };
-  }
-
-  /* ************************カテゴリー割当の読み込み***************************** */
-  private async loadCategoryAssignmentData(): Promise<
-    FuncResultWithData<CategoryAssignmentData>
-  > {
-    if (this.categoryAssignmentData === null) {
-      const result =
-        await this.categoryAssignmentService.getCategoryAssignmentData(
-          this.userId
-        );
-      if (result.status === FuncStatus.EMPTY) {
-        this.categoryAssignmentData = { storeName: {}, productName: {} };
-        return {
-          status: FuncStatus.SUCCESS,
-          message:
-            "There was no error in getCategoryAssignmentData, but empty.",
-          data: this.categoryAssignmentData,
-        };
-      }
-      if (result.status !== FuncStatus.SUCCESS) {
-        return result;
-      }
-
-      if (!result.data) {
-        /* カテゴリー割当がない可能性もあるから、成功として扱う。 */
-        this.categoryAssignmentData = {
-          storeName: {},
-          productName: {},
-        };
-        return {
-          status: FuncStatus.SUCCESS,
-          message:
-            "There was no error in getCategoryAssignmentData, but empty.",
-        };
-      }
-      this.categoryAssignmentData = result.data;
-    }
-
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Already loaded before.",
-      data: this.categoryAssignmentData,
-    };
-  }
-
-  /* ************************Amazon定期便アイテムの読み込み***************************** */
-  private async loadAmazonSubscribeItems(): Promise<
-    FuncResultWithData<Record<string, AmazonSubscribeItem>>
-  > {
-    if (this.amazonSubscribeItems === null) {
-      const result = await this.mailboxExtractionService.getAmazonSubscribeMonitorItems(this.userId);
-      if (result.status !== FuncStatus.SUCCESS) {
-        return result;
-      }
-
-      if (!result.data) {
-        /* 定期便アイテムがない可能性もあるから、成功として扱う。 */
-        this.amazonSubscribeItems = {};
-        return {
-          status: FuncStatus.SUCCESS,
-          message: "There was no error in getAmazonSubscribeMonitorItems, but empty.",
-          data: this.amazonSubscribeItems,
-        };
-      }
-      this.amazonSubscribeItems = result.data;
-    }
-
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Already loaded before.",
-      data: this.amazonSubscribeItems,
-    };
   }
 
   /**
-   * enabled=trueまたはnullのAmazon定期便アイテムのみを取得する
-   * enabledがnullの場合はtrueとして扱う
+   * Reads the mails of the type that arrived since the last run and saves their expenses.
+   * @todo 基本Gmailだが将来的にOutlookとか増えた場合、ここの処理の変更が必要。
    */
-  private async loadEnabledAmazonSubscribeItems(): Promise<
-    FuncResultWithData<Record<string, AmazonSubscribeItem>>
-  > {
-    const result = await this.loadAmazonSubscribeItems();
-    if (result.status !== FuncStatus.SUCCESS || !result.data) {
-      return result;
+  async processSingleMailType(type: AllMailType): Promise<void> {
+    const setting = await this.mailboxExtractionService.getMailTypeSetting(this.userId, type);
+    if (!setting) {
+      /* まだユーザーが設定していないのでやらない */
+      logger.debug(`Skip ${type.nodeName}. The user hasn't set it.`);
+      return;
+    }
+    if (setting.enabled == false) {
+      logger.debug(`Skip ${type.nodeName} Not Enabled.`);
+      return;
     }
 
-    // enabled=falseのアイテムを除外（enabledがnullの場合はtrueとして扱う）
-    const filteredItems: Record<string, AmazonSubscribeItem> = {};
-    for (const [id, item] of Object.entries(result.data)) {
-      if (item.enabled !== false) {
-        filteredItems[id] = item;
-      }
-    }
-
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Filtered enabled Amazon Subscribe items",
-      data: filteredItems,
-    };
-  }
-
-  /* *****************************Gmailのクエリ関係************************************ */
-  async getMailIdsByQuery(
-    type: AllMailType,
-    gmailClient: GmailClient,
-    startTime: number,
-    endTime: number
-  ): Promise<FuncResultWithData<string[]>> {
-    const source = mailSourceFor(type);
+    const source = mailSourceFor(setting);
     if (!source) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Unknown type:${type.nodeName}`,
-      };
+      throw new Error(`Not prepared type for MailboxExtraction: ${type.nodeName}`);
     }
-    return source.findMailIds(gmailClient, startTime, endTime);
+
+    const lastExec = await this.mailboxExtractionService.getLastExec(this.userId, type);
+    /* データベースにもミリ秒で保存する */
+    const endTime = this.runtime.clock.now().getTime();
+    const startTime = lastExec?.timestamp || endTime - FIRST_RUN_LOOKBACK_MILLIS;
+
+    const gmailClient = await createUserGmailClient(this.userId, this.mailboxExtractionService, this.runtime);
+    if (!gmailClient) {
+      logger.info(`Gmail Token is not set by the user`);
+      return;
+    }
+
+    /* emulatorの場合は1をいれて全部取ってくる */
+    const queryAfter = this.runtime.config.isEmulator ? 1 : convertUnixMillisecToSec(startTime);
+    const msgIds = await source.findMailIds(gmailClient, queryAfter, convertUnixMillisecToSec(endTime));
+
+    if (msgIds.length === 0) {
+      logger.info("Nothing was found After query.");
+      const newLastExec = { ...lastExec, timestamp: endTime /* UNIXミリ秒で保存 */ };
+      await this.mailboxExtractionService.setLastExec(this.userId, type, newLastExec);
+      logger.info(`Updated last exec. ${JSON.stringify({ newLastExec })}`);
+      return;
+    }
+
+    logger.info(`Found mails ${msgIds.length}`);
+    const sortedList = await getMessageDetailsSortedList(gmailClient, msgIds);
+    const { filteredMessages, mostRecentMsgId } = filterMessages(sortedList, lastExec?.lastMsgId);
+    if (Object.keys(filteredMessages).length === 0) {
+      /* Every mail found was already processed. last_exec is kept as it is. */
+      logger.warn(`processSingleMailType: No new messages found. Probably this is not error.`);
+      return;
+    }
+
+    /* 失敗しようが何しようが次のメールに行く */
+    for (const [id, message] of Object.entries(filteredMessages)) {
+      const rawText = extractTextBody(message.payload);
+      if (!rawText) {
+        logger.error(`Failed to extract Text Body. id=${id}`);
+        continue;
+      }
+      try {
+        /* メールによっては日時が本文内にないケースが有る */
+        await this.saveExpenseWithExtraction(setting, rawText, message.internalDate);
+      } catch (error) {
+        logger.error(`${type.nodeName}: failed to save the mail ${id}: ${messageOf(error)}`);
+      }
+    }
+
+    await this.mailboxExtractionService.setLastExec(this.userId, type, {
+      timestamp: endTime,
+      lastMsgId: mostRecentMsgId,
+    });
   }
 
-  /* ***************************抽出したテキストparseしてExpenseを保存************************************** */
   /**
-   * Expenseに対して保管して保存する
-   */
-  async addExpenseFromMailExtraction(
-    baseExpense: Expense,
-    type: AllMailType
-  ): Promise<FuncResult> {
-    const generatedType = `${GeneratedType.MAIL_EXTRACTION}___${type.nodeName}`;
-    const timestamp = this.runtime.clock.now().getTime();
-
-    const newExpense: Expense = {
-      ...baseExpense,
-      generatedType: generatedType,
-      timestamp: timestamp,
-    };
-
-    const ret = await this.expenseService.addExpenseWithId(
-      this.userId,
-      newExpense
-    );
-    return ret;
-  }
-
-  /**
-   * メールの本文からデータを抽出して
-   * Expenseの保存まで行う
+   * メールの本文からデータを抽出してExpenseの保存まで行う。
+   * Returns the number of expenses saved. Throws when the mail can't be read.
    */
   async saveExpenseWithExtraction(
     setting: AllMailType,
     rawText: string,
-    sentDate?: string | null
-  ): Promise<FuncResult> {
-    const nodeName = setting.nodeName;
+    internalDate?: string | null
+  ): Promise<number> {
     const source = mailSourceFor(setting);
     if (!source) {
-      logger.error(`Not prepared type for MailboxExtraction: ${nodeName}`);
-      return {
-        status: FuncStatus.ERROR,
-        message: `Not prepared type for MailboxExtraction: ${nodeName}`,
-      };
+      throw new Error(`Not prepared type for MailboxExtraction: ${setting.nodeName}`);
     }
-
-    const context = await this.loadExtractionContext();
-    const ret = await source.toExpenses(
-      { rawText, internalDate: sentDate },
+    const expenses = await source.toExpenses(
+      { rawText, internalDate },
       setting,
-      context
+      await this.loadExtractionContext()
     );
-    if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      return { status: ret.status, message: ret.message };
-    }
-    if (ret.data.length === 0) {
-      /* e.g. Amazon定期便: no dispatched product is in the subscribe list */
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `${nodeName}: No expense to save from this mail.`,
-      };
-    }
 
-    /* 一個でもaddできたら成功とする */
-    let addedCount = 0;
-    for (const expense of ret.data) {
-      const addRet = await this.addExpenseFromMailExtraction(expense, setting);
-      if (addRet.status == FuncStatus.SUCCESS) {
-        addedCount++;
-      } else {
-        logger.error(`${nodeName}: ${addRet.message}`);
+    const generatedType = `${GeneratedType.MAIL_EXTRACTION}___${setting.nodeName}`;
+    let added = 0;
+    for (const expense of expenses) {
+      try {
+        await this.expenseService.addExpenseWithId(this.userId, {
+          ...expense,
+          generatedType,
+          timestamp: this.runtime.clock.now().getTime(),
+        });
+        added++;
+      } catch (error) {
+        logger.error(`${setting.nodeName}: ${messageOf(error)}`);
       }
     }
-
-    return addedCount > 0
-      ? {
-        status: FuncStatus.SUCCESS,
-        message: `${nodeName}: ${addedCount} of ${ret.data.length} expenses were added.`,
-      }
-      : {
-        status: FuncStatus.ERROR,
-        message: `${nodeName}: No expense was added.`,
-      };
+    if (expenses.length > 0 && added === 0) {
+      throw new Error(`${setting.nodeName}: No expense was added.`);
+    }
+    return added;
   }
 
   /**
@@ -285,243 +167,34 @@ export class MailboxExtractionProcessor {
    * 読み込みに失敗した場合はログ表示だけにして、空のまま続ける。
    */
   private async loadExtractionContext(): Promise<ExtractionContext> {
-    let categories: Record<string, Category> = {};
-    const categoryRet = await this.loadCategories();
-    if (categoryRet.status != FuncStatus.SUCCESS) {
-      logger.error(`Failed to load categories: ${categoryRet.message}`);
-    } else if (categoryRet.data) {
-      categories = categoryRet.data;
+    if (this.categories === null) {
+      try {
+        this.categories = await this.categoryService.getAllCategories(this.userId);
+      } catch (error) {
+        logger.error(`Failed to load categories: ${messageOf(error)}`);
+      }
     }
-
-    let categoryAssignmentData: CategoryAssignmentData = {
-      storeName: {},
-      productName: {},
-    };
-    const assignRet = await this.loadCategoryAssignmentData();
-    if (assignRet.status != FuncStatus.SUCCESS) {
-      logger.error(
-        `Failed to load category assignment data: ${assignRet.message}`
-      );
-    } else if (assignRet.data) {
-      categoryAssignmentData = assignRet.data;
+    if (this.categoryAssignmentData === null) {
+      try {
+        this.categoryAssignmentData = await this.categoryAssignmentService.getCategoryAssignmentData(
+          this.userId
+        );
+      } catch (error) {
+        logger.error(`Failed to load category assignment data: ${messageOf(error)}`);
+      }
     }
-
     return {
-      categories,
-      categoryAssignmentData,
-      loadEnabledAmazonSubscribeItems: () =>
-        this.loadEnabledAmazonSubscribeItems(),
+      categories: this.categories ?? {},
+      categoryAssignmentData: this.categoryAssignmentData ?? { storeName: {}, productName: {} },
+      loadEnabledAmazonSubscribeItems: () => this.loadEnabledAmazonSubscribeItems(),
     };
   }
 
-  /* ******************************実際に呼び出す処理(全体)************************************* */
-  /**
-   * @todo
-   * 基本Gmailだが将来的にOutlookとか増えた場合、ここの処理の変更が必要。
-   * 一応、各メールテンプレートのdata classになんのメールで登録しているか持たせている。(今は全部Gmailだが)
-   */
-  async processSingleMailType(type: AllMailType) {
-    const funcName = "processSingleMailType";
-    const nodeName = type.nodeName;
-    let ret =
-      await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(
-        this.userId,
-        type
-      );
-    if (ret.status == FuncStatus.EMPTY) {
-      /**
-       * まだユーザーが設定していないのでやらない
-       */
-      logger.debug(`Skip ${type.nodeName}. ${ret.message}`);
-      return;
-    } else if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      /**
-       * なにかエラーが出たようだ
-       */
-      logger.error(
-        `${type.nodeName} went wrong when getting setting.: ${ret.message}`
-      );
-      return;
-    } else if (ret.data?.enabled == false) {
-      /**
-       * 設定は存在するが、OFFになっている
-       */
-      logger.debug(`Skip ${type.nodeName} Not Enabled.`);
-      return;
-    } else {
-      /* 問題なさそうなので次へ */
-    }
-
-    const setting = ret.data;
-
-    /**
-     * ここまで来れたら、直帰の実行状況を確認しに行く
-     * RealtimeDatabaseのlastExecを取ってくる。
-     * 取ってきたら
-     */
-    const lastExecRet =
-      await this.mailboxExtractionService.getMailboxExtractionLastExec(
-        this.userId,
-        type
-      );
-
-    if (lastExecRet.status != FuncStatus.SUCCESS) {
-      logger.info(`${lastExecRet.message}`);
-      return;
-    }
-
-    /* データベースにもミリ秒で保存する */
-    const endTime = this.runtime.clock.now().getTime();
-    const lastMsgId = lastExecRet.data?.lastMsgId; /* nullの可能性もある */
-    let startTime: number = 0;
-    if (!lastExecRet.data?.timestamp) {
-      /* timestampがない場合 */
-      startTime = endTime - 60 * 5 * 1000; /* 5分前の時間を開始時刻とする */
-    } else {
-      startTime =
-        lastExecRet.data
-          .timestamp; /* タイムスタンプがすでにあるならそれを使う */
-    }
-
-    /**
-     * GmailApiを取得してくる
-     */
-    const gmailClientRet = await generateGmailApiInstance(
-      this.userId,
-      this.mailboxExtractionService,
-      this.runtime
+  /** enabled=falseのAmazon定期便アイテムを除外する（enabledがnullの場合はtrueとして扱う） */
+  private async loadEnabledAmazonSubscribeItems(): Promise<Record<string, AmazonSubscribeItem>> {
+    this.amazonSubscribeItems ??= await this.mailboxExtractionService.getAmazonSubscribeItems(this.userId);
+    return Object.fromEntries(
+      Object.entries(this.amazonSubscribeItems).filter(([, item]) => item.enabled !== false)
     );
-    if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
-      logger.info(`${gmailClientRet.message}`);
-      return;
-    }
-    const gmailClient: GmailClient = gmailClientRet.data;
-
-    /**
-     * クエリをして、msgIdを取得
-     */
-    const isEmulator = this.runtime.config.isEmulator;
-    const queryAfter = isEmulator
-      ? 1
-      : convertUnixMillisecToSec(
-        startTime
-      ); /* emulatorの場合は1をいれて全部取ってくる */
-    const queryBefore = convertUnixMillisecToSec(endTime);
-    const queryRet = await this.getMailIdsByQuery(
-      type,
-      gmailClient,
-      queryAfter,
-      queryBefore
-    );
-
-    if (!queryRet.data || queryRet.data.length === 0) {
-      /**
-       * 何もヒットしなかった
-       */
-      logger.info("Nothing was found After query.");
-      const newLastExec: LastMailboxExtractionExec = {
-        ...lastExecRet.data,
-        timestamp: endTime /* UNIXミリ秒で保存 */,
-      };
-      const ret =
-        await this.mailboxExtractionService.setMailboxExtractionLastExec(
-          this.userId,
-          type,
-          newLastExec
-        );
-      if (ret.status != FuncStatus.SUCCESS) {
-        logger.error(`${ret.message}`);
-      } else {
-        logger.info(`Updated last exec. ${JSON.stringify({ newLastExec })}`);
-      }
-    } else {
-      /**
-       * クエリでなにかしらヒットした
-       * まずはヒットしたすべてのIDを格納して、mapとして持っておく
-       */
-      const hitMsgIds = queryRet.data;
-      logger.info(`Found mails ${queryRet.data.length}`);
-      const sortRet = await getMessageDetailsSortedList(gmailClient, hitMsgIds);
-      if (sortRet.status != FuncStatus.SUCCESS || !sortRet.data) {
-        logger.error(`${sortRet.message}`);
-        return;
-      }
-
-      const sortedList = sortRet.data;
-      const filterRet = filterMessages(sortedList, lastMsgId);
-      if (filterRet.status != FuncStatus.SUCCESS) {
-        if (filterRet.status == FuncStatus.EMPTY) {
-          logger.warn(`${funcName}: Probably this is not error.`);
-        }
-        logger.error(`${funcName}:${filterRet.message}`);
-        return;
-      }
-
-      const filteredMessages = filterRet.data?.filteredMessages;
-      const mostRecentMsgId = filterRet.data?.mostRecentMsgId;
-      if (!filteredMessages) {
-        logger.warn(`${funcName}:filteredMessages is null...`);
-        return;
-      }
-
-      /**
-       * Amazon定期便の場合は"配達中:"のメールを検知している。
-       * 配達された商品がAmazon定期便のものかどうかをチェックし、
-       * 定期便でないものは通常購入なので、スルーする。
-       * 配達中でもExpense登録してしまうとAmazonItemと二重登録になってしまう。
-       * */
-
-      /* filterdMessagesに対してすべてExpense保存まで行う */
-      for (const [_, message] of Object.entries(filteredMessages)) {
-        const rawText = extractTextBody(message.payload);
-        const internalDate = message.internalDate;
-        if (!rawText) {
-          logger.error("Failed to extract Text Body.");
-        } else {
-          /**
-           * 関数内でExpenseの保存まで済ませてしまう
-           */
-          const ret = await this.saveExpenseWithExtraction(
-            setting,
-            rawText,
-            internalDate /* メールによっては日時が本文内にないケースが有る */
-          );
-          if (ret.status != FuncStatus.SUCCESS) {
-            logger.error(`${ret.message}`);
-          }
-          /* 失敗しようが何しようが次に行く */
-        }
-      }
-
-      /* 最後にlastExecを更新する */
-      const lastExec: LastMailboxExtractionExec = {
-        timestamp: endTime,
-        lastMsgId: mostRecentMsgId,
-      };
-      const ret =
-        await this.mailboxExtractionService.setMailboxExtractionLastExec(
-          this.userId,
-          type,
-          lastExec
-        );
-      if (ret.status != FuncStatus.SUCCESS) {
-        logger.error(`${ret.message}`);
-      }
-
-      return;
-    }
   }
-
-  /**
-   * すべてのメールタイプに対して、実行する
-   */
-  async processAllMailTypeList(mailTypeList: AllMailType[]) {
-    for (const type of mailTypeList) {
-      await this.processSingleMailType(type);
-    }
-  }
-
-  /**
-   * Amazon定期便登録リストのモニター関数
-   */
 }

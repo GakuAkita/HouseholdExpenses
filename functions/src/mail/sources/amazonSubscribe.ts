@@ -1,12 +1,21 @@
 import { logger } from "firebase-functions";
-import { AmazonItemDispatchedMailParser } from "../parsers/AmazonItemDispatchedMailParser";
+import { findAmazonSubscribeItemId } from "../../domain/amazonSubscribe";
 import { getAmazonDispatchedMailIds } from "../../infra/gmail/mailQueries";
-import { isAmazonSubscribeProductExist } from "../../domain/isAmazonSubscribeProductExist";
 import { Expense } from "../../type/Expense";
-import { FuncStatus } from "../../type/FuncStatus";
-import { AmazonSubscribeSetting } from "../../type/Mailbox";
+import { AmazonSubscribeItem, AmazonSubscribeSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";
-import { assignByProductName, extracted, failed, missingInternalDate, noDataAttached } from "./common";
+import { AmazonItemDispatchedMailParser } from "../parsers/AmazonItemDispatchedMailParser";
+import { assignByProductName, requireInternalDate } from "./common";
+
+/** Whether the product is in the subscribe list. An invalid list entry is logged and treated as no match. */
+const isSubscribed = (productName: string, items: Record<string, AmazonSubscribeItem>): boolean => {
+  try {
+    return findAmazonSubscribeItemId(productName, items) !== null;
+  } catch (error) {
+    logger.error(`Failed to check the Amazon Subscribe list: ${error}`);
+    return false;
+  }
+};
 
 /**
  * Amazon定期便: reads "発送済み" mails and keeps only the products in the user's subscribe list.
@@ -19,37 +28,27 @@ export const amazonSubscribeSource: MailSource<AmazonSubscribeSetting> = {
   findMailIds: (gmail, after, before) => getAmazonDispatchedMailIds(gmail, after, before, 10),
 
   async toExpenses(mail, _setting, context) {
-    if (!mail.internalDate) return missingInternalDate("AmazonSubscribe");
-    const parsed = new AmazonItemDispatchedMailParser(mail.rawText, mail.internalDate).toExpenses();
-    if (parsed.status !== FuncStatus.SUCCESS) return failed(parsed);
-    if (!parsed.data) return noDataAttached("AmazonSubscribe");
+    const internalDate = requireInternalDate(mail.internalDate, "AmazonSubscribe");
+    const dispatched = new AmazonItemDispatchedMailParser(mail.rawText, internalDate).toExpenses();
 
-    const itemsResult = await context.loadEnabledAmazonSubscribeItems();
-    if (itemsResult.status === FuncStatus.EMPTY) {
+    const subscribeItems = await context.loadEnabledAmazonSubscribeItems();
+    if (Object.keys(subscribeItems).length === 0) {
       logger.warn(`Amazon Subscirbe items are not registered, yet.`);
-      return extracted([]);
+      return [];
     }
-    if (itemsResult.status !== FuncStatus.SUCCESS) {
-      return failed({
-        status: FuncStatus.ERROR,
-        message: `Failed to load Amazon Subscribe items: ${itemsResult.message}`,
-      });
-    }
-    const subscribeItems = itemsResult.data ?? {};
 
     const expenses: Expense[] = [];
-    for (const expense of parsed.data) {
+    for (const expense of dispatched) {
       if (!expense.itemName) {
         logger.warn(`Expense has no itemName, skipping: ${JSON.stringify(expense)}`);
         continue;
       }
-      const exists = isAmazonSubscribeProductExist({ productName: expense.itemName }, subscribeItems);
-      if (exists.status !== FuncStatus.SUCCESS) {
+      if (!isSubscribed(expense.itemName, subscribeItems)) {
         logger.debug(`Item "${expense.itemName}" is not in Amazon Subscribe list, skipping`);
         continue;
       }
       expenses.push(assignByProductName(expense, context));
     }
-    return extracted(expenses);
+    return expenses;
   },
 };

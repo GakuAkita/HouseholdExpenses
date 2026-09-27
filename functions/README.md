@@ -26,6 +26,15 @@ src/
 Code that needs the current time, environment variables, secrets or a Gmail client gets them
 from `Runtime` (`shared/runtime.ts`), so tests can replace them.
 
+## Errors
+
+- `infra/` methods throw when a database or API call fails, and return `null` (or an empty
+  list/record) when the data doesn't exist.
+- Parsers throw `MailParseError` for a mail they can't read.
+- Jobs decide what one failure stops: a user (`forEachUser`), a mail type
+  (`processAllMailTypeList`) or a single mail. The failure is logged and the rest continues.
+  `last_exec` is saved only after a successful run, so a failed run is retried next time.
+
 ## Adding a mail type
 
 1. Add the setting type to `AllMailType` in `type/Mailbox.ts` (and to a schedule).
