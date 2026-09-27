@@ -1,26 +1,16 @@
 package gaku.original.myapplication.data.repository.expense
 
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
+import gaku.original.myapplication.data.dataClass.GeneratedType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.UUID
+import java.time.Instant
 
 class FakeExpenseRepository : ExpenseRepository {
     private val sampleExpenses = mapOf(
-        "1" to Expense(
-            id = "1",
-            amount = 1000,
-            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo"))
-        ),
-        "2" to Expense(
-            id = "2",
-            amount = 2000000,
-            datetime = LocalDateTime.now().toIsoUtcString(ZoneId.of("Asia/Tokyo"))
-        )
+        "1" to sampleExpense(id = "1", amount = 1000),
+        "2" to sampleExpense(id = "2", amount = 2000000)
     )
 
     private val _expenses = MutableStateFlow<Map<String, Map<String, Expense>>>(emptyMap())
@@ -41,17 +31,13 @@ class FakeExpenseRepository : ExpenseRepository {
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
-        val newExpense = expense.copy(
-            id = UUID.randomUUID().toString(),
-            timestamp = System.currentTimeMillis()
-        )
         // 全ての購読に対して反映させる（簡易的な実装）
-        _expenses.value = _expenses.value.mapValues { it.value + (newExpense.id!! to newExpense) }
-        return newExpense
+        _expenses.value = _expenses.value.mapValues { it.value + (expense.id to expense) }
+        return expense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        _expenses.value = _expenses.value.mapValues { it.value + (expense.id!! to expense) }
+        _expenses.value = _expenses.value.mapValues { it.value + (expense.id to expense) }
         return expense
     }
 
@@ -59,3 +45,15 @@ class FakeExpenseRepository : ExpenseRepository {
         _expenses.value = _expenses.value.mapValues { it.value - id }
     }
 }
+
+private fun sampleExpense(id: String, amount: Long) = Expense(
+    id = id,
+    generatedType = GeneratedType.Manual,
+    datetime = Instant.now(),
+    timestamp = System.currentTimeMillis(),
+    amount = amount,
+    category = null,
+    note = null,
+    storeName = null,
+    itemName = null,
+)

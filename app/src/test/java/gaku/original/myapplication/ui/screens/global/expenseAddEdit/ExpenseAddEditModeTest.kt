@@ -39,7 +39,7 @@ class ExpenseAddEditModeTest {
             Expense(
                 id = "expense1",
                 generatedType = GeneratedType.RepeatAdd(repeatAddId = "repeat1"),
-                datetime = "2026-09-15T03:00:00Z",
+                datetime = Instant.parse("2026-09-15T03:00:00Z"),
                 timestamp = 1_780_000_000_000L,
                 amount = 1200L,
                 category = Category(id = "category1", timestamp = 1L, name = "食費", enabled = true),

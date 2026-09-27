@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.DayOfWeek
+import java.time.Instant
 
 /**
  * Saves each data class to the Firestore emulator and reads it back with the app's conversion code.
@@ -141,7 +142,7 @@ class FirestoreConversionTest {
             Expense(
                 id = "expense1",
                 generatedType = generatedType,
-                datetime = "2026-09-15T03:00:00Z",
+                datetime = Instant.parse("2026-09-15T03:00:00Z"),
                 timestamp = 1_780_000_000_000L,
                 amount = 1200L,
                 category = sampleCategory,

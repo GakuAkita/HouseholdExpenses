@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
-import java.util.UUID
 
 class ExpenseRepositoryFirestore(
     reference: FirestoreUserReference
@@ -66,11 +65,11 @@ class ExpenseRepositoryFirestore(
                     val expense = dc.document.toObject(ExpenseDto::class.java).toDomain()
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                            subscriptionExpenses[expense.id!!] = expense
+                            subscriptionExpenses[expense.id] = expense
                         }
 
                         DocumentChange.Type.REMOVED -> {
-                            subscriptionExpenses.remove(expense.id!!)
+                            subscriptionExpenses.remove(expense.id)
                         }
                     }
                 }
@@ -93,13 +92,12 @@ class ExpenseRepositoryFirestore(
 
     override suspend fun addExpense(expense: Expense): Expense {
         Timber.d("addExpense: ${expense.toDto()}")
-        val newExpense = expense.copy(id = UUID.randomUUID().toString())
-        expenseCollection.document(newExpense.id!!).set(newExpense.toDto()).await()
-        return newExpense
+        expenseCollection.document(expense.id).set(expense.toDto()).await()
+        return expense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        expenseCollection.document(expense.id!!).set(expense.toDto()).await()
+        expenseCollection.document(expense.id).set(expense.toDto()).await()
         return expense
     }
 
