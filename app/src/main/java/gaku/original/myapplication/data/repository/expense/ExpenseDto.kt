@@ -2,21 +2,21 @@ package gaku.original.myapplication.data.repository.expense
 
 import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.toGeneratedType
-import gaku.original.myapplication.data.repository.category.CategoryFirestore
-import gaku.original.myapplication.data.repository.category.toFirestore
+import gaku.original.myapplication.data.repository.category.CategoryDto
+import gaku.original.myapplication.data.repository.category.toDto
 
 /**
- * The shape of an expense document in Firestore. Only the repositories use this class.
+ * The shape of an expense as stored in a database. Only the repositories use this class.
  *
- * Properties are nullable vars with defaults so that toObject() can create it.
+ * Properties are nullable vars with defaults so that Firestore toObject() or Realtime DB getValue() can create it.
  * Keep the property names in sync with Firestore functions and rules.
  */
-data class ExpenseFirestore(
+data class ExpenseDto(
     var id: String? = null,
     var timestamp: Long? = null,
     var datetime: String? = null,
     var amount: Long? = null,
-    var category: CategoryFirestore? = null,
+    var category: CategoryDto? = null,
     var note: String? = null,
     var storeName: String? = null,
     var itemName: String? = null,
@@ -48,12 +48,12 @@ data class ExpenseFirestore(
     )
 }
 
-fun Expense.toFirestore(): ExpenseFirestore = ExpenseFirestore(
+fun Expense.toDto(): ExpenseDto = ExpenseDto(
     id = id,
     timestamp = timestamp,
     datetime = datetime,
     amount = amount,
-    category = category?.toFirestore(),
+    category = category?.toDto(),
     note = note,
     storeName = storeName,
     itemName = itemName,

@@ -63,7 +63,7 @@ class ExpenseRepositoryFirestore(
                     currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
                 for (dc in snapshots.documentChanges) {
-                    val expense = dc.document.toObject(ExpenseFirestore::class.java).toDomain()
+                    val expense = dc.document.toObject(ExpenseDto::class.java).toDomain()
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                             subscriptionExpenses[expense.id!!] = expense
@@ -92,14 +92,14 @@ class ExpenseRepositoryFirestore(
     }
 
     override suspend fun addExpense(expense: Expense): Expense {
-        Timber.d("addExpense: ${expense.toFirestore()}")
+        Timber.d("addExpense: ${expense.toDto()}")
         val newExpense = expense.copy(id = UUID.randomUUID().toString())
-        expenseCollection.document(newExpense.id!!).set(newExpense.toFirestore()).await()
+        expenseCollection.document(newExpense.id!!).set(newExpense.toDto()).await()
         return newExpense
     }
 
     override suspend fun updateExpense(expense: Expense): Expense {
-        expenseCollection.document(expense.id!!).set(expense.toFirestore()).await()
+        expenseCollection.document(expense.id!!).set(expense.toDto()).await()
         return expense
     }
 

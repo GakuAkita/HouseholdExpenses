@@ -6,8 +6,8 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
 import gaku.original.myapplication.data.dataClass.toRepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.data.repository.expense.ExpenseFirestore
-import gaku.original.myapplication.data.repository.expense.toFirestore
+import gaku.original.myapplication.data.repository.expense.ExpenseDto
+import gaku.original.myapplication.data.repository.expense.toDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
@@ -81,7 +81,7 @@ fun RepeatAdd.toFirestore(): Map<String, Any?> {
     return mapOf(
         "id" to id,
         "timestamp" to timestamp,
-        "expense" to expense.toFirestore(),
+        "expense" to expense.toDto(),
         "frequencyInfo" to frequencyInfo?.toFirestore()
     )
 }
@@ -92,7 +92,7 @@ fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
     return RepeatAdd(
         id = getString("id"),
         timestamp = getLong("timestamp"),
-        expense = get("expense", ExpenseFirestore::class.java)?.toDomainForRepeatAdd()
+        expense = get("expense", ExpenseDto::class.java)?.toDomainForRepeatAdd()
             ?: error("expense is null"),
         frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
     )

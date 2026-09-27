@@ -3,12 +3,12 @@ package gaku.original.myapplication.data.repository.category
 import gaku.original.myapplication.data.dataClass.Category
 
 /**
- * The shape of a category document in Firestore. Only the repositories use this class.
+ * The shape of a category as stored in a database. Only the repositories use this class.
  *
- * Properties are nullable vars with defaults so that toObject() can create it.
+ * Properties are nullable vars with defaults so that Firestore toObject() or Realtime DB getValue() can create it.
  * Keep the property names in sync with Firestore functions and rules.
  */
-data class CategoryFirestore(
+data class CategoryDto(
     var id: String? = null,
     var timestamp: Long? = null,
     var name: String? = null,
@@ -22,7 +22,7 @@ data class CategoryFirestore(
     )
 }
 
-fun Category.toFirestore(): CategoryFirestore = CategoryFirestore(
+fun Category.toDto(): CategoryDto = CategoryDto(
     id = id,
     timestamp = timestamp,
     name = name,
