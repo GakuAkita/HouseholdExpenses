@@ -7,7 +7,10 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.test.json"
   },
   "engines": {
     "node": "20"
@@ -33,7 +36,8 @@
     "@types/html-to-text": "^9.0.4",
     "@types/luxon": "^3.7.1",
     "firebase-functions-test": "^3.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.7"
   },
   "overrides": {
     "form-data": "^4.0.0",
