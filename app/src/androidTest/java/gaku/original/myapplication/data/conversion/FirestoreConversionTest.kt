@@ -24,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import timber.log.Timber
 import java.time.DayOfWeek
 
 /**
@@ -40,7 +41,8 @@ class FirestoreConversionTest {
 
     @Before
     fun setUp() {
-        reference = FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
+        reference =
+            FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
     }
 
     @After
@@ -57,8 +59,10 @@ class FirestoreConversionTest {
 
     @Test
     fun category_mapRoundTrip() = runBlocking<Unit> {
+        Timber.d("This is taking too long")
         /* Used when a category is embedded in an Expense. */
         val snapshot = reference.categoryCollection.saveAndLoad(sampleCategory.toFirestore())
+        Timber.d("collection = ${reference.categoryCollection} snapshot = $snapshot")
 
         val actual = snapshot.data!!.toCategory()
 
