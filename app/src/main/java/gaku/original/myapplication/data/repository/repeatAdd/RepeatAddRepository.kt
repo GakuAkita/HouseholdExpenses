@@ -12,6 +12,7 @@ interface RepeatAddRepository {
 
     suspend fun getAllRepeatAdds(): Map<String, RepeatAdd>
 
+    /** Saves a new RepeatAdd. The caller decides the id. */
     suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd
 
     suspend fun updateRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd

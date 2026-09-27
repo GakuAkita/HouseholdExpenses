@@ -3,28 +3,32 @@ package gaku.original.myapplication.data.repository.repeatAdd
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.UUID
 
 class FakeRepeatAddRepository : RepeatAddRepository {
 
     var sampleRepeatAdd = mapOf(
         "1" to RepeatAdd(
-            "1",
+            id = "1",
+            timestamp = 0L,
             expense = ExpenseTemplate(
                 amount = 300,
                 category = Category(id = "category1", timestamp = 0L, name = "食費", enabled = true),
-            )
+            ),
+            frequencyInfo = RepeatFrequency.EveryMonth(day = 25, hour = 9, minute = 0)
         ),
         "2" to RepeatAdd(
             id = "2",
+            timestamp = 0L,
             expense = ExpenseTemplate(
                 amount = 500,
                 category = Category(id = "category1", timestamp = 0L, name = "食費", enabled = true),
-            )
+            ),
+            frequencyInfo = RepeatFrequency.EveryMonth(day = 25, hour = 9, minute = 0)
         )
     )
 
@@ -47,17 +51,14 @@ class FakeRepeatAddRepository : RepeatAddRepository {
 
     override suspend fun addRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
         delay(2000)
-        val newRepeatAdd = repeatAdd.copy(
-            id = UUID.randomUUID().toString()
-        )
-        sampleRepeatAdd += (newRepeatAdd.id!! to newRepeatAdd)
+        sampleRepeatAdd += (repeatAdd.id to repeatAdd)
         _repeatAdds.value = sampleRepeatAdd
-        return newRepeatAdd
+        return repeatAdd
     }
 
     override suspend fun updateRepeatAdd(repeatAdd: RepeatAdd): RepeatAdd {
         delay(2000)
-        sampleRepeatAdd += (repeatAdd.id!! to repeatAdd)
+        sampleRepeatAdd += (repeatAdd.id to repeatAdd)
         _repeatAdds.value = sampleRepeatAdd
         return repeatAdd
     }

@@ -16,8 +16,8 @@ import gaku.original.myapplication.data.repository.category.toDto
 import gaku.original.myapplication.data.repository.deleteAll
 import gaku.original.myapplication.data.repository.expense.ExpenseDto
 import gaku.original.myapplication.data.repository.expense.toDto
-import gaku.original.myapplication.data.repository.repeatAdd.toFirestore
-import gaku.original.myapplication.data.repository.repeatAdd.toRepeatAdd
+import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddDto
+import gaku.original.myapplication.data.repository.repeatAdd.toDto
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.After
@@ -103,19 +103,55 @@ class FirestoreConversionTest {
         repeatFrequencySamples.forEach { assertFullyPopulated(it) }
         assertFullyPopulated(sampleExpenseTemplate)
         repeatAddSamples.forEach { assertFullyPopulated(it) }
+        /* Fails when a property of RepeatAddDto is not set by toDto(). */
+        repeatAddSamples.forEach { assertFullyPopulated(it.toDto()) }
     }
 
     @Test
-    fun repeatAdd_documentSnapshotRoundTrip() = runBlocking<Unit> {
+    fun repeatAdd_roundTrip() = runBlocking<Unit> {
         repeatAddSamples.forEach { expected ->
-            val snapshot = reference.repeatAddCollection.saveAndLoad(expected.toFirestore())
+            val snapshot = reference.repeatAddCollection.saveAndLoad(expected.toDto())
 
-            val actual = snapshot.toRepeatAdd()
+            val actual = snapshot.toObject(RepeatAddDto::class.java)!!.toDomain()
 
             assertSameProperties(expected, actual)
             assertSameProperties(expected.expense, actual.expense)
             assertEquals(expected, actual)
         }
+    }
+
+    @Test
+    fun repeatAdd_readsDocumentWrittenAsMap() = runBlocking<Unit> {
+        /* Documents saved before RepeatAddDto have no keys for properties a frequency doesn't use. */
+        val snapshot = reference.repeatAddCollection.saveAndLoad(
+            mapOf(
+                "id" to "repeat1",
+                "timestamp" to 1_780_000_000_000L,
+                "expense" to sampleExpenseTemplate.toDto(),
+                "frequencyInfo" to mapOf(
+                    "frequency" to RepeatFrequency.EveryWeek.NAME,
+                    "dayOfWeek" to listOf("MONDAY", "FRIDAY"),
+                    "hour" to 8,
+                    "minute" to 15
+                )
+            )
+        )
+
+        val actual = snapshot.toObject(RepeatAddDto::class.java)!!.toDomain()
+
+        assertEquals(
+            RepeatAdd(
+                id = "repeat1",
+                timestamp = 1_780_000_000_000L,
+                expense = sampleExpenseTemplate,
+                frequencyInfo = RepeatFrequency.EveryWeek(
+                    dayOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY),
+                    hour = 8,
+                    minute = 15
+                )
+            ),
+            actual
+        )
     }
 
     private suspend fun CollectionReference.saveAndLoad(data: Any): DocumentSnapshot {
