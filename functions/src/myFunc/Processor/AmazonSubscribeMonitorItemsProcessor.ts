@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { Runtime } from "../../shared/runtime";
 import { AmazonMailSubjects } from "../../type/AmazonMailSubjects";
 import {
   FuncResult,
@@ -17,7 +18,6 @@ import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribe
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
 import {
   convertUnixMillisecToSec,
-  getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
 import {
   extractHtmlBody,
@@ -41,7 +41,8 @@ export class AmazonSubscribeMonitorItemsProcessor {
 
   constructor(
     userId: string,
-    private mailboxExtractionService: MailboxExtractionService
+    private mailboxExtractionService: MailboxExtractionService,
+    private runtime: Runtime
   ) {
     this.userId = userId;
   }
@@ -82,7 +83,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
       return lastExecRet;
     }
 
-    const endTime = getCurrentUnixMillisec();
+    const endTime = this.runtime.clock.now().getTime();
     const lastMsgId = lastExecRet.data?.lastMsgId;
     let startTime: number = 0;
     if (!lastExecRet.data?.timestamp) {
@@ -94,7 +95,8 @@ export class AmazonSubscribeMonitorItemsProcessor {
 
     const gmailClientRet = await generateGmailApiInstance(
       this.userId,
-      this.mailboxExtractionService
+      this.mailboxExtractionService,
+      this.runtime.secrets
     );
     if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
       logger.error(`${gmailClientRet.message}`);
@@ -104,7 +106,7 @@ export class AmazonSubscribeMonitorItemsProcessor {
     /**
      * クエリをして、msgIdを取得
      */
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+    const isEmulator = this.runtime.config.isEmulator;
 
     /**
      * こっちは次回配送の連絡

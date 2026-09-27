@@ -1,72 +1,100 @@
-// myFunc/secrets/googleOAuthSecrets.ts
-
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { logger } from "firebase-functions";
+import { RuntimeConfig } from "../shared/runtimeConfig";
 import { FuncResultWithData, FuncStatus } from "../type/FuncStatus";
 import { GoogleOAuthSecrets } from "../type/GoogleOAuthSecrets";
 
-const secretClient = new SecretManagerServiceClient();
-let cachedGoogleOAuthSecrets: GoogleOAuthSecrets | null = null;
+const SECRET_NAME = "GOOGLE_OAUTH2";
 
-export const loadGoogleOAuthSecrets = async (): Promise<
-  FuncResultWithData<GoogleOAuthSecrets>
-> => {
-  if (cachedGoogleOAuthSecrets) {
-    logger.log("Returning cached Google OAuth secrets.");
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Secrets loaded from cache.",
-      data: cachedGoogleOAuthSecrets,
-    };
-  }
+export interface GoogleOAuthSecretProvider {
+  load(): Promise<FuncResultWithData<GoogleOAuthSecrets>>;
+}
 
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+/** Reads the secret's payload (JSON text). Replaced with a fake in tests. */
+export type SecretFetcher = (name: string) => Promise<string>;
 
-  try {
-    let parsed: GoogleOAuthSecrets;
-    if (isEmulator) {
-      logger.log(
-        "Loading secrets from local environment variables (EMULATOR Mode)"
-      );
-      const config = process.env.GOOGLE_OAUTH_SECRETS;
-      if (!config) {
+/**
+ * Reads a secret from Secret Manager.
+ * The client is created on the first call, not when this module is imported.
+ */
+export const createSecretManagerFetcher = (projectId: string | undefined): SecretFetcher => {
+  let client: SecretManagerServiceClient | null = null;
+  return async (name) => {
+    client ??= new SecretManagerServiceClient();
+    const [version] = await client.accessSecretVersion({
+      name: `projects/${projectId}/secrets/${name}/versions/latest` /* latestじゃなくて4にしてもいいか。 */,
+    });
+    const data = version.payload?.data as Buffer | undefined;
+    if (!data) throw new Error("Failed to load secret from Secret Manager.");
+    return data.toString("utf8");
+  };
+};
+
+/**
+ * Loads the Google OAuth secrets.
+ *
+ * Secret Manager charges per access, so the secrets are loaded at most once per instance.
+ * Calls that arrive while the first load is running share it. A failed load is not kept,
+ * so the next call tries again.
+ */
+export const createGoogleOAuthSecretProvider = (
+  config: RuntimeConfig,
+  fetchSecret: SecretFetcher = createSecretManagerFetcher(config.projectId)
+): GoogleOAuthSecretProvider => {
+  let pending: Promise<GoogleOAuthSecrets> | null = null;
+
+  const loadOnce = async (): Promise<GoogleOAuthSecrets> => {
+    let json: string;
+    if (config.isEmulator) {
+      logger.log("Loading secrets from local environment variables (EMULATOR Mode)");
+      if (!config.emulatorGoogleOAuthSecrets) {
         throw new Error(`Unable to find secrets in env`);
       }
-
-      parsed = JSON.parse(config);
+      json = config.emulatorGoogleOAuthSecrets;
     } else {
       logger.log("Loading secrets from Secret Manager without using cache");
-      const secretName = "GOOGLE_OAUTH2";
-      const [version] = await secretClient.accessSecretVersion({
-        name: `projects/${process.env.GCLOUD_PROJECT}/secrets/${secretName}/versions/latest` /* latestじゃなくて4にしてもいいか。 */,
-      });
+      json = await fetchSecret(SECRET_NAME);
+    }
 
-      const data = version.payload?.data as Buffer | undefined;
-      if (!data) throw new Error("Failed to load secret from Secret Manager.");
-
-      try {
-        parsed = JSON.parse(data.toString("utf8"));
-      } catch {
-        throw new Error("Failed to parse secret JSON.");
-      }
+    let parsed: GoogleOAuthSecrets;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      throw new Error("Failed to parse secret JSON.");
     }
 
     const { clientId, clientSecret, redirectUri, encryptionKey } = parsed;
     if (!clientId || !clientSecret || !redirectUri || !encryptionKey) {
       throw new Error("Incomplete secret fields.");
     }
+    return parsed;
+  };
 
-    cachedGoogleOAuthSecrets = parsed;
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Google OAuth secrets loaded successfully.",
-      data: parsed,
-    };
-  } catch (e) {
-    return {
-      status: FuncStatus.ERROR,
-      message: e instanceof Error ? e.message : String(e),
-      data: undefined,
-    };
-  }
+  return {
+    async load() {
+      if (pending) {
+        logger.log("Returning cached Google OAuth secrets.");
+      } else {
+        pending = loadOnce();
+        /* Don't keep a failed load, so the next call retries. */
+        pending.catch(() => {
+          pending = null;
+        });
+      }
+
+      try {
+        return {
+          status: FuncStatus.SUCCESS,
+          message: "Google OAuth secrets loaded successfully.",
+          data: await pending,
+        };
+      } catch (e) {
+        return {
+          status: FuncStatus.ERROR,
+          message: e instanceof Error ? e.message : String(e),
+          data: undefined,
+        };
+      }
+    },
+  };
 };

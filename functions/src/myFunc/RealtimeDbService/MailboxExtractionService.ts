@@ -1,3 +1,4 @@
+import { Auth } from "firebase-admin/auth";
 import { Database, Reference } from "firebase-admin/database";
 import { logger } from "firebase-functions";
 import {
@@ -13,10 +14,10 @@ import {
   MailboxGmailTokenType,
   RakutenPaySetting,
 } from "../../type/Mailbox";
-import { admin } from "../firebaseAdmin";
+import { Clock } from "../../shared/clock";
+import { RuntimeConfig } from "../../shared/runtimeConfig";
 import { sanitizeEmail } from "../utility/emailEncode";
 import { decryptWithKey, encryptWithKey } from "../utility/encryption";
-admin;
 
 /**
  * あくまでRealtime Databaseとのやりとりのみに務める
@@ -24,7 +25,10 @@ admin;
 export class MailboxExtractionService {
   private db: Database;
 
-  constructor(db: Database) {
+  constructor(
+    db: Database,
+    private deps: { auth: Auth; clock: Clock; config: RuntimeConfig }
+  ) {
     this.db = db;
   }
 
@@ -114,7 +118,7 @@ export class MailboxExtractionService {
     try {
       let passedEmail: string | undefined;
       if (!gmail) {
-        const userRecord = await admin.auth().getUser(userId);
+        const userRecord = await this.deps.auth.getUser(userId);
         passedEmail = userRecord.email;
       } else {
         passedEmail = gmail;
@@ -130,7 +134,7 @@ export class MailboxExtractionService {
         userId,
         passedEmail
       );
-      const now = new Date();
+      const now = this.deps.clock.now();
       const isoString = now.toISOString();
       await ref.set({ ...token, timestamp: isoString });
       return {
@@ -175,15 +179,15 @@ export class MailboxExtractionService {
     userId: string,
     gmail?: string
   ): Promise<FuncResultWithData<MailboxGmailTokenType>> {
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+    const isEmulator = this.deps.config.isEmulator;
     try {
       let passedEmail;
       if (isEmulator) {
         /* あまりこういうのやりたくないが、、、 */
-        passedEmail = process.env.MY_GMAIL;
+        passedEmail = this.deps.config.emulatorGmail;
       } else if (!gmail) {
         /* gmailに何も入っていなかったらuserIdからemailを取得してそれを使う */
-        const userRecord = await admin.auth().getUser(userId);
+        const userRecord = await this.deps.auth.getUser(userId);
         passedEmail = userRecord.email;
       } else {
         /* 普通のgmailのときはそのまま渡す */
@@ -488,7 +492,7 @@ export class MailboxExtractionService {
       const newRef = ref.push();
 
       const id = newRef.key;
-      const timestamp = Date.now();
+      const timestamp = this.deps.clock.now().getTime();
 
       if (!id) {
         return {

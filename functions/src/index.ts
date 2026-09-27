@@ -4,9 +4,7 @@ import { onSchedule } from "firebase-functions/scheduler";
 import * as functions from "firebase-functions/v1";
 import * as qs from "querystring";
 import { TriggerTimeZone } from "./constants/TimeZone";
-import { admin } from "./myFunc/firebaseAdmin";
-import { loadGoogleOAuthSecrets } from "./myFunc/googleOAuthSecrets";
-import { initializeServices } from "./myFunc/initializeServices";
+import { initializeServices, Services } from "./myFunc/initializeServices";
 import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
 import { FuncStatus } from "./type/FuncStatus";
@@ -16,17 +14,15 @@ import {
   mailboxExtractionSchedules,
   MailboxGmailTokenType,
 } from "./type/Mailbox";
-const {
-  userService,
-  repeatAddProcessor,
-  expenseService,
-  categoryService,
-  userSettingsProcessor,
-  mailboxExtractionService,
-  categoryAssignmentService,
-} = initializeServices();
+/**
+ * Services are created on the first call, not when this module is loaded.
+ * Deploying and importing the module (e.g. in tests) doesn't touch Firebase.
+ */
+let services: Services | null = null;
+const getServices = (): Services => (services ??= initializeServices());
 
 const schedule_repeatAdd = async () => {
+  const { userService, repeatAddProcessor } = getServices();
   /* ユーザーIDをすべて取得してくる */
   let funcResult = await userService.getAllUserIds();
   if (funcResult.status !== FuncStatus.SUCCESS) {
@@ -80,6 +76,7 @@ exports.monthly_repeatAddJob = onSchedule(
  * 注意：Node.js 18は2025-10-30に廃止されたため、Node.js 20以上が必須。2025/11/2
  */
 exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
+  const { userSettingsProcessor } = getServices();
   const uid = user.uid;
   const email = user.email;
 
@@ -96,6 +93,7 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
  * Gmailアクセスの許可を取得したときの処理
  */
 exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
+  const { auth, runtime, mailboxExtractionService } = getServices();
   logger.log("Received OAuth callback request.");
   const state = req.query.state as string | undefined;
   if (!state) {
@@ -118,7 +116,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
      * stateにFirebaseのIDトークンが入っている。
      * * これをデコードして、uidを取得する。
      *  */
-    const decodedToken = await admin.auth().verifyIdToken(state);
+    const decodedToken = await auth.verifyIdToken(state);
     if (!decodedToken || !decodedToken.uid) {
       throw new Error(
         "Invalid state parameter: Unable to decode Firebase ID token.",
@@ -126,12 +124,12 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     }
     const uid = decodedToken.uid;
 
-    let ret = await loadGoogleOAuthSecrets();
+    let ret = await runtime.secrets.load();
     if (ret.status !== FuncStatus.SUCCESS) {
       throw new Error(`Failed to load Google OAuth secrets: ${ret.message}`);
     }
     const secrets =
-      ret.data as GoogleOAuthSecrets; /* loadGoogleOAuthSecrets内で値が入っているかチェックはしている */
+      ret.data as GoogleOAuthSecrets; /* secrets.load()内で値が入っているかチェックはしている */
     const postData = qs.stringify({
       code: codeParam,
       client_id: secrets.clientId,
@@ -176,7 +174,7 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
     }
 
     /* ここでFirebaseのGmailと一致しているかチェックし、一致していなかったら弾く */
-    const userRecord = await admin.auth().getUser(uid);
+    const userRecord = await auth.getUser(uid);
     const userEmail = userRecord.email;
     if (gmailEmail !== userEmail) {
       throw new Error("Permitted email and user email is different");
@@ -224,6 +222,14 @@ exports.handleOAuthCallback = functions.https.onRequest(async (req, res) => {
 });
 
 const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
+  const {
+    userService,
+    mailboxExtractionService,
+    expenseService,
+    categoryService,
+    categoryAssignmentService,
+    runtime,
+  } = getServices();
   /* ユーザーIDをすべて取得してくる */
   let funcResult = await userService.getAllUserIds();
   if (funcResult.status !== FuncStatus.SUCCESS) {
@@ -245,6 +251,7 @@ const scheduledMailboxExtraction = async (mailTypeList: AllMailType[]) => {
       expenseService,
       categoryService,
       categoryAssignmentService,
+      runtime,
     );
     /* ユーザーごとに実行 */
     await mailboxExtrInstance.processAllMailTypeList(mailTypeList);
@@ -281,6 +288,7 @@ for (const [_, schedule] of mailboxExtractionSchedules.entries()) {
  * 定期便リストの生成
  */
 const amazonSubscribeMonitor = async () => {
+  const { userService, mailboxExtractionService, runtime } = getServices();
   let funcResult = await userService.getAllUserIds();
   if (funcResult.status !== FuncStatus.SUCCESS) {
     logger.error("Failed to retrieve user IDs:", funcResult.message);
@@ -297,6 +305,7 @@ const amazonSubscribeMonitor = async () => {
     const processor = new AmazonSubscribeMonitorItemsProcessor(
       uid,
       mailboxExtractionService,
+      runtime,
     );
     const ret = await processor.handleAmazonSubscribeItems();
     if (ret.status !== FuncStatus.SUCCESS) {

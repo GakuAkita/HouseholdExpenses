@@ -4,20 +4,9 @@ import * as path from "path";
 import { RepeatFrequency } from "./constants/RepeatFrequency";
 import { TimeZone } from "./constants/TimeZone";
 import { GmailApiClient } from "./myFunc/Client/GmailApiClient";
-import { CategoryService } from "./myFunc/FirestoreService/CategoryService";
-import { ExpenseService } from "./myFunc/FirestoreService/ExpenseService";
-import { FirestoreService } from "./myFunc/FirestoreService/FirestoreService";
-import { RepeatAddService } from "./myFunc/FirestoreService/RepeatAddService";
-import { SettingsService } from "./myFunc/FirestoreService/SettingsService";
-import { UserService } from "./myFunc/FirestoreService/UserService";
 import { AmazonSubscribeMonitorItemsProcessor } from "./myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
+import { initializeServices } from "./myFunc/initializeServices";
 import { MailboxExtractionProcessor } from "./myFunc/Processor/MailboxExtractionProcessor";
-import { RepeatAddProcessor } from "./myFunc/Processor/RepeatAddProcessor";
-import { UserSettingsProcessor } from "./myFunc/Processor/UserSettingsProcessor";
-import { CategoryAssignmentService } from "./myFunc/RealtimeDbService/CategoryAssignmentService";
-import { MailboxExtractionService } from "./myFunc/RealtimeDbService/MailboxExtractionService";
-import { RealtimeDbService } from "./myFunc/RealtimeDbService/RealtimeDbService";
-import { UserRTDbService } from "./myFunc/RealtimeDbService/UserRTDbService";
 import { decryptWithKey } from "./myFunc/utility/encryption";
 import { Category } from "./type/Category";
 import { Expense } from "./type/Expense";
@@ -59,44 +48,31 @@ const firebaseOptions = {
   projectId: process.env.FIREBASE_PROJECT_ID,
   databaseURL: databaseURL,
 };
-const fsService = new FirestoreService(firebaseOptions);
-const db = fsService.getDb();
+const {
+  runtime,
+  userService,
+  expenseService,
+  categoryService,
+  repeatAddService,
+  settingsService,
+  mailboxExtractionService,
+  categoryAssignmentService,
+  repeatAddProcessor,
+  userSettingsProcessor,
+} = initializeServices({ appOptions: firebaseOptions });
 
-const rtdbService = new RealtimeDbService(firebaseOptions);
-const rtdb = rtdbService.getDb();
-
-const userService = new UserService(db);
-const expenseService = new ExpenseService(db);
-const categoryService = new CategoryService(db);
-const repeatAddService = new RepeatAddService(db);
-const settingsService = new SettingsService(db);
-const mailboxExtractionService = new MailboxExtractionService(rtdb);
-const categoryAssignmentService = new CategoryAssignmentService(rtdb);
 const mailboxExProcessor = new MailboxExtractionProcessor(
   userId,
   mailboxExtractionService,
   expenseService,
   categoryService,
-  categoryAssignmentService
-);
-
-const userRTDbService = new UserRTDbService(rtdb);
-
-const repeatAddProcessor = new RepeatAddProcessor(
-  repeatAddService,
-  expenseService,
-  settingsService
-);
-
-const userSettingsProcessor = new UserSettingsProcessor(
-  userService,
-  userRTDbService,
-  settingsService
+  categoryAssignmentService,
+  runtime
 );
 
 const execAmazonSubscribe = async () => {
   const amazonSubscribeMointorProcessor =
-    new AmazonSubscribeMonitorItemsProcessor(userId, mailboxExtractionService);
+    new AmazonSubscribeMonitorItemsProcessor(userId, mailboxExtractionService, runtime);
 
   const ret =
     await amazonSubscribeMointorProcessor.handleAmazonSubscribeItems();
@@ -438,7 +414,8 @@ const processMailTest = async () => {
     mailboxExtractionService,
     expenseService,
     categoryService,
-    categoryAssignmentService
+    categoryAssignmentService,
+    runtime
   );
 
   const testTypes = [
