@@ -88,8 +88,6 @@ fun CategoryEditScreenRoot(
     )
 }
 
-val CATEGORY_NULL_REPLACEMENT = "category Not Set"
-
 @Composable
 fun CategoryEditScreen(
     uiState: CategoryEditUiState,
@@ -100,7 +98,7 @@ fun CategoryEditScreen(
     onCategoryAddClick: () -> Unit,
     onEditDialogDismiss: () -> Unit,
     onDeleteDialogDismiss: () -> Unit,
-    onSaveClick: (Category) -> Unit,
+    onSaveClick: (name: String) -> Unit,
     onDeleteClick: (Category) -> Unit,
     onCategoryNameChange: (String) -> Unit/* used to change erase the dialog message */
 ) {
@@ -160,7 +158,7 @@ fun CategoryEditScreen(
 
             if (uiState.isShowEditDialog) {
                 CategoryAddEditDialog(
-                    category = uiState.selectedCategory!!,
+                    category = uiState.selectedCategory,
                     onSave = {
                         onSaveClick(it)
                     },
@@ -197,19 +195,27 @@ fun CategoryEditScreenPreview() {
         categories = listOf(
             Category(
                 id = "1",
-                name = "Food"
+                timestamp = 0L,
+                name = "Food",
+                enabled = true
             ),
             Category(
                 id = "2",
-                name = "Waste"
+                timestamp = 0L,
+                name = "Waste",
+                enabled = true
             ),
             Category(
                 id = "3",
-                name = "aa.bbbbbbccccccccccddddddd"
+                timestamp = 0L,
+                name = "aa.bbbbbbccccccccccddddddd",
+                enabled = true
             ),
             Category(
                 id = "4",
-                name = "bb"
+                timestamp = 0L,
+                name = "bb",
+                enabled = true
             )
         )
     )
@@ -246,7 +252,7 @@ fun CategoryItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         //nullになることは基本的にない
-        Text(modifier = Modifier.weight(1f), text = category.name ?: CATEGORY_NULL_REPLACEMENT)
+        Text(modifier = Modifier.weight(1f), text = category.name)
 
         // ゴミ箱ボタン
         IconButton(
@@ -262,13 +268,13 @@ fun CategoryItem(
 
 @Composable
 fun CategoryAddEditDialog(
-    category: Category,
-    onSave: (category: Category) -> Unit,
+    category: Category?, /* null when adding */
+    onSave: (name: String) -> Unit,
     onDismiss: () -> Unit,
     errorMessage: String? = null,
     onValueChange: (String) -> Unit = {}
 ) {
-    var newCategory by remember { mutableStateOf(category) }
+    var name by remember { mutableStateOf(category?.name ?: "") }
 
     AlertDialog(
         onDismissRequest = {
@@ -289,15 +295,15 @@ fun CategoryAddEditDialog(
                     modifier = Modifier
                         .padding(end = 10.dp),
                     onClick = {
-                        /* ここでnewCategoryが適切かチェックする */
+                        /* ここでnameが適切かチェックする */
                         /* すでにカテゴリーの中に存在するかはここではチェックしない */
-                        if (newCategory.name == null || newCategory.name == "") {
+                        if (name == "") {
                             /* 何もしないか、Toastをだす */
-                        } else if (newCategory.name == category.name) {
+                        } else if (name == category?.name) {
                             /* 編集だけど何も変わっていない場合 */
                             onDismiss()
                         } else {
-                            onSave(newCategory)
+                            onSave(name)
                         }
                     }
                 ) {
@@ -306,7 +312,7 @@ fun CategoryAddEditDialog(
             }
         },
         title = {
-            if (newCategory.id == null) {
+            if (category == null) {
                 Text("Add Category")
             } else {
                 Text("Edit Category")
@@ -317,10 +323,10 @@ fun CategoryAddEditDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = newCategory.name ?: "",
+                    value = name,
                     onValueChange = {
                         onValueChange(it)
-                        newCategory = newCategory.copy(name = it)
+                        name = it
                     },
                     singleLine = true
                 )

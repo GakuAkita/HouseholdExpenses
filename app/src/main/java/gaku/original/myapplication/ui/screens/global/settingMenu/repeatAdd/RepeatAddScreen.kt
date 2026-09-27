@@ -172,7 +172,7 @@ fun RepeatAddScreenPreview() {
                 id = "1",
                 expense = ExpenseTemplate(
                     amount = 200L,
-                    category = Category(name = "食費")
+                    category = Category(id = "食費", timestamp = 0L, name = "食費", enabled = true)
                 )
             )
         )

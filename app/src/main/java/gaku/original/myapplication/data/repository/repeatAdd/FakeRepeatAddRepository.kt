@@ -16,14 +16,14 @@ class FakeRepeatAddRepository : RepeatAddRepository {
             "1",
             expense = ExpenseTemplate(
                 amount = 300,
-                category = Category(id = "category1", name = "食費"),
+                category = Category(id = "category1", timestamp = 0L, name = "食費", enabled = true),
             )
         ),
         "2" to RepeatAdd(
             id = "2",
             expense = ExpenseTemplate(
                 amount = 500,
-                category = Category(id = "category1", name = "食費"),
+                category = Category(id = "category1", timestamp = 0L, name = "食費", enabled = true),
             )
         )
     )

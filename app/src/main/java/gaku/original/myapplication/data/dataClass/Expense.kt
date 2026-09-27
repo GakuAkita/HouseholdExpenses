@@ -1,9 +1,7 @@
 package gaku.original.myapplication.data.dataClass
 
 import android.os.Parcelable
-import androidx.compose.runtime.mutableStateListOf
 import gaku.original.myapplication.common.InstantSerializer
-import gaku.original.myapplication.data.Interface.CommonProperty
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.time.Instant
@@ -29,11 +27,11 @@ data class Expense(
 @Serializable
 @Parcelize
 data class Category(
-    override var id: String? = null,
-    override var timestamp: Long? = System.currentTimeMillis(),
-    val name: String? = null,
-    val enabled: Boolean? = true
-) : CommonProperty, Parcelable
+    val id: String,
+    val timestamp: Long,/* When this category was created */
+    val name: String,
+    val enabled: Boolean,
+) : Parcelable
 
 @Serializable
 sealed interface GeneratedType {
@@ -81,16 +79,4 @@ fun String.toGeneratedType(): GeneratedType {
 
         else -> throw IllegalArgumentException("Invalid GeneratedType: $this")
     }
-}
-
-object InitialCategories {
-    //サインアップ時にデフォルトで登録されるカテゴリ
-    val categories = mutableStateListOf(
-        Category(name = "食費"),
-        Category(name = "交通費"),
-        Category(name = "生活費"),
-        Category(name = "電気代"),
-        Category(name = "水道代"),
-        Category(name = "その他"),
-    )
 }

@@ -31,23 +31,20 @@ class CategoryRepositoryFirestore(
                     Timber.d("document=$document")
                     document.toObject(CategoryDto::class.java)?.toDomain()
                 }
-                .associateBy { it.id!! }
+                .associateBy { it.id }
 
             Timber.d("categories=$categories")
             _categories.value = categories
         }
 
     override suspend fun addCategory(category: Category): Category {
-        Timber.d("addCategory called")
-        val newId = categoryCollection.document().id
-        Timber.d("newId=$newId")
-        val newCategory = category.copy(id = newId)
-        categoryCollection.document(newId).set(newCategory.toDto()).await()
-        return newCategory
+        Timber.d("addCategory: $category")
+        categoryCollection.document(category.id).set(category.toDto()).await()
+        return category
     }
 
     override suspend fun updateCategory(category: Category) {
-        categoryCollection.document(category.id!!).set(category.toDto()).await()
+        categoryCollection.document(category.id).set(category.toDto()).await()
     }
 
     override suspend fun deleteCategory(categoryId: String) {
