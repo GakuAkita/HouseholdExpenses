@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.test.json",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:live": "vitest run --config vitest.live.config.ts"
+    "test:live": "vitest run --config vitest.live.config.ts",
+    "emulator:repeatAdd": "npm run build && node scripts/runRepeatAddJobOnEmulator.js"
   },
   "engines": {
     "node": "20"
