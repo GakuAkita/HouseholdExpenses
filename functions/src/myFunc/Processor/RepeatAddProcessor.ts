@@ -1,5 +1,6 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
 import { logger } from "firebase-functions";
+import { DateTime } from "luxon";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { RepeatFrequency } from "../../constants/RepeatFrequency";
 import { TimeZone, TriggerTimeZone } from "../../constants/TimeZone";
@@ -8,6 +9,7 @@ import {
   FuncResultWithData,
   FuncStatus,
 } from "../../type/FuncStatus";
+import { Clock } from "../../shared/clock";
 import { RepeatAdd } from "../../type/RepeatAdd";
 import { ExpenseService } from "../FirestoreService/ExpenseService";
 import { RepeatAddService } from "../FirestoreService/RepeatAddService";
@@ -25,7 +27,8 @@ export class RepeatAddProcessor {
   constructor(
     private repeatAddService: RepeatAddService,
     private expenseService: ExpenseService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private clock: Clock
   ) { }
 
   /**
@@ -170,7 +173,7 @@ export class RepeatAddProcessor {
 
     /* 必要なものを加えていかないと、、 */
     expense.generatedType = `${GeneratedType.REPEAT_ADD}___${repeatAdd.id}`; /* ___(アンダーバー3つ)を区切りサインとする */
-    expense.timestamp = Date.now();
+    expense.timestamp = this.clock.now().getTime();
 
     /* targetDateで渡すときにすでにUTCに変換したときに設定のタイムゾーンで設定の時間になるようにしておく */
     expense.datetime = targetDate.toISOString();
@@ -235,9 +238,8 @@ export class RepeatAddProcessor {
     logger.log(`User time zone: ${userTimeZone}`);
 
     /* 次で使うので現在の年と月を取得 */
-    const DateTime = require("luxon").DateTime; //このように書かないとimportできないっぽい。
     const triggerRegionTime =
-      DateTime.now().setZone(TriggerTimeZone); /* RepeatAdd function is triggered based on Japan time. */
+      DateTime.fromJSDate(this.clock.now()).setZone(TriggerTimeZone); /* RepeatAdd function is triggered based on Japan time. */
     const currentYear = triggerRegionTime.year;
     const currentMonth = triggerRegionTime.month; // 月は0から始まるので+1
     logger.log(

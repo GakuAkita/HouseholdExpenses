@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { RepeatFrequency } from "../../src/constants/RepeatFrequency";
 import { TimeZone } from "../../src/constants/TimeZone";
 import { RepeatAddProcessor } from "../../src/myFunc/Processor/RepeatAddProcessor";
+import { systemClock } from "../../src/shared/clock";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { Frequency, RepeatAdd } from "../../src/type/RepeatAdd";
 
 /* getTargetDateFromRepeatAdd doesn't touch the services. */
-const processor = new RepeatAddProcessor({} as never, {} as never, {} as never);
+const processor = new RepeatAddProcessor({} as never, {} as never, {} as never, systemClock);
 
 const repeatAdd = (frequencyInfo: Frequency): RepeatAdd => ({
   id: "repeat1",

@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { Runtime } from "../../shared/runtime";
 import { GeneratedType } from "../../constants/GeneratedType";
 import { Category } from "../../type/Category";
 import { CategoryAssignmentData } from "../../type/CategoryAssignment";
@@ -46,7 +47,6 @@ import {
 import { isAmazonSubscribeProductExist } from "../utility/isAmazonSubscribeProductExist";
 import {
   convertUnixMillisecToSec,
-  getCurrentUnixMillisec,
 } from "../utility/getCurrentUnixSec";
 import { extractTextBody } from "../utility/gmail/extractHtmlBody";
 import { filterMessages } from "../utility/gmail/filterMessages";
@@ -77,7 +77,8 @@ export class MailboxExtractionProcessor {
     private mailboxExtractionService: MailboxExtractionService,
     private expenseService: ExpenseService,
     private categoryService: CategoryService,
-    private categoryAssignmentService: CategoryAssignmentService
+    private categoryAssignmentService: CategoryAssignmentService,
+    private runtime: Runtime
   ) {
     this.userId = userId;
   }
@@ -291,7 +292,7 @@ export class MailboxExtractionProcessor {
     type: AllMailType
   ): Promise<FuncResult> {
     const generatedType = `${GeneratedType.MAIL_EXTRACTION}___${type.nodeName}`;
-    const timestamp = Date.now();
+    const timestamp = this.runtime.clock.now().getTime();
 
     const newExpense: Expense = {
       ...baseExpense,
@@ -889,7 +890,7 @@ export class MailboxExtractionProcessor {
     }
 
     /* データベースにもミリ秒で保存する */
-    const endTime = getCurrentUnixMillisec();
+    const endTime = this.runtime.clock.now().getTime();
     const lastMsgId = lastExecRet.data?.lastMsgId; /* nullの可能性もある */
     let startTime: number = 0;
     if (!lastExecRet.data?.timestamp) {
@@ -906,7 +907,8 @@ export class MailboxExtractionProcessor {
      */
     const gmailClientRet = await generateGmailApiInstance(
       this.userId,
-      this.mailboxExtractionService
+      this.mailboxExtractionService,
+      this.runtime.secrets
     );
     if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
       logger.info(`${gmailClientRet.message}`);
@@ -917,7 +919,7 @@ export class MailboxExtractionProcessor {
     /**
      * クエリをして、msgIdを取得
      */
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+    const isEmulator = this.runtime.config.isEmulator;
     const queryAfter = isEmulator
       ? 1
       : convertUnixMillisecToSec(
