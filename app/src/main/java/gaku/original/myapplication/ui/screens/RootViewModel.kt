@@ -9,9 +9,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.Constants.ShareIntentKeys
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.domain.AuthState
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpensePrefill
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import gaku.original.myapplication.utility.getParcelableExtraCompat
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
 
 sealed interface RootUiEffect {
 
@@ -27,7 +28,7 @@ sealed interface RootUiEffect {
     ) : RootUiEffect
 
     data class ExpenseAdd(
-        val expense: Expense
+        val prefill: ExpensePrefill
     ) : RootUiEffect
 }
 
@@ -71,7 +72,7 @@ class RootViewModel(
                         is SentData.Expense -> {
                             _eventFlow.emit(
                                 RootUiEffect.ExpenseAdd(
-                                    sentData.toExpense()
+                                    sentData.toExpensePrefill()
                                 )
                             )
                         }
@@ -93,10 +94,9 @@ class RootViewModel(
     }
 }
 
-fun SentData.Expense.toExpense(): Expense {
-    return Expense(
-        id = null,
-        datetime = datetime,
+fun SentData.Expense.toExpensePrefill(): ExpensePrefill {
+    return ExpensePrefill(
+        datetime = datetime?.let { Instant.parse(it) },
         amount = amount,
         storeName = storeName
     )

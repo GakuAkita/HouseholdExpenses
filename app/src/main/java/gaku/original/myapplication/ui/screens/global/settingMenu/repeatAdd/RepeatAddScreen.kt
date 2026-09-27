@@ -38,7 +38,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
@@ -169,8 +170,9 @@ fun RepeatAddScreenPreview() {
         repeatAdds = listOf(
             RepeatAdd(
                 id = "1",
-                expense = Expense(
-                    amount = 200L
+                expense = ExpenseTemplate(
+                    amount = 200L,
+                    category = Category(name = "食費")
                 )
             )
         )
@@ -239,7 +241,7 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () ->
                 textAlign = TextAlign.Left,//左寄せ
             )
             Text(
-                text = "${repeatAdd.expense.category?.name}",
+                text = "${repeatAdd.expense.category.name}",
                 modifier = Modifier.weight(1f),
                 fontSize = 20.sp,
                 textAlign = TextAlign.Left

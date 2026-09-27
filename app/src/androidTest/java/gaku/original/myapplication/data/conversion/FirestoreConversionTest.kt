@@ -5,6 +5,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
@@ -99,6 +100,7 @@ class FirestoreConversionTest {
     fun repeatAdd_samplesAreFullyPopulated() {
         assertCoversAllSubclasses(RepeatFrequency::class, repeatFrequencySamples)
         repeatFrequencySamples.forEach { assertFullyPopulated(it) }
+        assertFullyPopulated(sampleExpenseTemplate)
         repeatAddSamples.forEach { assertFullyPopulated(it) }
     }
 
@@ -109,12 +111,9 @@ class FirestoreConversionTest {
 
             val actual = snapshot.toRepeatAdd()
 
-            assertSameProperties(expected, actual, notStored = setOf("expense"))
-            assertSameProperties(
-                expected.expense,
-                actual.expense,
-                notStored = EXPENSE_PROPERTIES_NOT_RESTORED_FOR_REPEAT_ADD
-            )
+            assertSameProperties(expected, actual)
+            assertSameProperties(expected.expense, actual.expense)
+            assertEquals(expected, actual)
         }
     }
 
@@ -125,14 +124,6 @@ class FirestoreConversionTest {
     }
 
     companion object {
-        /**
-         * The expense of RepeatAdd is a template. These properties are decided when the expense is
-         * actually added, so toDomainForRepeatAdd() does not restore them.
-         * When you add a property to Expense, either restore it in toDomainForRepeatAdd() or add it here.
-         */
-        private val EXPENSE_PROPERTIES_NOT_RESTORED_FOR_REPEAT_ADD =
-            setOf("id", "datetime", "timestamp", "generatedType")
-
         private val sampleCategory = Category(
             id = "category1",
             timestamp = 1_770_000_000_000L,
@@ -173,11 +164,19 @@ class FirestoreConversionTest {
             RepeatFrequency.Everyday(hour = 6, minute = 5),
         )
 
+        private val sampleExpenseTemplate = ExpenseTemplate(
+            amount = 8000L,
+            category = sampleCategory,
+            note = "note",
+            storeName = "store",
+            itemName = "item"
+        )
+
         private val repeatAddSamples = repeatFrequencySamples.map { frequency ->
             RepeatAdd(
                 id = "repeat1",
                 timestamp = 1_780_000_000_000L,
-                expense = expenseSamples.first(),
+                expense = sampleExpenseTemplate,
                 frequencyInfo = frequency
             )
         }

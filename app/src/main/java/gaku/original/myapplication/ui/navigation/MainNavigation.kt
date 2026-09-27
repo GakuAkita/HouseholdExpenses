@@ -10,7 +10,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
@@ -48,13 +48,13 @@ fun NavGraphBuilder.mainGraph(
 
         // https://medium.com/mercadona-tech/type-safety-in-navigation-compose-23c03e3d74a5
         composable<MainGraph.Global.ExpenseAddEdit>(
-            typeMap = mapOf(typeOf<Expense?>() to nullableNavTypeOf<Expense>())
+            typeMap = mapOf(typeOf<ExpenseAddEditMode>() to navTypeOf<ExpenseAddEditMode>())
         ) { backStackEntry ->
-            val expense = backStackEntry.toRoute<MainGraph.Global.ExpenseAddEdit>().expense
+            val mode = backStackEntry.toRoute<MainGraph.Global.ExpenseAddEdit>().mode
 
             ExpenseAddEditScreenRoot(
                 navHostController = navController,
-                viewModel = viewModel(factory = ExpenseAddEditViewModel.Factory(expense))
+                viewModel = viewModel(factory = ExpenseAddEditViewModel.Factory(mode))
             )
         }
 

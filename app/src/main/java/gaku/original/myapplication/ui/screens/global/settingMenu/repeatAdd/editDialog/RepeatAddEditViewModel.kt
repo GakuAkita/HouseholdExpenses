@@ -11,7 +11,7 @@ import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.dataClass.withTime
@@ -592,21 +592,15 @@ fun RepeatAddEditDialogState.toRepeatAdd(initial: RepeatAdd?): AppResult<RepeatA
         }
     }
 
-    var newRepeatAdd = initial ?: RepeatAdd()
-
-    /* these are common parameters */
-    newRepeatAdd = newRepeatAdd.copy(
-        expense = Expense(
-            id = null,
-            datetime = null,
-            amount = amount,
-            category = category,
-            note = note,
-            itemName = itemName,
-            storeName = storeName
-        ),
-        frequencyInfo = frequency
+    val template = ExpenseTemplate(
+        amount = amount,
+        category = category,
+        note = note,
+        itemName = itemName,
+        storeName = storeName
     )
+    val newRepeatAdd = initial?.copy(expense = template, frequencyInfo = frequency)
+        ?: RepeatAdd(expense = template, frequencyInfo = frequency)
 
     Timber.d("newRepeatAdd: ${newRepeatAdd}")
     return AppResult.Success(newRepeatAdd)

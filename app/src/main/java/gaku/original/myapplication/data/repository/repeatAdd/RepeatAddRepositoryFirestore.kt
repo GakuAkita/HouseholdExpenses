@@ -92,7 +92,7 @@ fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
     return RepeatAdd(
         id = getString("id"),
         timestamp = getLong("timestamp"),
-        expense = get("expense", ExpenseDto::class.java)?.toDomainForRepeatAdd()
+        expense = get("expense", ExpenseDto::class.java)?.toExpenseTemplate()
             ?: error("expense is null"),
         frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
     )

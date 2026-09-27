@@ -27,6 +27,7 @@ import gaku.original.myapplication.di.appContainer.AppContainer
 import gaku.original.myapplication.domain.AuthState
 import gaku.original.myapplication.ui.screens.RootUiEffect
 import gaku.original.myapplication.ui.screens.RootViewModel
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
 
@@ -86,11 +87,11 @@ fun RootNavigation(
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is RootUiEffect.ExpenseAdd -> {
-                    val newExpense = event.expense
-                    Timber.d("ExpenseAdd: $newExpense")
+                    val prefill = event.prefill
+                    Timber.d("ExpenseAdd: $prefill")
                     navHostController.navigate(
                         MainGraph.Global.ExpenseAddEdit(
-                            newExpense
+                            ExpenseAddEditMode.New(prefill)
                         )
                     )
                 }
