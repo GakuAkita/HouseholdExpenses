@@ -1,0 +1,207 @@
+package gaku.original.myapplication.data.conversion
+
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.GeneratedType
+import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.data.dataClass.RepeatFrequency
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
+import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
+import gaku.original.myapplication.data.repository.category.toCategory
+import gaku.original.myapplication.data.repository.category.toFirestore
+import gaku.original.myapplication.data.repository.deleteAll
+import gaku.original.myapplication.data.repository.expense.toExpense
+import gaku.original.myapplication.data.repository.expense.toFirestore
+import gaku.original.myapplication.data.repository.repeatAdd.toFirestore
+import gaku.original.myapplication.data.repository.repeatAdd.toRepeatAdd
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.time.DayOfWeek
+
+/**
+ * Saves each data class to the Firestore emulator and reads it back with the app's conversion code.
+ *
+ * When you add a property to a data class, a "samples are fully populated" test fails first.
+ * Set the new property in the sample below, then the round trip tests check its conversion.
+ * When you add a subtype to a sealed type, add a sample for it in the same way.
+ */
+@RunWith(AndroidJUnit4::class)
+class FirestoreConversionTest {
+
+    private lateinit var reference: FirestoreUserReference
+
+    @Before
+    fun setUp() {
+        reference = FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
+    }
+
+    @After
+    fun tearDown() = runBlocking {
+        reference.deleteAll()
+    }
+
+    /* ---------- Category ---------- */
+
+    @Test
+    fun category_sampleIsFullyPopulated() {
+        assertFullyPopulated(sampleCategory)
+    }
+
+    @Test
+    fun category_mapRoundTrip() = runBlocking<Unit> {
+        /* Used when a category is embedded in an Expense. */
+        val snapshot = reference.categoryCollection.saveAndLoad(sampleCategory.toFirestore())
+
+        val actual = snapshot.data!!.toCategory()
+
+        assertSameProperties(sampleCategory, actual)
+        assertEquals(sampleCategory, actual)
+    }
+
+    @Test
+    fun category_objectRoundTrip() = runBlocking<Unit> {
+        /* CategoryRepositoryFirestore saves the object itself. It is read by toObject() and toCategory(). */
+        val document = reference.categoryCollection.document(sampleCategory.id!!)
+        document.set(sampleCategory).await()
+        val snapshot = document.get().await()
+
+        val byToObject = snapshot.toObject(Category::class.java)!!
+        val byToCategory = snapshot.data!!.toCategory()
+
+        assertSameProperties(sampleCategory, byToObject)
+        assertSameProperties(sampleCategory, byToCategory)
+    }
+
+    /* ---------- Expense ---------- */
+
+    @Test
+    fun expense_samplesAreFullyPopulated() {
+        assertCoversAllSubclasses(GeneratedType::class, generatedTypeSamples)
+        generatedTypeSamples.forEach { assertFullyPopulated(it) }
+        expenseSamples.forEach { assertFullyPopulated(it) }
+    }
+
+    @Test
+    fun expense_documentSnapshotRoundTrip() = runBlocking<Unit> {
+        /* Used by ExpenseRepositoryFirestore. */
+        expenseSamples.forEach { expected ->
+            val snapshot = reference.expenseCollection.saveAndLoad(expected.toFirestore())
+
+            val actual = snapshot.toExpense()
+
+            assertSameProperties(expected, actual)
+            assertEquals(expected, actual)
+        }
+    }
+
+    @Test
+    fun expense_mapRoundTrip() = runBlocking<Unit> {
+        /* Used by RootViewModel. */
+        expenseSamples.forEach { expected ->
+            val snapshot = reference.expenseCollection.saveAndLoad(expected.toFirestore())
+
+            val actual = snapshot.data!!.toExpense()
+
+            assertSameProperties(expected, actual)
+            assertEquals(expected, actual)
+        }
+    }
+
+    /* ---------- RepeatAdd ---------- */
+
+    @Test
+    fun repeatAdd_samplesAreFullyPopulated() {
+        assertCoversAllSubclasses(RepeatFrequency::class, repeatFrequencySamples)
+        repeatFrequencySamples.forEach { assertFullyPopulated(it) }
+        repeatAddSamples.forEach { assertFullyPopulated(it) }
+    }
+
+    @Test
+    fun repeatAdd_documentSnapshotRoundTrip() = runBlocking<Unit> {
+        repeatAddSamples.forEach { expected ->
+            val snapshot = reference.repeatAddCollection.saveAndLoad(expected.toFirestore())
+
+            val actual = snapshot.toRepeatAdd()
+
+            assertSameProperties(expected, actual, notStored = setOf("expense"))
+            assertSameProperties(
+                expected.expense,
+                actual.expense,
+                notStored = EXPENSE_PROPERTIES_NOT_RESTORED_FOR_REPEAT_ADD
+            )
+        }
+    }
+
+    private suspend fun CollectionReference.saveAndLoad(data: Map<String, Any?>): DocumentSnapshot {
+        val document = document()
+        document.set(data).await()
+        return document.get().await()
+    }
+
+    companion object {
+        /**
+         * The expense of RepeatAdd is a template. These properties are decided when the expense is
+         * actually added, so toExpenseForRepeatAdd() does not restore them.
+         * When you add a property to Expense, either restore it in toExpenseForRepeatAdd() or add it here.
+         */
+        private val EXPENSE_PROPERTIES_NOT_RESTORED_FOR_REPEAT_ADD =
+            setOf("id", "datetime", "timestamp", "generatedType")
+
+        private val sampleCategory = Category(
+            id = "category1",
+            timestamp = 1_770_000_000_000L,
+            name = "食費",
+            enabled = false
+        )
+
+        private val generatedTypeSamples = listOf(
+            GeneratedType.Manual,
+            GeneratedType.RepeatAdd(repeatAddId = "repeat1"),
+            GeneratedType.MailExtraction(templateTypeName = "amazon_item"),
+        )
+
+        private val expenseSamples = generatedTypeSamples.map { generatedType ->
+            Expense(
+                id = "expense1",
+                generatedType = generatedType,
+                datetime = "2026-09-15T03:00:00Z",
+                timestamp = 1_780_000_000_000L,
+                amount = 1200L,
+                category = sampleCategory,
+                note = "note",
+                storeName = "store",
+                itemName = "item"
+            )
+        }
+
+        private val repeatFrequencySamples = listOf(
+            RepeatFrequency.EveryYear(month = 12, day = 31, hour = 23, minute = 59),
+            RepeatFrequency.EveryMonth(day = 25, hour = 9, minute = 30),
+            RepeatFrequency.EveryWeek(
+                dayOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY),
+                hour = 8,
+                minute = 15
+            ),
+            RepeatFrequency.Weekdays(hour = 7, minute = 15),
+            RepeatFrequency.Weekends(hour = 10, minute = 45),
+            RepeatFrequency.Everyday(hour = 6, minute = 5),
+        )
+
+        private val repeatAddSamples = repeatFrequencySamples.map { frequency ->
+            RepeatAdd(
+                id = "repeat1",
+                timestamp = 1_780_000_000_000L,
+                expense = expenseSamples.first(),
+                frequencyInfo = frequency
+            )
+        }
+    }
+}
