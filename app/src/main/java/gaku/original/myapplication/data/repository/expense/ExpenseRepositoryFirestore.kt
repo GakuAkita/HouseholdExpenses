@@ -1,19 +1,16 @@
 package gaku.original.myapplication.data.repository.expense
 
 import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.toGeneratedType
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.data.repository.category.toCategory
-import gaku.original.myapplication.data.repository.category.toFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.util.UUID
 
 class ExpenseRepositoryFirestore(
     reference: FirestoreUserReference
@@ -66,7 +63,7 @@ class ExpenseRepositoryFirestore(
                     currentExpenses[subscriptionId]?.toMutableMap() ?: mutableMapOf()
 
                 for (dc in snapshots.documentChanges) {
-                    val expense = dc.document.toExpense()
+                    val expense = dc.document.toObject(ExpenseFirestore::class.java).toDomain()
                     when (dc.type) {
                         DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                             subscriptionExpenses[expense.id!!] = expense
@@ -96,9 +93,8 @@ class ExpenseRepositoryFirestore(
 
     override suspend fun addExpense(expense: Expense): Expense {
         Timber.d("addExpense: ${expense.toFirestore()}")
-        val document = expenseCollection.document()
-        val newExpense = expense.copy(id = document.id)
-        document.set(newExpense.toFirestore()).await()
+        val newExpense = expense.copy(id = UUID.randomUUID().toString())
+        expenseCollection.document(newExpense.id!!).set(newExpense.toFirestore()).await()
         return newExpense
     }
 
@@ -110,50 +106,4 @@ class ExpenseRepositoryFirestore(
     override suspend fun removeExpense(id: String) {
         expenseCollection.document(id).delete().await()
     }
-}
-
-fun Expense.toFirestore(): Map<String, Any?> {
-    /* Firestore functionsとルールを一致させる */
-    return mapOf(
-        "id" to id,
-        "timestamp" to timestamp,
-        "datetime" to datetime,
-        "amount" to amount,
-        "category" to category?.toFirestore(),
-        "note" to note,
-        "storeName" to storeName,
-        "itemName" to itemName,
-        "generatedType" to generatedType?.toSerialized()
-    )
-}
-
-fun DocumentSnapshot.toExpense(): Expense {
-    val categoryRaw = get("category") as? Map<String, Any?>
-    return Expense(
-        id = getString("id") ?: error("id is null"),
-        timestamp = getLong("timestamp"),
-        datetime = getString("datetime") ?: error("datetime is null"),
-        amount = getLong("amount"),
-        category = categoryRaw?.toCategory(),
-        note = getString("note"),
-        storeName = getString("storeName"),
-        itemName = getString("itemName"),
-        generatedType = getString("generatedType")?.toGeneratedType()
-    )
-}
-
-fun Map<String, Any?>.toExpense(): Expense {
-    val categoryRaw = get("category") as? Map<String, Any?>
-    val generatedType = get("generatedType") as? String?
-    return Expense(
-        id = get("id") as? String ?: error("id is null"),
-        timestamp = get("timestamp") as? Long ?: error("timestamp is null"),
-        datetime = get("datetime") as? String ?: error("datetime is null"),
-        amount = get("amount") as? Long ?: error("amount is null"),
-        category = categoryRaw?.toCategory(),
-        note = get("note") as? String,
-        storeName = get("storeName") as? String,
-        itemName = get("itemName") as? String,
-        generatedType = generatedType?.toGeneratedType() ?: error("generatedType is null")
-    )
 }

@@ -29,7 +29,7 @@ class CategoryRepositoryFirestore(
             val categories = snapshots.documents
                 .mapNotNull { document ->
                     Timber.d("document=$document")
-                    document.data?.toCategory()
+                    document.toObject(CategoryFirestore::class.java)?.toDomain()
                 }
                 .associateBy { it.id!! }
 
@@ -42,12 +42,12 @@ class CategoryRepositoryFirestore(
         val newId = categoryCollection.document().id
         Timber.d("newId=$newId")
         val newCategory = category.copy(id = newId)
-        categoryCollection.document(newId).set(newCategory).await()
+        categoryCollection.document(newId).set(newCategory.toFirestore()).await()
         return newCategory
     }
 
     override suspend fun updateCategory(category: Category) {
-        categoryCollection.document(category.id!!).set(category).await()
+        categoryCollection.document(category.id!!).set(category.toFirestore()).await()
     }
 
     override suspend fun deleteCategory(categoryId: String) {
@@ -57,7 +57,7 @@ class CategoryRepositoryFirestore(
     override suspend fun getAllCategories(): Map<String, Category> {
         val snapshot = categoryCollection.get().await()
         return snapshot.documents.mapNotNull { document ->
-            document.toObject(Category::class.java)
+            document.toObject(CategoryFirestore::class.java)?.toDomain()
                 ?.let { document.id to it }
         }.toMap()
     }
@@ -65,23 +65,4 @@ class CategoryRepositoryFirestore(
     override fun close() {
         listenerRegistration.remove()
     }
-}
-
-fun Category.toFirestore(): Map<String, Any?> {
-    return mapOf(
-        "id" to id,
-        "timestamp" to timestamp,
-        "name" to name,
-        "enabled" to enabled
-    )
-}
-
-fun Map<String, Any?>.toCategory(): Category {
-
-    return Category(
-        id = get("id") as? String ?: error("id is null"),
-        name = get("name") as? String ?: error("name is null"),
-        timestamp = get("timestamp") as? Long ?: error("timestamp is null"),
-        enabled = get("enabled") as? Boolean ?: error("enabled is null")
-    )
 }

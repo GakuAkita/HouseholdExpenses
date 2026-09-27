@@ -2,12 +2,11 @@ package gaku.original.myapplication.data.repository.repeatAdd
 
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ListenerRegistration
-import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.toFirestore
 import gaku.original.myapplication.data.dataClass.toRepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.data.repository.category.toCategory
+import gaku.original.myapplication.data.repository.expense.ExpenseFirestore
 import gaku.original.myapplication.data.repository.expense.toFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -88,24 +87,13 @@ fun RepeatAdd.toFirestore(): Map<String, Any?> {
 }
 
 fun DocumentSnapshot.toRepeatAdd(): RepeatAdd {
-    val expenseRaw = get("expense") as? Map<String, Any?>
     val frequencyInfoRaw = get("frequencyInfo") as? Map<String, Any?>
 
     return RepeatAdd(
         id = getString("id"),
         timestamp = getLong("timestamp"),
-        expense = expenseRaw?.toExpenseForRepeatAdd() ?: error("expense is null"),
+        expense = get("expense", ExpenseFirestore::class.java)?.toDomainForRepeatAdd()
+            ?: error("expense is null"),
         frequencyInfo = frequencyInfoRaw?.toRepeatFrequency() ?: error("frequencyInfo is null")
-    )
-}
-
-fun Map<String, Any?>.toExpenseForRepeatAdd(): Expense {
-    val categoryRaw = get("category") as? Map<String, Any?>
-    return Expense(
-        category = categoryRaw?.toCategory() ?: error("category is null"),
-        amount = get("amount") as Long? ?: error("amount is null"),
-        storeName = get("storeName") as String?,
-        itemName = get("itemName") as String?,
-        note = get("note") as String?,
     )
 }

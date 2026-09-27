@@ -10,10 +10,10 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
-import gaku.original.myapplication.data.repository.category.toCategory
+import gaku.original.myapplication.data.repository.category.CategoryFirestore
 import gaku.original.myapplication.data.repository.category.toFirestore
 import gaku.original.myapplication.data.repository.deleteAll
-import gaku.original.myapplication.data.repository.expense.toExpense
+import gaku.original.myapplication.data.repository.expense.ExpenseFirestore
 import gaku.original.myapplication.data.repository.expense.toFirestore
 import gaku.original.myapplication.data.repository.repeatAdd.toFirestore
 import gaku.original.myapplication.data.repository.repeatAdd.toRepeatAdd
@@ -56,31 +56,18 @@ class FirestoreConversionTest {
         /* Even if you forget to put the value for the newly added property, this test can catch it. */
         /* Don't worry. */
         assertFullyPopulated(sampleCategory)
+        /* Fails when a property of CategoryFirestore is not set by toFirestore(). */
+        assertFullyPopulated(sampleCategory.toFirestore())
     }
 
     @Test
-    fun category_mapRoundTrip() = runBlocking<Unit> {
-        /* Used when a category is embedded in an Expense. */
+    fun category_roundTrip() = runBlocking<Unit> {
         val snapshot = reference.categoryCollection.saveAndLoad(sampleCategory.toFirestore())
 
-        val actual = snapshot.data!!.toCategory()
+        val actual = snapshot.toObject(CategoryFirestore::class.java)!!.toDomain()
 
         assertSameProperties(sampleCategory, actual)
         assertEquals(sampleCategory, actual)
-    }
-
-    @Test
-    fun category_objectRoundTrip() = runBlocking<Unit> {
-        /* CategoryRepositoryFirestore saves the object itself. It is read by toObject() and toCategory(). */
-        val document = reference.categoryCollection.document(sampleCategory.id!!)
-        document.set(sampleCategory).await()
-        val snapshot = document.get().await()
-
-        val byToObject = snapshot.toObject(Category::class.java)!!
-        val byToCategory = snapshot.data!!.toCategory()
-
-        assertSameProperties(sampleCategory, byToObject)
-        assertSameProperties(sampleCategory, byToCategory)
     }
 
     /* ---------- Expense ---------- */
@@ -90,28 +77,16 @@ class FirestoreConversionTest {
         assertCoversAllSubclasses(GeneratedType::class, generatedTypeSamples)
         generatedTypeSamples.forEach { assertFullyPopulated(it) }
         expenseSamples.forEach { assertFullyPopulated(it) }
+        /* Fails when a property of ExpenseFirestore is not set by toFirestore(). */
+        expenseSamples.forEach { assertFullyPopulated(it.toFirestore()) }
     }
 
     @Test
-    fun expense_documentSnapshotRoundTrip() = runBlocking<Unit> {
-        /* Used by ExpenseRepositoryFirestore. */
+    fun expense_roundTrip() = runBlocking<Unit> {
         expenseSamples.forEach { expected ->
             val snapshot = reference.expenseCollection.saveAndLoad(expected.toFirestore())
 
-            val actual = snapshot.toExpense()
-
-            assertSameProperties(expected, actual)
-            assertEquals(expected, actual)
-        }
-    }
-
-    @Test
-    fun expense_mapRoundTrip() = runBlocking<Unit> {
-        /* Used by RootViewModel. */
-        expenseSamples.forEach { expected ->
-            val snapshot = reference.expenseCollection.saveAndLoad(expected.toFirestore())
-
-            val actual = snapshot.data!!.toExpense()
+            val actual = snapshot.toObject(ExpenseFirestore::class.java)!!.toDomain()
 
             assertSameProperties(expected, actual)
             assertEquals(expected, actual)
@@ -143,7 +118,7 @@ class FirestoreConversionTest {
         }
     }
 
-    private suspend fun CollectionReference.saveAndLoad(data: Map<String, Any?>): DocumentSnapshot {
+    private suspend fun CollectionReference.saveAndLoad(data: Any): DocumentSnapshot {
         val document = document()
         document.set(data).await()
         return document.get().await()
@@ -152,8 +127,8 @@ class FirestoreConversionTest {
     companion object {
         /**
          * The expense of RepeatAdd is a template. These properties are decided when the expense is
-         * actually added, so toExpenseForRepeatAdd() does not restore them.
-         * When you add a property to Expense, either restore it in toExpenseForRepeatAdd() or add it here.
+         * actually added, so toDomainForRepeatAdd() does not restore them.
+         * When you add a property to Expense, either restore it in toDomainForRepeatAdd() or add it here.
          */
         private val EXPENSE_PROPERTIES_NOT_RESTORED_FOR_REPEAT_ADD =
             setOf("id", "datetime", "timestamp", "generatedType")
