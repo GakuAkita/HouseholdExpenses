@@ -1,5 +1,5 @@
 import { logger } from "firebase-functions";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { MailParseError } from "./MailParserBase";
 import { AmazonSubscribeItem } from "../../type/Mailbox";
 
 export class AmazonSubscribeNextShipmentMailParser {
@@ -118,16 +118,13 @@ export class AmazonSubscribeNextShipmentMailParser {
     return quantities;
   }
 
-  toSubscribeItem(): FuncResultWithData<AmazonSubscribeItem[]> {
+  toSubscribeItem(): AmazonSubscribeItem[] {
     const productNames = this.extractProductName();
     const prices = this.extractPrice();
     const quantities = this.extractQuantity();
 
     if (productNames.length === 0) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `ProductNames:${productNames.length} are invalid.`,
-      };
+      throw new MailParseError(`ProductNames:${productNames.length} are invalid.`);
     }
 
     // 製品名と数量、価格の数が一致しない場合は、デフォルト値を使う
@@ -143,9 +140,6 @@ export class AmazonSubscribeNextShipmentMailParser {
       };
     });
 
-    return {
-      status: FuncStatus.SUCCESS,
-      data: items,
-    };
+    return items;
   }
 }

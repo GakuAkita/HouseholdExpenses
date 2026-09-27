@@ -3,13 +3,12 @@ import { Auth } from "firebase-admin/auth";
 import { logger } from "firebase-functions";
 import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
 import { Runtime } from "../shared/runtime";
-import { FuncStatus } from "../type/FuncStatus";
 import { MailboxGmailTokenType } from "../type/Mailbox";
 
 export interface GmailOAuthCallbackDeps {
   auth: Pick<Auth, "verifyIdToken" | "getUser">;
   runtime: Pick<Runtime, "secrets" | "googleOAuthApi">;
-  mailboxExtractionService: Pick<MailboxExtractionService, "setMailboxExtractionTokenWithEncryption">;
+  mailboxExtractionService: Pick<MailboxExtractionService, "saveGmailToken">;
 }
 
 export type GmailOAuthCallbackResult =
@@ -51,11 +50,7 @@ export const handleGmailOAuthCallback = async (
     }
     const uid = decodedToken.uid;
 
-    const secretsResult = await deps.runtime.secrets.load();
-    if (secretsResult.status !== FuncStatus.SUCCESS || !secretsResult.data) {
-      throw new Error(`Failed to load Google OAuth secrets: ${secretsResult.message}`);
-    }
-    const secrets = secretsResult.data;
+    const secrets = await deps.runtime.secrets.load();
 
     /* アクセストークンとリフレッシュトークンを取得 */
     logger.log(`Start getting access token and refresh token...`);
@@ -82,14 +77,7 @@ export const handleGmailOAuthCallback = async (
       refreshToken,
       gmail: gmailEmail,
     };
-    const saved = await deps.mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
-      uid,
-      mailboxToken,
-      secrets.encryptionKey
-    );
-    if (saved.status !== FuncStatus.SUCCESS) {
-      throw new Error(`Failed to set mailbox extraction token for user ${uid}: ${saved.message}`);
-    }
+    await deps.mailboxExtractionService.saveGmailToken(uid, mailboxToken, secrets.encryptionKey);
     logger.log(`Successfully set mailbox extraction token for user ${uid}.`);
     return "connected";
   } catch (err) {

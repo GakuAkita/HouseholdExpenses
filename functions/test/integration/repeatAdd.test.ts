@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { RepeatFrequency } from "../../src/constants/RepeatFrequency";
 import { TimeZone } from "../../src/constants/TimeZone";
 import { fixedClock } from "../../src/shared/clock";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { createTestServices, deleteTestUser, newTestUserId } from "./emulator";
 
 /* The monthly job runs at 01:00 JST on the 1st. */
@@ -17,7 +16,10 @@ describe("RepeatAdd job", () => {
 
   it("adds this month's expenses that the app can read", async () => {
     await services.settingsService.setUserPreferences(userId, { timeZone: TimeZone.JST });
-    await services.repeatAddService.addRepeatAddWithId(userId, {
+    /* Written like the app does, with the document id in the id field. */
+    const repeatAddRef = admin.firestore().collection(`users/${userId}/repeat_add`).doc();
+    await repeatAddRef.set({
+      id: repeatAddRef.id,
       expense: {
         amount: 8000,
         category: { id: "category1", timestamp: 1, name: "生活費", enabled: true },
@@ -26,11 +28,9 @@ describe("RepeatAdd job", () => {
       frequencyInfo: { frequency: RepeatFrequency.EVERY_MONTH, day: 25, hour: 9, minute: 30 },
     });
 
-    const result = await services.repeatAddProcessor.addExpensesFromAllRepeatAdd(userId);
-    expect(result.status).toBe(FuncStatus.SUCCESS);
+    expect(await services.repeatAddProcessor.addExpensesFromAllRepeatAdd(userId)).toBe(1);
 
-    const repeatAdds = await admin.firestore().collection(`users/${userId}/repeat_add`).get();
-    const repeatAddId = repeatAdds.docs[0]?.id;
+    const repeatAddId = repeatAddRef.id;
     const expenses = await admin.firestore().collection(`users/${userId}/expenses`).get();
 
     expect(expenses.docs.map((doc) => doc.data())).toEqual([

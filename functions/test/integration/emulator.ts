@@ -3,7 +3,6 @@ import * as admin from "firebase-admin";
 import { initializeServices, ServiceOptions } from "../../src/app/services";
 import { GoogleOAuthSecretProvider } from "../../src/infra/secrets/googleOAuthSecrets";
 import { systemClock } from "../../src/shared/clock";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";
 
 /*
@@ -23,7 +22,7 @@ export const testSecrets: GoogleOAuthSecrets = {
 };
 
 export const fakeSecretProvider: GoogleOAuthSecretProvider = {
-  load: async () => ({ status: FuncStatus.SUCCESS, data: testSecrets }),
+  load: async () => testSecrets,
 };
 
 /** Services connected to the emulators. Nothing in them calls Secret Manager or Gmail. */

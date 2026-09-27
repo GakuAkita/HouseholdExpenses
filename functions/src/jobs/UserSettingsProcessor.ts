@@ -1,43 +1,37 @@
 import { logger } from "firebase-functions";
-import { FuncStatus } from "../type/FuncStatus";
-import { UserData } from "../type/UserData";
-import { defaultUserPreferences } from "../type/UserPreferences";
-import { UserRTDbService } from "../infra/rtdb/UserRTDbService";
 import { SettingsService } from "../infra/firestore/SettingsService";
 import { UserService } from "../infra/firestore/UserService";
+import { UserRTDbService } from "../infra/rtdb/UserRTDbService";
+import { messageOf } from "../shared/errors";
+import { UserData } from "../type/UserData";
+import { defaultUserPreferences } from "../type/UserPreferences";
+
 export class UserSettingsProcessor {
   constructor(
-    private userService: UserService,
-    private userRTDbService: UserRTDbService,
-    private settingsService: SettingsService
+    private userService: Pick<UserService, "setUserData">,
+    private userRTDbService: Pick<UserRTDbService, "setUserData">,
+    private settingsService: Pick<SettingsService, "setUserPreferences">
   ) {}
 
-  async setInitialUserSettings(userId: string, email: string) {
-    /* これでまずコレクションを作成する */
-    const userData: UserData = {
-      id: userId,
-      email: email,
-    };
-
-    /* idとemailをセット */
-    let ret = await this.userService.setUserData(userId, userData);
-    if (ret.status != FuncStatus.SUCCESS) {
-      logger.error(ret.message);
-    }
-
-    ret = await this.userRTDbService.setUserData(userId, userData);
-    if (ret.status != FuncStatus.SUCCESS) {
-      logger.error(ret.message);
-    }
-
-    /* デフォルトのUserPrefrencesをセット */
-    ret = await this.settingsService.setUserPreferences(
-      userId,
-      defaultUserPreferences
-    );
-
-    if (ret.status != FuncStatus.SUCCESS) {
-      logger.error(ret.message);
+  /**
+   * Writes the new user's data and default preferences.
+   * The writes are independent: a failed one is logged and the others still run.
+   */
+  async setInitialUserSettings(userId: string, email: string): Promise<void> {
+    const userData: UserData = { id: userId, email };
+    const steps: [string, () => Promise<void>][] = [
+      /* これでまずコレクションを作成する */
+      ["Firestore user", () => this.userService.setUserData(userId, userData)],
+      ["Realtime Database user", () => this.userRTDbService.setUserData(userId, userData)],
+      /* デフォルトのUserPrefrencesをセット */
+      ["preferences", () => this.settingsService.setUserPreferences(userId, defaultUserPreferences)],
+    ];
+    for (const [name, step] of steps) {
+      try {
+        await step();
+      } catch (error) {
+        logger.error(`Failed to set ${name} for ${userId}: ${messageOf(error)}`);
+      }
     }
   }
 }

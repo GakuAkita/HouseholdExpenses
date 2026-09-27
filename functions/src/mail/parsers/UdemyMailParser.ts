@@ -1,14 +1,13 @@
 import { logger } from "firebase-functions";
 import { Expense } from "../../type/Expense";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { MailParserBase } from "./MailParserBase";
+import { MailParseError, MailParserBase } from "./MailParserBase";
 
 export class UdemyMailParser extends MailParserBase {
   constructor(rawText: string, internalDate: string) {
     super(rawText, internalDate);
   }
 
-  toExpenses(): FuncResultWithData<Expense[]> {
+  toExpenses(): Expense[] {
     /**
      * 日本語番と英語版がある。
      * プロフィールの設定によって変わるから両方対応しないといけない
@@ -38,11 +37,7 @@ export class UdemyMailParser extends MailParserBase {
     );
 
     if (expensesFromEnJa.length > 0) {
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `At least one expense was extracted`,
-        data: expensesFromEnJa,
-      };
+      return expensesFromEnJa;
     }
 
     // 2. New block-based extraction (Course name ... Subtotal/Tax/Credits) as fallback
@@ -69,18 +64,11 @@ export class UdemyMailParser extends MailParserBase {
 
       if (expenses.length > 0) {
         expenses.forEach((exp) => logger.info(`expense from Udemy (block parser):${JSON.stringify(exp)}`));
-        return {
-          status: FuncStatus.SUCCESS,
-          message: `Extracted ${expenses.length} expenses from Udemy`,
-          data: expenses,
-        };
+        return expenses;
       }
     }
 
     logger.info("this.rawText:" + this.rawText);
-    return {
-      status: FuncStatus.ERROR,
-      message: "No expense was extracted from Udemy",
-    };
+    throw new MailParseError("No expense was extracted from Udemy");
   }
 }

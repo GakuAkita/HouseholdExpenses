@@ -1,6 +1,5 @@
 import { Expense } from "../../type/Expense";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { MailParserBase } from "./MailParserBase";
+import { MailParseError, MailParserBase } from "./MailParserBase";
 
 /**
  * Kindleのフォーマットはしょっちゅう変わるから
@@ -38,15 +37,12 @@ export class AmazonKindleMailParser extends MailParserBase {
     return match ? parseInt(match[1].replace(/,/g, ""), 10) : null;
   }
 
-  toExpense(): FuncResultWithData<Expense> {
+  toExpense(): Expense {
     const orderDate = this.extractDate();
     const total = this.extractTotalAmount();
     const bookTitle = this.extractBookTitle();
     if (!orderDate || !bookTitle || total === null) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to parse Kindle mail: orderDate=${orderDate}, title=${bookTitle}, total=${total}`,
-      };
+      throw new MailParseError(`Failed to parse Kindle mail: orderDate=${orderDate}, title=${bookTitle}, total=${total}`);
     }
 
     const expense: Expense = {
@@ -55,10 +51,6 @@ export class AmazonKindleMailParser extends MailParserBase {
       itemName: bookTitle,
     };
 
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "KindleメールからExpenseを生成しました",
-      data: expense,
-    };
+    return expense;
   }
 }

@@ -2,10 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { forEachUser } from "../../src/jobs/forEachUser";
 import { runRepeatAddJob } from "../../src/jobs/scheduledJobs";
 import { Services } from "../../src/app/services";
-import { FuncStatus } from "../../src/type/FuncStatus";
 
 const userService = (userIds: string[]) => ({
-  getAllUserIds: async () => ({ status: FuncStatus.SUCCESS, data: userIds }),
+  getAllUserIds: async () => userIds,
 });
 
 describe("forEachUser", () => {
@@ -28,14 +27,14 @@ describe("forEachUser", () => {
 
   it("does nothing when the users can't be read", async () => {
     const task = vi.fn();
-    await forEachUser({ getAllUserIds: async () => ({ status: FuncStatus.ERROR, message: "x" }) }, task);
+    await forEachUser({ getAllUserIds: () => Promise.reject(new Error("unavailable")) }, task);
     expect(task).not.toHaveBeenCalled();
   });
 });
 
 describe("runRepeatAddJob", () => {
   it("adds RepeatAdd expenses for every user", async () => {
-    const addExpensesFromAllRepeatAdd = vi.fn().mockResolvedValue({ status: FuncStatus.SUCCESS });
+    const addExpensesFromAllRepeatAdd = vi.fn().mockResolvedValue(1);
 
     await runRepeatAddJob({
       userService: userService(["a", "b"]),

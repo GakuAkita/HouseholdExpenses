@@ -1,10 +1,9 @@
-import { ShikokuElectricPowerMailParser } from "../parsers/ShikokuElectricPowerMailParser";
 import { assignCategoryById } from "../../domain/categoryAssign";
 import { getShikokuElectricMailIds } from "../../infra/gmail/mailQueries";
-import { FuncStatus } from "../../type/FuncStatus";
 import { ShikokuElectricPowerSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";
-import { extracted, failed, missingInternalDate } from "./common";
+import { ShikokuElectricPowerMailParser } from "../parsers/ShikokuElectricPowerMailParser";
+import { requireInternalDate } from "./common";
 
 /** 四国電力: one bill per mail, dated by the mail. The category is set in the settings. */
 export const shikokuElectricPowerSource: MailSource<ShikokuElectricPowerSetting> = {
@@ -13,9 +12,8 @@ export const shikokuElectricPowerSource: MailSource<ShikokuElectricPowerSetting>
   findMailIds: getShikokuElectricMailIds,
 
   async toExpenses(mail, setting, context) {
-    if (!mail.internalDate) return missingInternalDate("ShikokuElectricPower");
-    const parsed = new ShikokuElectricPowerMailParser(mail.rawText, mail.internalDate).toExpense();
-    if (parsed.status !== FuncStatus.SUCCESS || !parsed.data) return failed(parsed);
-    return extracted([assignCategoryById(parsed.data, setting.categoryId, context.categories)]);
+    const internalDate = requireInternalDate(mail.internalDate, "ShikokuElectricPower");
+    const expense = new ShikokuElectricPowerMailParser(mail.rawText, internalDate).toExpense();
+    return [assignCategoryById(expense, setting.categoryId, context.categories)];
   },
 };

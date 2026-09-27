@@ -2,7 +2,6 @@ import { GmailClient } from "../infra/gmail/GmailApiClient";
 import { Category } from "../type/Category";
 import { CategoryAssignmentData } from "../type/CategoryAssignment";
 import { Expense } from "../type/Expense";
-import { FuncResultWithData } from "../type/FuncStatus";
 import { AllMailType, AmazonSubscribeItem } from "../type/Mailbox";
 
 /** One mail, as the parsers need it. */
@@ -17,7 +16,7 @@ export interface ExtractionContext {
   categories: Record<string, Category>;
   categoryAssignmentData: CategoryAssignmentData;
   /** Enabled Amazon subscribe items. Loaded only when a source asks for them. */
-  loadEnabledAmazonSubscribeItems(): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>>;
+  loadEnabledAmazonSubscribeItems(): Promise<Record<string, AmazonSubscribeItem>>;
 }
 
 /**
@@ -28,11 +27,11 @@ export interface MailSource<S extends AllMailType = AllMailType> {
   readonly nodeName: S["nodeName"];
 
   /** Gmail ids of the candidate mails between after and before (UNIX seconds). */
-  findMailIds(gmail: GmailClient, after: number, before: number): Promise<FuncResultWithData<string[]>>;
+  findMailIds(gmail: GmailClient, after: number, before: number): Promise<string[]>;
 
   /**
    * The expenses to save for one mail, with categories assigned.
-   * generatedType and timestamp are added when saving.
+   * generatedType and timestamp are added when saving. Throws MailParseError for a mail it can't read.
    */
-  toExpenses(mail: Mail, setting: S, context: ExtractionContext): Promise<FuncResultWithData<Expense[]>>;
+  toExpenses(mail: Mail, setting: S, context: ExtractionContext): Promise<Expense[]>;
 }

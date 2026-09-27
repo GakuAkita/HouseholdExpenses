@@ -1,7 +1,7 @@
 import { logger } from "firebase-functions";
+import { MailParseError } from "./MailParserBase";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { convertyyyymmddToUTCIsoString } from "../../shared/dateConverter";
 
 export class RakutenCardETCParser {
@@ -26,7 +26,7 @@ export class RakutenCardETCParser {
     return matches.map((m) => m[0]);
   }
 
-  toExpenses(): FuncResultWithData<Expense[]> {
+  toExpenses(): Expense[] {
     const etcBlocks = this.extractETCblock();
 
     const expenses = etcBlocks
@@ -69,15 +69,9 @@ export class RakutenCardETCParser {
       })
       .filter((e): e is Expense => e !== null); // null を取り除く型ガード;
 
-    return expenses.length > 0
-      ? {
-          status: FuncStatus.SUCCESS,
-          message: "At least one expense was extracted",
-          data: expenses,
-        }
-      : {
-          status: FuncStatus.ERROR,
-          message: "No expense was extracted from RakutenETC",
-        };
+    if (expenses.length === 0) {
+      throw new MailParseError("No expense was extracted from RakutenETC");
+    }
+    return expenses;
   }
 }

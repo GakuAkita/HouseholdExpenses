@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AmazonSubscribeMonitorItemsProcessor } from "../../src/jobs/AmazonSubscribeMonitorItemsProcessor";
 import { fixedClock } from "../../src/shared/clock";
 import { AmazonMailSubjects } from "../../src/type/AmazonMailSubjects";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { createAmazonSubscribeSettingInstance, EmailProvider } from "../../src/type/Mailbox";
 import { createTestServices, deleteTestUser, newTestUserId, testGmailOf, testSecrets } from "./emulator";
 import { createFakeGmail, FakeMail, mailFixture } from "./fakeGmail";
@@ -45,12 +44,12 @@ describe("Amazon subscribe monitor", () => {
 
   beforeEach(async () => {
     await admin.auth().createUser({ uid: userId, email: gmail });
-    await services.mailboxExtractionService.setMailboxExtractionTokenWithEncryption(
+    await services.mailboxExtractionService.saveGmailToken(
       userId,
       { refreshToken: "raw-refresh-token", gmail },
       testSecrets.encryptionKey
     );
-    await services.mailboxExtractionService.setMailboxExtractionMailTypeSetting(
+    await services.mailboxExtractionService.setMailTypeSetting(
       userId,
       createAmazonSubscribeSettingInstance({ enabled: true, emailProvider: EmailProvider.GMAIL })
     );
@@ -59,15 +58,14 @@ describe("Amazon subscribe monitor", () => {
   afterEach(() => deleteTestUser(userId));
 
   it("adds items from next-shipment mails and removes cancelled ones", async () => {
-    await services.mailboxExtractionService.addAmazonSubscribeMonitorItem(userId, {
+    await services.mailboxExtractionService.addAmazonSubscribeItem(userId, {
       productName: "サントリー 天然水 2L×9本",
       price: 1000,
       quantity: 1,
     });
 
-    const result = await processor.handleAmazonSubscribeItems();
+    await processor.handleAmazonSubscribeItems();
 
-    expect(result.status).toBe(FuncStatus.SUCCESS);
     const { subscribe_items: items, last_exec: lastExec } = await monitor();
     expect(Object.values(items)).toEqual([
       expect.objectContaining({
@@ -81,7 +79,7 @@ describe("Amazon subscribe monitor", () => {
   });
 
   it("updates the price of an item that is already registered", async () => {
-    await services.mailboxExtractionService.addAmazonSubscribeMonitorItem(userId, {
+    await services.mailboxExtractionService.addAmazonSubscribeItem(userId, {
       productName: "by Amazon 天然水 ラベルレス 500ml ×24本",
       price: 1000,
       quantity: 1,
@@ -104,9 +102,8 @@ describe("Amazon subscribe monitor", () => {
     await admin.database().ref(`users/${userId}/mailbox_extraction/email_template_settings`).remove();
     const queriesBefore = fakeGmail.queries.length;
 
-    const result = await processor.handleAmazonSubscribeItems();
+    await processor.handleAmazonSubscribeItems();
 
-    expect(result.status).toBe(FuncStatus.SUCCESS);
     expect(fakeGmail.queries).toHaveLength(queriesBefore);
   });
 });

@@ -1,473 +1,193 @@
 import { logger } from "firebase-functions";
-import { Runtime } from "../shared/runtime";
-import { AmazonMailSubjects } from "../type/AmazonMailSubjects";
-import {
-  FuncResult,
-  FuncResultWithData,
-  FuncStatus,
-  toFuncResult,
-} from "../type/FuncStatus";
-import {
-  AmazonSubscribeItem,
-  createAmazonSubscribeSettingInstance,
-  LastMailboxExtractionExec,
-} from "../type/Mailbox";
-import { GmailClient } from "../infra/gmail/GmailApiClient";
-import { AmazonSubscribeCancelParser } from "../mail/parsers/AmazonSubscribeCancelParser";
-import { AmazonSubscribeNextShipmentMailParser } from "../mail/parsers/AmazonSubscribeNextShipmentMailParser";
-import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
-import {
-  convertUnixMillisecToSec,
-} from "../shared/unixTime";
-import {
-  extractHtmlBody,
-  extractTextBody,
-  getSubjectFromMessage,
-  stripHtmlTags,
-} from "../infra/gmail/extractHtmlBody";
+import { findAmazonSubscribeItemId } from "../domain/amazonSubscribe";
+import { createUserGmailClient } from "../infra/gmail/createUserGmailClient";
+import { extractHtmlBody, extractTextBody, getSubjectFromMessage } from "../infra/gmail/extractHtmlBody";
 import { filterMessages } from "../infra/gmail/filterMessages";
-import { generateGmailApiInstance } from "../infra/gmail/generateGmailApiInstance";
 import { sortGmailMessagesByDate } from "../infra/gmail/getInternalDate";
 import { getMessageDetailsSortedList } from "../infra/gmail/getMessageDetailsMap";
 import { getAmazonSubscribeNextShipNotifyAndCancelMailIds } from "../infra/gmail/mailQueries";
-import { isAmazonSubscribeProductExist } from "../domain/isAmazonSubscribeProductExist";
+import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService";
+import { AmazonSubscribeCancelParser } from "../mail/parsers/AmazonSubscribeCancelParser";
+import { AmazonSubscribeNextShipmentMailParser } from "../mail/parsers/AmazonSubscribeNextShipmentMailParser";
+import { messageOf } from "../shared/errors";
+import { Runtime } from "../shared/runtime";
+import { convertUnixMillisecToSec } from "../shared/unixTime";
+import { AmazonMailSubjects } from "../type/AmazonMailSubjects";
+import { AmazonSubscribeItem, createAmazonSubscribeSettingInstance } from "../type/Mailbox";
+
+type SubscribeItems = Record<string, AmazonSubscribeItem>;
+
+/** How far back the first run searches. */
+const FIRST_RUN_LOOKBACK_MILLIS = 5 * 60 * 1000;
 
 /**
- * Gmailをモニターし、
- * Amazon定期便のリストを更新
+ * Keeps one user's Amazon subscribe list up to date from Amazon's mails:
+ * next-shipment and price-change mails add or update items, cancel mails remove them.
  */
 export class AmazonSubscribeMonitorItemsProcessor {
-  private userId: string;
-
   constructor(
-    userId: string,
+    private userId: string,
     private mailboxExtractionService: MailboxExtractionService,
     private runtime: Runtime
-  ) {
-    this.userId = userId;
-  }
+  ) {}
 
-  async handleAmazonSubscribeItems(): Promise<FuncResult> {
-    const funcName = "handleAmazonSubscribeList";
-
-    const type = createAmazonSubscribeSettingInstance();
-    let ret =
-      await this.mailboxExtractionService.getMailboxExtractionMailTypeSetting(
-        this.userId,
-        type
-      );
-    if (ret.status == FuncStatus.EMPTY) {
-      logger.info(`${this.userId} has never activated amazon monitor`);
-      return {
-        status: FuncStatus.SUCCESS,
-      };
-    } else if (ret.status != FuncStatus.SUCCESS || !ret.data) {
-      /**
-       * なにかエラーが出たようだ
-       */
-      logger.error(
-        `${type.nodeName} went wrong when getting setting.: ${ret.message}`
-      );
-      return ret;
-    } else {
-      /* 特に問題ないので次へ */
-      logger.debug(`The user has Amazon Subscribe setting`);
-    }
-
-    const lastExecRet =
-      await this.mailboxExtractionService.getAmazonSubscribeMonitorLastExec(
-        this.userId
-      );
-    if (lastExecRet.status != FuncStatus.SUCCESS) {
-      logger.error(`${lastExecRet.message}`);
-      return lastExecRet;
-    }
-
-    const endTime = this.runtime.clock.now().getTime();
-    const lastMsgId = lastExecRet.data?.lastMsgId;
-    let startTime: number = 0;
-    if (!lastExecRet.data?.timestamp) {
-      startTime = endTime - 60 * 5 * 1000;
-    } else {
-      startTime =
-        lastExecRet.data.timestamp; /* タイムスタンプがあるならそれを使う */
-    }
-
-    const gmailClientRet = await generateGmailApiInstance(
+  async handleAmazonSubscribeItems(): Promise<void> {
+    const setting = await this.mailboxExtractionService.getMailTypeSetting(
       this.userId,
-      this.mailboxExtractionService,
-      this.runtime
+      createAmazonSubscribeSettingInstance()
     );
-    if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
-      logger.error(`${gmailClientRet.message}`);
-      return gmailClientRet;
+    if (!setting) {
+      logger.info(`${this.userId} has never activated amazon monitor`);
+      return;
     }
-    const gmailClient: GmailClient = gmailClientRet.data;
-    /**
-     * クエリをして、msgIdを取得
-     */
-    const isEmulator = this.runtime.config.isEmulator;
 
-    /**
-     * こっちは次回配送の連絡
-     */
-    const queryAfter = isEmulator ? 1 : convertUnixMillisecToSec(startTime);
-    const queryBefore = convertUnixMillisecToSec(endTime);
+    const lastExec = await this.mailboxExtractionService.getAmazonSubscribeMonitorLastExec(this.userId);
+    const endTime = this.runtime.clock.now().getTime();
+    const startTime = lastExec?.timestamp || endTime - FIRST_RUN_LOOKBACK_MILLIS;
+
+    const gmailClient = await createUserGmailClient(this.userId, this.mailboxExtractionService, this.runtime);
+    if (!gmailClient) {
+      logger.info(`Gmail Token is not set by the user`);
+      return;
+    }
+
     /* キャンセルも次回の配達通知も両方一気に取得する */
-    const queryRet = await getAmazonSubscribeNextShipNotifyAndCancelMailIds(
+    const queryAfter = this.runtime.config.isEmulator ? 1 : convertUnixMillisecToSec(startTime);
+    const msgIds = await getAmazonSubscribeNextShipNotifyAndCancelMailIds(
       gmailClient,
       queryAfter,
-      queryBefore,
+      convertUnixMillisecToSec(endTime),
       10
     );
 
-    if (!queryRet.data || queryRet.data.length === 0) {
+    if (msgIds.length === 0) {
       /* クエリがヒットしなかった。メールが来ていない */
-      logger.info(`${funcName}:Nothing was found After query.`);
-      const newLastExec: LastMailboxExtractionExec = {
-        ...lastExecRet.data,
+      logger.info(`handleAmazonSubscribeItems: Nothing was found After query.`);
+      await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(this.userId, {
+        ...lastExec,
         timestamp: endTime /* UNIXミリ秒で保存 */,
-      };
-      const ret =
-        await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(
-          this.userId,
-          newLastExec
-        );
-      if (ret.status != FuncStatus.SUCCESS) {
-        logger.error(`${ret.message}`);
-      } else {
-        logger.log(`${funcName} : Updated:${JSON.stringify(newLastExec)}`);
-      }
-    } else {
-      /**
-       * メールがあったので処理をする
-       * */
-      const hitMsgIds = queryRet.data;
-      logger.info(`Found ${hitMsgIds.length} msg ids`);
-      const sortRet = await getMessageDetailsSortedList(gmailClient, hitMsgIds);
-      if (sortRet.status != FuncStatus.SUCCESS || !sortRet.data) {
-        logger.error(`${sortRet.message}`);
-        return sortRet;
-      }
+      });
+      return;
+    }
 
-      const sortedList = sortRet.data;
-      const filterRet = filterMessages(sortedList, lastMsgId);
-      if (filterRet.status != FuncStatus.SUCCESS) {
-        if (filterRet.status == FuncStatus.EMPTY) {
-          /* 検索をしていくつかヒットしたけどlastMsgIdでフィルターしたときに何も残らなかった */
-          /* めったに起きないはず */
-          logger.warn(`${funcName}: Probably this is not error.`);
-        }
-        logger.error(
-          `${funcName}:${filterRet.message ? filterRet.message : "No message"}`
-        );
-        return filterRet;
-      }
+    logger.info(`Found ${msgIds.length} msg ids`);
+    const sortedList = await getMessageDetailsSortedList(gmailClient, msgIds);
+    const { filteredMessages, mostRecentMsgId } = filterMessages(sortedList, lastExec?.lastMsgId);
+    if (Object.keys(filteredMessages).length === 0) {
+      /* Every mail found was already processed. last_exec is kept as it is. */
+      logger.warn(`handleAmazonSubscribeItems: No new messages found. Probably this is not error.`);
+      return;
+    }
 
-      const filteredMessages = filterRet.data?.filteredMessages;
-      const mostRecentMsgId = filterRet.data?.mostRecentMsgId;
-      if (!filteredMessages) {
-        logger.warn(`${funcName}:filteredMessages is null...`);
-        return {
-          status: FuncStatus.ERROR,
-          message: `${funcName}:filteredMessages is null...`,
-        };
-      }
+    let subscribeItems = await this.mailboxExtractionService.getAmazonSubscribeItems(this.userId);
 
-      /**
-       * 定期便リストを取得
-       */
-      const itemsRet =
-        await this.mailboxExtractionService.getAmazonSubscribeMonitorItems(
-          this.userId
-        );
-      if (itemsRet.status == FuncStatus.ERROR) {
-        return itemsRet;
-      }
-
-      /* EMPTYの場合は{}が返って来る */
-      let subscribeItems =
-        itemsRet.status == FuncStatus.EMPTY ? {} : itemsRet.data!;
-
-      /**
-       * filteredMessagesには新しい次回の配送についてと定期便キャンセルの両方が
-       * 含まれている
-       * ここで一旦さらにsortしておく。一度mapにしてしまったので。
-       * 古い順に並べてあるので順番にキャンセルなり保存を繰り返していけば常に最新になる
-       */
-      const filteredList = sortGmailMessagesByDate(filteredMessages, "asc");
-
-      for (const [_, gmail] of filteredList) {
-        // logger.log("-------------------");
-        // logger.log(`${getSubjectFromMessage(gmail)}`);
-        // logger.log("***************************");
-        //console.log(`${extractTextBody(gmail.payload)}`);
-
-        const rawText = extractTextBody(gmail.payload);
-        if (!rawText) {
-          logger.error("Unable to extract Text from the mail");
-          continue;
-        }
-
-        const subject = getSubjectFromMessage(gmail);
-        if (
-          subject == AmazonMailSubjects.NEXT_SHIPMENT ||
-          subject ==
-          AmazonMailSubjects.PRICE_CHANGED /* 価格が変わった場合のメールも正規表現は同じで行ける */
-        ) {
-          /**
-           *  普通にplain textで取得すると、価格の情報が抜けてしまうので
-           *  HTMLを削除してテキストを取得する
-           *  その後、AmazonSubscribeNextShipmentMailParserで解析する
-           */
-          let htmlStrippedText = extractHtmlBody(gmail.payload, true);
-          if (!htmlStrippedText) {
-            logger.error("Unable to extract HTML stripped Text from the mail");
-            continue;
-          }
-
-          const parser = new AmazonSubscribeNextShipmentMailParser(htmlStrippedText);
-          const ret = parser.toSubscribeItem();
-          if (ret.status != FuncStatus.SUCCESS) {
-            logger.error(`${ret.message}`);
-            continue;
-          }
-
-          const items: AmazonSubscribeItem[] = ret.data!;
-
-          for (const item of items) {
-            logger.log(
-              `Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`
-            );
-
-            /**
-             * アイテムの中に製品名があるかチェックする
-             * 価格、個数
-             */
-            const updateRet = await this.updateAmazonSubscribeItems(
-              item,
-              subscribeItems
-            );
-
-            if (updateRet.status == FuncStatus.SUCCESS) {
-              /* 成功の場合のみここでmapを更新 */
-              subscribeItems = updateRet.data!;
-            }
-          }
-        } else if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
-          logger.log(`-------This is item runout mail--------`);
-          logger.log(
-            `I might handle this type of email in the future, but I ignore this so far.`
-          );
-        } else if (
-          subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)
-        ) {
-          //logger.log(`${extractTextBody(gmail.payload)}`);
-          const rawText = extractTextBody(gmail.payload);
-          if (!rawText) {
-            logger.error("Unable to extract Text from the mail");
-            continue;
-          }
-          logger.log(`!!!!!!!!!!!!This is cancel mail!!!!!!!!!!!!!!!`);
-          const parser = new AmazonSubscribeCancelParser(rawText);
-          const productName = parser.extractProductName();
-          if (!productName) {
-            logger.error(`Unable to parser from Cancel Subscription Mail!!`);
-            continue;
-          }
-          const item: AmazonSubscribeItem = {
-            productName: productName,
-          };
-          const removeRet = await this.removeFromAmazonSubscribeItems(
-            item,
-            subscribeItems
-          );
-          if (removeRet.status == FuncStatus.SUCCESS) {
-            logger.debug(
-              `Removed ${item.productName} ${removeRet?.message ? removeRet.message : "No message"
-              }`
-            );
-            subscribeItems = removeRet.data!;
-          } else if (removeRet.status == FuncStatus.EMPTY) {
-            logger.warn(
-              `${removeRet.message ? removeRet.message : "No message"}`
-            );
-            /**
-             * 名前が若干変わっている可能性がある。
-             * その場合、リストから消せないので手動で消すしかない。
-             * 端末に通知を行いたい、
-             */
-          } else {
-            logger.log(
-              `Something went wrong: ${removeRet.message ? removeRet.message : "No message"
-              }`
-            );
-          }
-        } else {
-          logger.log(`This is unknown subject:${subject}`);
-          continue;
-        }
-      }
-
-      /* 最後にlastIdを保存する */
-      /* 最後にlastExecを更新する */
-      const lastExec: LastMailboxExtractionExec = {
-        timestamp: endTime,
-        lastMsgId: mostRecentMsgId,
-      };
-      const ret =
-        await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(
-          this.userId,
-          lastExec
-        );
-      if (ret.status != FuncStatus.SUCCESS) {
-        logger.error(`${ret.message}`);
+    /* 古い順に処理していけば、リストは常に最新になる */
+    for (const [id, gmail] of sortGmailMessagesByDate(filteredMessages, "asc")) {
+      try {
+        subscribeItems = await this.applyMail(gmail, subscribeItems);
+      } catch (error) {
+        logger.error(`Failed to handle the mail ${id}: ${messageOf(error)}`);
       }
     }
 
-    return {
-      status: FuncStatus.SUCCESS,
-    };
+    await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(this.userId, {
+      timestamp: endTime,
+      lastMsgId: mostRecentMsgId,
+    });
   }
 
-  /**
-   * 既存のitemMapで被っているのがないか確認し、
-   * 場合によっては追加する
-   */
-  async updateAmazonSubscribeItems(
-    item: AmazonSubscribeItem,
-    itemMap: Record<string, AmazonSubscribeItem>
-  ): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>> {
-    /* 追加/updateしたときに新しいMapを返す */
-    let ret: FuncResultWithData<Record<string, AmazonSubscribeItem>>;
-    const existRet = isAmazonSubscribeProductExist(item, itemMap);
+  /** Applies one mail to the list and returns the updated list. */
+  private async applyMail(
+    gmail: Parameters<typeof getSubjectFromMessage>[0],
+    subscribeItems: SubscribeItems
+  ): Promise<SubscribeItems> {
+    const subject = getSubjectFromMessage(gmail);
 
-    if (existRet.status == FuncStatus.ERROR) {
-      logger.error(`${existRet.message}`);
-      /* 何かしらのエラー */
-      ret = toFuncResult(existRet);
-    } else if (existRet.status == FuncStatus.EMPTY) {
+    if (subject == AmazonMailSubjects.NEXT_SHIPMENT || subject == AmazonMailSubjects.PRICE_CHANGED) {
+      /**
+       * 普通にplain textで取得すると、価格の情報が抜けてしまうので
+       * HTMLを削除してテキストを取得してから解析する
+       * (価格が変わった場合のメールも同じ正規表現で行ける)
+       */
+      const htmlStrippedText = extractHtmlBody(gmail.payload, true);
+      if (!htmlStrippedText) {
+        throw new Error("Unable to extract HTML stripped Text from the mail");
+      }
+      const items = new AmazonSubscribeNextShipmentMailParser(htmlStrippedText).toSubscribeItem();
+      for (const item of items) {
+        logger.log(`Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`);
+        try {
+          subscribeItems = await this.addOrUpdateItem(item, subscribeItems);
+        } catch (error) {
+          logger.error(`Failed to update ${item.productName}: ${messageOf(error)}`);
+        }
+      }
+      return subscribeItems;
+    }
+
+    if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
+      logger.log(`Item runout mail. I might handle this type of email in the future, but I ignore this so far.`);
+      return subscribeItems;
+    }
+
+    if (subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)) {
+      const rawText = extractTextBody(gmail.payload);
+      if (!rawText) {
+        throw new Error("Unable to extract Text from the mail");
+      }
+      const productName = new AmazonSubscribeCancelParser(rawText).extractProductName();
+      if (!productName) {
+        throw new Error(`Unable to parser from Cancel Subscription Mail!!`);
+      }
+      return this.removeItem({ productName }, subscribeItems);
+    }
+
+    logger.log(`This is unknown subject:${subject}`);
+    return subscribeItems;
+  }
+
+  /** Adds the item, or updates the registered one when its price or quantity changed or it was disabled. */
+  async addOrUpdateItem(item: AmazonSubscribeItem, itemMap: SubscribeItems): Promise<SubscribeItems> {
+    const id = findAmazonSubscribeItemId(item.productName, itemMap);
+    if (id === null) {
       logger.log(`New item: ${item.productName} should be added.`);
-      /* 存在しないので新規追加 */
-      const addRet =
-        await this.mailboxExtractionService.addAmazonSubscribeMonitorItem(
-          this.userId,
-          item
-        );
-      if (addRet.status == FuncStatus.SUCCESS) {
-        /* 成功したのでMapに追加 */
-        const newItem = addRet.data!;
-        const newItemMap = {
-          ...itemMap,
-          [newItem.id!]: newItem,
-        };
-
-        ret = {
-          status: FuncStatus.SUCCESS,
-          data: newItemMap,
-        };
-      } else {
-        ret = toFuncResult(addRet);
-      }
-    } else if (existRet.status == FuncStatus.SUCCESS) {
-      const id = existRet.data!;
-      const existingItem = itemMap[id];
-
-      // enabled=falseの場合はtrueに戻す
-      const needsEnableUpdate = existingItem.enabled === false;
-
-      if (
-        existingItem.price !== item.price ||
-        existingItem.quantity !== item.quantity ||
-        needsEnableUpdate
-      ) {
-        logger.log("This item:${existingItem.productName} must be updated.");
-        /* 価格と個数が違えばupdate、またはenabled=falseの場合はtrueに戻す */
-        const updatedItem: AmazonSubscribeItem = {
-          ...existingItem,
-          price: item.price,
-          quantity: item.quantity,
-          enabled: needsEnableUpdate ? true : existingItem.enabled,
-        };
-
-        const updateRet =
-          await this.mailboxExtractionService.updateAmazonSubscribeMonitorItem(
-            this.userId,
-            updatedItem
-          );
-        if (updateRet.status == FuncStatus.SUCCESS) {
-          const newItemMap = {
-            ...itemMap,
-            [updatedItem.id!]: updatedItem,
-          };
-          ret = {
-            status: FuncStatus.SUCCESS,
-            data: newItemMap,
-          };
-        } else {
-          ret = toFuncResult(updateRet);
-        }
-      } else {
-        logger.log(`updateAmazonSubscribeItems: No need to update AmazonSubscribeItem!!`);
-        ret = {
-          status: FuncStatus.SUCCESS,
-          message: "No need to update AmazonSubscribeItem",
-          data: itemMap,
-        };
-      }
-    } else {
-      ret = {
-        status: FuncStatus.ERROR,
-        message: `This is the bug in editAmazonSubscribeItemData`,
-      };
+      const added = await this.mailboxExtractionService.addAmazonSubscribeItem(this.userId, item);
+      return { ...itemMap, [added.id!]: added };
     }
-    return ret;
+
+    const existingItem = itemMap[id];
+    /* enabled=falseの場合はtrueに戻す */
+    const needsEnableUpdate = existingItem.enabled === false;
+    if (existingItem.price === item.price && existingItem.quantity === item.quantity && !needsEnableUpdate) {
+      logger.log(`No need to update AmazonSubscribeItem!!`);
+      return itemMap;
+    }
+
+    logger.log(`This item:${existingItem.productName} must be updated.`);
+    const updatedItem: AmazonSubscribeItem = {
+      ...existingItem,
+      price: item.price,
+      quantity: item.quantity,
+      enabled: needsEnableUpdate ? true : existingItem.enabled,
+    };
+    await this.mailboxExtractionService.updateAmazonSubscribeItem(this.userId, updatedItem);
+    return { ...itemMap, [id]: updatedItem };
   }
 
-  async removeFromAmazonSubscribeItems(
-    item: AmazonSubscribeItem,
-    itemMap: Record<string, AmazonSubscribeItem>
-  ): Promise<FuncResultWithData<Record<string, AmazonSubscribeItem>>> {
-    let ret: FuncResultWithData<Record<string, AmazonSubscribeItem>>;
-    const existRet = isAmazonSubscribeProductExist(item, itemMap);
-    if (existRet.status == FuncStatus.ERROR) {
-      ret = toFuncResult(existRet);
-    } else if (existRet.status == FuncStatus.EMPTY) {
-      ret = {
-        status: FuncStatus.EMPTY,
-        message: `Attempted to remove from Subscribe items, but not exist. ${item.productName}`,
-        data: itemMap,
-      };
-    } else if (existRet.status == FuncStatus.SUCCESS) {
-      const id = existRet.data!;
-      const removedItem = itemMap[id];
-      const removeRet =
-        await this.mailboxExtractionService.removeAmazonSubscribeMonitorItem(
-          this.userId,
-          removedItem
-        );
-      if (removeRet.status == FuncStatus.SUCCESS) {
-        logger.log(`Successfully Removed from Subscribe items.`);
-
-        // itemMap から削除済みアイテムを反映した新しい Map を作る
-        const newItemMap = { ...itemMap };
-        delete newItemMap[id];
-        return {
-          status: FuncStatus.SUCCESS,
-          data: newItemMap,
-          message: `Removed ${removedItem.productName} successfully`,
-        };
-      } else {
-        /* 削除に失敗したらそのまま */
-        ret = toFuncResult(removeRet);
-      }
-    } else {
-      ret = {
-        status: FuncStatus.ERROR,
-        message: `This is the bug. ${item.productName}`,
-      };
+  /** Removes the registered item for the product. */
+  async removeItem(item: AmazonSubscribeItem, itemMap: SubscribeItems): Promise<SubscribeItems> {
+    const id = findAmazonSubscribeItemId(item.productName, itemMap);
+    if (id === null) {
+      /**
+       * 名前が若干変わっている可能性がある。その場合、リストから消せないので手動で消すしかない。
+       * 端末に通知を行いたい。
+       */
+      logger.warn(`Attempted to remove from Subscribe items, but not exist. ${item.productName}`);
+      return itemMap;
     }
-
-    return ret;
+    await this.mailboxExtractionService.removeAmazonSubscribeItem(this.userId, itemMap[id]);
+    logger.log(`Removed ${itemMap[id].productName} from Subscribe items.`);
+    const { [id]: _removed, ...rest } = itemMap;
+    return rest;
   }
 }

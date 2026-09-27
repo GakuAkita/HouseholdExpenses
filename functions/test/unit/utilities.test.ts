@@ -7,8 +7,7 @@ import {
   convertUnixMillisecToDateString,
   convertUnixMillisecToSec,
 } from "../../src/shared/unixTime";
-import { isAmazonSubscribeProductExist } from "../../src/domain/isAmazonSubscribeProductExist";
-import { FuncStatus } from "../../src/type/FuncStatus";
+import { findAmazonSubscribeItemId } from "../../src/domain/amazonSubscribe";
 
 describe("convertDayToNum", () => {
   it("converts Kotlin DayOfWeek values (1 = Monday ... 7 = Sunday)", () => {
@@ -63,32 +62,22 @@ describe("date helpers", () => {
   });
 });
 
-describe("isAmazonSubscribeProductExist", () => {
+describe("findAmazonSubscribeItemId", () => {
   const items = {
     item1: { id: "item1", productName: "サントリー 天然水 2L×9本" },
   };
 
-  it("matches when one name starts with the other", () => {
-    expect(isAmazonSubscribeProductExist({ productName: "サントリー 天然水" }, items)).toEqual({
-      status: FuncStatus.SUCCESS,
-      data: "item1",
-    });
-    expect(
-      isAmazonSubscribeProductExist({ productName: "サントリー 天然水 2L×9本 [Amazon.co.jp限定]" }, items)
-        .status
-    ).toBe(FuncStatus.SUCCESS);
+  it("finds the item when one name starts with the other", () => {
+    expect(findAmazonSubscribeItemId("サントリー 天然水", items)).toBe("item1");
+    expect(findAmazonSubscribeItemId("サントリー 天然水 2L×9本 [Amazon.co.jp限定]", items)).toBe("item1");
   });
 
-  it("returns EMPTY when no name matches", () => {
-    expect(isAmazonSubscribeProductExist({ productName: "コカ・コーラ" }, items).status).toBe(
-      FuncStatus.EMPTY
-    );
+  it("returns null when no name matches", () => {
+    expect(findAmazonSubscribeItemId("コカ・コーラ", items)).toBeNull();
   });
 
-  it("returns ERROR for an empty name, or when a registered item has no name", () => {
-    expect(isAmazonSubscribeProductExist({ productName: " " }, items).status).toBe(FuncStatus.ERROR);
-    expect(
-      isAmazonSubscribeProductExist({ productName: "A" }, { broken: { id: "broken" } }).status
-    ).toBe(FuncStatus.ERROR);
+  it("throws for an empty name, or when a registered item has no name", () => {
+    expect(() => findAmazonSubscribeItemId(" ", items)).toThrow();
+    expect(() => findAmazonSubscribeItemId("A", { broken: { id: "broken" } })).toThrow();
   });
 });

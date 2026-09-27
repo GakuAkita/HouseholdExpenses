@@ -1,6 +1,6 @@
 import { logger } from "firebase-functions";
 import { UserService } from "../infra/firestore/UserService";
-import { FuncStatus } from "../type/FuncStatus";
+import { messageOf } from "../shared/errors";
 
 /**
  * Runs the task for every user, one after another.
@@ -10,16 +10,12 @@ export const forEachUser = async (
   userService: Pick<UserService, "getAllUserIds">,
   task: (userId: string) => Promise<void>
 ): Promise<void> => {
-  /* ユーザーIDをすべて取得してくる */
-  const funcResult = await userService.getAllUserIds();
-  if (funcResult.status !== FuncStatus.SUCCESS) {
-    logger.error("Failed to retrieve user IDs:", funcResult.message);
-    return;
-  }
-
-  const userIds = funcResult.data;
-  if (userIds == null) {
-    logger.error("No user IDs found.");
+  let userIds: string[];
+  try {
+    /* ユーザーIDをすべて取得してくる */
+    userIds = await userService.getAllUserIds();
+  } catch (error) {
+    logger.error("Failed to retrieve user IDs:", messageOf(error));
     return;
   }
   logger.log(`Found ${userIds.length} users.`);
@@ -28,7 +24,7 @@ export const forEachUser = async (
     try {
       await task(userId);
     } catch (error) {
-      logger.error(`Unexpected error for user ${userId}:`, error);
+      logger.error(`Failed for user ${userId}: ${messageOf(error)}`);
     }
   }
 };

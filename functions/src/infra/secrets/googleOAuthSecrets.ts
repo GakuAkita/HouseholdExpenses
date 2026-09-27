@@ -1,13 +1,13 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { logger } from "firebase-functions";
 import { RuntimeConfig } from "../../shared/runtimeConfig";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { GoogleOAuthSecrets } from "../../type/GoogleOAuthSecrets";
 
 const SECRET_NAME = "GOOGLE_OAUTH2";
 
 export interface GoogleOAuthSecretProvider {
-  load(): Promise<FuncResultWithData<GoogleOAuthSecrets>>;
+  /** The secrets. Throws when they can't be loaded. */
+  load(): Promise<GoogleOAuthSecrets>;
 }
 
 /** Reads the secret's payload (JSON text). Replaced with a fake in tests. */
@@ -82,19 +82,7 @@ export const createGoogleOAuthSecretProvider = (
         });
       }
 
-      try {
-        return {
-          status: FuncStatus.SUCCESS,
-          message: "Google OAuth secrets loaded successfully.",
-          data: await pending,
-        };
-      } catch (e) {
-        return {
-          status: FuncStatus.ERROR,
-          message: e instanceof Error ? e.message : String(e),
-          data: undefined,
-        };
-      }
+      return pending;
     },
   };
 };

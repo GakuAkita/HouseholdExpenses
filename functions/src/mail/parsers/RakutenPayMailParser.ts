@@ -1,8 +1,8 @@
 import { logger } from "firebase-functions";
+import { MailParseError } from "./MailParserBase";
 import { DateTime } from "luxon";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 
 export class RakutenPayMailParser {
   constructor(private rawText: string) {}
@@ -87,7 +87,7 @@ export class RakutenPayMailParser {
     return null;
   }
 
-  toExpense(): FuncResultWithData<Expense> {
+  toExpense(): Expense {
     const amount = this.extractAmount();
     const storeName = this.extractStoreName();
     const datetime = this.extractDate();
@@ -95,18 +95,12 @@ export class RakutenPayMailParser {
     //logger.debug(`${this.rawText}`);
 
     if (amount === null || !storeName || !datetime) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Unable to get Data from RakutenPay mail : amount=${amount} storeName=${storeName} datetime=${datetime} usedPoint=${usedPoint}`,
-      };
+      throw new MailParseError(`Unable to get Data from RakutenPay mail : amount=${amount} storeName=${storeName} datetime=${datetime} usedPoint=${usedPoint}`);
     }
 
     const netAmount = amount - usedPoint;
     if (netAmount < 0) {
-      return {
-        status: FuncStatus.ERROR,
-        message: `Net amount is negative ${netAmount}yen (amount:${amount}, usedPoint:${usedPoint})`,
-      };
+      throw new MailParseError(`Net amount is negative ${netAmount}yen (amount:${amount}, usedPoint:${usedPoint})`);
     } else if (netAmount == 0) {
       logger.info(`amount(${amount}) - point(${usedPoint}) = netAmount 0`);
     }
@@ -117,10 +111,6 @@ export class RakutenPayMailParser {
       storeName: storeName,
     };
 
-    return {
-      status: FuncStatus.SUCCESS,
-      message: "Generated Expense from RakutenPay",
-      data: expense,
-    };
+    return expense;
   }
 }

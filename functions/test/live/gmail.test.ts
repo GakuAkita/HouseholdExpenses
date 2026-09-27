@@ -4,7 +4,6 @@ import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParse
 import { decryptWithKey } from "../../src/shared/encryption";
 import { extractTextBody } from "../../src/infra/gmail/extractHtmlBody";
 import { getRakutenPayMailIds } from "../../src/infra/gmail/mailQueries";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";
 
 /*
@@ -26,22 +25,20 @@ describe.skipIf(!secretsJson || !encryptedRefreshToken)("Gmail (live)", () => {
   };
 
   it("authorizes with the stored refresh token", async () => {
-    const result = await createClient().authorize();
-    expect(result.status, result.message).toBe(FuncStatus.SUCCESS);
+    /* Throws when Google rejects the refresh token. */
+    expect(await createClient().authorize()).toBeTruthy();
   });
 
   it("finds Rakuten Pay mails and parses the latest one", async () => {
     const client = createClient();
     const oneYearAgo = Math.floor(Date.now() / 1000) - 365 * 24 * 60 * 60;
     const ids = await getRakutenPayMailIds(client, oneYearAgo, Math.floor(Date.now() / 1000));
-    expect(ids.status, ids.message).toBe(FuncStatus.SUCCESS);
-    if (!ids.data?.length) return;
+    if (ids.length === 0) return;
 
-    const detail = await client.getMessageDetail(ids.data[0]);
-    const text = extractTextBody(detail.data?.payload);
+    const detail = await client.getMessageDetail(ids[0]);
+    const text = extractTextBody(detail.payload);
     expect(text).toBeTruthy();
-    const parsed = new RakutenPayMailParser(text!).toExpense();
-    /* Checks the real mail format still matches the parser, without printing the mail. */
-    expect(parsed.status, parsed.message).toBe(FuncStatus.SUCCESS);
+    /* Checks the real mail format still matches the parser (throws otherwise), without printing the mail. */
+    expect(new RakutenPayMailParser(text!).toExpense().amount).toBeTypeOf("number");
   });
 });

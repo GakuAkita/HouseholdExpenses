@@ -5,8 +5,8 @@ import { AssignmentCondition } from "../../src/constants/AssignmentCondition";
 import { ExtractionContext, MailSource } from "../../src/mail/mailSource";
 import { mailSourceFor } from "../../src/mail/sources";
 import { GmailClient } from "../../src/infra/gmail/GmailApiClient";
+import { MailParseError } from "../../src/mail/parsers/MailParserBase";
 import { Category } from "../../src/type/Category";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import {
   AllMailType,
   AmazonSubscribeItem,
@@ -41,10 +41,7 @@ const context = (subscribeItems?: Record<string, AmazonSubscribeItem>): Extracti
       b: { name: "水", categoryId: "daily", condition: AssignmentCondition.CONTAINS, regex: false, generatedTyep: null },
     },
   },
-  loadEnabledAmazonSubscribeItems: async () =>
-    subscribeItems
-      ? { status: FuncStatus.SUCCESS, data: subscribeItems }
-      : { status: FuncStatus.EMPTY },
+  loadEnabledAmazonSubscribeItems: async () => subscribeItems ?? {},
 });
 
 const gmail = { enabled: true, emailProvider: EmailProvider.GMAIL };
@@ -80,7 +77,7 @@ describe("mail source registry", () => {
     };
     for (const schedule of mailboxExtractionSchedules) {
       for (const type of schedule.mailTypes) {
-        const queryMessages = vi.fn().mockResolvedValue({ status: FuncStatus.SUCCESS, data: [] });
+        const queryMessages = vi.fn().mockResolvedValue([]);
         await sourceOf(type).findMailIds({ queryMessages } as unknown as GmailClient, 100, 200);
         expect(queryMessages.mock.calls[0][0]).toContain(`from:${senders[type.nodeName]}`);
       }
@@ -92,7 +89,7 @@ describe("mail sources", () => {
   it("rakuten_pay assigns the category by store name", async () => {
     const setting = createRakutenPaySettingInstance(gmail);
     const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_pay") }, setting, context());
-    expect(result.data).toEqual([
+    expect(result).toEqual([
       { datetime: "2026-09-15T03:34:00.000Z", amount: 1000, storeName: "ローソン 高松店", category: food },
     ]);
   });
@@ -100,20 +97,20 @@ describe("mail sources", () => {
   it("amazon_kindle and shikoku_electric_power use the category in the setting", async () => {
     const kindle = createAmazonKindleSettingInstance({ ...gmail, categoryId: "daily" });
     expect(
-      (await sourceOf(kindle).toExpenses({ rawText: fixture("amazon_kindle"), internalDate }, kindle, context())).data
+      (await sourceOf(kindle).toExpenses({ rawText: fixture("amazon_kindle"), internalDate }, kindle, context()))
     ).toEqual([{ datetime: internalDateIso, amount: 1782, itemName: "リーダブルコード", category: daily }]);
 
     const shikoku = createShikokuElectricPowerSettingInstance({ ...gmail, categoryId: "bills" });
     expect(
       (await sourceOf(shikoku).toExpenses({ rawText: fixture("shikoku_electric_power"), internalDate }, shikoku, context()))
-        .data
     ).toEqual([{ datetime: internalDateIso, amount: 3456, category: bills }]);
   });
 
   it("fails without internalDate for mails dated by Gmail", async () => {
     const kindle = createAmazonKindleSettingInstance(gmail);
-    const result = await sourceOf(kindle).toExpenses({ rawText: fixture("amazon_kindle") }, kindle, context());
-    expect(result.status).toBe(FuncStatus.ERROR);
+    await expect(
+      sourceOf(kindle).toExpenses({ rawText: fixture("amazon_kindle") }, kindle, context())
+    ).rejects.toThrow(MailParseError);
   });
 
   it("amazon_item assigns categories by product name", async () => {
@@ -123,7 +120,7 @@ describe("mail sources", () => {
       setting,
       context()
     );
-    expect(result.data?.map((e) => [e.itemName, e.category?.id])).toEqual([
+    expect(result.map((e) => [e.itemName, e.category?.id])).toEqual([
       ["ランニング キャップ メンズ", undefined],
       ["水筒 500ml", "daily"],
     ]);
@@ -138,18 +135,18 @@ describe("mail sources", () => {
       setting,
       context({ item1: { id: "item1", productName: "サントリー 天然水" } })
     );
-    expect(subscribed.data).toHaveLength(2);
-    expect(subscribed.data?.[0]).toMatchObject({ amount: 1200, storeName: "Amazon", category: daily });
+    expect(subscribed).toHaveLength(2);
+    expect(subscribed[0]).toMatchObject({ amount: 1200, storeName: "Amazon", category: daily });
 
     const other = await sourceOf(setting).toExpenses(
       mail,
       setting,
       context({ item1: { id: "item1", productName: "コカ・コーラ" } })
     );
-    expect(other).toEqual({ status: FuncStatus.SUCCESS, data: [] });
+    expect(other).toEqual([]);
 
     const noList = await sourceOf(setting).toExpenses(mail, setting, context());
-    expect(noList).toEqual({ status: FuncStatus.SUCCESS, data: [] });
+    expect(noList).toEqual([]);
   });
 
   it("udemy and rakuten_card_etc use the category in the setting for every expense", async () => {
@@ -159,13 +156,13 @@ describe("mail sources", () => {
       udemy,
       context()
     );
-    expect(courses.data).toEqual([
+    expect(courses).toEqual([
       { datetime: internalDateIso, amount: 1800, itemName: "Complete Python Bootcamp", category: daily },
     ]);
 
     const etc = createRakutenCardETCSettingInstance({ ...gmail, categoryId: "bills" });
     const charges = await sourceOf(etc).toExpenses({ rawText: fixture("rakuten_card_etc") }, etc, context());
-    expect(charges.data?.map((e) => [e.amount, e.category?.id])).toEqual([
+    expect(charges.map((e) => [e.amount, e.category?.id])).toEqual([
       [1230, "bills"],
       [2000, "bills"],
     ]);
@@ -173,8 +170,8 @@ describe("mail sources", () => {
 
   it("passes on the parser's error", async () => {
     const setting = createRakutenPaySettingInstance(gmail);
-    const result = await sourceOf(setting).toExpenses({ rawText: "hello" }, setting, context());
-    expect(result.status).toBe(FuncStatus.ERROR);
-    expect(result.data).toBeUndefined();
+    await expect(sourceOf(setting).toExpenses({ rawText: "hello" }, setting, context())).rejects.toThrow(
+      MailParseError
+    );
   });
 });

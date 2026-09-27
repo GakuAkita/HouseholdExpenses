@@ -1,13 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { RepeatFrequency } from "../../src/constants/RepeatFrequency";
 import { TimeZone } from "../../src/constants/TimeZone";
-import { ExpenseService } from "../../src/infra/firestore/ExpenseService";
-import { RepeatAddService } from "../../src/infra/firestore/RepeatAddService";
-import { SettingsService } from "../../src/infra/firestore/SettingsService";
 import { RepeatAddProcessor } from "../../src/jobs/RepeatAddProcessor";
 import { fixedClock } from "../../src/shared/clock";
 import { Expense } from "../../src/type/Expense";
-import { FuncStatus } from "../../src/type/FuncStatus";
 import { RepeatAdd } from "../../src/type/RepeatAdd";
 
 /* The monthly job runs at 01:00 JST on the 1st, which is still the previous day in UTC. */
@@ -15,19 +11,15 @@ const firstOfSeptemberJst = new Date("2026-08-31T16:00:00.000Z");
 
 const setUp = (repeatAdds: Record<string, RepeatAdd>, timeZone: string = TimeZone.JST) => {
   const added: Expense[] = [];
-  const repeatAddService = {
-    getAllRepeatAdds: async () => ({ status: FuncStatus.SUCCESS, data: repeatAdds }),
-  } as unknown as RepeatAddService;
+  const repeatAddService = { getAllRepeatAdds: async () => repeatAdds };
   const expenseService = {
     addExpenseWithId: async (_userId: string, expense: Expense) => {
       /* Firestore stores a copy of the object at the time of the write. */
       added.push({ ...expense });
-      return { status: FuncStatus.SUCCESS };
+      return "new-id";
     },
-  } as unknown as ExpenseService;
-  const settingsService = {
-    getUserTimeZone: async () => ({ status: FuncStatus.SUCCESS, data: timeZone }),
-  } as unknown as SettingsService;
+  };
+  const settingsService = { getUserTimeZone: async () => timeZone };
 
   const processor = new RepeatAddProcessor(
     repeatAddService,
@@ -48,9 +40,9 @@ describe("RepeatAddProcessor.addExpensesFromAllRepeatAdd", () => {
   it("adds this month's expenses, using the month in JST", async () => {
     const { processor, added } = setUp({ repeat1: monthly("repeat1", 25) });
 
-    const result = await processor.addExpensesFromAllRepeatAdd("user1");
+    const addedCount = await processor.addExpensesFromAllRepeatAdd("user1");
 
-    expect(result.status).toBe(FuncStatus.SUCCESS);
+    expect(addedCount).toBe(1);
     expect(added).toEqual([
       {
         amount: 8000,
@@ -100,9 +92,16 @@ describe("RepeatAddProcessor.addExpensesFromAllRepeatAdd", () => {
       repeat1: monthly("repeat1", 25),
     });
 
-    const result = await processor.addExpensesFromAllRepeatAdd("user1");
-
-    expect(result.status).toBe(FuncStatus.SUCCESS);
+    expect(await processor.addExpensesFromAllRepeatAdd("user1")).toBe(1);
     expect(added.map((e) => e.generatedType)).toEqual(["repeat_add___repeat1"]);
+  });
+
+  it("doesn't change the RepeatAdd's expense template", async () => {
+    const repeatAdd = monthly("repeat1", 25);
+    const { processor } = setUp({ repeat1: repeatAdd });
+
+    await processor.addExpensesFromAllRepeatAdd("user1");
+
+    expect(repeatAdd.expense).toEqual({ amount: 8000, note: "rent" });
   });
 });

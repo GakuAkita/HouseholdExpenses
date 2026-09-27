@@ -1,14 +1,13 @@
 import { logger } from "firebase-functions";
 import { Expense } from "../../type/Expense";
-import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { MailParserBase } from "./MailParserBase";
+import { MailParseError, MailParserBase } from "./MailParserBase";
 
 export class AmazonItemDispatchedMailParser extends MailParserBase {
   constructor(rawText: string, internalDate: string) {
     super(rawText, internalDate);
   }
 
-  toExpenses(): FuncResultWithData<Expense[]> {
+  toExpenses(): Expense[] {
     //logger.debug(`${this.rawText}`);
 
     try {
@@ -49,24 +48,14 @@ export class AmazonItemDispatchedMailParser extends MailParserBase {
       }
 
       if (expenses.length === 0) {
-        return {
-          status: FuncStatus.ERROR,
-          message: "No products found in the email",
-        };
+        throw new MailParseError("No products found in the email");
       }
 
-      return {
-        status: FuncStatus.SUCCESS,
-        message: `Successfully extracted ${expenses.length} products`,
-        data: expenses,
-      };
+      return expenses;
 
     } catch (error: any) {
       logger.error(`Error parsing Amazon dispatched mail: ${error.message}`);
-      return {
-        status: FuncStatus.ERROR,
-        message: `Failed to parse email: ${error.message}`,
-      };
+      throw new MailParseError(`Failed to parse email: ${error.message}`);
     }
   }
 }
