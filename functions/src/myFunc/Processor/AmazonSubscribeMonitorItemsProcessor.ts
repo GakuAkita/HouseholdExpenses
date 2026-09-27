@@ -12,7 +12,7 @@ import {
   createAmazonSubscribeSettingInstance,
   LastMailboxExtractionExec,
 } from "../../type/Mailbox";
-import { GmailApiClient } from "../Client/GmailApiClient";
+import { GmailClient } from "../Client/GmailApiClient";
 import { AmazonSubscribeCancelParser } from "../Parser/AmazonSubscribeCancelParser";
 import { AmazonSubscribeNextShipmentMailParser } from "../Parser/AmazonSubscribeNextShipmentMailParser";
 import { MailboxExtractionService } from "../RealtimeDbService/MailboxExtractionService";
@@ -96,13 +96,13 @@ export class AmazonSubscribeMonitorItemsProcessor {
     const gmailClientRet = await generateGmailApiInstance(
       this.userId,
       this.mailboxExtractionService,
-      this.runtime.secrets
+      this.runtime
     );
     if (gmailClientRet.status != FuncStatus.SUCCESS || !gmailClientRet.data) {
       logger.error(`${gmailClientRet.message}`);
       return gmailClientRet;
     }
-    const gmailClient: GmailApiClient = gmailClientRet.data;
+    const gmailClient: GmailClient = gmailClientRet.data;
     /**
      * クエリをして、msgIdを取得
      */
