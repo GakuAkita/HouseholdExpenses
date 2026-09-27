@@ -1,0 +1,10 @@
+Thank you for your purchase!
+
+Course name
+List price
+Your price
+
+Docker Mastery
+¥9,800
+¥1,500
+Subtotal: ¥1,500
