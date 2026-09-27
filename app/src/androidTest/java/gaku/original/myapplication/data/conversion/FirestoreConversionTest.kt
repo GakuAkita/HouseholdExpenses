@@ -10,11 +10,11 @@ import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
-import gaku.original.myapplication.data.repository.category.CategoryFirestore
-import gaku.original.myapplication.data.repository.category.toFirestore
+import gaku.original.myapplication.data.repository.category.CategoryDto
+import gaku.original.myapplication.data.repository.category.toDto
 import gaku.original.myapplication.data.repository.deleteAll
-import gaku.original.myapplication.data.repository.expense.ExpenseFirestore
-import gaku.original.myapplication.data.repository.expense.toFirestore
+import gaku.original.myapplication.data.repository.expense.ExpenseDto
+import gaku.original.myapplication.data.repository.expense.toDto
 import gaku.original.myapplication.data.repository.repeatAdd.toFirestore
 import gaku.original.myapplication.data.repository.repeatAdd.toRepeatAdd
 import kotlinx.coroutines.runBlocking
@@ -56,15 +56,15 @@ class FirestoreConversionTest {
         /* Even if you forget to put the value for the newly added property, this test can catch it. */
         /* Don't worry. */
         assertFullyPopulated(sampleCategory)
-        /* Fails when a property of CategoryFirestore is not set by toFirestore(). */
-        assertFullyPopulated(sampleCategory.toFirestore())
+        /* Fails when a property of CategoryDto is not set by toDto(). */
+        assertFullyPopulated(sampleCategory.toDto())
     }
 
     @Test
     fun category_roundTrip() = runBlocking<Unit> {
-        val snapshot = reference.categoryCollection.saveAndLoad(sampleCategory.toFirestore())
+        val snapshot = reference.categoryCollection.saveAndLoad(sampleCategory.toDto())
 
-        val actual = snapshot.toObject(CategoryFirestore::class.java)!!.toDomain()
+        val actual = snapshot.toObject(CategoryDto::class.java)!!.toDomain()
 
         assertSameProperties(sampleCategory, actual)
         assertEquals(sampleCategory, actual)
@@ -77,16 +77,16 @@ class FirestoreConversionTest {
         assertCoversAllSubclasses(GeneratedType::class, generatedTypeSamples)
         generatedTypeSamples.forEach { assertFullyPopulated(it) }
         expenseSamples.forEach { assertFullyPopulated(it) }
-        /* Fails when a property of ExpenseFirestore is not set by toFirestore(). */
-        expenseSamples.forEach { assertFullyPopulated(it.toFirestore()) }
+        /* Fails when a property of ExpenseDto is not set by toDto(). */
+        expenseSamples.forEach { assertFullyPopulated(it.toDto()) }
     }
 
     @Test
     fun expense_roundTrip() = runBlocking<Unit> {
         expenseSamples.forEach { expected ->
-            val snapshot = reference.expenseCollection.saveAndLoad(expected.toFirestore())
+            val snapshot = reference.expenseCollection.saveAndLoad(expected.toDto())
 
-            val actual = snapshot.toObject(ExpenseFirestore::class.java)!!.toDomain()
+            val actual = snapshot.toObject(ExpenseDto::class.java)!!.toDomain()
 
             assertSameProperties(expected, actual)
             assertEquals(expected, actual)

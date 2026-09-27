@@ -29,7 +29,7 @@ class CategoryRepositoryFirestore(
             val categories = snapshots.documents
                 .mapNotNull { document ->
                     Timber.d("document=$document")
-                    document.toObject(CategoryFirestore::class.java)?.toDomain()
+                    document.toObject(CategoryDto::class.java)?.toDomain()
                 }
                 .associateBy { it.id!! }
 
@@ -42,12 +42,12 @@ class CategoryRepositoryFirestore(
         val newId = categoryCollection.document().id
         Timber.d("newId=$newId")
         val newCategory = category.copy(id = newId)
-        categoryCollection.document(newId).set(newCategory.toFirestore()).await()
+        categoryCollection.document(newId).set(newCategory.toDto()).await()
         return newCategory
     }
 
     override suspend fun updateCategory(category: Category) {
-        categoryCollection.document(category.id!!).set(category.toFirestore()).await()
+        categoryCollection.document(category.id!!).set(category.toDto()).await()
     }
 
     override suspend fun deleteCategory(categoryId: String) {
@@ -57,7 +57,7 @@ class CategoryRepositoryFirestore(
     override suspend fun getAllCategories(): Map<String, Category> {
         val snapshot = categoryCollection.get().await()
         return snapshot.documents.mapNotNull { document ->
-            document.toObject(CategoryFirestore::class.java)?.toDomain()
+            document.toObject(CategoryDto::class.java)?.toDomain()
                 ?.let { document.id to it }
         }.toMap()
     }

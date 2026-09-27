@@ -43,7 +43,7 @@ class ExpenseRepositoryFirestoreTest {
         val added = repository.addExpense(sampleExpense())
 
         assertNotNull(added.id)
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseFirestore::class.java)!!.toDomain()
+        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(added, saved)
     }
 
@@ -53,7 +53,7 @@ class ExpenseRepositoryFirestoreTest {
             sampleExpense().copy(generatedType = GeneratedType.RepeatAdd(repeatAddId = "repeat1"))
         )
 
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseFirestore::class.java)!!.toDomain()
+        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(GeneratedType.RepeatAdd(repeatAddId = "repeat1"), saved.generatedType)
     }
 
@@ -64,7 +64,7 @@ class ExpenseRepositoryFirestoreTest {
 
         repository.updateExpense(modified)
 
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseFirestore::class.java)!!.toDomain()
+        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(modified, saved)
     }
 
