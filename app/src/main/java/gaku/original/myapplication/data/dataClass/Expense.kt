@@ -2,22 +2,29 @@ package gaku.original.myapplication.data.dataClass
 
 import android.os.Parcelable
 import androidx.compose.runtime.mutableStateListOf
+import gaku.original.myapplication.common.InstantSerializer
 import gaku.original.myapplication.data.Interface.CommonProperty
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
+/**
+ * A stored expense. Every property is set when the expense is created;
+ * only category, note, storeName and itemName are optional.
+ */
 @Serializable
 data class Expense(
-    override var id: String? = null,
-    var generatedType: GeneratedType? = null,//自動生成なのか手動生成なのか
-    var datetime: String? = null,//ISO_LOCAL_DATE_TIME
-    override var timestamp: Long? = System.currentTimeMillis(),
-    var amount: Long? = null,
-    var category: Category? = null,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
-    var note: String? = null,
-    var storeName: String? = null,//必要だったらいれる。
-    var itemName: String? = null,//必要だったらいれる
-) : CommonProperty
+    val id: String,
+    val generatedType: GeneratedType,//自動生成なのか手動生成なのか
+    @Serializable(with = InstantSerializer::class)
+    val datetime: Instant,
+    val timestamp: Long,/* When this expense was created */
+    val amount: Long,
+    val category: Category?,//ここCategoryのほうが良いのかな。idとnameを一緒に保存してしまう感じ
+    val note: String?,
+    val storeName: String?,//必要だったらいれる。
+    val itemName: String?,//必要だったらいれる
+)
 
 @Serializable
 @Parcelize

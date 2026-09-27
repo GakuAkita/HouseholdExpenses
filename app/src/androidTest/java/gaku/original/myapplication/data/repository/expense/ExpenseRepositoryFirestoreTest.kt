@@ -13,11 +13,11 @@ import kotlinx.coroutines.tasks.await
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Instant
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class ExpenseRepositoryFirestoreTest {
@@ -39,11 +39,12 @@ class ExpenseRepositoryFirestoreTest {
     }
 
     @Test
-    fun addExpense_assignsIdAndSavesAllFields() = runBlocking<Unit> {
-        val added = repository.addExpense(sampleExpense())
+    fun addExpense_savesAllFieldsWithGivenId() = runBlocking<Unit> {
+        val expense = sampleExpense()
+        val added = repository.addExpense(expense)
 
-        assertNotNull(added.id)
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
+        assertEquals(expense, added)
+        val saved = reference.expenseCollection.document(added.id).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(added, saved)
     }
 
@@ -53,7 +54,7 @@ class ExpenseRepositoryFirestoreTest {
             sampleExpense().copy(generatedType = GeneratedType.RepeatAdd(repeatAddId = "repeat1"))
         )
 
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
+        val saved = reference.expenseCollection.document(added.id).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(GeneratedType.RepeatAdd(repeatAddId = "repeat1"), saved.generatedType)
     }
 
@@ -64,7 +65,7 @@ class ExpenseRepositoryFirestoreTest {
 
         repository.updateExpense(modified)
 
-        val saved = reference.expenseCollection.document(added.id!!).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
+        val saved = reference.expenseCollection.document(added.id).get().await().toObject(ExpenseDto::class.java)!!.toDomain()
         assertEquals(modified, saved)
     }
 
@@ -72,9 +73,9 @@ class ExpenseRepositoryFirestoreTest {
     fun removeExpense_deletesDocument() = runBlocking<Unit> {
         val added = repository.addExpense(sampleExpense())
 
-        repository.removeExpense(added.id!!)
+        repository.removeExpense(added.id)
 
-        val snapshot = reference.expenseCollection.document(added.id!!).get().await()
+        val snapshot = reference.expenseCollection.document(added.id).get().await()
         assertFalse(snapshot.exists())
     }
 
@@ -102,16 +103,16 @@ class ExpenseRepositoryFirestoreTest {
         val modified = repository.updateExpense(added.copy(amount = 3000L))
         repository.expenses.awaitValue { it[SUBSCRIPTION_ID]?.get(added.id) == modified }
 
-        repository.removeExpense(added.id!!)
+        repository.removeExpense(added.id)
         repository.expenses.awaitValue { it[SUBSCRIPTION_ID]?.containsKey(added.id) == false }
     }
 
     @Test
     fun startListening_filtersByDatetimeRange() = runBlocking<Unit> {
-        val before = repository.addExpense(sampleExpense(datetime = "2026-08-31T23:59:59Z"))
-        val atStart = repository.addExpense(sampleExpense(datetime = "2026-09-01T00:00:00Z"))
-        val inside = repository.addExpense(sampleExpense(datetime = "2026-09-15T12:00:00Z"))
-        val atEnd = repository.addExpense(sampleExpense(datetime = "2026-10-01T00:00:00Z"))
+        val before = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-08-31T23:59:59Z")))
+        val atStart = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-09-01T00:00:00Z")))
+        val inside = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-09-15T12:00:00Z")))
+        val atEnd = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-10-01T00:00:00Z")))
 
         repository.startListening(
             SUBSCRIPTION_ID,
@@ -132,8 +133,8 @@ class ExpenseRepositoryFirestoreTest {
 
     @Test
     fun subscriptionsAreIndependent() = runBlocking<Unit> {
-        val september = repository.addExpense(sampleExpense(datetime = "2026-09-10T00:00:00Z"))
-        val october = repository.addExpense(sampleExpense(datetime = "2026-10-10T00:00:00Z"))
+        val september = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-09-10T00:00:00Z")))
+        val october = repository.addExpense(sampleExpense(datetime = Instant.parse("2026-10-10T00:00:00Z")))
 
         repository.startListening(
             SUBSCRIPTION_ID,
@@ -170,9 +171,10 @@ class ExpenseRepositoryFirestoreTest {
     }
 
     private fun sampleExpense(
-        datetime: String = "2026-09-15T03:00:00Z",
+        datetime: Instant = Instant.parse("2026-09-15T03:00:00Z"),
         amount: Long = 1200L
     ) = Expense(
+        id = UUID.randomUUID().toString(),
         generatedType = GeneratedType.Manual,
         datetime = datetime,
         timestamp = 1_780_000_000_000L,

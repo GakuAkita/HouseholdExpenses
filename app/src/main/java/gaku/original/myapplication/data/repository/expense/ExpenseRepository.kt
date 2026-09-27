@@ -16,6 +16,7 @@ interface ExpenseRepository {
 
     val expenses: StateFlow<Map<String, Map<String, Expense>>>
 
+    /** Saves a new expense. The caller decides the id, so saving again overwrites the same document. */
     suspend fun addExpense(expense: Expense): Expense
 
     suspend fun updateExpense(expense: Expense): Expense

@@ -14,7 +14,6 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.toInstant
-import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpensePrefill
@@ -130,16 +129,15 @@ class HomeViewModel(
             today.atZone(zoneId).toLocalDate().plusDays(1).atStartOfDay().toInstant(zoneId)
 
         val expenseUntilStartOfTodayList = expenseList.filter {
-            it.datetime!!.toLocalDateTime(zoneId).toInstant(zoneId) < startOfToday
+            it.datetime < startOfToday
         }
         val expenseUntilStartOfToday =
-            expenseUntilStartOfTodayList.sumOf { it.amount ?: 0L }
+            expenseUntilStartOfTodayList.sumOf { it.amount }
         val expenseUntilStartOfTodayWithoutRepeatAdd = expenseUntilStartOfTodayList.filter {
             it.generatedType !is GeneratedType.RepeatAdd
         }.filter {
-            (it.amount
-                ?: 0L) < 10000L /* When the expense is larger than 10000 yen, it is not a daily expense. */
-        }.sumOf { it.amount ?: 0L }
+            it.amount < 10000L /* When the expense is larger than 10000 yen, it is not a daily expense. */
+        }.sumOf { it.amount }
 
         val daysUntilToday = today.atZone(zoneId).dayOfMonth
         val dayAvgExpense =
@@ -149,16 +147,14 @@ class HomeViewModel(
         Timber.d("expenseUntilStartOfToday=$expenseUntilStartOfToday expenseUntilStartOfTodayWithoutRepeatAdd=$expenseUntilStartOfTodayWithoutRepeatAdd dayAvg=${dayAvgExpense}")
 
         val expenseFromTodayEndToEndOfMonth = expenseList.filter {
-            it.datetime!!.toLocalDateTime(zoneId).toInstant(zoneId) >= endOfToday
-        }.sumOf {
-            it.amount ?: 0L
-        }
+            it.datetime >= endOfToday
+        }.sumOf { it.amount }
         Timber.d("expenseFromTodayEndToEndOfMonth=$expenseFromTodayEndToEndOfMonth")
 
         val estimatedAmount =
             expenseUntilStartOfToday + expenseFromTodayEndToEndOfMonth + (dayAvgExpense.toDouble() * daysUntilEndOfMonth) + expenseList.filter {
-                it.datetime!!.toLocalDateTime(zoneId).toInstant(zoneId) in startOfToday..<endOfToday
-            }.sumOf { it.amount ?: 0L }
+                it.datetime in startOfToday..<endOfToday
+            }.sumOf { it.amount }
         return estimatedAmount
     }
 
@@ -168,7 +164,7 @@ class HomeViewModel(
         /* filter only selected month */
         /* Only comparing the month value. This might cause errors. Ideally, this should be filtered by year as well. */
         val filteredExpenseList = cachedExpenses.values.filter {
-            it.datetime?.toLocalDateTime(zoneId)?.monthValue == _uiState.value.selectedMonth.monthValue
+            it.datetime.atZone(zoneId).monthValue == _uiState.value.selectedMonth.monthValue
         }
 
         if (_uiState.value.selectedMonth == YearMonth.now(zoneId)) {
@@ -186,7 +182,7 @@ class HomeViewModel(
         }
 
         val expenseUiList =
-            filteredExpenseList.sortedBy { Instant.parse(it.datetime) }.map { it.toUi(zoneId) }
+            filteredExpenseList.sortedBy { it.datetime }.map { it.toUi(zoneId) }
 
         /* calculate statistics and each day amount */
         val monthlyTotal = expenseUiList.sumOf { it.amount ?: 0L }
@@ -313,7 +309,7 @@ class HomeViewModel(
 fun Expense.toUi(zoneId: ZoneId): ExpenseUi = ExpenseUi(
     id = id,
     amount = amount,
-    datetime = datetime?.toLocalDateTime(zoneId),
+    datetime = datetime.atZone(zoneId).toLocalDateTime(),
     category = category
 )
 

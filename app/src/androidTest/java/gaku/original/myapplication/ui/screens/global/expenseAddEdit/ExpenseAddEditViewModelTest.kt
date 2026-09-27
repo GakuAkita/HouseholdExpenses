@@ -19,6 +19,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 class ExpenseAddEditViewModelTest {
@@ -57,8 +58,9 @@ class ExpenseAddEditViewModelTest {
 
     companion object {
         private val sampleExpense = Expense(
+            id = "expense1",
             generatedType = GeneratedType.Manual,
-            datetime = "2026-09-15T03:00:00Z",
+            datetime = Instant.parse("2026-09-15T03:00:00Z"),
             timestamp = 1_780_000_000_000L,
             amount = 1200L,
             category = Category(

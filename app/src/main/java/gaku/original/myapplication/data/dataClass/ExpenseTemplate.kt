@@ -2,6 +2,7 @@ package gaku.original.myapplication.data.dataClass
 
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.util.UUID
 
 /**
  * The expense part of a RepeatAdd.
@@ -15,8 +16,11 @@ data class ExpenseTemplate(
     val storeName: String? = null,
     val itemName: String? = null,
 ) {
+    /** Creates a new expense from this template, with a new id. */
     fun toExpense(datetime: Instant, generatedType: GeneratedType): Expense = Expense(
-        datetime = datetime.toString(),
+        id = UUID.randomUUID().toString(),
+        datetime = datetime,
+        timestamp = System.currentTimeMillis(),
         generatedType = generatedType,
         amount = amount,
         category = category,

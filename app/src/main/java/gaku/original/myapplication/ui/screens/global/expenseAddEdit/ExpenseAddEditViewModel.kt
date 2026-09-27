@@ -10,10 +10,8 @@ import gaku.original.myapplication.common.AppError
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.Expense
-import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
-import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
+import gaku.original.myapplication.data.repository.appTimeZone.toInstant
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.utility.roundToLongOrNull
@@ -26,6 +24,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.UUID
 
 data class ExpenseAddEditUiState(
     val isEdit: Boolean = false,
@@ -127,7 +126,7 @@ class ExpenseAddEditViewModel(
         when (mode) {
             is ExpenseAddEditMode.Edit -> {
                 val expense = mode.expense
-                val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
+                val localDateTime = expense.datetime.atZone(zoneId).toLocalDateTime()
                 _uiState.update {
                     it.copy(
                         isEdit = true,
@@ -489,28 +488,26 @@ class ExpenseAddEditViewModel(
     private fun generateExpense(): List<Expense> {
         val state = _uiState.value
 
-        val localDateTime = state.selectedDate!!.atTime(state.selectedTime!!)
-        val datetime = localDateTime.toIsoUtcString(zoneId)
+        val datetime = state.selectedDate!!.atTime(state.selectedTime!!).toInstant(zoneId)
 
         val generatedType = when (mode) {
-            is ExpenseAddEditMode.Edit -> mode.expense.generatedType ?: GeneratedType.Manual
+            is ExpenseAddEditMode.Edit -> mode.expense.generatedType
             is ExpenseAddEditMode.New -> mode.prefill.generatedType
         }
 
         return state.expenseEditList.mapIndexed { index, item ->
             /* When editing, the first item is the edited expense. The others are new expenses. */
-            val base = if (mode is ExpenseAddEditMode.Edit && index == 0) {
-                mode.expense
-            } else {
-                Expense(generatedType = generatedType)
-            }
-            base.copy(
+            val edited = (mode as? ExpenseAddEditMode.Edit)?.expense?.takeIf { index == 0 }
+            Expense(
+                id = edited?.id ?: UUID.randomUUID().toString(),
+                generatedType = generatedType,
                 datetime = datetime,
-                amount = item.amount,
+                timestamp = edited?.timestamp ?: System.currentTimeMillis(),
+                amount = item.amount!!,
                 category = item.category,
                 note = item.note,
-                itemName = item.productName,
                 storeName = state.placeName,
+                itemName = item.productName,
             )
         }
     }
@@ -537,11 +534,12 @@ class ExpenseAddEditViewModel(
                 try {
                     val expenses = generateExpense()
                     Timber.d("Expenses generated:${expenses}")
+                    val editedId = (mode as? ExpenseAddEditMode.Edit)?.expense?.id
                     for (expense in expenses) {
-                        if (expense.id == null) {
-                            expenseRepository.addExpense(expense)
-                        } else {
+                        if (expense.id == editedId) {
                             expenseRepository.updateExpense(expense)
+                        } else {
+                            expenseRepository.addExpense(expense)
                         }
                     }
                     _uiState.update {
