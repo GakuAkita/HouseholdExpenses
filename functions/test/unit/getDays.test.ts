@@ -8,7 +8,7 @@ import {
   getWeekdaysOfMonth,
   getWeekendsOfMonth,
   setTimeToDates,
-} from "../../src/myFunc/utility/getDays";
+} from "../../src/domain/getDays";
 
 const days = (dates: Date[]) => dates.map((d) => d.getDate());
 

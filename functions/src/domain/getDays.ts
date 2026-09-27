@@ -1,7 +1,7 @@
-import { WEEKDAYS, WEEKENDS } from "../../constants/DayOfWeek";
+import { WEEKDAYS, WEEKENDS } from "../constants/DayOfWeek";
 import { logger } from "firebase-functions";
 import { DateTime } from "luxon";
-import { TimeZone } from "../../constants/TimeZone";
+import { TimeZone } from "../constants/TimeZone";
 
 /**
  * 引数に曜日の配列を渡すと、

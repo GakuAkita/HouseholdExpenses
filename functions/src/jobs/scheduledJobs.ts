@@ -1,7 +1,7 @@
 import { logger } from "firebase-functions";
-import { AmazonSubscribeMonitorItemsProcessor } from "../myFunc/Processor/AmazonSubscribeMonitorItemsProcessor";
-import { MailboxExtractionProcessor } from "../myFunc/Processor/MailboxExtractionProcessor";
-import { Services } from "../myFunc/initializeServices";
+import { AmazonSubscribeMonitorItemsProcessor } from "./AmazonSubscribeMonitorItemsProcessor";
+import { MailboxExtractionProcessor } from "./MailboxExtractionProcessor";
+import { Services } from "../app/services";
 import { FuncStatus } from "../type/FuncStatus";
 import { AllMailType } from "../type/Mailbox";
 import { forEachUser } from "./forEachUser";

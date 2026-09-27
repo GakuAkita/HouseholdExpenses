@@ -1,19 +1,19 @@
 // RepeatAddProcessor.ts (または適切なファイル名)
 import { logger } from "firebase-functions";
 import { DateTime } from "luxon";
-import { GeneratedType } from "../../constants/GeneratedType";
-import { RepeatFrequency } from "../../constants/RepeatFrequency";
-import { TimeZone, TriggerTimeZone } from "../../constants/TimeZone";
+import { GeneratedType } from "../constants/GeneratedType";
+import { RepeatFrequency } from "../constants/RepeatFrequency";
+import { TimeZone, TriggerTimeZone } from "../constants/TimeZone";
 import {
   FuncResult,
   FuncResultWithData,
   FuncStatus,
-} from "../../type/FuncStatus";
-import { Clock } from "../../shared/clock";
-import { RepeatAdd } from "../../type/RepeatAdd";
-import { ExpenseService } from "../FirestoreService/ExpenseService";
-import { RepeatAddService } from "../FirestoreService/RepeatAddService";
-import { SettingsService } from "../FirestoreService/SettingsService";
+} from "../type/FuncStatus";
+import { Clock } from "../shared/clock";
+import { RepeatAdd } from "../type/RepeatAdd";
+import { ExpenseService } from "../infra/firestore/ExpenseService";
+import { RepeatAddService } from "../infra/firestore/RepeatAddService";
+import { SettingsService } from "../infra/firestore/SettingsService";
 import {
   getEverydayOfMonth,
   getSingleDayOfMonth,
@@ -21,7 +21,7 @@ import {
   getWeekdaysOfMonth,
   getWeekendsOfMonth,
   setTimeToDates,
-} from "../utility/getDays";
+} from "../domain/getDays";
 
 export class RepeatAddProcessor {
   constructor(

@@ -1,6 +1,6 @@
 import { gmail_v1 } from "googleapis";
-import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
-import { GmailClient } from "../../Client/GmailApiClient";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
+import { GmailClient } from "./GmailApiClient";
 import { sortGmailMessagesByDate } from "./getInternalDate";
 
 /**

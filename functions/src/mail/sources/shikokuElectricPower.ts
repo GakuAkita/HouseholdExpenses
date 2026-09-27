@@ -1,6 +1,6 @@
-import { ShikokuElectricPowerMailParser } from "../../myFunc/Parser/ShikokuElectricPowerMailParser";
-import { assignCategoryById } from "../../myFunc/utility/cateogryAssign";
-import { getShikokuElectricMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { ShikokuElectricPowerMailParser } from "../parsers/ShikokuElectricPowerMailParser";
+import { assignCategoryById } from "../../domain/categoryAssign";
+import { getShikokuElectricMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { ShikokuElectricPowerSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

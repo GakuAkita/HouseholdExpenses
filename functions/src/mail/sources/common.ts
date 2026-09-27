@@ -1,4 +1,4 @@
-import { assignCategoryFromAssignmentData } from "../../myFunc/utility/cateogryAssign";
+import { assignCategoryFromAssignmentData } from "../../domain/categoryAssign";
 import { Expense } from "../../type/Expense";
 import { FuncResult, FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 import { ExtractionContext } from "../mailSource";

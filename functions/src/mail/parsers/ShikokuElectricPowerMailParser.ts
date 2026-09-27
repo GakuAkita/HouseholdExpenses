@@ -1,5 +1,5 @@
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { Expense } from "./../../type/Expense";
+import { Expense } from "../../type/Expense";
 import { MailParserBase } from "./MailParserBase";
 
 export class ShikokuElectricPowerMailParser extends MailParserBase {

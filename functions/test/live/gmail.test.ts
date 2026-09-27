@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { GmailApiClient } from "../../src/myFunc/Client/GmailApiClient";
-import { RakutenPayMailParser } from "../../src/myFunc/Parser/RakutenPayMailParser";
-import { decryptWithKey } from "../../src/myFunc/utility/encryption";
-import { extractTextBody } from "../../src/myFunc/utility/gmail/extractHtmlBody";
-import { getRakutenPayMailIds } from "../../src/myFunc/utility/gmail/mailQueries";
+import { GmailApiClient } from "../../src/infra/gmail/GmailApiClient";
+import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParser";
+import { decryptWithKey } from "../../src/shared/encryption";
+import { extractTextBody } from "../../src/infra/gmail/extractHtmlBody";
+import { getRakutenPayMailIds } from "../../src/infra/gmail/mailQueries";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";
 

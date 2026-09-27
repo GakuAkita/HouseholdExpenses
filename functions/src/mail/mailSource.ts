@@ -1,4 +1,4 @@
-import { GmailClient } from "../myFunc/Client/GmailApiClient";
+import { GmailClient } from "../infra/gmail/GmailApiClient";
 import { Category } from "../type/Category";
 import { CategoryAssignmentData } from "../type/CategoryAssignment";
 import { Expense } from "../type/Expense";

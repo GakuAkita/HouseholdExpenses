@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createGoogleOAuthSecretProvider } from "../../src/myFunc/googleOAuthSecrets";
+import { createGoogleOAuthSecretProvider } from "../../src/infra/secrets/googleOAuthSecrets";
 import { RuntimeConfig } from "../../src/shared/runtimeConfig";
 import { FuncStatus } from "../../src/type/FuncStatus";
 

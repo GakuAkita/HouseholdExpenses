@@ -1,6 +1,6 @@
 import { logger } from "firebase-functions";
 import { gmail_v1 } from "googleapis";
-import { FuncResultWithData, FuncStatus } from "../../../type/FuncStatus";
+import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
 
 /**
  * ソート済みメッセージリストから、

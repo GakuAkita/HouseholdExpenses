@@ -1,5 +1,5 @@
 import { logger } from "firebase-functions";
-import { UserService } from "../myFunc/FirestoreService/UserService";
+import { UserService } from "../infra/firestore/UserService";
 import { FuncStatus } from "../type/FuncStatus";
 
 /**

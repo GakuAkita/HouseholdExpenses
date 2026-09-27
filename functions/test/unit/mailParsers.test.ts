@@ -1,13 +1,13 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, it } from "vitest";
-import { AmazonItemDispatchedMailParser } from "../../src/myFunc/Parser/AmazonItemDispatchedMailParser";
-import { AmazonItemMailParser } from "../../src/myFunc/Parser/AmazonItemMailParser";
-import { AmazonKindleMailParser } from "../../src/myFunc/Parser/AmazonKindleMailParser";
-import { RakutenCardETCParser } from "../../src/myFunc/Parser/RakutenCardETCParser";
-import { RakutenPayMailParser } from "../../src/myFunc/Parser/RakutenPayMailParser";
-import { ShikokuElectricPowerMailParser } from "../../src/myFunc/Parser/ShikokuElectricPowerMailParser";
-import { UdemyMailParser } from "../../src/myFunc/Parser/UdemyMailParser";
+import { AmazonItemDispatchedMailParser } from "../../src/mail/parsers/AmazonItemDispatchedMailParser";
+import { AmazonItemMailParser } from "../../src/mail/parsers/AmazonItemMailParser";
+import { AmazonKindleMailParser } from "../../src/mail/parsers/AmazonKindleMailParser";
+import { RakutenCardETCParser } from "../../src/mail/parsers/RakutenCardETCParser";
+import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParser";
+import { ShikokuElectricPowerMailParser } from "../../src/mail/parsers/ShikokuElectricPowerMailParser";
+import { UdemyMailParser } from "../../src/mail/parsers/UdemyMailParser";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 /* Synthetic emails. See test/fixtures/mail/README.md. */

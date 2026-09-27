@@ -1,8 +1,8 @@
 import { logger } from "firebase-functions";
-import { AssignmentCondition } from "../../constants/AssignmentCondition";
-import { Category } from "../../type/Category";
-import { CategoryAssignment } from "../../type/CategoryAssignment";
-import { Expense } from "../../type/Expense";
+import { AssignmentCondition } from "../constants/AssignmentCondition";
+import { Category } from "../type/Category";
+import { CategoryAssignment } from "../type/CategoryAssignment";
+import { Expense } from "../type/Expense";
 
 /**
  * 引数にはベースのExpenseを渡して、

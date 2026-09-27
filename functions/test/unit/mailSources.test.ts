@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AssignmentCondition } from "../../src/constants/AssignmentCondition";
 import { ExtractionContext, MailSource } from "../../src/mail/mailSource";
 import { mailSourceFor } from "../../src/mail/sources";
-import { GmailClient } from "../../src/myFunc/Client/GmailApiClient";
+import { GmailClient } from "../../src/infra/gmail/GmailApiClient";
 import { Category } from "../../src/type/Category";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import {

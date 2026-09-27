@@ -1,4 +1,4 @@
-import { convertUnixMillisecToDateString } from "../utility/getCurrentUnixSec";
+import { convertUnixMillisecToDateString } from "../../shared/unixTime";
 
 export class MailParserBase {
   constructor(protected rawText: string, protected internalDate?: string) {}

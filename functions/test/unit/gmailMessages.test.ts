@@ -1,8 +1,8 @@
 import { gmail_v1 } from "googleapis";
 import { describe, expect, it } from "vitest";
-import { extractTextBody, stripHtmlTags } from "../../src/myFunc/utility/gmail/extractHtmlBody";
-import { filterMessages } from "../../src/myFunc/utility/gmail/filterMessages";
-import { sortGmailMessagesByDate } from "../../src/myFunc/utility/gmail/getInternalDate";
+import { extractTextBody, stripHtmlTags } from "../../src/infra/gmail/extractHtmlBody";
+import { filterMessages } from "../../src/infra/gmail/filterMessages";
+import { sortGmailMessagesByDate } from "../../src/infra/gmail/getInternalDate";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 const message = (internalDate?: string): gmail_v1.Schema$Message => ({ internalDate });

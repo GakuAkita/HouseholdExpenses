@@ -2,7 +2,7 @@ import { logger } from "firebase-functions";
 import { TimeZone } from "../../constants/TimeZone";
 import { Expense } from "../../type/Expense";
 import { FuncResultWithData, FuncStatus } from "../../type/FuncStatus";
-import { convertyyyymmddToUTCIsoString } from "../utility/dateConverter";
+import { convertyyyymmddToUTCIsoString } from "../../shared/dateConverter";
 
 export class RakutenCardETCParser {
   constructor(private rawText: string) {}

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { RepeatFrequency } from "../../src/constants/RepeatFrequency";
 import { TimeZone } from "../../src/constants/TimeZone";
-import { ExpenseService } from "../../src/myFunc/FirestoreService/ExpenseService";
-import { RepeatAddService } from "../../src/myFunc/FirestoreService/RepeatAddService";
-import { SettingsService } from "../../src/myFunc/FirestoreService/SettingsService";
-import { RepeatAddProcessor } from "../../src/myFunc/Processor/RepeatAddProcessor";
+import { ExpenseService } from "../../src/infra/firestore/ExpenseService";
+import { RepeatAddService } from "../../src/infra/firestore/RepeatAddService";
+import { SettingsService } from "../../src/infra/firestore/SettingsService";
+import { RepeatAddProcessor } from "../../src/jobs/RepeatAddProcessor";
 import { fixedClock } from "../../src/shared/clock";
 import { Expense } from "../../src/type/Expense";
 import { FuncStatus } from "../../src/type/FuncStatus";

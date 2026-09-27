@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import * as admin from "firebase-admin";
-import { initializeServices, ServiceOptions } from "../../src/myFunc/initializeServices";
-import { GoogleOAuthSecretProvider } from "../../src/myFunc/googleOAuthSecrets";
+import { initializeServices, ServiceOptions } from "../../src/app/services";
+import { GoogleOAuthSecretProvider } from "../../src/infra/secrets/googleOAuthSecrets";
 import { systemClock } from "../../src/shared/clock";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";

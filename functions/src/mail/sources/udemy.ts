@@ -1,6 +1,6 @@
-import { UdemyMailParser } from "../../myFunc/Parser/UdemyMailParser";
-import { assignCategoryById } from "../../myFunc/utility/cateogryAssign";
-import { getUdemyMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { UdemyMailParser } from "../parsers/UdemyMailParser";
+import { assignCategoryById } from "../../domain/categoryAssign";
+import { getUdemyMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { UdemySetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

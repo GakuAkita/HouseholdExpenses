@@ -1,10 +1,10 @@
 import { logger } from "firebase-functions";
-import { FuncStatus } from "../../type/FuncStatus";
-import { UserData } from "../../type/UserData";
-import { defaultUserPreferences } from "../../type/UserPreferences";
-import { UserRTDbService } from "../RealtimeDbService/UserRTDbService";
-import { SettingsService } from "./../FirestoreService/SettingsService";
-import { UserService } from "./../FirestoreService/UserService";
+import { FuncStatus } from "../type/FuncStatus";
+import { UserData } from "../type/UserData";
+import { defaultUserPreferences } from "../type/UserPreferences";
+import { UserRTDbService } from "../infra/rtdb/UserRTDbService";
+import { SettingsService } from "../infra/firestore/SettingsService";
+import { UserService } from "../infra/firestore/UserService";
 export class UserSettingsProcessor {
   constructor(
     private userService: UserService,

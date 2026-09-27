@@ -1,7 +1,7 @@
 import { logger } from "firebase-functions";
-import { AmazonItemDispatchedMailParser } from "../../myFunc/Parser/AmazonItemDispatchedMailParser";
-import { getAmazonDispatchedMailIds } from "../../myFunc/utility/gmail/mailQueries";
-import { isAmazonSubscribeProductExist } from "../../myFunc/utility/isAmazonSubscribeProductExist";
+import { AmazonItemDispatchedMailParser } from "../parsers/AmazonItemDispatchedMailParser";
+import { getAmazonDispatchedMailIds } from "../../infra/gmail/mailQueries";
+import { isAmazonSubscribeProductExist } from "../../domain/isAmazonSubscribeProductExist";
 import { Expense } from "../../type/Expense";
 import { FuncStatus } from "../../type/FuncStatus";
 import { AmazonSubscribeSetting } from "../../type/Mailbox";

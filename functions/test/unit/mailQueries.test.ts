@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { GmailApiClient } from "../../src/myFunc/Client/GmailApiClient";
+import { GmailApiClient } from "../../src/infra/gmail/GmailApiClient";
 import {
   getAmazonDispatchedMailIds,
   getAmazonItemMailIds,
@@ -9,7 +9,7 @@ import {
   getRakutenPayMailIds,
   getShikokuElectricMailIds,
   getUdemyMailIds,
-} from "../../src/myFunc/utility/gmail/mailQueries";
+} from "../../src/infra/gmail/mailQueries";
 import { FuncStatus } from "../../src/type/FuncStatus";
 
 /* Records the Gmail query each function sends. before: is endTime + 1. */

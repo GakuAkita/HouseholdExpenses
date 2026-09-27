@@ -1,5 +1,5 @@
-import { RakutenPayMailParser } from "../../myFunc/Parser/RakutenPayMailParser";
-import { getRakutenPayMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { RakutenPayMailParser } from "../parsers/RakutenPayMailParser";
+import { getRakutenPayMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { RakutenPaySetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

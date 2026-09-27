@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AssignmentCondition } from "../../src/constants/AssignmentCondition";
-import { MailboxExtractionProcessor } from "../../src/myFunc/Processor/MailboxExtractionProcessor";
+import { MailboxExtractionProcessor } from "../../src/jobs/MailboxExtractionProcessor";
 import { fixedClock } from "../../src/shared/clock";
 import { Category } from "../../src/type/Category";
 import {

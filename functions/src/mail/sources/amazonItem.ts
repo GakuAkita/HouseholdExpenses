@@ -1,5 +1,5 @@
-import { AmazonItemMailParser } from "../../myFunc/Parser/AmazonItemMailParser";
-import { getAmazonItemMailIds } from "../../myFunc/utility/gmail/mailQueries";
+import { AmazonItemMailParser } from "../parsers/AmazonItemMailParser";
+import { getAmazonItemMailIds } from "../../infra/gmail/mailQueries";
 import { FuncStatus } from "../../type/FuncStatus";
 import { AmazonItemSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";

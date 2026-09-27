@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { handleGmailOAuthCallback } from "../../src/jobs/gmailOAuthCallback";
-import { GoogleOAuthApi } from "../../src/myFunc/Client/GoogleOAuthApi";
+import { GoogleOAuthApi } from "../../src/infra/gmail/GoogleOAuthApi";
 import { FuncStatus } from "../../src/type/FuncStatus";
 import { createTestServices, deleteTestUser, newTestUserId, testGmailOf, testSecrets } from "./emulator";
 
