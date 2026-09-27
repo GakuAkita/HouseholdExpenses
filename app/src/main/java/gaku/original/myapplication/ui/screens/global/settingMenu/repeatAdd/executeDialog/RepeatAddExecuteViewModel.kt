@@ -65,8 +65,8 @@ class RepeatAddExecuteViewModel(
 
         _uiState.update {
             it.copy(
-                amount = repeatAdd.expense.amount!!,
-                categoryName = repeatAdd.expense.category?.name!!,
+                amount = repeatAdd.expense.amount,
+                categoryName = repeatAdd.expense.category.name!!,
                 frequency = repeatAdd.frequencyInfo!!
             )
         }
@@ -110,8 +110,8 @@ class RepeatAddExecuteViewModel(
                     for (target in targets) {
                         Timber.d("target:$target now:${Instant.now()}")
                         if (target.isAfter(Instant.now())) {
-                            val expense = repeatAdd.expense.copy(
-                                datetime = target.toString(),
+                            val expense = repeatAdd.expense.toExpense(
+                                datetime = target,
                                 generatedType = GeneratedType.RepeatAdd(
                                     repeatAdd.id!!
                                 )

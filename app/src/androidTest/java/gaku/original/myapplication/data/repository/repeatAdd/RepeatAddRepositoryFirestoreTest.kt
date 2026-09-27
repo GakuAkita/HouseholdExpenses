@@ -2,7 +2,7 @@ package gaku.original.myapplication.data.repository.repeatAdd
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
@@ -61,7 +61,7 @@ class RepeatAddRepositoryFirestoreTest {
         assertEquals(added.id, saved.id)
         assertEquals(added.timestamp, saved.timestamp)
         assertEquals(added.frequencyInfo, saved.frequencyInfo)
-        assertSameExpenseTemplate(added.expense, saved.expense)
+        assertEquals(added.expense, saved.expense)
     }
 
     @Test
@@ -99,7 +99,7 @@ class RepeatAddRepositoryFirestoreTest {
 
         val saved = repository.getAllRepeatAdds()[added.id]!!
         assertEquals(modified.frequencyInfo, saved.frequencyInfo)
-        assertSameExpenseTemplate(modified.expense, saved.expense)
+        assertEquals(modified.expense, saved.expense)
     }
 
     @Test
@@ -123,17 +123,8 @@ class RepeatAddRepositoryFirestoreTest {
         repository.repeatAdds.awaitValue { !it.containsKey(added.id) }
     }
 
-    /* Only these fields are restored for the expense template of RepeatAdd. */
-    private fun assertSameExpenseTemplate(expected: Expense, actual: Expense) {
-        assertEquals(expected.category, actual.category)
-        assertEquals(expected.amount, actual.amount)
-        assertEquals(expected.storeName, actual.storeName)
-        assertEquals(expected.itemName, actual.itemName)
-        assertEquals(expected.note, actual.note)
-    }
-
     private fun sampleRepeatAdd() = RepeatAdd(
-        expense = Expense(
+        expense = ExpenseTemplate(
             amount = 8000L,
             category = Category(
                 id = "category1",

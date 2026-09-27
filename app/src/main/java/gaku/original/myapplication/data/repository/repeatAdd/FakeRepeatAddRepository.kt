@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.repeatAdd
 
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,18 +14,16 @@ class FakeRepeatAddRepository : RepeatAddRepository {
     var sampleRepeatAdd = mapOf(
         "1" to RepeatAdd(
             "1",
-            expense = Expense(
-                id = null,
+            expense = ExpenseTemplate(
                 amount = 300,
-                category = null,
+                category = Category(id = "category1", name = "食費"),
             )
         ),
         "2" to RepeatAdd(
             id = "2",
-            expense = Expense(
-                id = null,
+            expense = ExpenseTemplate(
                 amount = 500,
-                category = null,
+                category = Category(id = "category1", name = "食費"),
             )
         )
     )

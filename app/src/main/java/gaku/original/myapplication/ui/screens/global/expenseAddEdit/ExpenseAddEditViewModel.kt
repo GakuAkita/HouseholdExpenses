@@ -91,7 +91,7 @@ sealed interface ExpenseInputError : AppError {
 }
 
 class ExpenseAddEditViewModel(
-    private val initialExpense: Expense?,
+    private val mode: ExpenseAddEditMode,
     private val expenseRepository: ExpenseRepository,
     private val appTimeZoneRepository: AppTimeZoneRepository,
     private val categoryRepository: CategoryRepository
@@ -101,7 +101,7 @@ class ExpenseAddEditViewModel(
     val zoneId: ZoneId = appTimeZoneRepository.zoneId.value
 
     companion object {
-        fun Factory(initialExpense: Expense?): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(mode: ExpenseAddEditMode): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication
@@ -110,7 +110,7 @@ class ExpenseAddEditViewModel(
                     app.appContainer.sessionContainer!!.appTimeZoneRepository
                 val categoryRepository = app.appContainer.sessionContainer!!.categoryRepository
                 ExpenseAddEditViewModel(
-                    initialExpense,
+                    mode,
                     expenseRepository,
                     appTimeZoneRepository,
                     categoryRepository
@@ -124,53 +124,39 @@ class ExpenseAddEditViewModel(
 
     init {
         Timber.d("Created. ${hashCode()}")
-        val isEdit = initialExpense?.id != null
-        _uiState.update {
-            it.copy(
-                isEdit = isEdit
-            )
-        }
-
-        val expenseItem = ExpenseEditItem(
-            amount = initialExpense?.amount,
-            category = initialExpense?.category,
-            note = initialExpense?.note,
-            productName = initialExpense?.itemName
-        )
-
-        /* based on the selected timezone, decide initial Date and Time */
-        /* Only when it is ADD!! */
-
-        _uiState.update {
-            it.copy(
-                expenseEditList = listOf(expenseItem),
-                placeName = initialExpense?.storeName ?: ""
-            )
-        }
-        if (isEdit) {
-            val expense = initialExpense
-            val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
-            _uiState.update {
-                it.copy(
-                    selectedDate = localDateTime?.toLocalDate(),
-                    selectedTime = localDateTime?.toLocalTime(),
-                )
-            }
-        } else {
-            /* Add */
-            if (initialExpense?.datetime == null) {
+        when (mode) {
+            is ExpenseAddEditMode.Edit -> {
+                val expense = mode.expense
+                val localDateTime = expense.datetime?.toLocalDateTime(zoneId)
                 _uiState.update {
                     it.copy(
-                        selectedDate = LocalDate.now(zoneId),
-                        selectedTime = LocalTime.now(zoneId),
+                        isEdit = true,
+                        expenseEditList = listOf(
+                            ExpenseEditItem(
+                                amount = expense.amount,
+                                category = expense.category,
+                                note = expense.note,
+                                productName = expense.itemName
+                            )
+                        ),
+                        placeName = expense.storeName ?: "",
+                        selectedDate = localDateTime?.toLocalDate(),
+                        selectedTime = localDateTime?.toLocalTime(),
                     )
                 }
-            } else {
-                val localDateTime = initialExpense.datetime!!.toLocalDateTime(zoneId)
+            }
+
+            is ExpenseAddEditMode.New -> {
+                val prefill = mode.prefill
+                /* based on the selected timezone, decide initial Date and Time */
+                val localDateTime = prefill.datetime?.atZone(zoneId)?.toLocalDateTime()
                 _uiState.update {
                     it.copy(
-                        selectedDate = localDateTime.toLocalDate(),
-                        selectedTime = localDateTime.toLocalTime(),
+                        isEdit = false,
+                        expenseEditList = listOf(ExpenseEditItem(amount = prefill.amount)),
+                        placeName = prefill.storeName ?: "",
+                        selectedDate = localDateTime?.toLocalDate() ?: LocalDate.now(zoneId),
+                        selectedTime = localDateTime?.toLocalTime() ?: LocalTime.now(zoneId),
                     )
                 }
             }
@@ -506,30 +492,26 @@ class ExpenseAddEditViewModel(
         val localDateTime = state.selectedDate!!.atTime(state.selectedTime!!)
         val datetime = localDateTime.toIsoUtcString(zoneId)
 
+        val generatedType = when (mode) {
+            is ExpenseAddEditMode.Edit -> mode.expense.generatedType ?: GeneratedType.Manual
+            is ExpenseAddEditMode.New -> mode.prefill.generatedType
+        }
+
         return state.expenseEditList.mapIndexed { index, item ->
-            val baseExpense = Expense(
+            /* When editing, the first item is the edited expense. The others are new expenses. */
+            val base = if (mode is ExpenseAddEditMode.Edit && index == 0) {
+                mode.expense
+            } else {
+                Expense(generatedType = generatedType)
+            }
+            base.copy(
                 datetime = datetime,
                 amount = item.amount,
                 category = item.category,
                 note = item.note,
                 itemName = item.productName,
                 storeName = state.placeName,
-                generatedType = initialExpense?.generatedType ?: GeneratedType.Manual
             )
-            if (state.isEdit) {
-                if (index == 0) {
-                    baseExpense
-                } else {
-                    /* This is the new expense */
-                    baseExpense.copy(
-                        id = null
-                    )
-                }
-            } else {
-                baseExpense.copy(
-                    id = null
-                )
-            }
         }
     }
 
@@ -589,9 +571,8 @@ class ExpenseAddEditViewModel(
     }
 
     fun onDeleteClick() {
-        if (!_uiState.value.isEdit ||
-            initialExpense?.id == null
-        ) {
+        val id = (mode as? ExpenseAddEditMode.Edit)?.expense?.id
+        if (id == null) {
             _uiState.update {
                 it.copy(
                     message = "Coding Error: Delete should not exist when add."
@@ -608,7 +589,6 @@ class ExpenseAddEditViewModel(
 
         viewModelScope.launch {
             try {
-                val id = initialExpense.id!!
                 expenseRepository.removeExpense(id)
                 _uiState.update {
                     it.copy(

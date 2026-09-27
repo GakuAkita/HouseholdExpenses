@@ -14,10 +14,10 @@ import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.data.dataClass.GeneratedType
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.appTimeZone.toInstant
-import gaku.original.myapplication.data.repository.appTimeZone.toIsoUtcString
 import gaku.original.myapplication.data.repository.appTimeZone.toLocalDateTime
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpensePrefill
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -236,7 +236,7 @@ class HomeViewModel(
         }
     }
 
-    fun onExpenseClick(id: String?): AppResult<Expense?, ExpenseEditError> {
+    fun onExpenseClick(id: String?): AppResult<Expense, ExpenseEditError> {
         if (id == null || cachedExpenses[id] == null) {
             _uiState.update {
                 it.copy(
@@ -246,8 +246,7 @@ class HomeViewModel(
             return AppResult.Failure(ExpenseEditError.IdEmpty)
         }
 
-        val expense = cachedExpenses[id]
-        return AppResult.Success(expense)
+        return AppResult.Success(cachedExpenses[id]!!)
     }
 
 
@@ -290,16 +289,13 @@ class HomeViewModel(
         }
     }
 
-    fun onDayClick(date: LocalDate): Expense {
+    fun onDayClick(date: LocalDate): ExpensePrefill {
         val zoneId = appTimeZoneRepository.zoneId.value
         val nowTime = LocalDateTime.now(zoneId).toLocalTime()
         val localDateTime = date.atTime(nowTime)
         Timber.d("localDateTime = $localDateTime")
 
-        return Expense(
-            datetime = localDateTime.toIsoUtcString(zoneId),
-            generatedType = GeneratedType.Manual
-        )
+        return ExpensePrefill(datetime = localDateTime.toInstant(zoneId))
     }
 
     override fun onCleared() {

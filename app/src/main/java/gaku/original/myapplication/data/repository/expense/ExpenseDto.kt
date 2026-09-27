@@ -1,6 +1,7 @@
 package gaku.original.myapplication.data.repository.expense
 
 import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.toGeneratedType
 import gaku.original.myapplication.data.repository.category.CategoryDto
 import gaku.original.myapplication.data.repository.category.toDto
@@ -35,18 +36,23 @@ data class ExpenseDto(
         generatedType = generatedType?.toGeneratedType()
     )
 
-    /**
-     * The expense of RepeatAdd is a template. id, datetime, timestamp and generatedType are decided
-     * when the expense is actually added, so they are not restored.
-     */
-    fun toDomainForRepeatAdd(): Expense = Expense(
-        category = category?.toDomain() ?: error("category is null"),
+    /** RepeatAdd stores its expense template in the same shape, without id, datetime, timestamp and generatedType. */
+    fun toExpenseTemplate(): ExpenseTemplate = ExpenseTemplate(
         amount = amount ?: error("amount is null"),
+        category = category?.toDomain() ?: error("category is null"),
+        note = note,
         storeName = storeName,
         itemName = itemName,
-        note = note,
     )
 }
+
+fun ExpenseTemplate.toDto(): ExpenseDto = ExpenseDto(
+    amount = amount,
+    category = category.toDto(),
+    note = note,
+    storeName = storeName,
+    itemName = itemName,
+)
 
 fun Expense.toDto(): ExpenseDto = ExpenseDto(
     id = id,

@@ -52,6 +52,7 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -98,24 +99,21 @@ fun HomeScreenRoot(
                 is AppResult.Success -> {
                     rootNavController.navigate(
                         MainGraph.Global.ExpenseAddEdit(
-                            ret.value
+                            ExpenseAddEditMode.Edit(ret.value)
                         )
                     )
                 }
             }
         },
         onDayClick = {
-            val expense = viewModel.onDayClick(it)
+            val prefill = viewModel.onDayClick(it)
             rootNavController.navigate(
                 MainGraph.Global.ExpenseAddEdit(
-                    expense
+                    ExpenseAddEditMode.New(prefill)
                 )
             )
         },
         onFABClick = {
-            // Honestly, I just want to pass null.
-            // But, as long as I use "navTypeOf" inline function, it seems to be impossible.
-            // I just pass Expense whose id is null, which is used to identify add or edit.
             rootNavController.navigate(
                 MainGraph.Global.ExpenseAddEdit()
             )

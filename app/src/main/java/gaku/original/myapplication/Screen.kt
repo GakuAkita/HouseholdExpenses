@@ -1,7 +1,7 @@
 package gaku.original.myapplication
 
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.data.dataClass.Expense
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import kotlinx.serialization.Serializable
 
@@ -87,7 +87,7 @@ data object MainGraph {
 
     sealed interface Global : Screen {
         @Serializable
-        data class ExpenseAddEdit(val expense: Expense? = null) : Global
+        data class ExpenseAddEdit(val mode: ExpenseAddEditMode = ExpenseAddEditMode.New()) : Global
 
         @Serializable
         data object CategoryAddEdit : Global
