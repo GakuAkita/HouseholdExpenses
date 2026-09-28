@@ -2,11 +2,13 @@ package gaku.original.myapplication.ui.screens.global.categoryEdit
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.data.datasource.room.AppDatabase
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
 import gaku.original.myapplication.data.repository.awaitValue
 import gaku.original.myapplication.data.repository.category.CategoryRepositoryFirestore
 import gaku.original.myapplication.data.repository.deleteAll
+import gaku.original.myapplication.data.repository.inMemoryAppDatabase
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -19,19 +21,27 @@ import org.junit.runner.RunWith
 class CategoryEditViewModelTest {
 
     private lateinit var reference: FirestoreUserReference
+    private lateinit var database: AppDatabase
     private lateinit var repository: CategoryRepositoryFirestore
     private lateinit var viewModel: CategoryEditViewModel
 
     @Before
     fun setUp() {
-        reference = FirebaseTestEnvironment.firestoreReference(FirebaseTestEnvironment.newTestUser())
-        repository = CategoryRepositoryFirestore(reference = reference)
+        val appUser = FirebaseTestEnvironment.newTestUser()
+        reference = FirebaseTestEnvironment.firestoreReference(appUser)
+        database = inMemoryAppDatabase()
+        repository = CategoryRepositoryFirestore(
+            reference = reference,
+            userId = appUser.id!!,
+            categoryDao = database.categoryDao()
+        )
         viewModel = CategoryEditViewModel(repository)
     }
 
     @After
     fun tearDown() = runBlocking {
         repository.close()
+        database.close()
         reference.deleteAll()
     }
 

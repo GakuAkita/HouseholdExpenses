@@ -1,10 +1,12 @@
 package gaku.original.myapplication.data.repository
 
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.data.datasource.room.AppDatabase
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.di.appContainer.FirebaseEmulatorAppContainer
@@ -51,6 +53,12 @@ object FirebaseTestEnvironment {
         realtimeDb = realtimeDb
     )
 }
+
+/** A Room database that disappears when it is closed. Close it in @After. */
+fun inMemoryAppDatabase(): AppDatabase = Room.inMemoryDatabaseBuilder(
+    InstrumentationRegistry.getInstrumentation().targetContext,
+    AppDatabase::class.java
+).build()
 
 /* Firestore does not delete sub collections together with the parent document. */
 suspend fun FirestoreUserReference.deleteAll() {
