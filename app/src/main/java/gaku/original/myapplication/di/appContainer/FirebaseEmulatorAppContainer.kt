@@ -83,6 +83,7 @@ class FirebaseEmulatorAppContainer(
             firestore = firestore,
             firebaseRealtimeDb = firebaseRealtimeDb,
             ocrService = ocrService,
+            categoryDao = appDatabase.categoryDao(),
             context = context
         )
     }

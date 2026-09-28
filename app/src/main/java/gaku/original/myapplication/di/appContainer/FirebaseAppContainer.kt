@@ -34,6 +34,7 @@ class FirebaseAppContainer(
             firestore = firestore,
             firebaseRealtimeDb = firebaseRealtimeDb,
             ocrService = ocrService,
+            categoryDao = appDatabase.categoryDao(),
             context = context
         )
     }

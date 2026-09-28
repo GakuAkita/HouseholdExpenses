@@ -1,6 +1,8 @@
 package gaku.original.myapplication.di.appContainer
 
 import android.content.Context
+import androidx.room.Room
+import gaku.original.myapplication.data.datasource.room.AppDatabase
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.di.sessionContainer.SessionContainer
 import gaku.original.myapplication.service.ocr.OcrService
@@ -12,6 +14,14 @@ abstract class AppContainer(
     abstract val authRepository: AuthRepository
 
     abstract val ocrService: OcrService
+
+    /* Local backup of data stored in Firebase. Shared by all users on this device. */
+    protected val appDatabase: AppDatabase by lazy {
+        Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
+            /* It only holds backups, so it is fine to drop it when the schema changes. */
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+    }
 
     init {
         Timber.d("AppContainer init:${hashCode()}")

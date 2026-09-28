@@ -6,6 +6,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.datasource.SharedPreferencesDataSource
+import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
@@ -38,6 +39,7 @@ class FirebaseSessionContainer(
     private val firestore: FirebaseFirestore,
     private val firebaseRealtimeDb: FirebaseDatabase,
     private val ocrService: OcrService,
+    private val categoryDao: CategoryDao,
     private val context: Context
 ) : SessionContainer {
 
@@ -82,7 +84,9 @@ class FirebaseSessionContainer(
     override val payPayReceiptValidator: PayPayReceiptValidator = _paypayReceiptExtractor
 
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
-        firestoreReference
+        reference = firestoreReference,
+        userId = appUser.id!!,
+        categoryDao = categoryDao
     )
     override val expenseRepository: ExpenseRepository = ExpenseRepositoryFirestore(
         firestoreReference

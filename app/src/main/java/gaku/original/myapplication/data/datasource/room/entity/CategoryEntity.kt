@@ -1,43 +1,33 @@
 package gaku.original.myapplication.data.datasource.room.entity
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import gaku.original.myapplication.data.dataClass.Category
 
 /**
- * Room用のCategoryエンティティ
- * Firebaseから取得したCategoryをローカルDBに保存するためのデータクラス
+ * A backup copy of a category kept on the device, so categories can be shown while offline.
+ *
+ * The database is shared by every user who signs in on this device, so rows are keyed by [userId] too.
  */
-@Entity(tableName = "categories")
+@Entity(tableName = "categories", primaryKeys = ["userId", "id"])
 data class CategoryEntity(
-    @PrimaryKey
+    val userId: String,
     val id: String,
     val timestamp: Long,
-    val name: String?,
+    val name: String,
     val enabled: Boolean
+) {
+    fun toDomain(): Category = Category(
+        id = id,
+        timestamp = timestamp,
+        name = name,
+        enabled = enabled
+    )
+}
+
+fun Category.toEntity(userId: String): CategoryEntity = CategoryEntity(
+    userId = userId,
+    id = id,
+    timestamp = timestamp,
+    name = name,
+    enabled = enabled
 )
-
-/**
- * CategoryEntityからCategoryへの変換
- */
-fun CategoryEntity.toCategory(): Category {
-    return Category(
-        id = this.id,
-        timestamp = this.timestamp,
-        name = this.name ?: error("name is null"),
-        enabled = this.enabled
-    )
-}
-
-/**
- * CategoryからCategoryEntityへの変換
- */
-fun Category.toEntity(): CategoryEntity {
-    return CategoryEntity(
-        id = this.id,
-        timestamp = this.timestamp,
-        name = this.name,
-        enabled = this.enabled
-    )
-}
-
