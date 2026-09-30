@@ -29,6 +29,7 @@ import gaku.original.myapplication.ui.screens.RootUiEffect
 import gaku.original.myapplication.ui.screens.RootViewModel
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 @Composable
@@ -89,6 +90,11 @@ fun RootNavigation(
                 is RootUiEffect.ExpenseAdd -> {
                     val prefill = event.prefill
                     Timber.d("ExpenseAdd: $prefill")
+                    // On a cold start we are still on Splash here. Wait until the auth effect has
+                    // navigated to MainGraph, otherwise its popUpTo would remove this screen.
+                    navHostController.currentBackStackEntryFlow.first { entry ->
+                        entry.destination.hierarchy.any { it.hasRoute<MainGraph>() }
+                    }
                     navHostController.navigate(
                         MainGraph.Global.ExpenseAddEdit(
                             ExpenseAddEditMode.New(prefill)

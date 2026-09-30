@@ -14,9 +14,9 @@ import gaku.original.myapplication.domain.AuthState
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpensePrefill
 import gaku.original.myapplication.ui.screens.receiver.shareReceiver.SentData
 import gaku.original.myapplication.utility.getParcelableExtraCompat
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -36,8 +36,11 @@ class RootViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _eventFlow = MutableSharedFlow<RootUiEffect>()
-    val eventFlow = _eventFlow.asSharedFlow()
+    // A Channel buffers effects until a collector subscribes. On a cold start, onNewIntent()
+    // is called from onCreate() before RootNavigation starts collecting, and a
+    // MutableSharedFlow without replay would drop the effect.
+    private val _eventFlow = Channel<RootUiEffect>(Channel.BUFFERED)
+    val eventFlow = _eventFlow.receiveAsFlow()
 
     private val _authState = authRepository.authState
     val authState get() = _authState
@@ -70,7 +73,7 @@ class RootViewModel(
                 if (state is AuthState.LoggedIn) {
                     when (sentData) {
                         is SentData.Expense -> {
-                            _eventFlow.emit(
+                            _eventFlow.send(
                                 RootUiEffect.ExpenseAdd(
                                     sentData.toExpensePrefill()
                                 )
@@ -80,7 +83,7 @@ class RootViewModel(
                 } else if (state is AuthState.LoggedOut) {
                     // The original design is that before MainActivity is launched by ShareReceiverActivity,
                     // the user should be logged in.
-                    _eventFlow.emit(
+                    _eventFlow.send(
                         RootUiEffect.ShowToast("Error: Not logged in.")
                     )
                 }

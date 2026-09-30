@@ -35,7 +35,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        rootViewModel.onNewIntent(intent)
+        /* 回転などの再生成時は同じIntentを再処理しない */
+        if (savedInstanceState == null) {
+            rootViewModel.onNewIntent(intent)
+        }
 
         /* 通知チャンネルをリセットする。いらないのを消して必要なのを生成 */
         createAllNotificationChannelsWithRemove(this)
