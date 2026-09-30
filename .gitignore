@@ -31,3 +31,4 @@ database-debug.log
 /start_emulator.bat
 /.firebase
 
+/emulator_host.txt
