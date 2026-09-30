@@ -82,7 +82,8 @@ android {
         // providers.fileContents を使うとファイルの変更が検知され、次のビルドに反映される
         val emulatorHostFromFile = providers
             .fileContents(rootProject.layout.projectDirectory.file("emulator_host.txt"))
-            .asText.orNull?.trim()?.takeIf { it.isNotEmpty() }
+            // Windowsのエディタで保存するとBOMが付くことがあるので空白と一緒に取り除く
+            .asText.orNull?.trim { it.isWhitespace() || it == '﻿' }?.takeIf { it.isNotEmpty() }
         val emulatorHost = emulatorHostFromFile
             ?: localProperties["FIREBASE_EMULATOR_HOST"] as String?
             ?: "10.0.2.2"
