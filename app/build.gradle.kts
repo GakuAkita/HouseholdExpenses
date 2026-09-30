@@ -78,15 +78,13 @@ android {
         buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", useEmulator.toString())
 
         // Firebase Emulator Host設定（Androidエミュレータ: 10.0.2.2, 実機: PCのIPアドレス）
-        // 優先順位: emulator_host.txt（IPアドレスのみ1行） > local.properties > 10.0.2.2
+        // emulator_host.txt（IPアドレスのみ1行）があればその値、なければ 10.0.2.2
         // providers.fileContents を使うとファイルの変更が検知され、次のビルドに反映される
         val emulatorHostFromFile = providers
             .fileContents(rootProject.layout.projectDirectory.file("emulator_host.txt"))
             // Windowsのエディタで保存するとBOMが付くことがあるので空白と一緒に取り除く
             .asText.orNull?.trim { it.isWhitespace() || it == '﻿' }?.takeIf { it.isNotEmpty() }
-        val emulatorHost = emulatorHostFromFile
-            ?: localProperties["FIREBASE_EMULATOR_HOST"] as String?
-            ?: "10.0.2.2"
+        val emulatorHost = emulatorHostFromFile ?: "10.0.2.2"
         buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")
     }
 
