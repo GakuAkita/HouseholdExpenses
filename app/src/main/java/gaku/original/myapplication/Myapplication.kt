@@ -3,6 +3,7 @@ package gaku.original.myapplication
 
 import android.app.Application
 import gaku.original.myapplication.di.appContainer.AppContainer
+import gaku.original.myapplication.di.appContainer.FakeAppContainer
 import gaku.original.myapplication.di.appContainer.FirebaseAppContainer
 import gaku.original.myapplication.di.appContainer.FirebaseEmulatorAppContainer
 import timber.log.Timber
@@ -17,9 +18,13 @@ class MyApplication : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        appContainer =
-            if (BuildConfig.DEBUG) FirebaseEmulatorAppContainer(this) else FirebaseAppContainer(this)
-        //appContainer = FirebaseAppContainer(this)
+        /* In debug builds, APP_CONTAINER is chosen by the run configuration next to the build button. See app/build.gradle.kts */
+        appContainer = when {
+            !BuildConfig.DEBUG -> FirebaseAppContainer(this)
+            BuildConfig.APP_CONTAINER == "fake" -> FakeAppContainer(this)
+            else -> FirebaseEmulatorAppContainer(this)
+        }
+        Timber.d("AppContainer: ${appContainer::class.simpleName}")
 
         Timber.d("MyApplication Created. hashCode =${hashCode()}")
     }
