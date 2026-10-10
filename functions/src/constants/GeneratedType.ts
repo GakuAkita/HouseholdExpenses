@@ -3,6 +3,7 @@ export enum GeneratedType {
   MANUAL = "manual",
   REPEAT_ADD = "repeat_add", // 繰り返し追加で追加するやつ
   MAIL_EXTRACTION = "mailbox_extraction",
+  IMPORT = "import", // 他アプリのエクスポートから取り込んだもの (import___drwallet)
 }
 
 /**

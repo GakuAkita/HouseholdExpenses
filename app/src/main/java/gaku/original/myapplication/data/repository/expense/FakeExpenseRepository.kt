@@ -36,6 +36,12 @@ class FakeExpenseRepository : ExpenseRepository {
         return expense
     }
 
+    override suspend fun addExpenses(expenses: List<Expense>, onProgress: (Int) -> Unit) {
+        val added = expenses.associateBy { it.id }
+        _expenses.value = _expenses.value.mapValues { it.value + added }
+        onProgress(expenses.size)
+    }
+
     override suspend fun updateExpense(expense: Expense): Expense {
         _expenses.value = _expenses.value.mapValues { it.value + (expense.id to expense) }
         return expense

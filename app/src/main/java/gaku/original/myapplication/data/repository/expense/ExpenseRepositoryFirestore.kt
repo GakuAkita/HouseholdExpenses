@@ -96,6 +96,18 @@ class ExpenseRepositoryFirestore(
         return expense
     }
 
+    override suspend fun addExpenses(expenses: List<Expense>, onProgress: (Int) -> Unit) {
+        var saved = 0
+        /* A Firestore batch can hold up to 500 writes. */
+        expenses.chunked(MAX_BATCH_WRITES).forEach { chunk ->
+            val batch = expenseCollection.firestore.batch()
+            chunk.forEach { batch.set(expenseCollection.document(it.id), it.toDto()) }
+            batch.commit().await()
+            saved += chunk.size
+            onProgress(saved)
+        }
+    }
+
     override suspend fun updateExpense(expense: Expense): Expense {
         expenseCollection.document(expense.id).set(expense.toDto()).await()
         return expense
@@ -103,5 +115,9 @@ class ExpenseRepositoryFirestore(
 
     override suspend fun removeExpense(id: String) {
         expenseCollection.document(id).delete().await()
+    }
+
+    private companion object {
+        const val MAX_BATCH_WRITES = 500
     }
 }

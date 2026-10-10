@@ -10,6 +10,9 @@ import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.importer.CsvReader
+import gaku.original.myapplication.data.importer.ExpenseImporter
+import gaku.original.myapplication.data.importer.drwallet.DrWalletCsvImporter
 import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
@@ -82,6 +85,8 @@ class FirebaseSessionContainer(
 
     override val payPayReceiptExtractor: Extractor = _paypayReceiptExtractor
     override val payPayReceiptValidator: PayPayReceiptValidator = _paypayReceiptExtractor
+
+    override val drWalletImporter: ExpenseImporter = DrWalletCsvImporter(CsvReader())
 
     override val categoryRepository: CategoryRepository = CategoryRepositoryFirestore(
         reference = firestoreReference,

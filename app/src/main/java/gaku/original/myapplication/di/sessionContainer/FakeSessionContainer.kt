@@ -3,6 +3,8 @@ package gaku.original.myapplication.di.sessionContainer
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.FakeExtractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.importer.ExpenseImporter
+import gaku.original.myapplication.data.importer.FakeExpenseImporter
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.FakeAmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -36,5 +38,6 @@ open class FakeSessionContainer(
     override val payPayReceiptConfigRepository: PayPayReceiptConfigRepository = FakePayPayReceiptConfigRepository(),
     override val categoryAssignmentRepository: CategoryAssignmentRepository = FakeCategoryAssignmentRepository(),
     override val payPayReceiptExtractor: Extractor = FakeExtractor(),
-    override val payPayReceiptValidator: PayPayReceiptValidator = FakeExtractor()
+    override val payPayReceiptValidator: PayPayReceiptValidator = FakeExtractor(),
+    override val drWalletImporter: ExpenseImporter = FakeExpenseImporter()
 ) : SessionContainer

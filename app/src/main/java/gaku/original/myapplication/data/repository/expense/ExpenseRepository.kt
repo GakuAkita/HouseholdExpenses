@@ -19,6 +19,12 @@ interface ExpenseRepository {
     /** Saves a new expense. The caller decides the id, so saving again overwrites the same document. */
     suspend fun addExpense(expense: Expense): Expense
 
+    /**
+     * Saves many expenses at once, overwriting any with the same id.
+     * [onProgress] gets the number saved so far. Not atomic: if it fails part way, the earlier ones stay saved.
+     */
+    suspend fun addExpenses(expenses: List<Expense>, onProgress: (Int) -> Unit = {})
+
     suspend fun updateExpense(expense: Expense): Expense
 
     suspend fun removeExpense(id: String)

@@ -172,6 +172,7 @@ class FirestoreConversionTest {
             GeneratedType.Manual,
             GeneratedType.RepeatAdd(repeatAddId = "repeat1"),
             GeneratedType.MailExtraction(templateTypeName = "amazon_item"),
+            GeneratedType.Import(source = "drwallet"),
         )
 
         private val expenseSamples = generatedTypeSamples.map { generatedType ->
