@@ -59,6 +59,33 @@ class ExpenseRepositoryFirestoreTest {
     }
 
     @Test
+    fun addExpenses_savesAllAcrossBatches() = runBlocking<Unit> {
+        /* One more than a Firestore batch can hold, so two batches are needed. */
+        val expenses = (1..501).map { sampleExpense(amount = it.toLong()) }
+        val progress = mutableListOf<Int>()
+
+        repository.addExpenses(expenses) { progress.add(it) }
+
+        assertEquals(listOf(500, 501), progress)
+        val saved = reference.expenseCollection.get().await().documents
+            .map { it.toObject(ExpenseDto::class.java)!!.toDomain() }
+        assertEquals(expenses.associateBy { it.id }, saved.associateBy { it.id })
+    }
+
+    @Test
+    fun addExpenses_sameIdsOverwriteInsteadOfDuplicating() = runBlocking<Unit> {
+        val expenses = listOf(sampleExpense(), sampleExpense(amount = 500L))
+        repository.addExpenses(expenses)
+
+        val reimported = expenses.map { it.copy(note = "reimported") }
+        repository.addExpenses(reimported)
+
+        val saved = reference.expenseCollection.get().await().documents
+            .map { it.toObject(ExpenseDto::class.java)!!.toDomain() }
+        assertEquals(reimported.toSet(), saved.toSet())
+    }
+
+    @Test
     fun updateExpense_overwritesExistingDocument() = runBlocking<Unit> {
         val added = repository.addExpense(sampleExpense())
         val modified = added.copy(amount = 9999L, note = "updated", category = null)
