@@ -11,10 +11,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.data.importer.CsvReader
-import gaku.original.myapplication.data.importer.DrWalletCsvParser
-import gaku.original.myapplication.data.importer.DrWalletImport
-import gaku.original.myapplication.data.importer.DrWalletRecord
+import gaku.original.myapplication.data.importer.ExpenseImporter
+import gaku.original.myapplication.data.importer.ImportRecord
+import gaku.original.myapplication.data.importer.ImportedExpenseMapper
 import gaku.original.myapplication.data.importer.SkippedRow
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
 import gaku.original.myapplication.data.repository.category.CategoryRepository
@@ -32,7 +31,7 @@ data class DrWalletImportUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
     val fileName: String? = null,
-    val records: List<DrWalletRecord> = emptyList(),
+    val records: List<ImportRecord> = emptyList(),
     val skipped: List<SkippedRow> = emptyList(),
     /* Category names in the file that the app doesn't have yet. */
     val missingCategoryNames: List<String> = emptyList(),
@@ -50,6 +49,8 @@ class DrWalletImportViewModel(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val appTimeZoneRepository: AppTimeZoneRepository,
+    private val importer: ExpenseImporter,
+    private val mapper: ImportedExpenseMapper,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DrWalletImportUiState())
     val uiState get() = _uiState.asStateFlow()
@@ -65,6 +66,8 @@ class DrWalletImportViewModel(
                     expenseRepository = session.expenseRepository,
                     categoryRepository = session.categoryRepository,
                     appTimeZoneRepository = session.appTimeZoneRepository,
+                    importer = session.drWalletImporter,
+                    mapper = ImportedExpenseMapper(),
                 )
             }
         }
@@ -89,7 +92,7 @@ class DrWalletImportViewModel(
                 val (fileName, result) = withContext(Dispatchers.IO) {
                     val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
                         ?: throw Exception("Could not open the file.")
-                    displayName(uri) to DrWalletCsvParser.parse(CsvReader.decode(bytes))
+                    displayName(uri) to importer.parse(bytes)
                 }
                 Timber.d("Parsed $fileName: ${result.records.size} records, ${result.skipped.size} skipped")
                 _uiState.update {
@@ -98,7 +101,7 @@ class DrWalletImportViewModel(
                         fileName = fileName,
                         records = result.records,
                         skipped = result.skipped,
-                        missingCategoryNames = DrWalletImport.missingCategoryNames(
+                        missingCategoryNames = mapper.missingCategoryNames(
                             result.records,
                             categoryRepository.categories.value.values
                         ),
@@ -106,7 +109,7 @@ class DrWalletImportViewModel(
                     )
                 }
             } catch (e: Exception) {
-                Timber.d("Failed to read CSV: $e")
+                Timber.d("Failed to read the file: $e")
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -140,7 +143,7 @@ class DrWalletImportViewModel(
                 val categories = categoryRepository.getAllCategories().values.toMutableList()
                 if (state.createMissingCategories) {
                     /* Checked again, the categories may have changed since the file was picked. */
-                    DrWalletImport.missingCategoryNames(state.records, categories).forEach { name ->
+                    mapper.missingCategoryNames(state.records, categories).forEach { name ->
                         categories += categoryRepository.addCategory(
                             Category(
                                 id = UUID.randomUUID().toString(),
@@ -152,8 +155,9 @@ class DrWalletImportViewModel(
                     }
                 }
 
-                val expenses = DrWalletImport.toExpenses(
+                val expenses = mapper.toExpenses(
                     records = state.records,
+                    source = importer.source,
                     zoneId = appTimeZoneRepository.zoneId.value,
                     categories = categories,
                     timestamp = now

@@ -38,11 +38,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
-import gaku.original.myapplication.data.importer.DrWalletRecord
+import gaku.original.myapplication.data.importer.FakeExpenseImporter
+import gaku.original.myapplication.data.importer.ImportRecord
 import gaku.original.myapplication.data.importer.SkippedRow
 import gaku.original.myapplication.ui.common.TopBarView
 import java.text.NumberFormat
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -246,7 +246,7 @@ private fun ImportSummary(uiState: DrWalletImportUiState) {
 }
 
 @Composable
-private fun RecordRow(record: DrWalletRecord) {
+private fun RecordRow(record: ImportRecord) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -284,13 +284,11 @@ private fun SkippedRowView(row: SkippedRow) {
 @Preview
 @Composable
 fun DrWalletImportScreenPreview() {
+    val result = FakeExpenseImporter().parse(ByteArray(0))
     val uiState = DrWalletImportUiState(
         fileName = "drwallet_2026.csv",
-        records = listOf(
-            DrWalletRecord(2, LocalDateTime.of(2026, 9, 15, 12, 0), 1200, "食費", "スーパー", "野菜", null),
-            DrWalletRecord(3, LocalDateTime.of(2026, 9, 16, 12, 0), 150, "カフェ", "コーヒー店", null, null),
-        ),
-        skipped = listOf(SkippedRow(4, "Income")),
+        records = result.records,
+        skipped = result.skipped,
         missingCategoryNames = listOf("カフェ"),
     )
 

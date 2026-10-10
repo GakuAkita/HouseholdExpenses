@@ -7,12 +7,11 @@ import gaku.original.myapplication.data.repository.appTimeZone.toInstant
 import java.security.MessageDigest
 import java.time.ZoneId
 
-object DrWalletImport {
+/** Turns [ImportRecord]s into [Expense]s. Not tied to any one app's format. */
+class ImportedExpenseMapper {
 
-    const val SOURCE = "drwallet"
-
-    /** Category names in the CSV that none of [categories] has. */
-    fun missingCategoryNames(records: List<DrWalletRecord>, categories: Collection<Category>): List<String> =
+    /** Category names in the records that none of [categories] has. */
+    fun missingCategoryNames(records: List<ImportRecord>, categories: Collection<Category>): List<String> =
         records.mapNotNull { it.categoryName }
             .distinct()
             .filter { name -> findCategory(name, categories) == null }
@@ -22,12 +21,13 @@ object DrWalletImport {
         categories.filter { it.name.trim() == name }.maxByOrNull { it.enabled }
 
     /**
-     * The id comes from the row's contents, so importing the same file again overwrites
-     * the same documents instead of adding duplicates.
+     * The id comes from the source and the row's contents, so importing the same file again
+     * overwrites the same documents instead of adding duplicates.
      * Identical rows (two ¥150 coffees on the same day) are told apart by how many came before.
      */
     fun toExpenses(
-        records: List<DrWalletRecord>,
+        records: List<ImportRecord>,
+        source: String,
         zoneId: ZoneId,
         categories: Collection<Category>,
         timestamp: Long,
@@ -38,8 +38,8 @@ object DrWalletImport {
             val occurrence = seen.getOrDefault(key, 0)
             seen[key] = occurrence + 1
             Expense(
-                id = expenseId(key, occurrence),
-                generatedType = GeneratedType.Import(source = SOURCE),
+                id = expenseId(source, key, occurrence),
+                generatedType = GeneratedType.Import(source = source),
                 datetime = record.datetime.toInstant(zoneId),
                 timestamp = timestamp,
                 amount = record.amount,
@@ -51,13 +51,13 @@ object DrWalletImport {
         }
     }
 
-    private fun DrWalletRecord.contentKey(): String =
+    private fun ImportRecord.contentKey(): String =
         listOf(datetime.toString(), amount.toString(), categoryName, storeName, itemName, note)
             .joinToString("\u0000") { it ?: "" }
 
-    internal fun expenseId(contentKey: String, occurrence: Int): String {
+    private fun expenseId(source: String, contentKey: String, occurrence: Int): String {
         val digest = MessageDigest.getInstance("SHA-256")
             .digest("$contentKey\u0000$occurrence".toByteArray(Charsets.UTF_8))
-        return "${SOURCE}_" + digest.take(16).joinToString("") { "%02x".format(it) }
+        return "${source}_" + digest.take(16).joinToString("") { "%02x".format(it) }
     }
 }

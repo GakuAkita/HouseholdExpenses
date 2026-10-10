@@ -5,9 +5,7 @@ import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 
-object CsvReader {
-
-    private val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+class CsvReader {
 
     /**
      * Japanese apps often write CSV in Shift_JIS, so anything that is not valid UTF-8 is read as Shift_JIS.
@@ -83,5 +81,9 @@ object CsvReader {
         }
         if (field.isNotEmpty() || fields.isNotEmpty()) endRecord()
         return records
+    }
+
+    private companion object {
+        val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
     }
 }

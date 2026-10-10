@@ -1,65 +1,35 @@
-package gaku.original.myapplication.data.importer
+package gaku.original.myapplication.data.importer.drwallet
 
+import gaku.original.myapplication.data.importer.CsvReader
+import gaku.original.myapplication.data.importer.ExpenseImporter
+import gaku.original.myapplication.data.importer.ImportFileException
+import gaku.original.myapplication.data.importer.ImportParseResult
+import gaku.original.myapplication.data.importer.ImportRecord
+import gaku.original.myapplication.data.importer.SkippedRow
+import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.DateTimeException
 import kotlin.math.abs
 
-/** One expense row read from a Dr.Wallet CSV export. [rowNumber] counts CSV records from 1, header included. */
-data class DrWalletRecord(
-    val rowNumber: Int,
-    val datetime: LocalDateTime,
-    val amount: Long,
-    val categoryName: String?,
-    val storeName: String?,
-    val itemName: String?,
-    val note: String?,
-)
-
-data class SkippedRow(
-    val rowNumber: Int,
-    val reason: String,
-)
-
-data class DrWalletParseResult(
-    val records: List<DrWalletRecord>,
-    val skipped: List<SkippedRow>,
-)
-
-class DrWalletCsvException(message: String) : Exception(message)
-
 /**
+ * Reads a CSV exported from Dr.Wallet.
  * Columns are found by header name, so the column order does not matter and unknown columns are ignored.
  * Only the date and amount columns are required.
  */
-object DrWalletCsvParser {
+class DrWalletCsvImporter(
+    private val csvReader: CsvReader
+) : ExpenseImporter {
 
-    private val DATE_HEADERS = listOf("日付", "利用日", "購入日", "date")
-    private val TIME_HEADERS = listOf("時刻", "時間", "time")
-    private val AMOUNT_HEADERS = listOf("金額", "支出金額", "合計金額", "amount")
-    private val CATEGORY_HEADERS = listOf("カテゴリ", "カテゴリー", "大カテゴリ", "大項目", "category")
-    private val STORE_HEADERS = listOf("店名", "店舗名", "店舗", "お店", "store")
-    private val ITEM_HEADERS = listOf("品目", "商品名", "品名", "内容", "item")
-    private val NOTE_HEADERS = listOf("メモ", "備考", "note", "memo")
-    private val TYPE_HEADERS = listOf("収支", "収支区分", "種別", "区分", "type")
+    override val source: String = SOURCE
 
-    /* The header might come after a title line or two. */
-    private const val HEADER_SEARCH_ROWS = 10
-
-    /* A date without a time is put at noon, so a small time zone difference does not move it to another day. */
-    private val DEFAULT_TIME: LocalTime = LocalTime.NOON
-
-    private val DATE_REGEX = Regex("""(\d{4})\D(\d{1,2})\D(\d{1,2})日?(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?""")
-    private val TIME_REGEX = Regex("""(\d{1,2}):(\d{2})(?::(\d{2}))?""")
-
-    fun parse(text: String): DrWalletParseResult {
-        val rows = CsvReader.parse(text)
+    override fun parse(bytes: ByteArray): ImportParseResult {
+        val rows = csvReader.parse(csvReader.decode(bytes))
         val headerIndex = rows.take(HEADER_SEARCH_ROWS).indexOfFirst { row ->
             row.findColumn(DATE_HEADERS) != null && row.findColumn(AMOUNT_HEADERS) != null
         }
         if (headerIndex < 0) {
-            throw DrWalletCsvException("Could not find the header row. It needs a date (日付) and an amount (金額) column.")
+            throw ImportFileException("Could not find the header row. It needs a date (日付) and an amount (金額) column.")
         }
 
         val header = rows[headerIndex]
@@ -72,7 +42,7 @@ object DrWalletCsvParser {
         val noteColumn = header.findColumn(NOTE_HEADERS)
         val typeColumn = header.findColumn(TYPE_HEADERS)
 
-        val records = mutableListOf<DrWalletRecord>()
+        val records = mutableListOf<ImportRecord>()
         val skipped = mutableListOf<SkippedRow>()
 
         for (index in headerIndex + 1 until rows.size) {
@@ -109,7 +79,7 @@ object DrWalletCsvParser {
             }
 
             records.add(
-                DrWalletRecord(
+                ImportRecord(
                     rowNumber = rowNumber,
                     datetime = datetime,
                     amount = amount,
@@ -120,7 +90,7 @@ object DrWalletCsvParser {
                 )
             )
         }
-        return DrWalletParseResult(records, skipped)
+        return ImportParseResult(records, skipped)
     }
 
     /** Exact header match first, so "カテゴリ" is not taken by "サブカテゴリ". */
@@ -164,5 +134,27 @@ object DrWalletCsvParser {
     internal fun parseAmount(raw: String): Long? {
         val cleaned = raw.replace(Regex("""[,，¥￥円\s]"""), "")
         return cleaned.toLongOrNull()?.let { abs(it) }
+    }
+
+    companion object {
+        const val SOURCE = "drwallet"
+
+        private val DATE_HEADERS = listOf("日付", "利用日", "購入日", "date")
+        private val TIME_HEADERS = listOf("時刻", "時間", "time")
+        private val AMOUNT_HEADERS = listOf("金額", "支出金額", "合計金額", "amount")
+        private val CATEGORY_HEADERS = listOf("カテゴリ", "カテゴリー", "大カテゴリ", "大項目", "category")
+        private val STORE_HEADERS = listOf("店名", "店舗名", "店舗", "お店", "store")
+        private val ITEM_HEADERS = listOf("品目", "商品名", "品名", "内容", "item")
+        private val NOTE_HEADERS = listOf("メモ", "備考", "note", "memo")
+        private val TYPE_HEADERS = listOf("収支", "収支区分", "種別", "区分", "type")
+
+        /* The header might come after a title line or two. */
+        private const val HEADER_SEARCH_ROWS = 10
+
+        /* A date without a time is put at noon, so a small time zone difference does not move it to another day. */
+        private val DEFAULT_TIME: LocalTime = LocalTime.NOON
+
+        private val DATE_REGEX = Regex("""(\d{4})\D(\d{1,2})\D(\d{1,2})日?(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?""")
+        private val TIME_REGEX = Regex("""(\d{1,2}):(\d{2})(?::(\d{2}))?""")
     }
 }
