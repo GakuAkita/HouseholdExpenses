@@ -61,6 +61,16 @@ sealed interface GeneratedType {
 
         override fun toSerialized(): String = "${NAME}___${templateTypeName}"
     }
+
+    /* Imported from another app's export file. source is the app, e.g. "drwallet". */
+    @Serializable
+    data class Import(val source: String) : GeneratedType {
+        companion object {
+            val NAME = "import"
+        }
+
+        override fun toSerialized(): String = "${NAME}___${source}"
+    }
 }
 
 fun String.toGeneratedType(): GeneratedType {
@@ -74,6 +84,11 @@ fun String.toGeneratedType(): GeneratedType {
 
         GeneratedType.MailExtraction.NAME -> GeneratedType.MailExtraction(
             templateTypeName = parts.getOrNull(1)
+                ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
+        )
+
+        GeneratedType.Import.NAME -> GeneratedType.Import(
+            source = parts.getOrNull(1)
                 ?: throw IllegalArgumentException("Invalid GeneratedType: $this")
         )
 

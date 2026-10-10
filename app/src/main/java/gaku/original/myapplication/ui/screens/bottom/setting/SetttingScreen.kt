@@ -115,6 +115,12 @@ fun SettingScreen(
             onMenuClick = onMenuClick
         )
 
+        SettingRowWithNavigation(
+            label = "Import from Dr.Wallet",
+            route = MainGraph.SettingMenu.DrWalletImport,
+            onMenuClick = onMenuClick
+        )
+
 //        SettingRowWithNavigation(
 //            label = "Notification Listener Setting",
 //            route = MainGraph.SettingMenu.NotificationListenerSetting,

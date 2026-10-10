@@ -83,6 +83,9 @@ data object MainGraph {
 
         @Serializable
         data object PayPayReceiptOCRSetting : SettingMenu
+
+        @Serializable
+        data object DrWalletImport : SettingMenu
     }
 
     sealed interface Global : Screen {
