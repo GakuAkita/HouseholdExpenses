@@ -43,6 +43,26 @@ plugins {
     kotlin("plugin.serialization") version "2.0.21"
 }
 
+// debugビルドで使うAppContainerの選択肢と、選択を保存するファイル
+val appContainerChoices = listOf("emulator", "fake")
+val appContainerFile = layout.buildDirectory.file("appContainer.txt")
+
+// 実行構成の起動前タスク。-PappContainer の値をファイルに書き、続くビルドでBuildConfigに反映させる
+tasks.register("selectAppContainer") {
+    val selected = providers.gradleProperty("appContainer")
+    val outputFile = appContainerFile
+    doLast {
+        val value = selected.orNull
+        require(value in appContainerChoices) {
+            "Pass -PappContainer=<${appContainerChoices.joinToString("|")}>, but was '$value'"
+        }
+        outputFile.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(value!!)
+        }
+    }
+}
+
 android {
     namespace = "gaku.original.myapplication"
     compileSdk = 37
@@ -86,6 +106,17 @@ android {
             .asText.orNull?.trim { it.isWhitespace() || it == '﻿' }?.takeIf { it.isNotEmpty() }
         val emulatorHost = emulatorHostFromFile ?: "10.0.2.2"
         buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")
+
+        // debugビルドで使うAppContainer（emulator / fake）
+        // -PappContainer=... があればその値、なければ selectAppContainer タスクが書いたファイルの値、どちらもなければ emulator
+        // Android Studioの実行構成（.run/）が起動前に selectAppContainer を実行するので、ビルドボタン横のプルダウンで切り替えられる
+        val appContainer = providers.gradleProperty("appContainer")
+            .orElse(providers.fileContents(appContainerFile).asText.map { it.trim() })
+            .getOrElse("emulator")
+        require(appContainer in appContainerChoices) {
+            "appContainer must be one of $appContainerChoices, but was '$appContainer'"
+        }
+        buildConfigField("String", "APP_CONTAINER", "\"$appContainer\"")
     }
 
     buildTypes {
