@@ -94,7 +94,7 @@ fun PayPayReceiptReaderScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Share a PayPay receipt screenshot to this app to add it as an expense. " +
+                "Share a receipt from the PayPay app to this app to add it as an expense. " +
                         "The PayPay logo in the top-left corner is hidden before the receipt is read.",
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -176,13 +176,37 @@ private fun MaskSettingCard(uiState: PayPayReceiptReaderUiState) {
                 else -> {
                     Text("Not set", color = MaterialTheme.colorScheme.error)
                     Text(
-                        "Share a PayPay receipt screenshot to this app. " +
-                                "You will be asked to adjust the masking area the first time.",
-                        style = MaterialTheme.typography.bodySmall
+                        "To set the masking area:",
+                        style = MaterialTheme.typography.bodyMedium
                     )
+                    maskSetupSteps.forEachIndexed { index, step ->
+                        InstructionStep(number = index + 1, text = step)
+                    }
                 }
             }
         }
+    }
+}
+
+private val maskSetupSteps = listOf(
+    "Open the PayPay app and open the receipt of a payment.",
+    "Tap the share button and share the receipt image.",
+    "Choose HouseholdExpenses as the share target.",
+    "Adjust the masking area so the PayPay logo in the top-left corner is hidden, then save."
+)
+
+@Composable
+private fun InstructionStep(number: Int, text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            "$number.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(text, style = MaterialTheme.typography.bodySmall)
     }
 }
 
