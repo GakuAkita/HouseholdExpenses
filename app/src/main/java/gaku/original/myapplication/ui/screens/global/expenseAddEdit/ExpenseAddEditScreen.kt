@@ -119,7 +119,6 @@ fun ExpenseAddEditScreenRoot(
     ExpenseAddEditScreen(
         uiState,
         snackbarHostState,
-        totalAmountIndex = viewModel.totalAmountIndex,
         onBackNavClick = {
             navHostController.popBackStack()
         },
@@ -205,7 +204,6 @@ fun ExpenseAddEditScreenRoot(
 fun ExpenseAddEditScreen(
     uiState: ExpenseAddEditUiState,
     snackbarHostState: SnackbarHostState,
-    totalAmountIndex: Int = -1,
     onBackNavClick: () -> Unit,
     onDateFieldClick: () -> Unit,
     onDateDismiss: () -> Unit,
@@ -329,126 +327,29 @@ fun ExpenseAddEditScreen(
             }
 
             uiState.expenseEditList.forEachIndexed { index, item ->
-                val isLastElement =
-                    index == uiState.expenseEditList.size - 1 &&
-                            uiState.isSplitInputEnabled &&
-                            index != 0
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .then(
-                            if (uiState.isSplitInputEnabled) {
-                                Modifier.border(
-                                    1.dp,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            } else {
-                                Modifier
-                            }
-                        )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        /*************************************************/
-                        /* Amount */
-                        /*************************************************/
-                        TextField(
-                            value = "${item.amount ?: ""}",
-                            modifier = basicModifier.then(
-                                if (isLastElement) {
-                                    Modifier
-                                } else {
-                                    Modifier.clickable {
-                                        /* open calculator. */
-                                        onAmountClick(index)
-                                    }
-                                }.padding(4.dp)
-                            ),
-                            onValueChange = {},
-                            readOnly = true,
-                            enabled = false,
-                            label = { Text(text = "Amount") },
-                            colors = if (isLastElement) TextFieldDefaults.colors() else enabledTextFiledColorSet()
-                        )
+                val isHead = index == 0
+                /* In split input, the last item is calculated from the total amount */
+                val isCalculated = uiState.isSplitInputEnabled &&
+                        !isHead &&
+                        index == uiState.expenseEditList.lastIndex
 
-                        if (index == 0) {
-                            Switch(
-                                checked = uiState.isSplitInputEnabled,
-                                onCheckedChange = {
-                                    onSwitchClick()
-                                },
-                                modifier = Modifier.padding(vertical = 0.dp)
-                            )
-                            Text("分割入力")
-                        }
-                    }
+                ExpenseEditItemInput(
+                    item = item,
+                    categories = uiState.categories,
+                    isHead = isHead,
+                    isCalculated = isCalculated,
+                    isSplitInputEnabled = uiState.isSplitInputEnabled,
+                    fieldModifier = basicModifier,
+                    onAmountClick = { onAmountClick(index) },
+                    onSwitchClick = onSwitchClick,
+                    onCategorySelected = { onCategorySelected(index, it) },
+                    onCategoryEditClick = onCategoryEditClick,
+                    onCategoryRefreshClick = onCategoryRefreshClick,
+                    onNoteChange = { onNoteChange(index, it) },
+                    onProductNameChange = { onProductNameChange(index, it) },
+                )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        CategoryDropDown(
-                            modifier = basicModifier.padding(4.dp),
-                            selectedCategory = uiState.expenseEditList[index].category,
-                            categories = uiState.categories,
-                            onCategorySelected = {
-                                onCategorySelected(index, it)
-                            }
-                        )
-
-                        if (index == 0) {
-                            // Category Edit Button
-                            IconButton(
-                                onClick = {
-                                    onCategoryEditClick()
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
-                                    contentDescription = "Edit Category"
-                                )
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    onCategoryRefreshClick()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Update"
-                                )
-                            }
-
-                        }
-                    }
-
-                    /* Note */
-                    TextField(
-                        modifier = basicModifier.padding(4.dp),
-                        value = item.note ?: "",
-                        onValueChange = {
-                            onNoteChange(index, it)
-                        },
-                        label = { Text(text = "Note(空欄可)") },
-                        singleLine = false
-                    )
-
-                    /*****************************************************/
-                    /* Product Name */
-                    /*****************************************************/
-                    TextField(
-                        modifier = basicModifier.padding(4.dp),
-                        value = item.productName ?: "",
-                        onValueChange = {
-                            onProductNameChange(index, it)
-                        },
-                        label = { Text(text = "商品名(空欄可)") },
-                    )
-                }
-
-                if (isLastElement) {
+                if (isCalculated) {
                     Row(
                         modifier = basicModifier,
                         horizontalArrangement = Arrangement.Center
@@ -466,20 +367,16 @@ fun ExpenseAddEditScreen(
                         }
                     }
                 }
-
-                /* Calculator can be here */
-                /* uiState.isShowCalculator && selectedIndex == index */
             }
 
-            if (uiState.isShowCalculator) {
+            if (uiState.calculatorTarget != null) {
                 /* show Calculator */
                 ModalBottomSheet(
                     onDismissRequest = { onCalculatorDismiss() },
                     sheetState = bottomSheetState
                 ) {
                     CalculatorUI(
-                        initialValue = if (uiState.selectedIndex == totalAmountIndex) uiState.totalAmount else uiState.expenseEditList[uiState.selectedIndex!!].amount
-                            ?: 0L,
+                        initialValue = uiState.calculatorInitialValue,
                         onDecide = {/* 日本円を使っている限りは、整数に変換。おいおい外貨にも対応 */
                             onCalculatorDecide(it)
                         }
@@ -541,6 +438,132 @@ fun ExpenseAddEditScreen(
                 }
             }
         }
+    }
+}
+
+/* One expense in the list. Head item also holds the split switch and category edit buttons. */
+@Composable
+private fun ExpenseEditItemInput(
+    item: ExpenseEditItem,
+    categories: List<Category>,
+    isHead: Boolean,
+    isCalculated: Boolean,
+    isSplitInputEnabled: Boolean,
+    fieldModifier: Modifier,
+    onAmountClick: () -> Unit,
+    onSwitchClick: () -> Unit,
+    onCategorySelected: (Category) -> Unit,
+    onCategoryEditClick: () -> Unit,
+    onCategoryRefreshClick: () -> Unit,
+    onNoteChange: (String) -> Unit,
+    onProductNameChange: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .then(
+                if (isSplitInputEnabled) {
+                    Modifier.border(
+                        1.dp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                } else {
+                    Modifier
+                }
+            )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            /*************************************************/
+            /* Amount */
+            /*************************************************/
+            TextField(
+                value = "${item.amount ?: ""}",
+                modifier = fieldModifier.then(
+                    if (isCalculated) {
+                        Modifier
+                    } else {
+                        Modifier.clickable {
+                            /* open calculator. */
+                            onAmountClick()
+                        }
+                    }.padding(4.dp)
+                ),
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text(text = "Amount") },
+                colors = if (isCalculated) TextFieldDefaults.colors() else enabledTextFiledColorSet()
+            )
+
+            if (isHead) {
+                Switch(
+                    checked = isSplitInputEnabled,
+                    onCheckedChange = {
+                        onSwitchClick()
+                    },
+                    modifier = Modifier.padding(vertical = 0.dp)
+                )
+                Text("分割入力")
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            CategoryDropDown(
+                modifier = fieldModifier.padding(4.dp),
+                selectedCategory = item.category,
+                categories = categories,
+                onCategorySelected = onCategorySelected
+            )
+
+            if (isHead) {
+                // Category Edit Button
+                IconButton(
+                    onClick = {
+                        onCategoryEditClick()
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                        contentDescription = "Edit Category"
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        onCategoryRefreshClick()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Update"
+                    )
+                }
+            }
+        }
+
+        /* Note */
+        TextField(
+            modifier = fieldModifier.padding(4.dp),
+            value = item.note ?: "",
+            onValueChange = onNoteChange,
+            label = { Text(text = "Note(空欄可)") },
+            singleLine = false
+        )
+
+        /*****************************************************/
+        /* Product Name */
+        /*****************************************************/
+        TextField(
+            modifier = fieldModifier.padding(4.dp),
+            value = item.productName ?: "",
+            onValueChange = onProductNameChange,
+            label = { Text(text = "商品名(空欄可)") },
+        )
     }
 }
 
