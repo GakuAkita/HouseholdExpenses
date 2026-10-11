@@ -35,28 +35,28 @@ jobs:
             NEW_TAG="$REF_NAME"
             HAS_CHANGES=false
           else
-            # 最新のタグを取得(vで始まるタグのみ)
+            # Get the latest tag (only tags starting with "v")
             LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
 
             if [ -z "$LATEST_TAG" ]; then
-              # タグが存在しない場合は v1.0.0 から開始
+              # No tags yet, so start from v1.0.0
               NEW_TAG="v1.0.0"
               HAS_CHANGES=true
               echo "No existing tags found, starting with $NEW_TAG"
             else
               echo "Latest tag: $LATEST_TAG"
               
-              # タグのコミットと現在のコミットを比較
+              # Compare the tagged commit with the current commit
               TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
               CURRENT_COMMIT=$(git rev-parse HEAD)
               
               if [ "$TAG_COMMIT" = "$CURRENT_COMMIT" ]; then
-                # 変更がない場合は既存のタグを使用
+                # No changes, so reuse the existing tag
                 NEW_TAG="$LATEST_TAG"
                 HAS_CHANGES=false
                 echo "No changes since $LATEST_TAG, using existing tag"
               else
-                # 変更がある場合は一番下の位を1つ繰り上げ
+                # Changes found, so bump the patch number by 1
                 # v1.0.0 -> v1.0.1, v1.2.3 -> v1.2.4
                 VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
                 IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
@@ -96,8 +96,8 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
-      # r0adkll/sign-android-release は非推奨の set-output を使っているため、
-      # SDK の zipalign / apksigner で直接署名する
+      # r0adkll/sign-android-release uses the deprecated set-output command,
+      # so sign directly with the SDK zipalign / apksigner instead
       - name: Sign APK
         shell: bash
         env:
@@ -110,7 +110,7 @@ jobs:
           BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/$BUILD_TOOL_VERSION"
           echo "Using build tools: $BUILD_TOOL_VERSION"
 
-          # keyPassword が未設定なら keystore のパスワードを使う(旧 action と同じ挙動)
+          # If KEY_PASSWORD is not set, use the keystore password (same as the old action)
           export KEY_PASSWORD="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
 
           KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
