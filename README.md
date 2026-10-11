@@ -47,8 +47,8 @@ Categories are assigned automatically by rules you configure.
 │  Android app          │        │  Cloud Functions (Node 20)   │
 │  Kotlin + Compose     │◀──────▶│  Scheduled jobs:             │
 │  Room (offline cache) │Firebase│   - Mailbox extraction ◀─────┼── Gmail API
-│  Share receiver       │        │   - Monthly Repeat Add       │
-│  ML Kit OCR           │        │   - Amazon Subscribe monitor │
+│  Receipt OCR (ML Kit) │        │   - Monthly Repeat Add       │
+│                       │        │   - Amazon Subscribe monitor │
 └───────────────────────┘        │  Gmail OAuth callback        │
                                  └──────────────────────────────┘
           Firestore (expenses) · Realtime Database (settings) · Firebase Auth
