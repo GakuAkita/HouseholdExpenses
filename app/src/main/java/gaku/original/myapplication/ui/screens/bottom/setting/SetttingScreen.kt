@@ -1,6 +1,5 @@
 package gaku.original.myapplication.ui.screens.bottom.setting
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,20 +7,36 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.DocumentScanner
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.ui.common.SectionHeader
 
 @Composable
 fun SettingScreenRoot(
@@ -71,77 +87,102 @@ fun SettingScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(bottom = 24.dp)
     ) {
+        SettingSection(title = "Account") {
+            SettingRowWithNavigation(
+                label = "User Information",
+                icon = Icons.Outlined.AccountCircle,
+                route = MainGraph.SettingMenu.UserInfo,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "User Information",
-            route = MainGraph.SettingMenu.UserInfo,
-            onMenuClick = onMenuClick
-        )
+            SettingRowWithNavigation(
+                label = "Timezone Setting",
+                icon = Icons.Outlined.Public,
+                route = MainGraph.SettingMenu.TimeZone,
+                onMenuClick = onMenuClick
+            )
+        }
 
-        SettingRowWithNavigation(
-            label = "Timezone Setting",
-            route = MainGraph.SettingMenu.TimeZone,
-            onMenuClick = onMenuClick
-        )
+        SettingSection(title = "Expenses") {
+            SettingRowWithNavigation(
+                label = "Categories",
+                icon = Icons.Outlined.Category,
+                route = MainGraph.SettingMenu.Categories,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "Categories",
-            route = MainGraph.SettingMenu.Categories,
-            onMenuClick = onMenuClick
-        )
+            SettingRowWithNavigation(
+                label = "Repeat Add",
+                icon = Icons.Outlined.Repeat,
+                route = MainGraph.SettingMenu.IRepeatAdd.Screen,
+                onMenuClick = onMenuClick
+            )
+        }
 
-        SettingRowWithNavigation(
-            label = "Repeat Add",
-            route = MainGraph.SettingMenu.IRepeatAdd.Screen,
-            onMenuClick = onMenuClick
-        )
+        SettingSection(title = "Automation & Import") {
+            SettingRowWithNavigation(
+                label = "Mailbox Extraction",
+                icon = Icons.Outlined.Email,
+                route = MainGraph.SettingMenu.MailboxExtraction,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "Mailbox Extraction",
-            route = MainGraph.SettingMenu.MailboxExtraction,
-            onMenuClick = onMenuClick
-        )
+            SettingRowWithNavigation(
+                label = "Amazon Subscribe Item",
+                icon = Icons.Outlined.ShoppingCart,
+                route = MainGraph.SettingMenu.AmazonSubscribeItem,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "Amazon Subscribe Item",
-            route = MainGraph.SettingMenu.AmazonSubscribeItem,
-            onMenuClick = onMenuClick
-        )
+            SettingRowWithNavigation(
+                label = "PayPay Receipt Reader",
+                icon = Icons.Outlined.DocumentScanner,
+                route = MainGraph.SettingMenu.PayPayReceiptOCRSetting,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "PayPay Receipt Reader",
-            route = MainGraph.SettingMenu.PayPayReceiptOCRSetting,
-            onMenuClick = onMenuClick
-        )
+            SettingRowWithNavigation(
+                label = "Import from Dr.Wallet",
+                icon = Icons.Outlined.FileUpload,
+                route = MainGraph.SettingMenu.DrWalletImport,
+                onMenuClick = onMenuClick
+            )
 
-        SettingRowWithNavigation(
-            label = "Import from Dr.Wallet",
-            route = MainGraph.SettingMenu.DrWalletImport,
-            onMenuClick = onMenuClick
-        )
+//            SettingRowWithNavigation(
+//                label = "Notification Listener Setting",
+//                route = MainGraph.SettingMenu.NotificationListenerSetting,
+//                onMenuClick = onMenuClick
+//            )
+        }
 
-//        SettingRowWithNavigation(
-//            label = "Notification Listener Setting",
-//            route = MainGraph.SettingMenu.NotificationListenerSetting,
-//            onMenuClick = onMenuClick
-//        )
+        SettingSection(title = "About") {
+            SettingRowWithNavigation(
+                label = "App Version",
+                icon = Icons.Outlined.Info,
+                route = MainGraph.SettingMenu.AppVersion,
+                onMenuClick = onMenuClick
+            )
+        }
 
-
-        SettingRowWithNavigation(
-            label = "App Version",
-            route = MainGraph.SettingMenu.AppVersion,
-            onMenuClick = onMenuClick
-        )
-
-        Button(
+        OutlinedButton(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
             onClick = {
                 onSignOutClick()
             }
         ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Logout")
         }
     }
@@ -241,8 +282,28 @@ fun SettingScreenPreview() {
 }
 
 @Composable
+private fun SettingSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    SectionHeader(text = title, modifier = Modifier.padding(top = 8.dp))
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column {
+            content()
+        }
+    }
+}
+
+@Composable
 fun SettingRowWithNavigation(
     label: String,
+    icon: ImageVector,
     route: MainGraph.SettingMenu,
     onMenuClick: (MainGraph.SettingMenu) -> Unit,
 ) {
@@ -251,33 +312,42 @@ fun SettingRowWithNavigation(
             onMenuClick(route)
         }
     ) {
-        Text(text = label, modifier = Modifier.padding(start = 10.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Composable
 fun SettingRow(
     modifier: Modifier = Modifier, // カスタム Modifier を適用できる
-    borderColor: Color = MaterialTheme.colorScheme.onBackground,
     onClick: () -> Unit = {},
     content: @Composable RowScope.() -> Unit // RowScope を適用
 ) {
     Row(
         modifier = modifier
-            .height(50.dp)
+            .heightIn(min = 56.dp)
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .border(
-                1.dp,
-                borderColor, // Composable 関数内ならOK
-                shape = RoundedCornerShape(8.dp)
-            )
             .clickable {
                 onClick()
-            },
+            }
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         content()
     }
-    Spacer(modifier = Modifier.padding(2.dp))
 }

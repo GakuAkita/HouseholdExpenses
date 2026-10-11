@@ -134,8 +134,7 @@ fun PayPayReceiptReaderScreen(
             },
             confirmContent = {
                 Text(
-                    "Reset the masking setting?",
-                    modifier = Modifier.padding(24.dp)
+                    "Reset the masking setting?"
                 )
             }
         )

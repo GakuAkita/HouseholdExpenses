@@ -3,6 +3,7 @@ package gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscrib
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -54,6 +56,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
+import gaku.original.myapplication.ui.common.EmptyState
+import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.TopBarView
 import java.text.NumberFormat
 import java.util.Locale
@@ -109,7 +113,7 @@ fun AmazonSubscribeScreen(
     Scaffold(
         topBar = {
             TopBarView(
-                title = "Amazon Subscribe item",
+                title = "Amazon Subscribe Items",
                 showBackButton = true,
                 onBackNavClicked = {
                     onBackNavClick()
@@ -122,89 +126,73 @@ fun AmazonSubscribeScreen(
             )
         }
     ) { innerPadding ->
-        Column(
+        if (uiState.isLoading) {
+            LoadingBox(modifier = Modifier.padding(innerPadding))
+            return@Scaffold
+        }
+
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else {
+            item {
                 AmazonSubscribeItemsInfoCard()
-                if (uiState.isLoadError) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "There was a loading error. Please go back and reopen.",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                } else if (uiState.amazonSubscribeItems.isEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "定期便アイテムはありません",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "メールから自動的に追加されます",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-                } else {
-                    enabledItems.forEach {
-                        AmazonSubscribeItemCard(
-                            itemUiState = it,
-                            onDeleteClick = {
-                                onDeleteClick(it)
-                            }
-                        )
-                    }
+            }
 
+            if (uiState.isLoadError) {
+                item {
+                    EmptyState(
+                        icon = Icons.Outlined.ErrorOutline,
+                        title = "There was a loading error.",
+                        message = "Please go back and reopen."
+                    )
+                }
+            } else if (uiState.amazonSubscribeItems.isEmpty()) {
+                item {
+                    EmptyState(
+                        icon = Icons.Default.ShoppingCart,
+                        title = "定期便アイテムはありません",
+                        message = "メールから自動的に追加されます"
+                    )
+                }
+            } else {
+                items(enabledItems) {
+                    AmazonSubscribeItemCard(
+                        itemUiState = it,
+                        onDeleteClick = {
+                            onDeleteClick(it)
+                        }
+                    )
+                }
+
+                item {
                     DisabledItemsButton(
                         disabledItemsCount = disabledItems.size,
                         onClick = {
                             onShowDisableItemsClick()
                         }
                     )
-
-                    if (uiState.isShowDisabledItems) {
-                        ModalBottomSheet(
-                            onDismissRequest = { onShowDisableItemsClick() },
-                            sheetState = bottomSheetState
-                        ) {
-                            DisabledItemsDialogContent(
-                                disabledItems = disabledItems,
-                                onRestoreClick = { itemUiState ->
-                                    onRestoreClick(itemUiState)
-                                },
-                                onDismiss = {
-                                    onShowDisableItemsClick()
-                                }
-                            )
-                        }
-                    }
-
                 }
+            }
+        }
+
+        if (!uiState.isLoadError && uiState.isShowDisabledItems) {
+            ModalBottomSheet(
+                onDismissRequest = { onShowDisableItemsClick() },
+                sheetState = bottomSheetState
+            ) {
+                DisabledItemsDialogContent(
+                    disabledItems = disabledItems,
+                    onRestoreClick = { itemUiState ->
+                        onRestoreClick(itemUiState)
+                    },
+                    onDismiss = {
+                        onShowDisableItemsClick()
+                    }
+                )
             }
         }
     }
@@ -491,9 +479,9 @@ private fun AmazonSubscribeItemCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Row(

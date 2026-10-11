@@ -1,27 +1,27 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,15 +33,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
-import gaku.original.myapplication.ui.common.CancelButton
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.DialogCard
 import gaku.original.myapplication.ui.common.IntegerTextField
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import java.time.DayOfWeek
@@ -130,6 +129,7 @@ fun RepeatAddEditDialogRoot(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RepeatAddEditDialog(
     uiState: RepeatAddEditDialogState,
@@ -150,268 +150,221 @@ fun RepeatAddEditDialog(
 ) {
     var frequencyExpanded by remember { mutableStateOf(false) }
 
-    val frequencyValueWidth = 56.dp
+    val frequencyValueWidth = 72.dp
 
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(
-                        alpha = 0.6f
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                .padding(4.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Center
-        ) {
-            IntegerTextField(
-                value = "${uiState.amount ?: ""}",
-                onValueChange = { text ->
-                    /* filter only accept digits */
-                    if (text.isEmpty() || text.all { it.isDigit() }) {
-                        onAmountChange(text)
-                    }
-                },
-                label = { Text("Amount(yen)") },
-            )
-
-            CategoryDropDown(
-                selectedCategory = uiState.category,
-                categories = uiState.categories,
-                onCategorySelected = {
-                    onCategorySelected(it)
-                }
-            )
-
-            TextField(
-                value = uiState.note ?: "",
-                onValueChange = {
-                    onNoteChange(it)
-                },
-                label = { Text("Note") }
-            )
-
-            TextField(
-                value = uiState.itemName ?: "",
-                onValueChange = {
-                    onItemNameChange(it)
-                },
-                label = { Text("Item name") }
-            )
-
-            TextField(
-                value = uiState.storeName ?: "",
-                onValueChange = {
-                    onStoreNameChange(it)
-                },
-                label = { Text("Store name") }
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
-                    .clickable {
-                        frequencyExpanded = true
-                    }) {
-                TextField(
-                    value = uiState.frequency?.toDisplayName() ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    enabled = false,
-                    label = { Text("Frequency") },
-                    colors = enabledTextFiledColorSet()
-                )
-                DropdownMenu(
-                    expanded = frequencyExpanded,
-                    onDismissRequest = {
-                        frequencyExpanded = false
+    DialogCard(
+        title = "Repeat Add",
+        snackbarHostState = snackbarHostState,
+        actions = {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            } else {
+                TextButton(
+                    onClick = {
+                        onCancelClick()
                     }
                 ) {
-                    RepeatFrequency.types.forEach { freq ->
-                        RepeatFrequencyDropDownMenuItem(
-                            freq
-                        ) {
-                            onRepeatFrequencySelected(it)
-                            frequencyExpanded = false
-                        }
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = {
+                        onSaveClick()
                     }
+                ) {
+                    Text("Save")
                 }
             }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (uiState.frequency != null) {
-                    when (uiState.frequency) {
-                        is RepeatFrequency.EveryYear -> {
-                            /* month,day */
-                            Row {
-                                Column(
-                                    modifier = Modifier.padding(horizontal = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text("month")
-                                    IntegerTextField(
-                                        modifier = Modifier.width(frequencyValueWidth),
-                                        value = "${uiState.month ?: ""}",
-                                        onValueChange = {
-                                            onMonthChange(it)
-                                        }
-                                    )
-                                }
-
-                                Column(
-                                    modifier = Modifier.padding(horizontal = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text("day")
-                                    IntegerTextField(
-                                        modifier = Modifier.width(frequencyValueWidth),
-                                        value = "${uiState.day ?: ""}",
-                                        onValueChange = {
-                                            onDayChange(it)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        is RepeatFrequency.EveryMonth -> {
-                            /* day,hour,minute */
-                            Row {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text("day")
-                                    IntegerTextField(
-                                        modifier = Modifier.width(frequencyValueWidth),
-                                        value = "${uiState.day ?: ""}",
-                                        onValueChange = {
-                                            onDayChange(it)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        is RepeatFrequency.EveryWeek -> {
-                            /* List<dayOfWeek> */
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                DayOfWeek.entries.forEach {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Checkbox(
-                                            checked = uiState.dayOfWeek.contains(it),
-                                            onCheckedChange = { status ->
-                                                onDayOfWeekChange(it, status)
-                                            }
-                                        )
-                                        Text(
-                                            it.getDisplayName(
-                                                TextStyle.SHORT,
-                                                Locale.ENGLISH
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-
-                        is RepeatFrequency.Weekdays,
-                        is RepeatFrequency.Weekends,
-                        is RepeatFrequency.Everyday -> {
-                            /* do nothing */
-                        }
-                    }
+        }
+    ) {
+        IntegerTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = "${uiState.amount ?: ""}",
+            onValueChange = { text ->
+                /* filter only accept digits */
+                if (text.isEmpty() || text.all { it.isDigit() }) {
+                    onAmountChange(text)
                 }
+            },
+            label = { Text("Amount(yen)") },
+        )
 
-                if (uiState.frequency != null) {
-                    Row {
-                        /* hour and minute always here */
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Hour")
-                            IntegerTextField(
-                                modifier = Modifier.width(frequencyValueWidth),
-                                value = "${uiState.hour ?: ""}",
-                                onValueChange = {
-                                    onHourChange(it)
-                                }
-                            )
-                        }
-
-                        Text(
-                            modifier = Modifier.padding(top = 16.dp, start = 4.dp, end = 4.dp),
-                            text = ":",
-                            fontSize = 40.sp
-                        )
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("minute")
-                            IntegerTextField(
-                                modifier = Modifier.width(frequencyValueWidth),
-                                value = "${uiState.minute ?: ""}",
-                                onValueChange = {
-                                    onMinuteChange(it)
-                                }
-                            )
-                        }
-                    }
-                }
+        CategoryDropDown(
+            modifier = Modifier.fillMaxWidth(),
+            selectedCategory = uiState.category,
+            categories = uiState.categories,
+            onCategorySelected = {
+                onCategorySelected(it)
             }
+        )
 
-            Row(
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.note ?: "",
+            onValueChange = {
+                onNoteChange(it)
+            },
+            label = { Text("Note") }
+        )
+
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.itemName ?: "",
+            onValueChange = {
+                onItemNameChange(it)
+            },
+            label = { Text("Item name") },
+            singleLine = true
+        )
+
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.storeName ?: "",
+            onValueChange = {
+                onStoreNameChange(it)
+            },
+            label = { Text("Store name") },
+            singleLine = true
+        )
+
+        Text(
+            text = "Schedule",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    CancelButton(
-                        onClick = {
-                            onCancelClick()
-                        }
-                    )
+                    .clickable {
+                        frequencyExpanded = true
+                    },
+                value = uiState.frequency?.toDisplayName() ?: "",
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text("Frequency") },
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                colors = enabledTextFiledColorSet()
+            )
+            DropdownMenu(
+                expanded = frequencyExpanded,
+                onDismissRequest = {
+                    frequencyExpanded = false
                 }
-
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    Button(
-                        onClick = {
-                            onSaveClick()
-                        }
+            ) {
+                RepeatFrequency.types.forEach { freq ->
+                    RepeatFrequencyDropDownMenuItem(
+                        freq
                     ) {
-                        Text("Save")
+                        onRepeatFrequencySelected(it)
+                        frequencyExpanded = false
                     }
                 }
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        if (uiState.frequency != null) {
+            when (uiState.frequency) {
+                is RepeatFrequency.EveryYear -> {
+                    /* month,day */
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        IntegerTextField(
+                            modifier = Modifier.width(frequencyValueWidth),
+                            value = "${uiState.month ?: ""}",
+                            label = { Text("Month") },
+                            onValueChange = {
+                                onMonthChange(it)
+                            }
+                        )
+                        IntegerTextField(
+                            modifier = Modifier.width(frequencyValueWidth),
+                            value = "${uiState.day ?: ""}",
+                            label = { Text("Day") },
+                            onValueChange = {
+                                onDayChange(it)
+                            }
+                        )
+                    }
+                }
+
+                is RepeatFrequency.EveryMonth -> {
+                    /* day,hour,minute */
+                    IntegerTextField(
+                        modifier = Modifier.width(frequencyValueWidth),
+                        value = "${uiState.day ?: ""}",
+                        label = { Text("Day") },
+                        onValueChange = {
+                            onDayChange(it)
+                        }
+                    )
+                }
+
+                is RepeatFrequency.EveryWeek -> {
+                    /* List<dayOfWeek> */
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        DayOfWeek.entries.forEach {
+                            val isSelected = uiState.dayOfWeek.contains(it)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    onDayOfWeekChange(it, !isSelected)
+                                },
+                                label = {
+                                    Text(
+                                        it.getDisplayName(
+                                            TextStyle.SHORT,
+                                            Locale.ENGLISH
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+
+
+                is RepeatFrequency.Weekdays,
+                is RepeatFrequency.Weekends,
+                is RepeatFrequency.Everyday -> {
+                    /* do nothing */
+                }
+            }
+
+            /* hour and minute always here */
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IntegerTextField(
+                    modifier = Modifier.width(frequencyValueWidth),
+                    value = "${uiState.hour ?: ""}",
+                    label = { Text("Hour") },
+                    onValueChange = {
+                        onHourChange(it)
+                    }
+                )
+
+                Text(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    text = ":",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+                IntegerTextField(
+                    modifier = Modifier.width(frequencyValueWidth),
+                    value = "${uiState.minute ?: ""}",
+                    label = { Text("Min") },
+                    onValueChange = {
+                        onMinuteChange(it)
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -451,6 +404,23 @@ fun RepeatFrequency.toDisplayName(): String =
         is RepeatFrequency.Weekends -> "Weekends"
         is RepeatFrequency.Everyday -> "Everyday"
     }
+
+
+/* e.g. "Every month · day 25 · 09:00" */
+fun RepeatFrequency.toDetailText(): String {
+    fun time(hour: Int, minute: Int) = "%02d:%02d".format(hour, minute)
+    return when (this) {
+        is RepeatFrequency.EveryYear -> "${toDisplayName()} · $month/$day · ${time(hour, minute)}"
+        is RepeatFrequency.EveryMonth -> "${toDisplayName()} · day $day · ${time(hour, minute)}"
+        is RepeatFrequency.EveryWeek -> "${toDisplayName()} · ${
+            dayOfWeek.joinToString(", ") { it.getDisplayName(TextStyle.SHORT, Locale.ENGLISH) }
+        } · ${time(hour, minute)}"
+
+        is RepeatFrequency.Weekdays -> "${toDisplayName()} · ${time(hour, minute)}"
+        is RepeatFrequency.Weekends -> "${toDisplayName()} · ${time(hour, minute)}"
+        is RepeatFrequency.Everyday -> "${toDisplayName()} · ${time(hour, minute)}"
+    }
+}
 
 @Composable
 fun RepeatFrequencyDropDownMenuItem(freq: RepeatFrequency, onClick: (RepeatFrequency) -> Unit) {

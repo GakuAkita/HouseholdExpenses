@@ -1,25 +1,20 @@
 package gaku.original.myapplication.ui.common
 
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+/* Cancel is not destructive, so it is outlined instead of red. */
 @Composable
 fun CancelButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     enabled: Boolean = true
 ) {
-    Button(
+    OutlinedButton(
         modifier = modifier,
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors().copy(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError
-        ),
         enabled = enabled
     ) {
         Text("Cancel")

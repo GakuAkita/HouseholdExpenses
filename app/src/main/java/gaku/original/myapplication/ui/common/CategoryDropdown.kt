@@ -4,8 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -49,6 +53,14 @@ fun CategoryDropDown(
             onValueChange = {},
             readOnly = true,
             enabled = false,
+            label = { Text("Category") },
+            singleLine = true,
+            trailingIcon = {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            },
             colors = enabledTextFiledColorSet().copy(
                 disabledTextColor = if (selectedCategory == null) MaterialTheme.colorScheme.onSurface.copy(
                     alpha = 0.8f

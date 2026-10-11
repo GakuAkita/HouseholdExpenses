@@ -1,27 +1,29 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction
 
 import android.content.Intent
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +47,7 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.Interface.HasCategoryId
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonItem
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonKindle
@@ -157,121 +160,151 @@ fun MailboxExtractionScreen(
             SnackbarHost(snackbarHostState)
         }
     ) { innerPadding ->
+        if (uiState.isLoading || uiState.isWaitingForAuth) {
+            LoadingBox(modifier = Modifier.padding(innerPadding))
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (uiState.isLoading || uiState.isWaitingForAuth) {
-                CircularProgressIndicator()
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(
-                        onClick = {
-                            onGmailConnectClick()
-                        }
-                    ) {
-                        if (uiState.isGmailConnected) {
-                            Text("Connect Gmail. (Already done)")
-                        } else {
-                            Text("Connect Gmail")
-                        }
-                    }
-                }
+            GmailConnectionCard(
+                isConnected = uiState.isGmailConnected,
+                onConnectClick = onGmailConnectClick
+            )
 
-                if (uiState.isGmailConnected) {
-                    uiState.emailTemplateTypeList.forEach { typeUiState ->
+            if (uiState.isGmailConnected) {
+                Text(
+                    text = "Mail templates",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                uiState.emailTemplateTypeList.forEach { typeUiState ->
+                    OutlinedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp)
-                                .border(
-                                    1.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight(),
-                                ) {
-                                    Text(typeUiState.type.displayName)
-                                }
-
-                                Row(
-                                    modifier = Modifier.weight(1f),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Enable:"
+                                Text(
+                                    text = typeUiState.type.displayName,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (typeUiState.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(end = 12.dp)
+                                            .size(20.dp),
+                                        strokeWidth = 2.dp
                                     )
-                                    Switch(
-                                        checked = typeUiState.type.enabled,
-                                        onCheckedChange = {
-                                            onSwitchClick(typeUiState)
-                                        },
-                                        enabled = !typeUiState.isLoading
-                                    )
-                                    if (typeUiState.isLoading) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
                                 }
+                                Switch(
+                                    checked = typeUiState.type.enabled,
+                                    onCheckedChange = {
+                                        onSwitchClick(typeUiState)
+                                    },
+                                    enabled = !typeUiState.isLoading
+                                )
                             }
 
                             if (typeUiState.type is HasCategoryId<*>) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    CategoryDropDown(
-                                        selectedCategoryId = typeUiState.type.categoryId,
-                                        nullOption = true,
-                                        categories = uiState.categories,
-                                        onCategoryIdSelected = { categoryId ->
-                                            onCategorySelect(
-                                                typeUiState,
-                                                categoryId
-                                            )
-                                        },
-                                        enabled = !typeUiState.isLoading,
-                                        modifier = Modifier
-                                            .width(280.dp)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-                            } else {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    TextButton(
-                                        onClick = {
-                                            onCategoryAssignmentClick()
-                                        }
-                                    ) {
-                                        Text("Category Assignment")
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Default.OpenInNew,
-                                            contentDescription = "Go to Category Assignment"
+                                CategoryDropDown(
+                                    selectedCategoryId = typeUiState.type.categoryId,
+                                    nullOption = true,
+                                    categories = uiState.categories,
+                                    onCategoryIdSelected = { categoryId ->
+                                        onCategorySelect(
+                                            typeUiState,
+                                            categoryId
                                         )
+                                    },
+                                    enabled = !typeUiState.isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp, bottom = 8.dp)
+                                )
+                            } else {
+                                TextButton(
+                                    modifier = Modifier.align(Alignment.End),
+                                    onClick = {
+                                        onCategoryAssignmentClick()
                                     }
+                                ) {
+                                    Text("Category Assignment")
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                                        contentDescription = "Go to Category Assignment",
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .size(18.dp)
+                                    )
                                 }
                             }
                         }
-
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GmailConnectionCard(
+    isConnected: Boolean,
+    onConnectClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = if (isConnected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (isConnected) Icons.Outlined.CheckCircle else Icons.Outlined.Email,
+                contentDescription = null,
+                tint = if (isConnected) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(32.dp)
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "Gmail",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = if (isConnected) "Connected" else "Not connected",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (isConnected) {
+                OutlinedButton(onClick = onConnectClick) {
+                    Text("Reconnect")
+                }
+            } else {
+                Button(onClick = onConnectClick) {
+                    Text("Connect")
                 }
             }
         }

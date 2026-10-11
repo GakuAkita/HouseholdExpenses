@@ -1,21 +1,31 @@
 package gaku.original.myapplication.ui.screens.global.expenseAddEdit
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.outlined.Notes
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -27,9 +37,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +78,7 @@ import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
+import gaku.original.myapplication.ui.common.toYen
 import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.evalExpression
 import java.time.LocalDate
@@ -227,14 +241,12 @@ fun ExpenseAddEditScreen(
     onAddClick: () -> Unit
 ) {
 
-    val basicModifier = remember { Modifier.width(260.dp) }
-
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
         topBar = {
             TopBarView(
-                title = if (uiState.isEdit) "Edit" else "Add",
+                title = if (uiState.isEdit) "Edit Expense" else "Add Expense",
                 showBackButton = true,
                 onBackNavClicked = { onBackNavClick() })
         },
@@ -244,18 +256,17 @@ fun ExpenseAddEditScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             /*************************************************/
             /* Date and Time */
             /*************************************************/
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = 4.dp),
-                horizontalArrangement = Arrangement.Start
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextField(
                     value = "${uiState.selectedDate?.format(DateFormatter)}",
@@ -263,23 +274,15 @@ fun ExpenseAddEditScreen(
                     readOnly = true,
                     enabled = false,
                     label = { Text(text = "Date") },
+                    leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
                     colors = enabledTextFiledColorSet(),
+                    singleLine = true,
                     modifier = Modifier
-                        .width(150.dp)
+                        .weight(1.2f)
                         .clickable {
                             onDateFieldClick()
                         },
                 )
-
-                if (uiState.isDatePickerVisible) {
-                    DatePickerModal(
-                        onDateSelected = {
-                            onDateSelected(it)
-                        },
-                        onDismiss = onDateDismiss
-                    )
-                }
-                Spacer(modifier = Modifier.padding(8.dp))
 
                 TextField(
                     value = "${uiState.selectedTime?.format(TimeFormatter)}",
@@ -287,24 +290,66 @@ fun ExpenseAddEditScreen(
                     readOnly = true,
                     enabled = false,
                     label = { Text(text = "Time") },
+                    leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
                     colors = enabledTextFiledColorSet(),
+                    singleLine = true,
                     modifier = Modifier
-                        .width(150.dp)
+                        .weight(1f)
                         .clickable {
                             onTimeFieldClick()
                         },
                 )
+            }
 
-                if (uiState.isTimePickerVisible) {
-                    DialWithDialog(
-                        onConfirm = {
-                            onTimeSelected(LocalTime.of(it.hour, it.minute))
-                        },
-                        onDismiss = {
-                            onTimePickerDismiss()
-                        },
-                        initialTime = uiState.selectedTime
-                            ?: LocalTime.now()/* selectedTime is basically not null */
+            if (uiState.isDatePickerVisible) {
+                DatePickerModal(
+                    onDateSelected = {
+                        onDateSelected(it)
+                    },
+                    onDismiss = onDateDismiss
+                )
+            }
+
+            if (uiState.isTimePickerVisible) {
+                DialWithDialog(
+                    onConfirm = {
+                        onTimeSelected(LocalTime.of(it.hour, it.minute))
+                    },
+                    onDismiss = {
+                        onTimePickerDismiss()
+                    },
+                    initialTime = uiState.selectedTime
+                        ?: LocalTime.now()/* selectedTime is basically not null */
+                )
+            }
+
+            /*************************************************/
+            /* Split input switch */
+            /*************************************************/
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSwitchClick() }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("分割入力", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Split one payment into several categories",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = uiState.isSplitInputEnabled,
+                        onCheckedChange = {
+                            onSwitchClick()
+                        }
                     )
                 }
             }
@@ -312,16 +357,17 @@ fun ExpenseAddEditScreen(
             if (uiState.isSplitInputEnabled) {
                 /* show total amount */
                 TextField(
-                    modifier = basicModifier
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .clickable {
                             onTotalAmountClick()
-                        }
-                        .padding(horizontal = 2.dp, vertical = 4.dp),
-                    value = uiState.totalAmount.toString(),
+                        },
+                    value = uiState.totalAmount.toYen(),
                     onValueChange = {},
                     readOnly = true,
                     enabled = false,
                     label = { Text("Total amount") },
+                    textStyle = MaterialTheme.typography.headlineSmall,
                     colors = enabledTextFiledColorSet(),
                 )
             }
@@ -335,13 +381,12 @@ fun ExpenseAddEditScreen(
 
                 ExpenseEditItemInput(
                     item = item,
+                    index = index,
                     categories = uiState.categories,
                     isHead = isHead,
                     isCalculated = isCalculated,
                     isSplitInputEnabled = uiState.isSplitInputEnabled,
-                    fieldModifier = basicModifier,
                     onAmountClick = { onAmountClick(index) },
-                    onSwitchClick = onSwitchClick,
                     onCategorySelected = { onCategorySelected(index, it) },
                     onCategoryEditClick = onCategoryEditClick,
                     onCategoryRefreshClick = onCategoryRefreshClick,
@@ -350,21 +395,20 @@ fun ExpenseAddEditScreen(
                 )
 
                 if (isCalculated) {
-                    Row(
-                        modifier = basicModifier,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        IconButton(
-                            onClick = {
-                                /* add to array */
-                                onAddClick()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "plus"
-                            )
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            /* add to array */
+                            onAddClick()
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "plus",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add item")
                     }
                 }
             }
@@ -388,50 +432,61 @@ fun ExpenseAddEditScreen(
             /* Place Name */
             /*****************************************************/
             TextField(
-                modifier = basicModifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth(),
                 value = uiState.placeName,
                 onValueChange = {
                     onPlaceChange(it)
                 },
                 label = { Text(text = "Place(空欄可)") },
+                leadingIcon = { Icon(Icons.Outlined.Place, contentDescription = null) },
+                singleLine = true
             )
 
             if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(16.dp)
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             } else {
-                Column {
+                Column(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Button(
                         modifier = Modifier
-                            .widthIn(max = 300.dp)
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .height(52.dp),
                         onClick = {
                             onSaveClick()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                        }
                     ) {
-                        Text("Save")
+                        Text("Save", style = MaterialTheme.typography.titleMedium)
                     }
 
                     if (uiState.isEdit) {
-                        Button(
+                        OutlinedButton(
                             modifier = Modifier
-                                .widthIn(max = 140.dp)
-                                .padding(8.dp),
+                                .fillMaxWidth()
+                                .height(52.dp),
                             onClick = {
                                 /* use popup */
                                 onDeleteClick()
                             },
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            )
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                         ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Delete")
                         }
                     }
@@ -441,129 +496,136 @@ fun ExpenseAddEditScreen(
     }
 }
 
-/* One expense in the list. Head item also holds the split switch and category edit buttons. */
+/* One expense in the list. Head item also holds the category edit buttons. */
 @Composable
 private fun ExpenseEditItemInput(
     item: ExpenseEditItem,
+    index: Int,
     categories: List<Category>,
     isHead: Boolean,
     isCalculated: Boolean,
     isSplitInputEnabled: Boolean,
-    fieldModifier: Modifier,
     onAmountClick: () -> Unit,
-    onSwitchClick: () -> Unit,
     onCategorySelected: (Category) -> Unit,
     onCategoryEditClick: () -> Unit,
     onCategoryRefreshClick: () -> Unit,
     onNoteChange: (String) -> Unit,
     onProductNameChange: (String) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .padding(vertical = 4.dp)
-            .then(
-                if (isSplitInputEnabled) {
-                    Modifier.border(
-                        1.dp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                } else {
-                    Modifier
-                }
-            )
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+    val content: @Composable () -> Unit = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (isSplitInputEnabled) Modifier.padding(12.dp) else Modifier),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (isSplitInputEnabled) {
+                Text(
+                    text = if (isCalculated) "Item ${index + 1} (remaining)" else "Item ${index + 1}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             /*************************************************/
             /* Amount */
             /*************************************************/
             TextField(
-                value = "${item.amount ?: ""}",
-                modifier = fieldModifier.then(
-                    if (isCalculated) {
-                        Modifier
-                    } else {
-                        Modifier.clickable {
-                            /* open calculator. */
-                            onAmountClick()
+                value = item.amount?.toYen() ?: "",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isCalculated) {
+                            Modifier
+                        } else {
+                            Modifier.clickable {
+                                /* open calculator. */
+                                onAmountClick()
+                            }
                         }
-                    }.padding(4.dp)
-                ),
+                    ),
                 onValueChange = {},
                 readOnly = true,
                 enabled = false,
                 label = { Text(text = "Amount") },
+                placeholder = { Text("¥0") },
+                leadingIcon = { Icon(Icons.Outlined.Calculate, contentDescription = null) },
+                textStyle = MaterialTheme.typography.headlineSmall,
                 colors = if (isCalculated) TextFieldDefaults.colors() else enabledTextFiledColorSet()
             )
 
-            if (isHead) {
-                Switch(
-                    checked = isSplitInputEnabled,
-                    onCheckedChange = {
-                        onSwitchClick()
-                    },
-                    modifier = Modifier.padding(vertical = 0.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CategoryDropDown(
+                    modifier = Modifier.weight(1f),
+                    selectedCategory = item.category,
+                    categories = categories,
+                    onCategorySelected = onCategorySelected
                 )
-                Text("分割入力")
-            }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            CategoryDropDown(
-                modifier = fieldModifier.padding(4.dp),
-                selectedCategory = item.category,
-                categories = categories,
-                onCategorySelected = onCategorySelected
+                if (isHead) {
+                    // Category Edit Button
+                    IconButton(
+                        onClick = {
+                            onCategoryEditClick()
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
+                            contentDescription = "Edit Category",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            onCategoryRefreshClick()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Update",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            /* Note */
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = item.note ?: "",
+                onValueChange = onNoteChange,
+                label = { Text(text = "Note(空欄可)") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Notes, contentDescription = null) },
+                singleLine = false
             )
 
-            if (isHead) {
-                // Category Edit Button
-                IconButton(
-                    onClick = {
-                        onCategoryEditClick()
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_edit_24), // カスタムアイコン
-                        contentDescription = "Edit Category"
-                    )
-                }
-
-                IconButton(
-                    onClick = {
-                        onCategoryRefreshClick()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Update"
-                    )
-                }
-            }
+            /*****************************************************/
+            /* Product Name */
+            /*****************************************************/
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = item.productName ?: "",
+                onValueChange = onProductNameChange,
+                label = { Text(text = "商品名(空欄可)") },
+                leadingIcon = { Icon(Icons.Outlined.ShoppingBag, contentDescription = null) },
+                singleLine = true
+            )
         }
+    }
 
-        /* Note */
-        TextField(
-            modifier = fieldModifier.padding(4.dp),
-            value = item.note ?: "",
-            onValueChange = onNoteChange,
-            label = { Text(text = "Note(空欄可)") },
-            singleLine = false
-        )
-
-        /*****************************************************/
-        /* Product Name */
-        /*****************************************************/
-        TextField(
-            modifier = fieldModifier.padding(4.dp),
-            value = item.productName ?: "",
-            onValueChange = onProductNameChange,
-            label = { Text(text = "商品名(空欄可)") },
-        )
+    if (isSplitInputEnabled) {
+        OutlinedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large
+        ) {
+            content()
+        }
+    } else {
+        content()
     }
 }
 
@@ -729,19 +791,37 @@ fun CalculatorUI(
     val hasOperator = input.contains(Regex("[+\\-×÷]"))
 
     val padDp = 4.dp
+    val digitColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val onDigitColor = MaterialTheme.colorScheme.onSurface
+    val operatorColor = MaterialTheme.colorScheme.secondaryContainer
+    val onOperatorColor = MaterialTheme.colorScheme.onSecondaryContainer
+    val clearColor = MaterialTheme.colorScheme.tertiaryContainer
+    val onClearColor = MaterialTheme.colorScheme.onTertiaryContainer
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 24.dp)
     ) {
-        Text(
-            text = input,
-            fontSize = 32.sp,
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
-            textAlign = TextAlign.End
-        )
+                .padding(padDp),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Text(
+                text = input.ifEmpty { "0" },
+                style = MaterialTheme.typography.displaySmall,
+                color = if (input.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                textAlign = TextAlign.End
+            )
+        }
         /* なんだかんだベタ打ちがやりやすい、、 */
         Row(modifier = Modifier.fillMaxWidth()) {
             CalculatorButton(
@@ -751,8 +831,8 @@ fun CalculatorUI(
                 modifier = Modifier
                     .weight(1f)
                     .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = clearColor,
+                contentColor = onClearColor
             )
             CalculatorButton(
                 label = "DEL",
@@ -761,8 +841,8 @@ fun CalculatorUI(
                 modifier = Modifier
                     .weight(1f)
                     .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = clearColor,
+                contentColor = onClearColor
             )
 
             CalculatorButton(
@@ -776,109 +856,46 @@ fun CalculatorUI(
                     onDecide(it/* =input */)
                 },
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(2f)
                     .padding(padDp),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            listOf("7", "8", "9").forEach { label ->
+        listOf(
+            listOf("7", "8", "9") to "÷",
+            listOf("4", "5", "6") to "×",
+            listOf("1", "2", "3") to "-",
+            listOf("", "0", ".") to "+",
+        ).forEach { (digits, operator) ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                digits.forEach { label ->
+                    if (label.isEmpty()) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    } else {
+                        CalculatorButton(
+                            label = label,
+                            initialInput = input,
+                            onInputChanged = { input = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(padDp),
+                            containerColor = digitColor,
+                            contentColor = onDigitColor
+                        )
+                    }
+                }
                 CalculatorButton(
-                    label = label,
+                    label = operator,
                     initialInput = input,
                     onInputChanged = { input = it },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(padDp)
+                        .padding(padDp),
+                    containerColor = operatorColor,
+                    contentColor = onOperatorColor
                 )
             }
-            CalculatorButton(
-                label = "÷",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("4", "5", "6").forEach { label ->
-                CalculatorButton(
-                    label = label,
-                    initialInput = input,
-                    onInputChanged = { input = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(padDp)
-                )
-            }
-            CalculatorButton(
-                label = "×",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("1", "2", "3").forEach { label ->
-                CalculatorButton(
-                    label = label,
-                    initialInput = input,
-                    onInputChanged = { input = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(padDp)
-                )
-            }
-            CalculatorButton(
-                label = "-",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Spacer(modifier = Modifier.weight(1f))
-            CalculatorButton(
-                label = "0",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp)
-            )
-            CalculatorButton(
-                label = ".",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp)
-            )
-            CalculatorButton(
-                label = "+",
-                initialInput = input,
-                onInputChanged = { input = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(padDp),
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            )
         }
     }
 }
@@ -949,12 +966,14 @@ fun CalculatorButton(
                 }
             }
         },
-        modifier = modifier,
+        modifier = modifier.height(60.dp),
+        shape = MaterialTheme.shapes.large,
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
         ),
+        contentPadding = PaddingValues(0.dp)
     ) {
-        Text(label, fontSize = 20.sp)
+        Text(label, fontSize = 22.sp)
     }
 }

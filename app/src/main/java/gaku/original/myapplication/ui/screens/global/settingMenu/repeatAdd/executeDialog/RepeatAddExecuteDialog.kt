@@ -1,34 +1,34 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.executeDialog
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
+import gaku.original.myapplication.ui.common.DialogCard
+import gaku.original.myapplication.ui.common.toYen
 import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.toDisplayName
 import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun RepeatAddExecuteDialogRoot(
@@ -74,127 +74,107 @@ fun RepeatAddExecuteDialog(
     onYesClick: () -> Unit,
     onNoClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-        ) {
-            Text(
-                "Do you want to add expenses for the rest of this month?",
-                fontSize = 20.sp,
-                modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp)
-                ) {
-                    Text("Amount: ${uiState.amount}")
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp)
-                ) {
-                    Text("Category: ${uiState.categoryName}")
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp)
-                ) {
-                    Text("Frequency: ${uiState.frequency.toDisplayName()}")
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                ) {
-                    when (uiState.frequency) {
-                        is RepeatFrequency.EveryYear -> {
-                            Text("month: ${uiState.frequency.month}")
-                            Text("day: ${uiState.frequency.day}")
-                        }
-
-                        is RepeatFrequency.EveryMonth -> {
-                            Text("day: ${uiState.frequency.day}")
-                        }
-
-                        is RepeatFrequency.EveryWeek -> {
-                            Text("dayOfWeek: ${uiState.frequency.dayOfWeek}")
-                        }
-
-                        else -> {
-                            /* do nothing */
-                        }
+    DialogCard(
+        title = "Add for this month?",
+        snackbarHostState = snackbarHostState,
+        actions = {
+            if (!uiState.isWorking) {
+                TextButton(
+                    onClick = {
+                        onNoClick()
                     }
+                ) {
+                    Text("No")
+                }
+
+                Button(
+                    onClick = {
+                        onYesClick()
+                    }
+                ) {
+                    Text("Yes")
                 }
             }
+        }
+    ) {
+        Text(
+            "Do you want to add expenses for the rest of this month?",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-            if (uiState.isWorking) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                ) {
-                    Text("Progress: ${"%.2f%%".format(uiState.inProgressPercent)}")
-                    LinearProgressIndicator(
-                        progress = { uiState.inProgressPercent.toFloat() / 100 },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        modifier = Modifier
-                            .width(120.dp),
-                        onClick = {
-                            onNoClick()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        )
-                    ) {
-                        Text("No")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                DetailRow(label = "Amount", value = uiState.amount.toYen())
+                DetailRow(label = "Category", value = uiState.categoryName)
+                DetailRow(label = "Frequency", value = uiState.frequency.toDisplayName())
+                when (uiState.frequency) {
+                    is RepeatFrequency.EveryYear -> {
+                        DetailRow(label = "Month", value = "${uiState.frequency.month}")
+                        DetailRow(label = "Day", value = "${uiState.frequency.day}")
                     }
 
-                    Button(
-                        modifier = Modifier
-                            .width(120.dp),
-                        onClick = {
-                            onYesClick()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                    ) {
-                        Text("Yes")
+                    is RepeatFrequency.EveryMonth -> {
+                        DetailRow(label = "Day", value = "${uiState.frequency.day}")
+                    }
+
+                    is RepeatFrequency.EveryWeek -> {
+                        DetailRow(
+                            label = "Day of week",
+                            value = uiState.frequency.dayOfWeek.joinToString(", ") {
+                                it.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                            }
+                        )
+                    }
+
+                    else -> {
+                        /* do nothing */
                     }
                 }
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
+        if (uiState.isWorking) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "Progress: ${"%.2f%%".format(uiState.inProgressPercent)}",
+                    style = MaterialTheme.typography.labelLarge
+                )
+                LinearProgressIndicator(
+                    progress = { uiState.inProgressPercent.toFloat() / 100 },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.End,
+            modifier = Modifier.padding(start = 16.dp)
         )
     }
 }

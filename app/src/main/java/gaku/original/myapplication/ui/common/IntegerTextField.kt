@@ -28,6 +28,7 @@ fun IntegerTextField(
         },
         label = label,
         isError = isError,
+        singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number
         )

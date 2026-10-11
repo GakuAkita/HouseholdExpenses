@@ -6,32 +6,44 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import gaku.original.myapplication.LocalSnackBarHostState
@@ -110,7 +122,7 @@ fun SignInScreen(
     Scaffold(
         topBar = {
             TopBarView(
-                title = if (isSignIn) "SignIn" else "SignUp",
+                title = if (isSignIn) "Sign In" else "Sign Up",
                 showBackButton = onBackNavClick != null,
                 onBackNavClicked = {
                     onBackNavClick?.invoke()
@@ -122,18 +134,25 @@ fun SignInScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-
-            if (isGoogleOnly) {
-                /**
-                 * Googleログインだけに絞る場合
-                 */
-                Text(text = "Googleログインのみにする", fontSize = 20.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+            Text(
+                text = if (isSignIn) "Welcome back" else "Create your account",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (isGoogleOnly) "Sign in with your Google account to continue."
+                else "Use your Google account or email address.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
             if (uiState.isLoading) {
                 CircularProgressIndicator()
@@ -141,14 +160,15 @@ fun SignInScreen(
                 if (uiState.isGoogleEnabled) {
                     Box(
                         modifier = Modifier
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .clickable {
                                 onGoogleClick()
                             }
-                            .padding(vertical = 20.dp),
+                            .padding(4.dp),
                     ) {
                         /* 広げないとめっちゃ小さくなる */
                         Image(
-                            modifier = Modifier.widthIn(max = 200.dp),
+                            modifier = Modifier.widthIn(max = 220.dp),
                             painter = painterResource(id = R.drawable.android_light_sq_si_4x),
                             contentDescription = "Google Sign In",
                         )
@@ -157,58 +177,80 @@ fun SignInScreen(
             }
 
             if (!isGoogleOnly) {
-                TextField(
+                Row(
+                    modifier = Modifier
+                        .widthIn(max = 400.dp)
+                        .padding(vertical = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "or",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                }
+
+                OutlinedTextField(
+                    modifier = Modifier
+                        .widthIn(max = 400.dp)
+                        .fillMaxWidth(),
                     value = uiState.email,
                     onValueChange = {
                         onEmailChange(it)
                     },
-                    label = { Text("mail") },
+                    label = { Text("Email") },
+                    leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
                     enabled = true
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-                TextField(
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    modifier = Modifier
+                        .widthIn(max = 400.dp)
+                        .fillMaxWidth(),
                     value = uiState.password,
                     onValueChange = {
                         onPasswordChange(it)
                     },
-                    label = { Text("password") },
+                    label = { Text("Password") },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     enabled = true
                 )
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 if (uiState.isLoading) {
                     CircularProgressIndicator()
                 } else {
                     Button(
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSignIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-                        ),
+                        modifier = Modifier
+                            .widthIn(max = 400.dp)
+                            .fillMaxWidth()
+                            .height(48.dp),
                         onClick = {
                             onSignInClick()
                         }
                     ) {
-                        Text(if (isSignIn) "SignIn" else "SignUp")
+                        Text(if (isSignIn) "Sign In" else "Sign Up")
                     }
                 }
             }
 
-            // 🎯 Forgot password を下部に独立配置（中央の配置に影響しない！）
-
             if (!uiState.isLoading && isSignIn && !isGoogleOnly) {
-                Text(
-                    text = "Forgot password?",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.primary,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier
-                        .padding(top = 30.dp)
-                        .clickable {
-                            onForgotPasswordClick()
-                        }
-                )
+                TextButton(
+                    modifier = Modifier.padding(top = 16.dp),
+                    onClick = {
+                        onForgotPasswordClick()
+                    }
+                ) {
+                    Text("Forgot password?")
+                }
             }
         }
     }

@@ -15,4 +15,7 @@ fun enabledTextFiledColorSet() = TextFieldDefaults.colors(
     disabledTextColor = MaterialTheme.colorScheme.onSurface, // テキスト色を維持
     disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
 )
