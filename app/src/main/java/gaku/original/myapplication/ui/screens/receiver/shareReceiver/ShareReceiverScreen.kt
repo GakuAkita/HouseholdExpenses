@@ -5,12 +5,21 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -30,7 +39,9 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.SharedReceiverGraph
 import gaku.original.myapplication.data.Constants.ShareIntentKeys
+import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.TopBarView
+import gaku.original.myapplication.ui.screens.receiver.paypayReceiptMask.SentDataExpenseDisplay
 import timber.log.Timber
 
 @Composable
@@ -107,90 +118,64 @@ fun ShareReceiverScreen(
     }, snackbarHost = {
         SnackbarHost(snackbarHostState)
     }) { innerPadding ->
+        if (uiState.isLoading) {
+            LoadingBox(modifier = Modifier.padding(innerPadding))
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (uiState.isLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                if (uiState.sentData != null) {
-                    when (val sentData = uiState.sentData) {
-                        is SentData.Expense -> {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (sentData.datetime == null) {
-                                        Text("Unable to get datetime")
-                                    } else {
-                                        Text("DateTime:${sentData.datetime}")
-                                    }
-                                }
+            when (val sentData = uiState.sentData) {
+                is SentData.Expense -> {
+                    SentDataExpenseDisplay(data = sentData)
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (sentData.amount == null) {
-                                        Text("Unable to get amount.")
-                                    } else {
-                                        Text("amount = ${sentData.amount}")
-                                    }
-                                }
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (sentData.storeName == null) {
-                                        Text("Unable to get store name.")
-                                    } else {
-                                        Text("storeName = ${sentData.storeName}")
-                                    }
-                                }
-
-                                Button(
-                                    onClick = {
-                                        onAddExpenseClick(sentData)
-                                    }
-                                ) {
-                                    Text("Add to Expense")
-                                }
-                            }
-                        }
-
-                        null -> {
-
-                        }
-                    }
-                } else {
-                    Column(
+                    Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Button(
-                            onClick = {
-                                onAnalyzeClick()
-                            }
-                        ) {
-                            Text("Analyze the image")
+                            .height(48.dp),
+                        onClick = {
+                            onAddExpenseClick(sentData)
                         }
+                    ) {
+                        Text("Add to Expense")
                     }
                 }
-                uiState.bitmap?.let { bitmap ->
+
+                null -> {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        onClick = {
+                            onAnalyzeClick()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DocumentScanner,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Analyze the image")
+                    }
+                }
+            }
+
+            uiState.bitmap?.let { bitmap ->
+                OutlinedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
+                ) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "masked image"
+                        contentDescription = "masked image",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }

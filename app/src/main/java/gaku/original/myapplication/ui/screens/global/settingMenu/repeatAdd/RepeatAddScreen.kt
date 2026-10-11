@@ -1,38 +1,45 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -42,9 +49,12 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.ExpenseTemplate
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.data.dataClass.RepeatFrequency
+import gaku.original.myapplication.ui.common.EmptyState
+import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.SwipeToRevealItem
 import gaku.original.myapplication.ui.common.TopBarView
-import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.toDisplayName
+import gaku.original.myapplication.ui.common.toYen
+import gaku.original.myapplication.ui.screens.global.settingMenu.repeatAdd.editDialog.toDetailText
 import timber.log.Timber
 import java.time.LocalDateTime
 
@@ -102,63 +112,100 @@ fun RepeatAddScreen(
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState)
+        },
+        floatingActionButton = {
+            if (!uiState.isLoading) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        onRepeatAddAddClick()
+                    },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text("Add RepeatAdd") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(20.dp)
-        ) {
-            Row(
+        if (uiState.isLoading) {
+            LoadingBox(modifier = Modifier.padding(innerPadding))
+        } else {
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("毎月1日に自動で追加されます")
-            }
+                item {
+                    RepeatAddInfoCard()
+                }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
-            ) {
-                Text("These expenses are automatically added on the first day of each month.")
-            }
-            Text("Swipe to delete.")
-
-            if (uiState.isLoading) {
-                CircularProgressIndicator()
-            } else {
-                LazyColumn {
-                    itemsIndexed(
-                        uiState.repeatAdds,
-                        /* if key is not assigned, not properly recomposed. */
-                        /* when deleted, the strange thing happens. */
-                        key = { _, repeatAdd -> repeatAdd.id ?: "${LocalDateTime.now()}" }
-                    ) { index, repeatAdd ->
-                        RepeatAddItem(
-                            repeatAdd = repeatAdd,
-                            onEdit = {
-                                onRepeatAddEdit(repeatAdd)
-                            },
-                            onDelete = {
-                                onRepeatAddDelete(repeatAdd)
-                            }
+                if (uiState.repeatAdds.isEmpty()) {
+                    item {
+                        EmptyState(
+                            icon = Icons.Outlined.Repeat,
+                            title = "No repeat adds yet",
+                            message = "Add rent, subscriptions and other regular expenses here."
                         )
                     }
                 }
 
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 32.dp, vertical = 20.dp),
-                    onClick = {
-                        onRepeatAddAddClick()
-                    }
-                ) {
-                    Text("Add RepeatAdd")
+                itemsIndexed(
+                    uiState.repeatAdds,
+                    /* if key is not assigned, not properly recomposed. */
+                    /* when deleted, the strange thing happens. */
+                    key = { _, repeatAdd -> repeatAdd.id ?: "${LocalDateTime.now()}" }
+                ) { index, repeatAdd ->
+                    RepeatAddItem(
+                        repeatAdd = repeatAdd,
+                        onEdit = {
+                            onRepeatAddEdit(repeatAdd)
+                        },
+                        onDelete = {
+                            onRepeatAddDelete(repeatAdd)
+                        }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RepeatAddInfoCard() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "毎月1日に自動で追加されます",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    "These expenses are automatically added on the first day of each month.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    "Tap to edit. Swipe left to delete.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                )
             }
         }
     }
@@ -193,8 +240,6 @@ fun RepeatAddScreenPreview() {
 
 @Composable
 fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () -> Unit = {}) {
-    val fontSize = 20.sp
-
     /* スクリーンの横幅を取得する */
     val configuration = LocalConfiguration.current
     val screenWidthPx = configuration.screenWidthDp.dp
@@ -202,6 +247,7 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () ->
     val horizontalMaxOffset = with(density) { screenWidthPx.toPx() * 0.2f }
 
     SwipeToRevealItem(
+        modifier = Modifier.clip(MaterialTheme.shapes.medium),
         horizontalMaxOffset = -horizontalMaxOffset,
         backgroundColor = MaterialTheme.colorScheme.error,
         hiddenContent = {
@@ -224,30 +270,48 @@ fun RepeatAddItem(repeatAdd: RepeatAdd, onEdit: () -> Unit = {}, onDelete: () ->
     ) {
         Row(
             modifier = Modifier
-                .border(width = 1.dp, color = MaterialTheme.colorScheme.onSecondary)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .clickable {
                     onEdit()
                 }
-                .padding(vertical = 5.dp, horizontal = 5.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Repeat,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = repeatAdd.expense.category.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = repeatAdd.frequencyInfo.toDetailText(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             Text(
-                text = repeatAdd.frequencyInfo.toDisplayName(),
-                modifier = Modifier.weight(1f),
-                fontSize = fontSize,
-                textAlign = TextAlign.Left//左寄せ
-            )
-            Text(
-                text = "${repeatAdd.expense.amount}",
-                modifier = Modifier.weight(1f),
-                fontSize = fontSize,
-                textAlign = TextAlign.Left,//左寄せ
-            )
-            Text(
-                text = "${repeatAdd.expense.category.name}",
-                modifier = Modifier.weight(1f),
-                fontSize = 20.sp,
-                textAlign = TextAlign.Left
+                text = repeatAdd.expense.amount.toYen(),
+                style = MaterialTheme.typography.titleMedium
             )
         }
     }

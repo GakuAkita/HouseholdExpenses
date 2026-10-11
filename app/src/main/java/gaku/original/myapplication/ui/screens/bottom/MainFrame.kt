@@ -54,7 +54,7 @@ private val bottomTabs = listOf(
     BottomTab(MainGraph.Bottom.Home, Icons.Default.Home, "Home", "Home"),
     BottomTab(MainGraph.Bottom.Search, Icons.Default.Search, "Search", "Search"),
     BottomTab(MainGraph.Bottom.Statistics, Icons.Default.Analytics, "Statistics", "Statistics"),
-    BottomTab(MainGraph.Bottom.Setting, Icons.Default.Settings, "Setting", "Settings")
+    BottomTab(MainGraph.Bottom.Setting, Icons.Default.Settings, "Settings", "Settings")
 )
 
 @Composable
@@ -72,9 +72,11 @@ fun MainFrame(
     val isLandscape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val currentTab = bottomTabs.find { currentDestination?.hasRoute(it.route::class) == true }
+
     Scaffold(
         topBar = {
-            TopBarView("What is essential is invisible to the eye")
+            TopBarView(currentTab?.label ?: "Household Expenses")
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState)

@@ -1,30 +1,30 @@
 package gaku.original.myapplication.ui.screens.global.settingMenu.timezone
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,18 +83,18 @@ fun TimeZoneScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.Center
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Current TimeZone:")
-                Text(uiState.selectedTimeZone.label)
-            }
+            Text(
+                "Dates and times of expenses are shown in this timezone.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-            TimeZoneDropdown(
-                modifier = Modifier.widthIn(min = 200.dp),
+            TimeZoneOptions(
                 selectedOption = uiState.selectedTimeZone,
                 onOptionSelected = {
                     onTimeZoneSelected(it)
@@ -119,37 +119,54 @@ fun TimeZoneScreenPreview() {
 }
 
 @Composable
-fun TimeZoneDropdown(
+fun TimeZoneOptions(
     modifier: Modifier = Modifier,
     selectedOption: TimeZone,
     onOptionSelected: (TimeZone) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        Box(
-            modifier = modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clickable { expanded = true }
-                .border(
-                    1.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(12.dp)
-        ) {
-            Text(text = selectedOption.label)
-        }
-
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            TimeZone.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text("${option.label} ${option.id}") },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(modifier = Modifier.selectableGroup()) {
+            TimeZone.entries.forEachIndexed { index, option ->
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 56.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .selectable(
+                            selected = option == selectedOption,
+                            onClick = {
+                                if (option != selectedOption) {
+                                    onOptionSelected(option)
+                                }
+                            },
+                            role = Role.RadioButton
+                        )
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = option == selectedOption,
+                        onClick = null,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    Column {
+                        Text(option.label, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            option.id,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                )
+                }
             }
         }
     }

@@ -1,6 +1,9 @@
 package gaku.original.myapplication.ui.common
 
 
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import gaku.original.myapplication.MainGraph
@@ -33,29 +36,32 @@ fun TopBarView(
     title: String = "What is essential is invisible to the eye",
     showBackButton: Boolean = false,
     onBackNavClicked: () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        title = { Text(text = title, fontSize = 16.sp) },
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
         navigationIcon = {
-//            if (navController != null) {
-//                //現在のルートを取得
-//                val navBackStateEntry by navController.currentBackStackEntryAsState()
-//                val currentRoute = navBackStateEntry?.destination?.route
-//                //ExpenseAddEditViewからMainScreenContentに戻るとき
-//                //ExpenseAddEditViewだけ表示する
-
             if (showBackButton) IconButton(onClick = onBackNavClicked) {
                 Icon(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                    contentDescription = "back",
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "back"
                 )
             }
-        }
+        },
+        actions = actions
     )
 }
 

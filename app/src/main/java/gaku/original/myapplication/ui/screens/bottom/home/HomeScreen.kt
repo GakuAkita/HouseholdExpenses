@@ -3,8 +3,8 @@ package gaku.original.myapplication.ui.screens.bottom.home
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -14,14 +14,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,13 +37,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -52,6 +59,9 @@ import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.common.AppResult
 import gaku.original.myapplication.data.dataClass.Category
+import gaku.original.myapplication.ui.common.EmptyState
+import gaku.original.myapplication.ui.common.toCompactYen
+import gaku.original.myapplication.ui.common.toYen
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import kotlinx.coroutines.flow.distinctUntilChanged
 import my.nanihadesuka.compose.LazyColumnScrollbar
@@ -62,8 +72,12 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+
+private val monthTitleFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
+private val expenseTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 fun HomeScreenRoot(
@@ -194,6 +208,8 @@ fun HomeScreen(
                     onDayClick = onDayClick
                 )
 
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
                 LazyExpensesColumn(
                     uiState = uiState,
                     lazyLisState = lazyListState,
@@ -210,7 +226,9 @@ fun HomeScreen(
                 .align(
                     Alignment.BottomEnd
                 )
-                .padding(vertical = 16.dp, horizontal = 4.dp),
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             onClick = {
                 onFABClick()
             }
@@ -283,25 +301,16 @@ fun HomeHorizontalCalendar(
     Column(
         modifier = modifier
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("${uiState.selectedMonth.year}-${uiState.selectedMonth.monthValue}")
-            Spacer(modifier = Modifier.padding(10.dp))
-            Column {
-                Text("Monthly Total:${uiState.monthlyTotal} yen")
-                uiState.estimatedAmount?.let {
-                    Text("Estimated Amount:${"%.0f".format(it)} yen")
-                }
-            }
-        }
+        MonthSummaryHeader(uiState = uiState)
 
         DaysOfWeekTitle(
             daysOfWeek = daysOfWeek()
         )
 
         BoxWithConstraints(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 4.dp)
         ) {
             /* height of the Day is calculated by maxHeight */
             val dayHeight = maxHeight / 6
@@ -325,37 +334,29 @@ fun HomeHorizontalCalendar(
 }
 
 @Composable
-fun LazyExpensesColumn(
-    uiState: HomeUiState,
-    modifier: Modifier = Modifier,
-    lazyLisState: LazyListState,
-    onExpenseClick: (String?) -> Unit
-) {
-    LazyColumnScrollbar(
-        modifier = modifier,
-        state = lazyLisState,
-        settings = ScrollbarSettings.Default.copy(
-            alwaysShowScrollbar = true,
-            thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
-            thumbSelectedColor = MaterialTheme.colorScheme.primary
-        )
+private fun MonthSummaryHeader(uiState: HomeUiState) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        LazyColumn(
-            state = lazyLisState,
-            modifier = Modifier.fillMaxWidth(),
-            userScrollEnabled = true
-        ) {
-            items(uiState.shownExpenses) { expense ->
-                /* if it is today, highlight the background */
-                val isToday =
-                    expense.datetime?.toLocalDate() == LocalDate.now(uiState.zoneId)
-                ExpenseItem(
-                    expenseUi = expense,
-                    isToday = isToday,
-                    onEdit = {
-                        /* idだけ渡してAdd/Editする */
-                        onExpenseClick(expense.id)
-                    },
+        Text(
+            text = uiState.selectedMonth.format(monthTitleFormatter),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = uiState.monthlyTotal.toYen(),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            uiState.estimatedAmount?.let {
+                Text(
+                    text = "Estimated ${it.toLong().toYen()}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -363,16 +364,86 @@ fun LazyExpensesColumn(
 }
 
 @Composable
+fun LazyExpensesColumn(
+    uiState: HomeUiState,
+    modifier: Modifier = Modifier,
+    lazyLisState: LazyListState,
+    onExpenseClick: (String?) -> Unit
+) {
+    Column(modifier = modifier) {
+        if (uiState.isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
+        if (!uiState.isLoading && uiState.shownExpenses.isEmpty()) {
+            EmptyState(
+                icon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                title = "No expenses this month",
+                message = "Tap a day or the + button to add one."
+            )
+            return@Column
+        }
+
+        LazyColumnScrollbar(
+            state = lazyLisState,
+            settings = ScrollbarSettings.Default.copy(
+                alwaysShowScrollbar = true,
+                thumbUnselectedColor = MaterialTheme.colorScheme.outlineVariant,
+                thumbSelectedColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            LazyColumn(
+                state = lazyLisState,
+                modifier = Modifier.fillMaxWidth(),
+                userScrollEnabled = true
+            ) {
+                items(uiState.shownExpenses) { expense ->
+                    /* if it is today, highlight the background */
+                    val isToday =
+                        expense.datetime?.toLocalDate() == LocalDate.now(uiState.zoneId)
+                    ExpenseItem(
+                        expenseUi = expense,
+                        isToday = isToday,
+                        onEdit = {
+                            /* idだけ渡してAdd/Editする */
+                            onExpenseClick(expense.id)
+                        },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                    )
+                }
+                /* keep the last row clear of the FAB */
+                item { Spacer(modifier = Modifier.height(88.dp)) }
+            }
+        }
+    }
+}
+
+private val weekend = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+
+@Composable
+private fun dayOfWeekColor(dayOfWeek: DayOfWeek): Color = when (dayOfWeek) {
+    DayOfWeek.SUNDAY -> MaterialTheme.colorScheme.error
+    DayOfWeek.SATURDAY -> MaterialTheme.colorScheme.tertiary
+    else -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+@Composable
 fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 4.dp)
     ) {
         for (dayOfWeek in daysOfWeek) {
             Text(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                style = MaterialTheme.typography.labelMedium,
+                color = dayOfWeekColor(dayOfWeek)
             )
         }
     }
@@ -387,12 +458,15 @@ fun Day(
     onDayClick: () -> Unit
 ) {
     val isCurrentMonth = day.position == DayPosition.MonthDate
+    val hasExpense = isCurrentMonth && price > 0
 
     Box(
         modifier = modifier
+            .padding(2.dp)
+            .clip(MaterialTheme.shapes.small)
             .then(
-                if (isToday) {
-                    Modifier.border(1.dp, color = MaterialTheme.colorScheme.primary)
+                if (hasExpense) {
+                    Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f))
                 } else {
                     Modifier
                 }
@@ -406,27 +480,47 @@ fun Day(
     )
     {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "${day.date.dayOfMonth}",
-                color = if (isCurrentMonth) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                },
-                fontSize = 16.sp
-            )
-            /* when the value is too big, use the expression like 1.23K */
-            Text(
-                "¥${if (isCurrentMonth) price else 0}",
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                softWrap = false,
-                modifier = Modifier.padding(1.dp),
-                fontSize = 12.sp
-            )
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .then(
+                        if (isToday) {
+                            Modifier.background(MaterialTheme.colorScheme.primary, CircleShape)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "${day.date.dayOfMonth}",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
+                    color = when {
+                        isToday -> MaterialTheme.colorScheme.onPrimary
+                        !isCurrentMonth -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        day.date.dayOfWeek in weekend -> dayOfWeekColor(day.date.dayOfWeek)
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
+                )
+            }
+            if (hasExpense) {
+                /* when the value is too big, use the expression like 12.3K */
+                Text(
+                    price.toCompactYen(),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier.padding(horizontal = 1.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }
@@ -440,45 +534,64 @@ fun ExpenseItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(40.dp)
-            .border(
-                width = 1.dp,
-                color = if (isToday) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSecondary
-            )
-            .then(
-                if (isToday) {
-                    Modifier.background(
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        shape = RectangleShape
-                    )
-                } else {
-                    Modifier // ← ここを追加
-                }
-            )
             .clickable {
                 onEdit()
-            },
+            }
+            .then(
+                if (isToday) {
+                    Modifier.background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
+                } else {
+                    Modifier
+                }
+            )
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        /* date badge */
+        Column(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    color = if (isToday) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = CircleShape
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "${expenseUi.datetime?.dayOfMonth ?: "-"}",
+                style = MaterialTheme.typography.titleSmall,
+                color = if (isToday) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = expenseUi.category?.name ?: "Uncategorized",
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (expenseUi.category == null) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            expenseUi.datetime?.let {
+                Text(
+                    text = "${
+                        it.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    } ${it.format(expenseTimeFormatter)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         Text(
-            text = "${
-                expenseUi.datetime?.dayOfMonth
-            }日",
-            modifier = Modifier.weight(1f),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Left//左寄せ
-        )
-        Text(
-            text = "${expenseUi.amount}円",
-            modifier = Modifier.weight(1f),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Left
-        )
-        Text(
-            text = expenseUi.category?.name ?: "",
-            modifier = Modifier.weight(1f),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Left
+            text = expenseUi.amount?.toYen() ?: "-",
+            style = MaterialTheme.typography.titleMedium
         )
     }
 }

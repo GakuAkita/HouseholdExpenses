@@ -1,31 +1,34 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment
 
 import android.content.res.Configuration
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ShoppingBag
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,7 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -47,6 +52,7 @@ import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.common.CategoryDropDown
 import gaku.original.myapplication.ui.common.ConfirmAlertDialog
+import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.TopBarView
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -143,6 +149,8 @@ fun CategoryAssignmentScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 onClick = {
                     onAddClick()
                 }
@@ -160,13 +168,7 @@ fun CategoryAssignmentScreen(
                 .padding(innerPadding)
         ) {
             if (uiState.isLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                }
+                LoadingBox()
             } else {
                 val storeNameAssignment =
                     uiState.assignments.filter {
@@ -183,10 +185,7 @@ fun CategoryAssignmentScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         StoreNameAssignmentColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(1.dp, MaterialTheme.colorScheme.secondary)
-                                .padding(4.dp),
+                            modifier = Modifier.weight(1f),
                             assignmentUiList = storeNameAssignment,
                             categories = uiState.categories,
                             onCategorySelected = { assignmentUi, categoryId ->
@@ -199,11 +198,9 @@ fun CategoryAssignmentScreen(
                                 onDeleteClick(it)
                             }
                         )
+                        VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         ProductNameAssignmentColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(1.dp, MaterialTheme.colorScheme.secondary)
-                                .padding(4.dp),
+                            modifier = Modifier.weight(1f),
                             assignmentUiList = productNameAssignment,
                             categories = uiState.categories,
                             onCategorySelected = { assignmentUi, categoryId ->
@@ -219,10 +216,7 @@ fun CategoryAssignmentScreen(
                     }
                 } else {
                     StoreNameAssignmentColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(1.dp, MaterialTheme.colorScheme.secondary)
-                            .padding(4.dp),
+                        modifier = Modifier.weight(1f),
                         assignmentUiList = storeNameAssignment,
                         categories = uiState.categories,
                         onEditClick = {
@@ -236,11 +230,10 @@ fun CategoryAssignmentScreen(
                         }
                     )
 
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
                     ProductNameAssignmentColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(1.dp, MaterialTheme.colorScheme.secondary)
-                            .padding(4.dp),
+                        modifier = Modifier.weight(1f),
                         assignmentUiList = productNameAssignment,
                         categories = uiState.categories,
                         onCategorySelected = { assignmentUi, categoryId ->
@@ -268,110 +261,16 @@ fun StoreNameAssignmentColumn(
     onDeleteClick: (CategoryAssignment) -> Unit,
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
 ) {
-    val lazyListState = rememberLazyListState()
-
-    Column(
-        modifier = modifier
-    ) {
-        Text("Category Assignment by Store name")
-        LazyColumnScrollbar(
-            state = lazyListState,
-            settings = ScrollbarSettings.Default.copy(
-                alwaysShowScrollbar = true,
-                thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
-                thumbSelectedColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            LazyColumn(
-                userScrollEnabled = true,
-                state = lazyListState,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(assignmentUiList.size) { index ->
-                    val assignmentUi = assignmentUiList[index]
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                vertical = 4.dp,
-                                horizontal = 4.dp
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("${assignmentUi.assignment.name}")
-                            Column(
-                                modifier = Modifier.width(54.dp),
-                            ) {
-                                if (assignmentUi.isLoading) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            onEditClick(assignmentUi.assignment)
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Edit"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            CategoryDropDown(
-                                modifier = Modifier.widthIn(max = 220.dp),
-                                selectedCategoryId = assignmentUi.assignment.categoryId,
-                                categories = categories,
-                                onCategoryIdSelected = { categoryId ->
-                                    onCategorySelected(
-                                        assignmentUi,
-                                        categoryId
-                                    )
-                                },
-                                enabled = !assignmentUi.isLoading,
-                                nullOption = true
-                            )
-                            Column(
-                                modifier = Modifier.width(54.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                if (assignmentUi.isLoading) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            onDeleteClick(assignmentUi.assignment)
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "削除"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    AssignmentListColumn(
+        modifier = modifier,
+        title = "By store name",
+        icon = Icons.Outlined.Storefront,
+        assignmentUiList = assignmentUiList,
+        categories = categories,
+        onEditClick = onEditClick,
+        onDeleteClick = onDeleteClick,
+        onCategorySelected = onCategorySelected
+    )
 }
 
 @Composable
@@ -383,108 +282,173 @@ fun ProductNameAssignmentColumn(
     onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
     onDeleteClick: (CategoryAssignment.Product) -> Unit
 ) {
+    AssignmentListColumn(
+        modifier = modifier,
+        title = "By product name",
+        icon = Icons.Outlined.ShoppingBag,
+        assignmentUiList = assignmentUiList,
+        categories = categories,
+        onEditClick = onEditClick,
+        onDeleteClick = { onDeleteClick(it as CategoryAssignment.Product) },
+        onCategorySelected = onCategorySelected
+    )
+}
+
+@Composable
+private fun AssignmentListColumn(
+    modifier: Modifier,
+    title: String,
+    icon: ImageVector,
+    assignmentUiList: List<AssignmentUiState<CategoryAssignment>>,
+    categories: List<Category>,
+    onEditClick: (CategoryAssignment) -> Unit,
+    onDeleteClick: (CategoryAssignment) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
+) {
     val lazyListState = rememberLazyListState()
+
     Column(
         modifier = modifier
     ) {
-        Text("Category Assignment by Product name")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            )
+            Text(
+                text = "${assignmentUiList.size}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (assignmentUiList.isEmpty()) {
+            Text(
+                text = "No rules yet.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            return@Column
+        }
+
         LazyColumnScrollbar(
             state = lazyListState,
             settings = ScrollbarSettings.Default.copy(
                 alwaysShowScrollbar = true,
-                thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+                thumbUnselectedColor = MaterialTheme.colorScheme.outlineVariant,
                 thumbSelectedColor = MaterialTheme.colorScheme.primary
-            ),
+            )
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
+                userScrollEnabled = true,
                 state = lazyListState,
-                userScrollEnabled = true
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(assignmentUiList.size) { index ->
-                    val productUi = assignmentUiList[index]
-                    Column(
+                    AssignmentItemCard(
+                        assignmentUi = assignmentUiList[index],
+                        categories = categories,
+                        onEditClick = onEditClick,
+                        onDeleteClick = onDeleteClick,
+                        onCategorySelected = onCategorySelected
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssignmentItemCard(
+    assignmentUi: AssignmentUiState<CategoryAssignment>,
+    categories: List<Category>,
+    onEditClick: (CategoryAssignment) -> Unit,
+    onDeleteClick: (CategoryAssignment) -> Unit,
+    onCategorySelected: (AssignmentUiState<CategoryAssignment>, String?) -> Unit,
+) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = assignmentUi.assignment.ruleName ?: "",
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                if (assignmentUi.isLoading) {
+                    CircularProgressIndicator(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                horizontal = 4.dp,
-                                vertical = 4.dp
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
+                            .padding(12.dp)
+                            .size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    IconButton(
+                        onClick = {
+                            onEditClick(assignmentUi.assignment)
+                        }
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("${productUi.assignment.name}", modifier = Modifier.weight(1f))
-                            Column(
-                                modifier = Modifier.width(54.dp),
-                            ) {
-                                if (productUi.isLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            onEditClick(productUi.assignment)
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Edit"
-                                        )
-                                    }
-                                }
-                            }
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            onDeleteClick(assignmentUi.assignment)
                         }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            CategoryDropDown(
-                                modifier = Modifier.widthIn(max = 220.dp),
-                                selectedCategoryId = productUi.assignment.categoryId,
-                                categories = categories,
-                                onCategoryIdSelected = { categoryId ->
-                                    onCategorySelected(productUi, categoryId)
-                                },
-                                nullOption = true,
-                                enabled = !productUi.isLoading
-                            )
-                            Column(
-                                modifier = Modifier.width(54.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                if (productUi.isLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            onDeleteClick(productUi.assignment)
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "削除"
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "削除",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
+            CategoryDropDown(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 8.dp),
+                selectedCategoryId = assignmentUi.assignment.assignedCategoryId,
+                categories = categories,
+                onCategoryIdSelected = { categoryId ->
+                    onCategorySelected(
+                        assignmentUi,
+                        categoryId
+                    )
+                },
+                enabled = !assignmentUi.isLoading,
+                nullOption = true
+            )
         }
     }
 }
@@ -546,3 +510,14 @@ fun CategoryAssignmentScreenPreview() {
         onDeleteClick = {}
     )
 }
+private val CategoryAssignment.ruleName: String?
+    get() = when (this) {
+        is CategoryAssignment.Store -> name
+        is CategoryAssignment.Product -> name
+    }
+
+private val CategoryAssignment.assignedCategoryId: String?
+    get() = when (this) {
+        is CategoryAssignment.Store -> categoryId
+        is CategoryAssignment.Product -> categoryId
+    }

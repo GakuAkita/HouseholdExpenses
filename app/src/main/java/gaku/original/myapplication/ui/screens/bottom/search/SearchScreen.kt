@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.screens.bottom.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,6 +42,8 @@ import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.dataClass.ExpenseSearchFilter
 import gaku.original.myapplication.data.dataClass.GeneratedTypeKind
+import gaku.original.myapplication.ui.common.EmptyState
+import gaku.original.myapplication.ui.common.toYen
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -109,15 +114,18 @@ fun SearchScreen(
                 result = result,
                 onClick = { onResultClick(result.id) }
             )
-            HorizontalDivider()
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+            )
         }
 
         if (!uiState.isLoading && uiState.results.isEmpty()) {
             item {
-                Text(
-                    text = "No expenses match the conditions.",
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                EmptyState(
+                    icon = Icons.Default.SearchOff,
+                    title = "No expenses match the conditions",
+                    message = "Try a different keyword or clear some filters."
                 )
             }
         }
@@ -138,13 +146,14 @@ private fun SearchFilterPanel(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         OutlinedTextField(
             value = filter.keyword,
             onValueChange = onKeywordChanged,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            shape = MaterialTheme.shapes.extraLarge,
             placeholder = { Text("Store, item or note") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
@@ -213,7 +222,8 @@ private fun FilterSection(
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(top = 8.dp)
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 12.dp, bottom = 2.dp)
     )
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -228,22 +238,32 @@ private fun SearchSummary(uiState: SearchUiState) {
         if (uiState.isLoading) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
-        Row(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.secondaryContainer
         ) {
-            Text(
-                text = "${uiState.results.size} expenses",
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(
-                text = "Total: ${uiState.total}円",
-                style = MaterialTheme.typography.titleSmall
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${uiState.results.size} expenses",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = uiState.total.toYen(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
-        HorizontalDivider()
     }
 }
 
@@ -258,7 +278,8 @@ private fun SearchResultItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -266,29 +287,37 @@ private fun SearchResultItem(
         ) {
             Text(
                 text = result.datetime.format(resultDateFormatter),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "${result.amount}円",
+                text = result.amount.toYen(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = result.categoryName ?: "Uncategorized",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = if (result.categoryName == null) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = result.generatedType.label(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainerHigh,
+                        MaterialTheme.shapes.extraSmall
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
         val description = listOfNotNull(result.storeName, result.itemName, result.note)

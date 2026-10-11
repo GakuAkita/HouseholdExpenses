@@ -1,25 +1,35 @@
 package gaku.original.myapplication.ui.screens.global.categoryEdit
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -38,7 +49,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.dataClass.Category
-import gaku.original.myapplication.ui.common.CancelButton
+import gaku.original.myapplication.ui.common.EmptyState
 import gaku.original.myapplication.ui.common.FloatingActionButtonWithIcon
 import gaku.original.myapplication.ui.common.TopBarView
 
@@ -105,7 +116,7 @@ fun CategoryEditScreen(
     Scaffold(
         topBar = {
             TopBarView(
-                "Category Edit",
+                "Categories",
                 showBackButton = true,
                 onBackNavClicked = {
                     onBackNavClicked()
@@ -126,8 +137,19 @@ fun CategoryEditScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            if (uiState.categories.isEmpty()) {
+                EmptyState(
+                    icon = Icons.Outlined.Category,
+                    title = "No categories yet",
+                    message = "Tap the + button to add your first category."
+                )
+            }
+
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 150.dp)
+                columns = GridCells.Adaptive(minSize = 160.dp),
+                contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.categories) {
                     CategoryItem(
@@ -241,27 +263,50 @@ fun CategoryItem(
     onClick: (category: Category) -> Unit = {},
     onDelete: (category: Category) -> Unit = {}
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onClick(category)
-            }
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        onClick = { onClick(category) }
     ) {
-        //nullになることは基本的にない
-        Text(modifier = Modifier.weight(1f), text = category.name)
-
-        // ゴミ箱ボタン
-        IconButton(
-            onClick = { onDelete(category) }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_delete_24), // カスタムアイコン
-                contentDescription = "Delete Category"
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = category.name.take(1),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            //nullになることは基本的にない
+            Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp),
+                text = category.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
+
+            // ゴミ箱ボタン
+            IconButton(
+                onClick = { onDelete(category) }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_delete_24), // カスタムアイコン
+                    contentDescription = "Delete Category",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -280,35 +325,28 @@ fun CategoryAddEditDialog(
         onDismissRequest = {
             onDismiss()
         },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        },
         confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                CancelButton(
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    onClick = { onDismiss() }
-                )
-
-                Button(
-                    modifier = Modifier
-                        .padding(end = 10.dp),
-                    onClick = {
-                        /* ここでnameが適切かチェックする */
-                        /* すでにカテゴリーの中に存在するかはここではチェックしない */
-                        if (name == "") {
-                            /* 何もしないか、Toastをだす */
-                        } else if (name == category?.name) {
-                            /* 編集だけど何も変わっていない場合 */
-                            onDismiss()
-                        } else {
-                            onSave(name)
-                        }
+            Button(
+                enabled = name.isNotEmpty(),
+                onClick = {
+                    /* ここでnameが適切かチェックする */
+                    /* すでにカテゴリーの中に存在するかはここではチェックしない */
+                    if (name == "") {
+                        /* 何もしないか、Toastをだす */
+                    } else if (name == category?.name) {
+                        /* 編集だけど何も変わっていない場合 */
+                        onDismiss()
+                    } else {
+                        onSave(name)
                     }
-                ) {
-                    Text("Save")
                 }
+            ) {
+                Text("Save")
             }
         },
         title = {
@@ -319,21 +357,18 @@ fun CategoryAddEditDialog(
             }
         },
         text = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {
-                        onValueChange(it)
-                        name = it
-                    },
-                    singleLine = true
-                )
-                if (errorMessage != null) {
-                    Text(errorMessage, color = MaterialTheme.colorScheme.error)
-                }
-            }
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = name,
+                onValueChange = {
+                    onValueChange(it)
+                    name = it
+                },
+                label = { Text("Name") },
+                isError = errorMessage != null,
+                supportingText = errorMessage?.let { { Text(it) } },
+                singleLine = true
+            )
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = true
@@ -351,36 +386,51 @@ fun CategoryRemoveConfirmDialog(
         onDismissRequest = {
             onDismiss()
         },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_delete_24),
+                contentDescription = null
+            )
+        },
+        title = {
+            Text("Remove category?")
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        },
         confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                CancelButton(
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    onClick = { onDismiss() }
+            Button(
+                onClick = {
+                    onOK(category)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
                 )
-
-                Button(
-                    modifier = Modifier
-                        .padding(end = 10.dp),
-                    onClick = {
-                        onOK(category)
-                    }
-                ) {
-                    Text("OK")
-                }
+            ) {
+                Text("Remove")
             }
         },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("Are you sure you want to remove the category?")
-                Text("****************************")
-                Text("${category.name}")
-                Text("****************************")
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
+                    Text(
+                        text = category.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
             }
         },
         properties = DialogProperties(

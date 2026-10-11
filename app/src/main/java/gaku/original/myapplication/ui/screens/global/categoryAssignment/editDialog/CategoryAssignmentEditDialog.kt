@@ -1,28 +1,22 @@
 package gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +34,7 @@ import androidx.navigation.NavHostController
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.MatchCondition
 import gaku.original.myapplication.ui.common.CategoryDropDown
+import gaku.original.myapplication.ui.common.DialogCard
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 
 @Composable
@@ -109,7 +104,6 @@ fun CategoryAssignmentEditDialog(
 ) {
     var typeExpanded by rememberSaveable { mutableStateOf(false) }
     var matchConditionExpanded by rememberSaveable { mutableStateOf(false) }
-    val FieldWidth = 300.dp
 
     val typeDescription = remember {
         if (uiState.isEdit) {
@@ -123,204 +117,165 @@ fun CategoryAssignmentEditDialog(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .background(MaterialTheme.colorScheme.onSecondary)
-                .verticalScroll(
-                    rememberScrollState()
-                ),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Assign category automatically when the name is found in $typeDescription",
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-
-            if (!uiState.isEdit) {
-                Box {
-                    TextField(
-                        modifier = Modifier
-                            .width(FieldWidth)
-                            .padding(4.dp)
-                            .clickable(
-                                onClick = {
-                                    typeExpanded = true
-                                }
-                            ),
-                        value = uiState.type?.toDisplayName() ?: "",
-                        onValueChange = {},
-                        label = {
-                            Text("Assignment Type")
-                        },
-                        readOnly = true,
-                        enabled = false,
-                        colors = enabledTextFiledColorSet(),
-                    )
-                    DropdownMenu(
-                        expanded = typeExpanded,
-                        onDismissRequest = {
-                            typeExpanded = false
-                        }
-                    ) {
-                        CategoryAssignmentType.entries.forEach { type ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(type.toDisplayName())
-                                },
-                                onClick = {
-                                    onTypeSelected(type)
-                                    typeExpanded = false
-                                }
-                            )
-                        }
+    DialogCard(
+        title = if (uiState.isEdit) "Edit Assignment" else "New Assignment",
+        snackbarHostState = snackbarHostState,
+        actions = {
+            TextButton(
+                onClick = {
+                    if (uiState.isLoading) {
+                        return@TextButton
                     }
+                    onCancelClick()
+                },
+                enabled = !uiState.isLoading
+            ) {
+                Text("Cancel")
+            }
+
+            Button(
+                onClick = {
+                    if (uiState.isLoading) {
+                        return@Button
+                    }
+                    onSaveClick()
+                }
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Save")
                 }
             }
+        }
+    ) {
+        Text(
+            text = "Assign category automatically when the name is found in $typeDescription",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextField(
-                    modifier = Modifier
-                        .widthIn(300.dp)
-                        .padding(start = 4.dp),
-                    value = uiState.name ?: "",
-                    singleLine = true,
-                    onValueChange = {
-                        onNameChange(it)
-                    },
-                    label = {
-                        Text("Name")
-                    }
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    //modifier = Modifier.padding(4.dp),
-                    checked = uiState.isRegex,
-                    onCheckedChange = {
-                        onRegexClick()
-                    }
-                )
-
-                Text("Regular Expression")
-            }
-
+        if (!uiState.isEdit) {
             Box {
                 TextField(
                     modifier = Modifier
-                        .width(FieldWidth)
-                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                        .fillMaxWidth()
                         .clickable(
                             onClick = {
-                                matchConditionExpanded = true
+                                typeExpanded = true
                             }
                         ),
-                    value = uiState.condition.toDisplayName(),
+                    value = uiState.type?.toDisplayName() ?: "",
                     onValueChange = {},
+                    label = {
+                        Text("Assignment Type")
+                    },
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
                     readOnly = true,
                     enabled = false,
-                    label = {
-                        Text("Condition")
-                    },
-                    colors = enabledTextFiledColorSet()
+                    colors = enabledTextFiledColorSet(),
                 )
-                /* Product name or Store name */
                 DropdownMenu(
-                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                    expanded = matchConditionExpanded,
+                    expanded = typeExpanded,
                     onDismissRequest = {
-                        matchConditionExpanded = false
+                        typeExpanded = false
                     }
                 ) {
-                    MatchCondition.entries.forEach {
+                    CategoryAssignmentType.entries.forEach { type ->
                         DropdownMenuItem(
                             text = {
-                                Text(it.toDisplayName())
+                                Text(type.toDisplayName())
                             },
                             onClick = {
-                                onMatchConditionSelected(it)
-                                matchConditionExpanded = false
+                                onTypeSelected(type)
+                                typeExpanded = false
                             }
                         )
-                    }
-                }
-            }
-
-            CategoryDropDown(
-                modifier = Modifier
-                    .width(FieldWidth)
-                    .padding(4.dp),
-                selectedCategoryId = uiState.categoryId,
-                categories = uiState.categories,
-                onCategoryIdSelected = {
-                    onCategorySelected(it)
-                },
-                nullOption = true
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    modifier = Modifier.width(100.dp),
-                    onClick = {
-                        if (uiState.isLoading) {
-                            return@Button
-                        }
-                        onCancelClick()
-                    },
-                    colors = ButtonDefaults.buttonColors().copy(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp)
-                        )
-                    } else {
-                        Text("Cancel")
-                    }
-                }
-
-                Button(
-                    modifier = Modifier.width(100.dp),
-                    onClick = {
-                        if (uiState.isLoading) {
-                            return@Button
-                        }
-                        onSaveClick()
-                    },
-                    colors = ButtonDefaults.buttonColors().copy(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text("Save")
                     }
                 }
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.name ?: "",
+            singleLine = true,
+            onValueChange = {
+                onNameChange(it)
+            },
+            label = {
+                Text("Name")
+            }
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onRegexClick() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = uiState.isRegex,
+                onCheckedChange = {
+                    onRegexClick()
+                }
+            )
+
+            Text("Regular Expression")
+        }
+
+        Box {
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+                            matchConditionExpanded = true
+                        }
+                    ),
+                value = uiState.condition.toDisplayName(),
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = {
+                    Text("Condition")
+                },
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                colors = enabledTextFiledColorSet()
+            )
+            /* Product name or Store name */
+            DropdownMenu(
+                expanded = matchConditionExpanded,
+                onDismissRequest = {
+                    matchConditionExpanded = false
+                }
+            ) {
+                MatchCondition.entries.forEach {
+                    DropdownMenuItem(
+                        text = {
+                            Text(it.toDisplayName())
+                        },
+                        onClick = {
+                            onMatchConditionSelected(it)
+                            matchConditionExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        CategoryDropDown(
+            modifier = Modifier.fillMaxWidth(),
+            selectedCategoryId = uiState.categoryId,
+            categories = uiState.categories,
+            onCategoryIdSelected = {
+                onCategorySelected(it)
+            },
+            nullOption = true
         )
     }
 }

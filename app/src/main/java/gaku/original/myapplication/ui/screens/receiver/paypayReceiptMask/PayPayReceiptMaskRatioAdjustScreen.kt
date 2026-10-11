@@ -7,22 +7,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,10 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
@@ -103,7 +99,7 @@ fun PayPayReceiptMaskRatioAdjustScreen(
 ) {
     Scaffold(topBar = {
         TopBarView(
-            title = "PayPay Receipt Masking Setting",
+            title = "PayPay Receipt Masking",
         )
     }, snackbarHost = {
         SnackbarHost(snackbarHostState)
@@ -114,28 +110,19 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             if (uiState.isValidating) {
                 CircularProgressIndicator()
             } else {
-                Column {
-                    Text(
-                        "Validate & Save", style = TextStyle.Default.copy(
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    IconButton(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .size(60.dp),
-                        onClick = {
-                            onFABClick()
-                        },
-                        colors = IconButtonDefaults.filledIconButtonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        )
-                    ) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        onFABClick()
+                    },
+                    icon = {
                         Icon(
                             imageVector = Icons.Default.Check, contentDescription = "Validate"
                         )
-                    }
-                }
+                    },
+                    text = { Text("Validate & Save") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
     }) { innerPadding ->
@@ -143,68 +130,64 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "Please adjust the top and left masking ratio. Hide the top-left logo in the receipt"
+                    modifier = Modifier.padding(16.dp),
+                    text = "Please adjust the top and left masking ratio. Hide the top-left logo in the receipt",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Left masking ratio:%.2f".format(uiState.leftRatio * 100) + "[%]")
-                Slider(
-                    modifier = Modifier
-                        .widthIn(max = 280.dp)
-                        .padding(8.dp),
-                    value = uiState.leftRatio,
-                    onValueChange = {
-                        if (uiState.isValidating) {
-                            /* Do nothing */
-                        } else {
-                            onLeftRatioPercentChange(it)
-                        }
-                    })
-            }
+            MaskRatioSlider(
+                label = "Left masking ratio",
+                value = uiState.leftRatio,
+                onValueChange = {
+                    if (uiState.isValidating) {
+                        /* Do nothing */
+                    } else {
+                        onLeftRatioPercentChange(it)
+                    }
+                }
+            )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Top masking ratio:%.2f".format(uiState.topRatio * 100) + "[%]")
-                Slider(
-                    modifier = Modifier
-                        .widthIn(max = 280.dp)
-                        .padding(8.dp),
-                    value = uiState.topRatio,
-                    onValueChange = {
-                        if (uiState.isValidating) {
-                            /* Do nothing */
-                        } else {
-                            onTopRatioPercentChange(it)
-                        }
-                    })
-            }
+            MaskRatioSlider(
+                label = "Top masking ratio",
+                value = uiState.topRatio,
+                onValueChange = {
+                    if (uiState.isValidating) {
+                        /* Do nothing */
+                    } else {
+                        onTopRatioPercentChange(it)
+                    }
+                }
+            )
 
             if (uiState.bitmap != null) {
-                Image(
-                    bitmap = uiState.bitmap.asImageBitmap(),
-                    contentDescription = "maskedBitmap",
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 80.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Image(
+                        bitmap = uiState.bitmap.asImageBitmap(),
+                        contentDescription = "maskedBitmap",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             } else {
-                Text("Unable to load image..")
+                Text(
+                    "Unable to load image..",
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
@@ -226,9 +209,8 @@ fun PayPayReceiptMaskRatioAdjustScreen(
             }
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (uiState.extractResult == null) {
                     Text("Coding Error: Please contact the developer")
@@ -237,21 +219,45 @@ fun PayPayReceiptMaskRatioAdjustScreen(
                         is SentData.Expense -> {
                             Text(
                                 "Do you save the current masking setting?",
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(4.dp)
+                                style = MaterialTheme.typography.titleMedium
                             )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text("vvv Extracted Data vvv")
-                            }
+                            Text(
+                                "Extracted data",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                             SentDataExpenseDisplay(data = data)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MaskRatioSlider(
+    label: String,
+    value: Float,
+    onValueChange: (Float) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                "%.2f %%".format(value * 100),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        Slider(
+            modifier = Modifier.fillMaxWidth(),
+            value = value,
+            onValueChange = onValueChange
+        )
     }
 }
 
@@ -288,70 +294,64 @@ fun PayPayReceiptMaskRatioAdjustScreenPreview() {
 
 @Composable
 fun SentDataExpenseDisplay(modifier: Modifier = Modifier, data: SentData.Expense) {
-    Column(
-        modifier = modifier
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Date Time: ")
             val datetime = data.datetime
-            if (datetime == null) {
-                Text(
-                    "datetime was not extracted",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.error
-                    )
-                )
-            } else {
-                val dt = datetime.toLocalDateTime(ZoneId.systemDefault())
-                Text(
-                    "${dt.year}/${dt.monthValue}/${dt.dayOfMonth} ${dt.hour}:${dt.minute}"
-                )
-            }
-        }
+            ExtractedValueRow(
+                label = "Date Time",
+                value = datetime?.let {
+                    val dt = it.toLocalDateTime(ZoneId.systemDefault())
+                    "%d/%02d/%02d %02d:%02d".format(dt.year, dt.monthValue, dt.dayOfMonth, dt.hour, dt.minute)
+                },
+                missingText = "datetime was not extracted"
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Amount: ")
-            val amount = data.amount
-            if (amount == null) {
-                Text(
-                    "amount was not extracted",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.error
-                    )
-                )
-            } else {
-                Text("${amount}")
-            }
-        }
+            ExtractedValueRow(
+                label = "Amount",
+                value = data.amount?.let { "¥%,d".format(it) },
+                missingText = "amount was not extracted"
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Store name: ")
-            val storeName = data.storeName
-            if (storeName == null) {
-                Text(
-                    "storeName was not extracted",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.error
-                    )
-                )
-            } else {
-                Text(storeName)
-            }
+            ExtractedValueRow(
+                label = "Store name",
+                value = data.storeName,
+                missingText = "storeName was not extracted"
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExtractedValueRow(
+    label: String,
+    value: String?,
+    missingText: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        if (value == null) {
+            Text(
+                missingText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        } else {
+            Text(value, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
