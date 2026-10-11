@@ -96,35 +96,42 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
-      - name: Setup build tool version variable
-        shell: bash
-        run: |
-          BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
-          echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
-          echo Last build tool version is: $BUILD_TOOL_VERSION
-
-          # https://www.geeksforgeeks.org/android/automated-release-for-android-using-github-actions/
-          # これ試してみるか。
-
+      # r0adkll/sign-android-release は非推奨の set-output を使っているため、
+      # SDK の zipalign / apksigner で直接署名する
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app #いらないか
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
-
-      - name: Rename apk
         shell: bash
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          TAG_NAME="${{ steps.version.outputs.tag }}"
-          NEW_PATH="app/build/outputs/apk/release/app-release-household-expenses-${TAG_NAME}.apk"
-          mv app/build/outputs/apk/release/app-release-unsigned-signed.apk "$NEW_PATH"
-          echo "APK_FILE=$NEW_PATH" >> $GITHUB_ENV
+          BUILD_TOOL_VERSION=$(ls "$ANDROID_HOME/build-tools/" | sort -V | tail -n 1)
+          BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/$BUILD_TOOL_VERSION"
+          echo "Using build tools: $BUILD_TOOL_VERSION"
+
+          # keyPassword が未設定なら keystore のパスワードを使う(旧 action と同じ挙動)
+          export KEY_PASSWORD="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+
+          KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+          echo "$SIGNING_KEY" | base64 --decode > "$KEYSTORE_FILE"
+
+          RELEASE_DIR="app/build/outputs/apk/release"
+          ALIGNED_APK="$RUNNER_TEMP/app-release-aligned.apk"
+          SIGNED_APK="$RELEASE_DIR/app-release-household-expenses-${{ steps.version.outputs.tag }}.apk"
+
+          "$BUILD_TOOLS_DIR/zipalign" -p -f 4 "$RELEASE_DIR/app-release-unsigned.apk" "$ALIGNED_APK"
+          "$BUILD_TOOLS_DIR/apksigner" sign \
+            --ks "$KEYSTORE_FILE" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --out "$SIGNED_APK" \
+            "$ALIGNED_APK"
+          "$BUILD_TOOLS_DIR/apksigner" verify "$SIGNED_APK"
+
+          rm -f "$KEYSTORE_FILE"
+          echo "APK_FILE=$SIGNED_APK" >> $GITHUB_ENV
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
