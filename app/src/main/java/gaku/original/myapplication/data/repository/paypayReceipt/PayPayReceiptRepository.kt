@@ -4,6 +4,8 @@ interface PayPayReceiptConfigRepository {
     suspend fun getOCRSetting(): PayPayReceiptOCRSetting
 
     suspend fun saveOCRSetting(setting: PayPayReceiptOCRSetting)
+
+    suspend fun clearOCRSetting()
 }
 
 data class PayPayReceiptOCRSetting(

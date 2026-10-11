@@ -22,4 +22,9 @@ class FakePayPayReceiptConfigRepository : PayPayReceiptConfigRepository {
         delay(5000)
         this.setting = setting
     }
+
+    override suspend fun clearOCRSetting() {
+        delay(1000)
+        setting = PayPayReceiptOCRSetting(mask = MaskConfig.Percent())
+    }
 }
