@@ -182,7 +182,7 @@ class HomeViewModel(
         }
 
         val expenseUiList =
-            filteredExpenseList.sortedBy { it.datetime }.map { it.toUi(zoneId) }
+            filteredExpenseList.sortedByDescending { it.datetime }.map { it.toUi(zoneId) }
 
         /* calculate statistics and each day amount */
         val monthlyTotal = expenseUiList.sumOf { it.amount ?: 0L }
