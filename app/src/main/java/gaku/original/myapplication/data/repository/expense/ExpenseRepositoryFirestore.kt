@@ -44,8 +44,10 @@ class ExpenseRepositoryFirestore(
 
         val registration = firestoreQuery.addSnapshotListener { snapshots, exception ->
             if (exception != null) {
-                Timber.d("Error: $exception")
-                throw Exception(exception)
+                /* Throwing here crashes the app on the main thread. PERMISSION_DENIED arrives
+                   right after sign-out, before the ViewModel stops listening. */
+                Timber.e(exception)
+                return@addSnapshotListener
             }
 
             if (snapshots == null) {

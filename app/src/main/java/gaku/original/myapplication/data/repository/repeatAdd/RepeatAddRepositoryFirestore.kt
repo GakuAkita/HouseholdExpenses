@@ -23,7 +23,9 @@ class RepeatAddRepositoryFirestore(
         Timber.d("Start Listening to RepeatAdds")
         registration = repeatAddCollection.addSnapshotListener { snapshots, exception ->
             if (exception != null) {
-                throw Exception(exception)
+                /* Throwing here crashes the app on the main thread, e.g. PERMISSION_DENIED after sign-out. */
+                Timber.e(exception)
+                return@addSnapshotListener
             }
 
             if (snapshots == null) return@addSnapshotListener
