@@ -348,7 +348,7 @@ fun LazyExpensesColumn(
             items(uiState.shownExpenses) { expense ->
                 /* if it is today, highlight the background */
                 val isToday =
-                    expense.datetime?.atZone(uiState.zoneId)?.dayOfMonth == LocalDate.now().dayOfMonth
+                    expense.datetime?.toLocalDate() == LocalDate.now(uiState.zoneId)
                 ExpenseItem(
                     expenseUi = expense,
                     isToday = isToday,
