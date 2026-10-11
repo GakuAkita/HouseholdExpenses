@@ -28,9 +28,9 @@ Categories are assigned automatically by rules you configure.
 
 ### On-device capture
 
-- **Notification listener**: captures payment notifications from PayPay and Osaifu-Keitai (FeliCa).
 - **PayPay receipt reader**: share a PayPay receipt screenshot with the app and on-device OCR (ML Kit) reads it.
-- **Dr.Wallet import**: import expense history from a Dr.Wallet CSV export.
+- **Dr.Wallet import** *(beta, still being tested)*: import expense history from a Dr.Wallet CSV export.
+- **Notification listener** *(in development, not working yet)*: will capture payment notifications from PayPay and Osaifu-Keitai (FeliCa).
 
 ### Managing expenses
 
@@ -47,8 +47,8 @@ Categories are assigned automatically by rules you configure.
 │  Android app          │        │  Cloud Functions (Node 20)   │
 │  Kotlin + Compose     │◀──────▶│  Scheduled jobs:             │
 │  Room (offline cache) │Firebase│   - Mailbox extraction ◀─────┼── Gmail API
-│  Notification listener│        │   - Monthly Repeat Add       │
-│  ML Kit OCR           │        │   - Amazon Subscribe monitor │
+│  Receipt OCR (ML Kit) │        │   - Monthly Repeat Add       │
+│                       │        │   - Amazon Subscribe monitor │
 └───────────────────────┘        │  Gmail OAuth callback        │
                                  └──────────────────────────────┘
           Firestore (expenses) · Realtime Database (settings) · Firebase Auth
