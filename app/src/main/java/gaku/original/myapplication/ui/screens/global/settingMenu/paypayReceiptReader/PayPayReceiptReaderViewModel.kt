@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import gaku.original.myapplication.MyApplication
 import gaku.original.myapplication.data.repository.paypayReceipt.MaskConfig
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
-import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptOCRSetting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,10 +18,14 @@ import timber.log.Timber
 data class PayPayReceiptReaderUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val topPercent: Float? = null,
-    val leftPercent: Float? = null,
+    /* Size of the top-left masked area, in percent of the receipt image. null means not set. */
+    val maskWidthPercent: Float? = null,
+    val maskHeightPercent: Float? = null,
     val isLoadError: Boolean = false
-)
+) {
+    val isMaskSet: Boolean
+        get() = maskWidthPercent != null && maskHeightPercent != null
+}
 
 class PayPayReceiptReaderViewModel(
     private val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
@@ -56,10 +59,14 @@ class PayPayReceiptReaderViewModel(
                 val ocrConfig = payPayReceiptConfigRepository.getOCRSetting()
                 when (val mask = ocrConfig.mask) {
                     is MaskConfig.Percent -> {
+                        /*
+                         * The mask always starts at the top-left corner (left/top = 0),
+                         * so width/height are the values the user adjusted.
+                         */
                         _uiState.update {
                             it.copy(
-                                topPercent = mask.topPercent?.toFloat(),
-                                leftPercent = mask.leftPercent?.toFloat()
+                                maskWidthPercent = mask.widthPercent?.toFloat(),
+                                maskHeightPercent = mask.heightPercent?.toFloat()
                             )
                         }
                     }
@@ -90,23 +97,13 @@ class PayPayReceiptReaderViewModel(
                         isLoading = true
                     )
                 }
-                val setting = PayPayReceiptOCRSetting(
-                    mask = MaskConfig.Percent(
-                        widthPercent = null,
-                        heightPercent = null,
-                        topPercent = null,
-                        leftPercent = null
-                    )
-                )
-                payPayReceiptConfigRepository.saveOCRSetting(
-                    setting
-                )
+                payPayReceiptConfigRepository.clearOCRSetting()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        message = "Reset Success",
-                        topPercent = null,
-                        leftPercent = null
+                        message = "Masking setting was reset",
+                        maskWidthPercent = null,
+                        maskHeightPercent = null
                     )
                 }
             } catch (e: Exception) {

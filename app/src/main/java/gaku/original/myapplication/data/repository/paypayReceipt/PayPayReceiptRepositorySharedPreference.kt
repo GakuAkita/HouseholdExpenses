@@ -61,4 +61,11 @@ class PayPayReceiptRepositorySharedPreferences(
             }
         }
     }
+
+    override suspend fun clearOCRSetting() {
+        sharedPreferencesDataSource.remove(PrefKey.PayPayReceiptOCR.Mask.LeftStartPercent.key)
+        sharedPreferencesDataSource.remove(PrefKey.PayPayReceiptOCR.Mask.TopStartPercent.key)
+        sharedPreferencesDataSource.remove(PrefKey.PayPayReceiptOCR.Mask.WidthPercent.key)
+        sharedPreferencesDataSource.remove(PrefKey.PayPayReceiptOCR.Mask.HeightPercent.key)
+    }
 }
