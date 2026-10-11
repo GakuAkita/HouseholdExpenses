@@ -128,7 +128,9 @@ fun MainFrame(
                 )
             }
             composable<MainGraph.Bottom.Search> {
-                SearchScreenRoot()
+                SearchScreenRoot(
+                    rootNavController = rootNavController
+                )
             }
             composable<MainGraph.Bottom.Statistics> {
                 StatisticsScreenRoot()

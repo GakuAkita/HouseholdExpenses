@@ -1,77 +1,51 @@
 package gaku.original.myapplication.data.dataClass
 
+/** GeneratedType without its payload, so that it can be used as a search condition. */
+enum class GeneratedTypeKind {
+    Manual,
+    RepeatAdd,
+    MailExtraction,
+    Import,
+}
+
+fun GeneratedType.kind(): GeneratedTypeKind = when (this) {
+    GeneratedType.Manual -> GeneratedTypeKind.Manual
+    is GeneratedType.RepeatAdd -> GeneratedTypeKind.RepeatAdd
+    is GeneratedType.MailExtraction -> GeneratedTypeKind.MailExtraction
+    is GeneratedType.Import -> GeneratedTypeKind.Import
+}
+
 /**
- * Expenseの検索フィルター条件を表すデータクラス
+ * Conditions for searching expenses. An empty condition is not applied.
+ * Conditions are combined with AND, values inside one condition with OR.
  */
 data class ExpenseSearchFilter(
-    // GeneratedTypeでフィルタリング（nullの場合はフィルターしない）
-    val generatedTypes: List<String>? = null,
-    
-    // Categoryでフィルタリング（nullの場合はフィルターしない）
-    // categoryIdのリスト。空のリストの場合はcategoryがnullのものを検索
-    val categoryIds: List<String?>? = null,
-    
-    // 日付範囲でフィルタリング（ISO 8601形式の文字列）
-    val dateFrom: String? = null,
-    val dateTo: String? = null,
-    
-    // 金額範囲でフィルタリング
-    val amountMin: Long? = null,
-    val amountMax: Long? = null,
-    
-    // ストア名で検索（部分一致）
-    val storeName: String? = null,
-    
-    // アイテム名で検索（部分一致）
-    val itemName: String? = null,
-    
-    // メモで検索（部分一致）
-    val note: String? = null,
+    /* Partial match against storeName, itemName and note, ignoring case. */
+    val keyword: String = "",
+    /* A null element matches expenses without a category. */
+    val categoryIds: Set<String?> = emptySet(),
+    val generatedTypes: Set<GeneratedTypeKind> = emptySet(),
 ) {
-    /**
-     * フィルターが空（すべての条件がnull）かどうかを判定
-     */
-    fun isEmpty(): Boolean {
-        return generatedTypes == null &&
-                categoryIds == null &&
-                dateFrom == null &&
-                dateTo == null &&
-                amountMin == null &&
-                amountMax == null &&
-                storeName == null &&
-                itemName == null &&
-                note == null
+    fun matches(expense: Expense): Boolean {
+        val trimmedKeyword = keyword.trim()
+        if (trimmedKeyword.isNotEmpty()) {
+            val hit = listOfNotNull(expense.storeName, expense.itemName, expense.note)
+                .any { it.contains(trimmedKeyword, ignoreCase = true) }
+            if (!hit) return false
+        }
+
+        if (categoryIds.isNotEmpty() && expense.category?.id !in categoryIds) return false
+
+        if (generatedTypes.isNotEmpty() && expense.generatedType.kind() !in generatedTypes) return false
+
+        return true
     }
-    
-    /**
-     * アクティブなフィルター条件の数を返す
-     */
-    fun activeFilterCount(): Int {
-        var count = 0
-        if (generatedTypes != null) count++
-        if (categoryIds != null) count++
-        if (dateFrom != null || dateTo != null) count++
-        if (amountMin != null || amountMax != null) count++
-        if (storeName != null) count++
-        if (itemName != null) count++
-        if (note != null) count++
-        return count
+
+    fun isEmpty(): Boolean =
+        keyword.isBlank() && categoryIds.isEmpty() && generatedTypes.isEmpty()
+
+    companion object {
+        /* Finding expenses that still need a category is the most common search. */
+        val Uncategorized = ExpenseSearchFilter(categoryIds = setOf(null))
     }
 }
-
-/**
- * デフォルトのフィルター（カテゴリーがnullのもの）
- */
-fun getDefaultSearchFilter(): ExpenseSearchFilter {
-    return ExpenseSearchFilter(
-        categoryIds = listOf(null) // categoryがnullのものだけ
-    )
-}
-
-/**
- * 空のフィルター（すべてのExpenseを取得）
- */
-fun getEmptySearchFilter(): ExpenseSearchFilter {
-    return ExpenseSearchFilter()
-}
-
