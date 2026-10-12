@@ -39,6 +39,7 @@ import gaku.original.myapplication.ui.navigation.navigateToBottom
 import gaku.original.myapplication.ui.screens.bottom.home.HomeScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.home.HomeViewModel
 import gaku.original.myapplication.ui.screens.bottom.search.SearchScreenRoot
+import gaku.original.myapplication.ui.screens.bottom.search.SearchViewModel
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingViewModel
 import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsScreenRoot
@@ -123,9 +124,17 @@ fun MainFrame(
                         viewModel = viewModel
                     )
                 }
-                composable<MainGraph.Bottom.Search> {
+                composable<MainGraph.Bottom.Search> { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        rootNavController.getBackStackEntry(MainGraph)
+                    }
+                    val viewModel = viewModel<SearchViewModel>(
+                        viewModelStoreOwner = parentEntry,
+                        factory = SearchViewModel.Factory
+                    )
                     SearchScreenRoot(
-                        rootNavController = rootNavController
+                        rootNavController = rootNavController,
+                        viewModel = viewModel
                     )
                 }
                 composable<MainGraph.Bottom.Statistics> { backStackEntry ->
