@@ -23,6 +23,28 @@ jobs:
           google_services_json: ${{ secrets.GOOGLE_SERVICES_JSON }}
           firebase_json: ${{ secrets.FIREBASE_JSON }}
 
+      - name: Create local.properties
+        run: |
+          echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" >> ./local.properties
+          echo "REDIRECT_URI=${{ secrets.REDIRECT_URI }}" >> ./local.properties
+          echo "USE_FIREBASE_EMULATOR=false" >> ./local.properties
+
+      # Run unit tests before tagging and building, so a failing test stops
+      # the workflow without creating a new version tag
+      - name: Run Unit Tests
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          ./gradlew testDebugUnitTest
+
+      - name: Upload Test Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: app/build/reports/tests/
+          retention-days: 7
+
       - name: Get latest tag and determine version
         id: version
         shell: bash
@@ -84,17 +106,9 @@ jobs:
           git tag "${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
 
-      - name: Create local.properties
-        run: |
-          echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" >> ./local.properties
-          echo "REDIRECT_URI=${{ secrets.REDIRECT_URI }}" >> ./local.properties
-          echo "USE_FIREBASE_EMULATOR=false" >> ./local.properties
-
       - name: Build With Gradle
         shell: bash
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleRelease
+        run: ./gradlew assembleRelease
 
       # r0adkll/sign-android-release uses the deprecated set-output command,
       # so sign directly with the SDK zipalign / apksigner instead
