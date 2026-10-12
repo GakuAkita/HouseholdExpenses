@@ -12,3 +12,19 @@ Integration tests create a random user (`integration-<uuid>`) per test file and 
 so they don't touch other data in the emulator. Secret Manager is never called: tests use a fake secret provider.
 
 Mail fixtures in `fixtures/mail` are synthetic. See `fixtures/mail/README.md`.
+
+## Trying the mail jobs on your real Gmail
+
+`npm run gmail:dryrun -- <job>` runs one mail job's Gmail query on your real Gmail and shows what
+each mail would turn into, without saving anything. It uses the same credentials as `test:live`.
+
+```
+npm run gmail:dryrun -- list                                  the jobs
+npm run gmail:dryrun -- amazon_subscribe_monitor --days 60    one job, last 60 days (default 30)
+npm run gmail:dryrun -- all --text                            every job, with the text each parser receives
+npm run gmail:dryrun -- query "from:no-reply@amazon.co.jp"    any Gmail query
+```
+
+The real jobs search from their last run instead of a fixed number of days. The `amazon_subscribe`
+job saves only products in your subscribe list. The dry run doesn't load that list, so it shows
+every dispatched product.

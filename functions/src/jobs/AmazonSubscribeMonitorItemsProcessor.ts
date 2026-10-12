@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions";
+import { gmail_v1 } from "googleapis";
 import { findAmazonSubscribeItemId } from "../domain/amazonSubscribe";
 import { createUserGmailClient } from "../infra/gmail/createUserGmailClient";
 import { extractHtmlBody, extractTextBody, getSubjectFromMessage } from "../infra/gmail/extractHtmlBody";
@@ -98,52 +99,27 @@ export class AmazonSubscribeMonitorItemsProcessor {
 
   /** Applies one mail to the list and returns the updated list. */
   private async applyMail(
-    gmail: Parameters<typeof getSubjectFromMessage>[0],
+    gmail: gmail_v1.Schema$Message,
     subscribeItems: SubscribeItems
   ): Promise<SubscribeItems> {
-    const subject = getSubjectFromMessage(gmail);
-
-    if (subject == AmazonMailSubjects.NEXT_SHIPMENT || subject == AmazonMailSubjects.PRICE_CHANGED) {
-      /**
-       * 普通にplain textで取得すると、価格の情報が抜けてしまうので
-       * HTMLを削除してテキストを取得してから解析する
-       * (価格が変わった場合のメールも同じ正規表現で行ける)
-       */
-      const htmlStrippedText = extractHtmlBody(gmail.payload, true);
-      if (!htmlStrippedText) {
-        throw new Error("Unable to extract HTML stripped Text from the mail");
-      }
-      const items = new AmazonSubscribeNextShipmentMailParser(htmlStrippedText).toSubscribeItem();
-      for (const item of items) {
-        logger.log(`Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`);
-        try {
-          subscribeItems = await this.addOrUpdateItem(item, subscribeItems);
-        } catch (error) {
-          logger.error(`Failed to update ${item.productName}: ${messageOf(error)}`);
+    const action = readSubscribeMail(gmail);
+    switch (action.kind) {
+      case "upsert":
+        for (const item of action.items) {
+          logger.log(`Extracted Item: productName=${item.productName} price=${item.price} quantity=${item.quantity}`);
+          try {
+            subscribeItems = await this.addOrUpdateItem(item, subscribeItems);
+          } catch (error) {
+            logger.error(`Failed to update ${item.productName}: ${messageOf(error)}`);
+          }
         }
-      }
-      return subscribeItems;
+        return subscribeItems;
+      case "remove":
+        return this.removeItem({ productName: action.productName }, subscribeItems);
+      case "ignore":
+        logger.log(action.reason);
+        return subscribeItems;
     }
-
-    if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
-      logger.log(`Item runout mail. I might handle this type of email in the future, but I ignore this so far.`);
-      return subscribeItems;
-    }
-
-    if (subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)) {
-      const rawText = extractTextBody(gmail.payload);
-      if (!rawText) {
-        throw new Error("Unable to extract Text from the mail");
-      }
-      const productName = new AmazonSubscribeCancelParser(rawText).extractProductName();
-      if (!productName) {
-        throw new Error(`Unable to parser from Cancel Subscription Mail!!`);
-      }
-      return this.removeItem({ productName }, subscribeItems);
-    }
-
-    logger.log(`This is unknown subject:${subject}`);
-    return subscribeItems;
   }
 
   /** Adds the item, or updates the registered one when its price or quantity changed or it was disabled. */
@@ -190,4 +166,49 @@ export class AmazonSubscribeMonitorItemsProcessor {
     const { [id]: _removed, ...rest } = itemMap;
     return rest;
   }
+}
+
+/** What one subscription mail does to the subscribe list. */
+export type SubscribeMailAction =
+  | { kind: "upsert"; items: AmazonSubscribeItem[] }
+  | { kind: "remove"; productName: string }
+  | { kind: "ignore"; reason: string };
+
+/** Reads one subscription mail without touching the list. Throws when the mail can't be read. */
+export function readSubscribeMail(gmail: gmail_v1.Schema$Message): SubscribeMailAction {
+  const subject = getSubjectFromMessage(gmail);
+
+  if (subject == AmazonMailSubjects.NEXT_SHIPMENT || subject == AmazonMailSubjects.PRICE_CHANGED) {
+    /**
+     * 普通にplain textで取得すると、価格の情報が抜けてしまうので
+     * HTMLを削除してテキストを取得してから解析する
+     * (価格が変わった場合のメールも同じ正規表現で行ける)
+     */
+    const htmlStrippedText = extractHtmlBody(gmail.payload, true);
+    if (!htmlStrippedText) {
+      throw new Error("Unable to extract HTML stripped Text from the mail");
+    }
+    return { kind: "upsert", items: new AmazonSubscribeNextShipmentMailParser(htmlStrippedText).toSubscribeItem() };
+  }
+
+  if (subject == AmazonMailSubjects.ITEM_RUNOUT) {
+    return {
+      kind: "ignore",
+      reason: `Item runout mail. I might handle this type of email in the future, but I ignore this so far.`,
+    };
+  }
+
+  if (subject?.includes(AmazonMailSubjects.CANCELED_SUBSCRIPTION)) {
+    const rawText = extractTextBody(gmail.payload);
+    if (!rawText) {
+      throw new Error("Unable to extract Text from the mail");
+    }
+    const productName = new AmazonSubscribeCancelParser(rawText).extractProductName();
+    if (!productName) {
+      throw new Error(`Unable to parser from Cancel Subscription Mail!!`);
+    }
+    return { kind: "remove", productName };
+  }
+
+  return { kind: "ignore", reason: `This is unknown subject:${subject}` };
 }
