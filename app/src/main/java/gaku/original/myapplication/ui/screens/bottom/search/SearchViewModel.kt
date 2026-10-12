@@ -17,6 +17,7 @@ import gaku.original.myapplication.data.repository.appTimeZone.toInstant
 import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.expense.ExpenseQuery
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.YearMonth
-import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * How far back to search. Firestore cannot do partial matches or combine
@@ -66,7 +67,7 @@ class SearchViewModel(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState get() = _uiState.asStateFlow()
 
-    private var subscriptionId: String? = null
+    private var fetchJob: Job? = null
     private var cachedExpenses = emptyMap<String, Expense>()
 
     companion object {
@@ -89,16 +90,6 @@ class SearchViewModel(
         refreshExpenses(_uiState.value.period)
 
         viewModelScope.launch {
-            expenseRepository.expenses.collect { allExpenses ->
-                val expenses = allExpenses[subscriptionId]
-                /* No entry yet means the first snapshot has not arrived. */
-                _uiState.update { it.copy(isLoading = expenses == null) }
-                cachedExpenses = expenses ?: emptyMap()
-                rebuildResults()
-            }
-        }
-
-        viewModelScope.launch {
             try {
                 categoryRepository.categories.collect { categories ->
                     _uiState.update {
@@ -116,6 +107,11 @@ class SearchViewModel(
                 rebuildResults()
             }
         }
+    }
+
+    /* Expenses are read once per request, not listened to. Changes made elsewhere appear after a refresh. */
+    fun onRefresh() {
+        refreshExpenses(_uiState.value.period)
     }
 
     fun onKeywordChanged(keyword: String) {
@@ -137,6 +133,15 @@ class SearchViewModel(
 
     fun onPeriodSelected(period: SearchPeriod) {
         if (period == _uiState.value.period) return
+        if (period != SearchPeriod.ThreeMonths) {
+            _uiState.update {
+                it.copy(
+                    message = "Not supported because of the free plan."
+                )
+            }
+            return
+        }
+
         _uiState.update { it.copy(period = period) }
         refreshExpenses(period)
     }
@@ -198,22 +203,27 @@ class SearchViewModel(
         val query = ExpenseQuery(datetimeFromOrEqual = from)
 
         Timber.d("Refresh Expenses: period=$period from=$from")
-        subscriptionId?.let { expenseRepository.stopListening(it) }
-        cachedExpenses = emptyMap()
+        /* Only the latest request may set the results. */
+        fetchJob?.cancel()
         _uiState.update { it.copy(isLoading = true) }
 
-        try {
-            subscriptionId = UUID.randomUUID().toString()
-            expenseRepository.startListening(subscriptionId!!, query)
-        } catch (e: Exception) {
-            _uiState.update { it.copy(isLoading = false, message = e.message) }
+        fetchJob = viewModelScope.launch {
+            try {
+                cachedExpenses = expenseRepository.getExpenses(query).associateBy { it.id }
+                _uiState.update { it.copy(isLoading = false) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e)
+                cachedExpenses = emptyMap()
+                _uiState.update { it.copy(isLoading = false, message = "Failed to fetch expenses.:${e.message}") }
+            }
+            rebuildResults()
         }
-        rebuildResults()
     }
 
     override fun onCleared() {
         Timber.d("onCleared called. ${hashCode()}")
-        subscriptionId?.let { expenseRepository.stopListening(it) }
         super.onCleared()
     }
 }
