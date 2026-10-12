@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import kotlin.coroutines.cancellation.CancellationException
 
 data class StatisticsUiState(
@@ -31,6 +32,8 @@ data class StatisticsUiState(
     /* null until the months it needs are read. */
     val summary: MonthSummary? = null,
     val trend: CategoryTrend? = null,
+    /* The app time zone, which expense dates are shown in. */
+    val zoneId: ZoneId = ZoneId.systemDefault(),
 )
 
 class StatisticsViewModel(
@@ -165,7 +168,7 @@ class StatisticsViewModel(
         )
         val trend = StatisticsCalculator.trend(months, expensesByMonth, categoryNames)
 
-        _uiState.update { it.copy(summary = summary, trend = trend) }
+        _uiState.update { it.copy(summary = summary, trend = trend, zoneId = zoneId) }
     }
 
     override fun onCleared() {

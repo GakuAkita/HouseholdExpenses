@@ -13,6 +13,8 @@ data class CategoryShare(
     /* 0.0 to 1.0 of the month's total. */
     val ratio: Float,
     val count: Int,
+    /* The category's largest expenses, at most StatisticsCalculator.TOP_EXPENSES, largest first. */
+    val topExpenses: List<Expense>,
 )
 
 data class MonthSummary(
@@ -51,6 +53,8 @@ object StatisticsCalculator {
     /* More lines than this cannot be told apart by color, so the rest are added up as "Other". */
     const val MAX_TREND_CATEGORIES = 5
 
+    const val TOP_EXPENSES = 3
+
     const val UNCATEGORIZED_NAME = "Uncategorized"
     const val OTHER_NAME = "Other"
 
@@ -85,6 +89,10 @@ object StatisticsCalculator {
                     amount = amount,
                     ratio = if (total > 0) amount.toFloat() / total else 0f,
                     count = categoryExpenses.size,
+                    /* Among equal amounts the older comes first, so the order is the same on every read. */
+                    topExpenses = categoryExpenses
+                        .sortedWith(compareByDescending<Expense> { it.amount }.thenBy { it.datetime })
+                        .take(TOP_EXPENSES),
                 )
             }
             .sortedWith(compareByDescending<CategoryShare> { it.amount }.thenBy { it.name })

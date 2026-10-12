@@ -1,5 +1,6 @@
 package gaku.original.myapplication.ui.navigation
 
+import androidx.compose.runtime.remember
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
@@ -13,6 +14,8 @@ import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
+import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsCategoryDialogRoot
+import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsViewModel
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.CategoryAssignmentScreenRoot
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditDialogRoot
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditViewModel
@@ -81,6 +84,17 @@ fun NavGraphBuilder.mainGraph(
                 backStackEntry.toRoute<MainGraph.Global.ICategoryAssignment.EditDialog>().assignment
             CategoryAssignmentEditDialogRoot(
                 viewModel = viewModel(factory = CategoryAssignmentEditViewModel.Factory(assignment)),
+                navHostController = navController
+            )
+        }
+
+        dialog<MainGraph.Global.StatisticsCategoryDialog> { backStackEntry ->
+            val categoryId = backStackEntry.toRoute<MainGraph.Global.StatisticsCategoryDialog>().categoryId
+            /* The same StatisticsViewModel as the Statistics screen, which is kept in the MainGraph entry. */
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(MainGraph) }
+            StatisticsCategoryDialogRoot(
+                categoryId = categoryId,
+                viewModel = viewModel(viewModelStoreOwner = parentEntry, factory = StatisticsViewModel.Factory),
                 navHostController = navController
             )
         }
