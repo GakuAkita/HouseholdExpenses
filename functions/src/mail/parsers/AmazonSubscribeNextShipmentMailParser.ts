@@ -1,9 +1,13 @@
 import { logger } from "firebase-functions";
-import { MailParseError } from "./MailParserBase";
 import { AmazonSubscribeItem } from "../../type/Mailbox";
+import { MailParseError } from "./MailParserBase";
 
+/**
+ * Amazonの定期便の初回は普通にAmazonItemの方で追加される。一度届く。
+ * 2回目以降に、"次回の配達をご確認ください"系のメールが届くので、そこで初めて登録する。でないと、最初の購入の時点と含めてダブルで検知してしまう可能性があるため。
+ */
 export class AmazonSubscribeNextShipmentMailParser {
-  constructor(private rawText: string) { }
+  constructor(private rawText: string) {}
 
   /**
     ..様、こんにちは
@@ -90,7 +94,10 @@ export class AmazonSubscribeNextShipmentMailParser {
               foundPrice = parseInt(priceMatch[1].replace(/,/g, ""), 10);
               // 「新価格」が後にある可能性があるので、もう少し探索を続ける
               // ただし、次の製品名や「配送を管理」などのキーワードが出たら終了
-              if (j + 1 < lines.length && !/配送を管理|この配達に含まれる/.test(lines[j + 1].trim())) {
+              if (
+                j + 1 < lines.length &&
+                !/配送を管理|この配達に含まれる/.test(lines[j + 1].trim())
+              ) {
                 continue;
               }
               break;
@@ -124,21 +131,25 @@ export class AmazonSubscribeNextShipmentMailParser {
     const quantities = this.extractQuantity();
 
     if (productNames.length === 0) {
-      throw new MailParseError(`ProductNames:${productNames.length} are invalid.`);
+      throw new MailParseError(
+        `ProductNames:${productNames.length} are invalid.`,
+      );
     }
 
     // 製品名と数量、価格の数が一致しない場合は、デフォルト値を使う
-    const items: AmazonSubscribeItem[] = productNames.map((productName, index) => {
-      const quantity = quantities[index] ?? 1;
-      const price = prices[index];
-      // 価格が取得できない場合は1を設定
-      const finalPrice = price !== null && price !== undefined ? price : 1;
-      return {
-        productName: productName,
-        price: finalPrice,
-        quantity: quantity,
-      };
-    });
+    const items: AmazonSubscribeItem[] = productNames.map(
+      (productName, index) => {
+        const quantity = quantities[index] ?? 1;
+        const price = prices[index];
+        // 価格が取得できない場合は1を設定
+        const finalPrice = price !== null && price !== undefined ? price : 1;
+        return {
+          productName: productName,
+          price: finalPrice,
+          quantity: quantity,
+        };
+      },
+    );
 
     return items;
   }
