@@ -1,7 +1,9 @@
 package gaku.original.myapplication.ui.screens.bottom.statistics
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +25,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingFlat
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,12 +65,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
+import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.data.dataClass.Expense
 import gaku.original.myapplication.ui.common.EmptyState
 import gaku.original.myapplication.ui.common.LoadingBox
 import gaku.original.myapplication.ui.common.SectionHeader
 import gaku.original.myapplication.ui.common.toCompactYen
 import gaku.original.myapplication.ui.common.toYen
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.abs
@@ -77,6 +86,7 @@ import kotlin.math.roundToInt
 
 private val monthTitleFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 private val monthAxisFormatter = DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH)
+private val expenseDateFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH)
 
 /*
  * Category colors, in this fixed order. Checked for color vision deficiency against the app's light and dark
@@ -129,6 +139,10 @@ fun StatisticsScreenRoot(
         onPreviousMonth = viewModel::onPreviousMonth,
         onNextMonth = viewModel::onNextMonth,
         onRefresh = viewModel::onRefresh,
+        /* Statistics are not updated in real time, so an edit shows after a pull to refresh. */
+        onExpenseClick = {
+            rootNavController.navigate(MainGraph.Global.ExpenseAddEdit(ExpenseAddEditMode.Edit(it)))
+        },
     )
 }
 
@@ -139,6 +153,7 @@ fun StatisticsScreen(
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onRefresh: () -> Unit,
+    onExpenseClick: (Expense) -> Unit,
 ) {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val colors = remember(uiState.trend, isDark) {
@@ -187,7 +202,12 @@ fun StatisticsScreen(
                 SectionHeader(text = "Breakdown by category", modifier = Modifier.padding(top = 8.dp))
             }
             item {
-                BreakdownCard(summary = summary, colors = colors)
+                BreakdownCard(
+                    summary = summary,
+                    colors = colors,
+                    zoneId = uiState.zoneId,
+                    onExpenseClick = onExpenseClick,
+                )
             }
 
             item {
@@ -339,7 +359,12 @@ private fun StatItem(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun BreakdownCard(summary: MonthSummary, colors: CategoryColors) {
+private fun BreakdownCard(
+    summary: MonthSummary,
+    colors: CategoryColors,
+    zoneId: ZoneId,
+    onExpenseClick: (Expense) -> Unit,
+) {
     StatisticsCard {
         if (summary.shares.none { it.amount > 0 }) {
             Text(
@@ -352,9 +377,27 @@ private fun BreakdownCard(summary: MonthSummary, colors: CategoryColors) {
 
         ShareBar(shares = summary.shares, colors = colors)
 
+        /* Tap a category to show its largest expenses. Several can be open at once. */
+        var expandedIds by remember(summary.month) { mutableStateOf(setOf<String?>()) }
+
         Column {
             summary.shares.forEach { share ->
-                ShareRow(share = share, color = colors.of(share.categoryId))
+                val isExpanded = share.categoryId in expandedIds
+                ShareRow(
+                    share = share,
+                    color = colors.of(share.categoryId),
+                    isExpanded = isExpanded,
+                    onClick = {
+                        expandedIds = if (isExpanded) expandedIds - share.categoryId else expandedIds + share.categoryId
+                    },
+                )
+                AnimatedVisibility(visible = isExpanded) {
+                    TopExpenses(
+                        share = share,
+                        zoneId = zoneId,
+                        onExpenseClick = onExpenseClick,
+                    )
+                }
             }
         }
     }
@@ -389,10 +432,12 @@ private fun ShareBar(shares: List<CategoryShare>, colors: CategoryColors) {
 }
 
 @Composable
-private fun ShareRow(share: CategoryShare, color: Color) {
+private fun ShareRow(share: CategoryShare, color: Color, isExpanded: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onClick)
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -429,6 +474,77 @@ private fun ShareRow(share: CategoryShare, color: Color) {
             textAlign = TextAlign.End,
             modifier = Modifier.width(96.dp)
         )
+        Icon(
+            imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+            contentDescription = if (isExpanded) "Hide largest expenses" else "Show largest expenses",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+/** The category's largest expenses. Tap one to edit it. */
+@Composable
+private fun TopExpenses(share: CategoryShare, zoneId: ZoneId, onExpenseClick: (Expense) -> Unit) {
+    Column(
+        /* Lined up with the category name, after the color dot. */
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, bottom = 6.dp)
+    ) {
+        Text(
+            text = if (share.count > share.topExpenses.size) {
+                "Largest ${share.topExpenses.size} of ${share.count}"
+            } else {
+                "All expenses, largest first"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 2.dp)
+        )
+        share.topExpenses.forEach { expense ->
+            TopExpenseRow(expense = expense, zoneId = zoneId, onClick = { onExpenseClick(expense) })
+        }
+    }
+}
+
+@Composable
+private fun TopExpenseRow(expense: Expense, zoneId: ZoneId, onClick: () -> Unit) {
+    val description = listOfNotNull(expense.storeName, expense.itemName, expense.note)
+        .filter { it.isNotBlank() }
+        .joinToString(" / ")
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = expense.datetime.atZone(zoneId).format(expenseDateFormatter),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(44.dp)
+        )
+        Text(
+            text = description.ifEmpty { "No details" },
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (description.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant
+            else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = expense.amount.toYen(),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.End
+        )
+        /* Keeps the amounts lined up with the category amounts above. */
+        Spacer(modifier = Modifier.width(20.dp))
     }
 }
 
@@ -632,12 +748,12 @@ fun StatisticsScreenPreview() {
             previousTotal = 171_000,
             dailyAverage = 15_200,
             shares = listOf(
-                CategoryShare("food", "Food", 72_000, 0.395f, 30),
-                CategoryShare("home", "Rent", 60_000, 0.329f, 1),
-                CategoryShare("util", "Utilities", 21_400, 0.117f, 3),
-                CategoryShare("book", "Books", 14_000, 0.077f, 9),
-                CategoryShare("hobby", "Hobby", 9_000, 0.049f, 6),
-                CategoryShare(null, "Uncategorized", 6_000, 0.033f, 15),
+                CategoryShare("food", "Food", 72_000, 0.395f, 30, emptyList()),
+                CategoryShare("home", "Rent", 60_000, 0.329f, 1, emptyList()),
+                CategoryShare("util", "Utilities", 21_400, 0.117f, 3, emptyList()),
+                CategoryShare("book", "Books", 14_000, 0.077f, 9, emptyList()),
+                CategoryShare("hobby", "Hobby", 9_000, 0.049f, 6, emptyList()),
+                CategoryShare(null, "Uncategorized", 6_000, 0.033f, 15, emptyList()),
             )
         ),
         trend = CategoryTrend(
@@ -651,5 +767,5 @@ fun StatisticsScreenPreview() {
             )
         )
     )
-    StatisticsScreen(uiState = uiState, onPreviousMonth = {}, onNextMonth = {}, onRefresh = {})
+    StatisticsScreen(uiState = uiState, onPreviousMonth = {}, onNextMonth = {}, onRefresh = {}, onExpenseClick = {})
 }

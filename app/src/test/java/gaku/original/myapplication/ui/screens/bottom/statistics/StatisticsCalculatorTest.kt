@@ -90,6 +90,22 @@ class StatisticsCalculatorTest {
     }
 
     @Test
+    fun summarize_topExpensesAreTheLargestThreeOfTheCategory_olderFirstAmongEqualAmounts() {
+        val small = expense(amount = 100, category = food)
+        val large = expense(amount = 5_000, category = food)
+        val newerTie = expense(amount = 2_000, category = food, datetime = "2026-10-20T00:00:00Z")
+        val olderTie = expense(amount = 2_000, category = food, datetime = "2026-10-03T00:00:00Z")
+        val rentOnly = expense(amount = 20_000, category = rent)
+
+        val summary = StatisticsCalculator.summarize(
+            october, listOf(small, newerTie, large, rentOnly, olderTie), emptyList(), emptyMap(), pastDay
+        )
+
+        assertEquals(listOf(rentOnly), summary.shares[0].topExpenses)
+        assertEquals(listOf(large, olderTie, newerTie), summary.shares[1].topExpenses)
+    }
+
+    @Test
     fun summarize_emptyMonth() {
         val summary = StatisticsCalculator.summarize(october, emptyList(), emptyList(), emptyMap(), pastDay)
 
