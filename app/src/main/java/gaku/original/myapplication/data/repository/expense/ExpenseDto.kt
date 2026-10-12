@@ -6,6 +6,8 @@ import gaku.original.myapplication.data.dataClass.toGeneratedType
 import gaku.original.myapplication.data.repository.category.CategoryDto
 import gaku.original.myapplication.data.repository.category.toDto
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 /**
  * The shape of an expense as stored in a database. Only the repositories use this class.
@@ -58,7 +60,7 @@ fun ExpenseTemplate.toDto(): ExpenseDto = ExpenseDto(
 fun Expense.toDto(): ExpenseDto = ExpenseDto(
     id = id,
     timestamp = timestamp,
-    datetime = datetime.toString(),
+    datetime = datetime.toDatetimeString(),
     amount = amount,
     category = category?.toDto(),
     note = note,
@@ -66,3 +68,14 @@ fun Expense.toDto(): ExpenseDto = ExpenseDto(
     itemName = itemName,
     generatedType = generatedType.toSerialized()
 )
+
+/* Same format as JavaScript toISOString(), which Cloud Functions use, e.g. "2026-09-30T15:00:00.000Z". */
+private val DATETIME_FORMATTER: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
+
+/**
+ * The string stored in ExpenseDto.datetime. Queries compare datetime as a string, so every writer must use this
+ * fixed format. Instant.toString() leaves out zero milliseconds, and "...00Z" sorts after "...00.000Z".
+ * Sub-millisecond precision is dropped.
+ */
+fun Instant.toDatetimeString(): String = DATETIME_FORMATTER.format(this)

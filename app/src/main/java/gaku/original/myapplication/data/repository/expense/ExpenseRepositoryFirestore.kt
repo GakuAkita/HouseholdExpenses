@@ -26,23 +26,7 @@ class ExpenseRepositoryFirestore(
     override fun startListening(subscriptionId: String, query: ExpenseQuery) {
         // すでにリスナーがある場合は何もしない（あるいは再起動するかは要件次第だが、一旦重複回避）
         if (listeners.containsKey(subscriptionId)) return
-        var firestoreQuery: Query = expenseCollection
-
-        query.datetimeFromOrEqual?.let {
-            Timber.d("datetimeFromOrEqual=$it")
-            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo(
-                "datetime", it.toString()
-            )
-        }
-
-        query.datetimeTo?.let {
-            Timber.d("datetimeTo=$it")
-            firestoreQuery = firestoreQuery.whereLessThan(
-                "datetime", it.toString()
-            )
-        }
-
-        val registration = firestoreQuery.addSnapshotListener { snapshots, exception ->
+        val registration = buildQuery(query).addSnapshotListener { snapshots, exception ->
             if (exception != null) {
                 /* Throwing here crashes the app on the main thread. PERMISSION_DENIED arrives
                    right after sign-out, before the ViewModel stops listening. */
@@ -81,6 +65,27 @@ class ExpenseRepositoryFirestore(
         }
         Timber.d("Start listening to $subscriptionId")
         listeners[subscriptionId] = registration
+    }
+
+    override suspend fun getExpenses(query: ExpenseQuery): List<Expense> =
+        buildQuery(query).get().await()
+            .documents
+            .mapNotNull { it.toObject(ExpenseDto::class.java)?.toDomain() }
+
+    private fun buildQuery(query: ExpenseQuery): Query {
+        var firestoreQuery: Query = expenseCollection
+
+        query.datetimeFromOrEqual?.let {
+            Timber.d("datetimeFromOrEqual=$it")
+            firestoreQuery = firestoreQuery.whereGreaterThanOrEqualTo("datetime", it.toDatetimeString())
+        }
+
+        query.datetimeTo?.let {
+            Timber.d("datetimeTo=$it")
+            firestoreQuery = firestoreQuery.whereLessThan("datetime", it.toDatetimeString())
+        }
+
+        return firestoreQuery
     }
 
     override fun stopListening(subscriptionId: String) {

@@ -26,6 +26,12 @@ class FakeExpenseRepository : ExpenseRepository {
         _expenses.value = _expenses.value + (subscriptionId to sampleExpenses)
     }
 
+    override suspend fun getExpenses(query: ExpenseQuery): List<Expense> =
+        sampleExpenses.values.filter { expense ->
+            (query.datetimeFromOrEqual == null || expense.datetime >= query.datetimeFromOrEqual) &&
+                (query.datetimeTo == null || expense.datetime < query.datetimeTo)
+        }
+
     override fun stopListening(subscriptionId: String) {
         _expenses.value = _expenses.value - subscriptionId
     }
