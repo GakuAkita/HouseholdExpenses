@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { AmazonItemDispatchedMailParser } from "../../src/mail/parsers/AmazonItemDispatchedMailParser";
 import { AmazonItemMailParser } from "../../src/mail/parsers/AmazonItemMailParser";
 import { AmazonKindleMailParser } from "../../src/mail/parsers/AmazonKindleMailParser";
+import { AmazonSubscribeNextShipmentMailParser } from "../../src/mail/parsers/AmazonSubscribeNextShipmentMailParser";
+import { stripHtmlTags } from "../../src/infra/gmail/extractHtmlBody";
 import { RakutenCardETCParser } from "../../src/mail/parsers/RakutenCardETCParser";
 import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParser";
 import { ShikokuElectricPowerMailParser } from "../../src/mail/parsers/ShikokuElectricPowerMailParser";
@@ -136,5 +138,38 @@ describe("RakutenCardETCParser", () => {
 
   it("fails without ETC blocks", () => {
     expect(() => new RakutenCardETCParser("楽天カードご利用のお知らせ").toExpenses()).toThrow(MailParseError);
+  });
+});
+
+describe("AmazonSubscribeNextShipmentMailParser", () => {
+  /* The job reads the HTML part with the tags removed. Kept with the fixture's line endings (CRLF, like real mails) and with LF. */
+  const html = readFileSync(join(__dirname, "../fixtures/mail", "amazon_subscribe_price_changed.html"), "utf8");
+
+  it.each([
+    ["CRLF", html],
+    ["LF", html.replace(/\r\n/g, "\n")],
+  ])("reads the new price and the quantity of each item when lines are separated by blank lines (%s)", (_, mail) => {
+    expect(new AmazonSubscribeNextShipmentMailParser(stripHtmlTags(mail)).toSubscribeItem()).toEqual([
+      { productName: "サンプル 天然水 ラベルレス 500ml ×24本", price: 1401, quantity: 1 },
+      { productName: "サンプル キッチンスポンジ 抗菌 グリーン", price: 2830, quantity: 12 },
+    ]);
+  });
+
+  it("reads the price without 新価格", () => {
+    const text = stripHtmlTags(readFileSync(join(__dirname, "../fixtures/mail", "amazon_subscribe_next_shipment.html"), "utf8"));
+    expect(new AmazonSubscribeNextShipmentMailParser(text).toSubscribeItem()).toEqual([
+      { productName: "by Amazon 天然水 ラベルレス 500ml ×24本 富士山の天然水 バナジウム含有 水", price: 1126, quantity: 1 },
+    ]);
+  });
+
+  it("uses 1 as the price when the item has none", () => {
+    const text = "商品A\n\n2 ごとのユニット 1 月\n\n配送を管理する";
+    expect(new AmazonSubscribeNextShipmentMailParser(text).toSubscribeItem()).toEqual([
+      { productName: "商品A", price: 1, quantity: 2 },
+    ]);
+  });
+
+  it("fails when the mail has no items", () => {
+    expect(() => new AmazonSubscribeNextShipmentMailParser("注文合計 (税込) ￥1,189").toSubscribeItem()).toThrow(MailParseError);
   });
 });

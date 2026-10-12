@@ -65,64 +65,74 @@ export class AmazonSubscribeNextShipmentMailParser {
     return productNames;
   }
 
+  /**
+   * One price per item, or null when the item has none.
+   * The text from the HTML mail has a blank line between lines, so blank lines are skipped:
+   *
+   *   1 ごとのユニット 2 週
+   *   前回の購入価格: ￥1,245      (price-change mails only)
+   *   (5% 割引)
+   *   新価格: ￥1,401
+   *   (5% 割引)
+   *
+   * 「新価格」 wins. Otherwise the first ￥ amount that isn't the previous price or a discount.
+   */
   extractPrice(): (number | null)[] {
-    const lines = this.rawText.split(/\r?\n/);
-    const prices: (number | null)[] = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      // 「ごとのユニット」を含む行を見つける
-      if (/\d+\s*ごとのユニット/.test(line)) {
-        let foundPrice: number | null = null;
-
-        // 「ごとのユニット」の行以降の数行を探索（最大5行まで）
-        for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
-          const searchLine = lines[j].trim();
-
-          // まず「新価格: ￥X,XXX」のパターンを探す
-          const newPriceMatch = searchLine.match(/新価格:\s*￥([\d,]+)/);
-          if (newPriceMatch) {
-            foundPrice = parseInt(newPriceMatch[1].replace(/,/g, ""), 10);
-            break;
-          }
-
-          // 「新価格」がない場合、「￥X,XXX」のパターンを探す
-          // ただし「前回の購入価格」や「お得」などの行は除外
-          if (!foundPrice && !/前回の購入価格|お得|割引/.test(searchLine)) {
-            const priceMatch = searchLine.match(/￥([\d,]+)/);
-            if (priceMatch) {
-              foundPrice = parseInt(priceMatch[1].replace(/,/g, ""), 10);
-              // 「新価格」が後にある可能性があるので、もう少し探索を続ける
-              // ただし、次の製品名や「配送を管理」などのキーワードが出たら終了
-              if (
-                j + 1 < lines.length &&
-                !/配送を管理|この配達に含まれる/.test(lines[j + 1].trim())
-              ) {
-                continue;
-              }
-              break;
-            }
+    const prices = this.itemBlocks().map((block) => {
+      let foundPrice: number | null = null;
+      for (const line of block) {
+        const newPriceMatch = line.match(/新価格:\s*￥([\d,]+)/);
+        if (newPriceMatch) {
+          return parseInt(newPriceMatch[1].replace(/,/g, ""), 10);
+        }
+        // 「前回の購入価格」や「お得」などの行は除外
+        if (foundPrice === null && !/前回の購入価格|お得|割引/.test(line)) {
+          const priceMatch = line.match(/￥([\d,]+)/);
+          if (priceMatch) {
+            foundPrice = parseInt(priceMatch[1].replace(/,/g, ""), 10);
           }
         }
-
-        prices.push(foundPrice);
       }
-    }
+      return foundPrice;
+    });
 
     logger.debug(`Extracted prices: ${prices}`);
     return prices;
   }
 
+  /** One quantity per item: the number before 「ごとのユニット」 (1 when missing). */
   extractQuantity(): number[] {
-    const regex = /([^\r\n]+)\r?\n[^\r\n]*(\d+)\s*ごとのユニット/gm;
-    const matches = [...this.rawText.matchAll(regex)];
-    if (matches.length === 0) return [];
-
-    const quantities = matches.map((m) => {
-      const quantity = parseInt(m[2], 10);
+    return this.unitLineIndexes().map((i) => {
+      const quantity = parseInt(this.lines()[i].match(/(\d+)\s*ごとのユニット/)?.[1] ?? "", 10);
       return isNaN(quantity) ? 1 : quantity;
     });
-    return quantities;
+  }
+
+  private lines(): string[] {
+    return this.rawText.split(/\r?\n/).map((line) => line.trim());
+  }
+
+  /** The index of each item's 「ごとのユニット」 line. */
+  private unitLineIndexes(): number[] {
+    return this.lines().flatMap((line, i) => (/\d+\s*ごとのユニット/.test(line) ? [i] : []));
+  }
+
+  /**
+   * The non-empty lines after each item's 「ごとのユニット」 line, up to the next item,
+   * 「配送を管理」 or 「この配達に含まれる」, and at most 8 lines.
+   */
+  private itemBlocks(): string[][] {
+    const lines = this.lines();
+    return this.unitLineIndexes().map((start) => {
+      const block: string[] = [];
+      for (let j = start + 1; j < lines.length && block.length < 8; j++) {
+        const line = lines[j];
+        if (!line) continue;
+        if (/\d+\s*ごとのユニット|配送を管理|この配達に含まれる/.test(line)) break;
+        block.push(line);
+      }
+      return block;
+    });
   }
 
   toSubscribeItem(): AmazonSubscribeItem[] {
