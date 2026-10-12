@@ -95,6 +95,10 @@ data object MainGraph {
         @Serializable
         data object CategoryAddEdit : Global
 
+        /* The largest expenses of a category in the month selected on the Statistics screen. A null categoryId is "Uncategorized". */
+        @Serializable
+        data class StatisticsCategoryDialog(val categoryId: String?) : Global
+
         sealed interface ICategoryAssignment : Global {
             @Serializable
             data object Screen : ICategoryAssignment
