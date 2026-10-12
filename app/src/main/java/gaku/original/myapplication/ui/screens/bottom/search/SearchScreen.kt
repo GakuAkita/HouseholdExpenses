@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -70,6 +72,7 @@ fun SearchScreenRoot(
         onGeneratedTypeToggled = viewModel::onGeneratedTypeToggled,
         onPeriodSelected = viewModel::onPeriodSelected,
         onClearFilter = viewModel::onClearFilter,
+        onRefresh = viewModel::onRefresh,
         onResultClick = { id ->
             viewModel.getExpense(id)?.let {
                 rootNavController.navigate(
@@ -80,6 +83,7 @@ fun SearchScreenRoot(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     uiState: SearchUiState,
@@ -88,45 +92,53 @@ fun SearchScreen(
     onGeneratedTypeToggled: (GeneratedTypeKind) -> Unit,
     onPeriodSelected: (SearchPeriod) -> Unit,
     onClearFilter: () -> Unit,
+    onRefresh: () -> Unit,
     onResultClick: (String) -> Unit,
 ) {
-    /* Filters scroll away with the results so that the list gets the whole screen. */
-    LazyColumn(
+    /* Results are not updated in real time. Pull down to read them again. */
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            SearchFilterPanel(
-                uiState = uiState,
-                onKeywordChanged = onKeywordChanged,
-                onCategoryToggled = onCategoryToggled,
-                onGeneratedTypeToggled = onGeneratedTypeToggled,
-                onPeriodSelected = onPeriodSelected,
-                onClearFilter = onClearFilter,
-            )
-        }
-
-        item {
-            SearchSummary(uiState = uiState)
-        }
-
-        items(uiState.results, key = { it.id }) { result ->
-            SearchResultItem(
-                result = result,
-                onClick = { onResultClick(result.id) }
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-            )
-        }
-
-        if (!uiState.isLoading && uiState.results.isEmpty()) {
+        /* Filters scroll away with the results so that the list gets the whole screen. */
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
             item {
-                EmptyState(
-                    icon = Icons.Default.SearchOff,
-                    title = "No expenses match the conditions",
-                    message = "Try a different keyword or clear some filters."
+                SearchFilterPanel(
+                    uiState = uiState,
+                    onKeywordChanged = onKeywordChanged,
+                    onCategoryToggled = onCategoryToggled,
+                    onGeneratedTypeToggled = onGeneratedTypeToggled,
+                    onPeriodSelected = onPeriodSelected,
+                    onClearFilter = onClearFilter,
                 )
+            }
+
+            item {
+                SearchSummary(uiState = uiState)
+            }
+
+            items(uiState.results, key = { it.id }) { result ->
+                SearchResultItem(
+                    result = result,
+                    onClick = { onResultClick(result.id) }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                )
+            }
+
+            if (!uiState.isLoading && uiState.results.isEmpty()) {
+                item {
+                    EmptyState(
+                        icon = Icons.Default.SearchOff,
+                        title = "No expenses match the conditions",
+                        message = "Try a different keyword or clear some filters."
+                    )
+                }
             }
         }
     }
@@ -385,6 +397,7 @@ fun SearchScreenPreview() {
         onGeneratedTypeToggled = {},
         onPeriodSelected = {},
         onClearFilter = {},
+        onRefresh = {},
         onResultClick = {}
     )
 }
