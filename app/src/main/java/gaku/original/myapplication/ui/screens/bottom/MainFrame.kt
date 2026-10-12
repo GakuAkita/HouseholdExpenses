@@ -42,6 +42,7 @@ import gaku.original.myapplication.ui.screens.bottom.search.SearchScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingScreenRoot
 import gaku.original.myapplication.ui.screens.bottom.setting.SettingViewModel
 import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsScreenRoot
+import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsViewModel
 
 private data class BottomTab(
     val route: Screen,
@@ -127,8 +128,19 @@ fun MainFrame(
                         rootNavController = rootNavController
                     )
                 }
-                composable<MainGraph.Bottom.Statistics> {
-                    StatisticsScreenRoot()
+                composable<MainGraph.Bottom.Statistics> { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        rootNavController.getBackStackEntry(MainGraph)
+                    }
+
+                    val viewModel = viewModel<StatisticsViewModel>(
+                        viewModelStoreOwner = parentEntry,
+                        factory = StatisticsViewModel.Factory
+                    )
+                    StatisticsScreenRoot(
+                        rootNavController = rootNavController,
+                        viewModel = viewModel
+                    )
                 }
                 composable<MainGraph.Bottom.Setting> { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
