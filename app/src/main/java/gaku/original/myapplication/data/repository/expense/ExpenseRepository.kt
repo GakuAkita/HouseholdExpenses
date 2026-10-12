@@ -16,6 +16,9 @@ interface ExpenseRepository {
 
     val expenses: StateFlow<Map<String, Map<String, Expense>>>
 
+    /** Reads the expenses matching [query] once, without listening for changes. */
+    suspend fun getExpenses(query: ExpenseQuery): List<Expense>
+
     /** Saves a new expense. The caller decides the id, so saving again overwrites the same document. */
     suspend fun addExpense(expense: Expense): Expense
 
