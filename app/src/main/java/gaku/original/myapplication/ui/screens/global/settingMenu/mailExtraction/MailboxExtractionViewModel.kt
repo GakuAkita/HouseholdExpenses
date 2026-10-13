@@ -13,6 +13,9 @@ import gaku.original.myapplication.data.repository.category.CategoryRepository
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionAction
 import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -93,7 +96,9 @@ fun MailboxExtractionUiState.updateEmailTemplate(
 
 data class EmailTemplateUiState<T : EmailTemplateType>(
     val type: T,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    /* Unix milliseconds. Null before the first run. */
+    val lastExecMillis: Long? = null
 )
 
 enum class EmailProvider {
@@ -232,6 +237,22 @@ class MailboxExtractionViewModel(
                     )
                 )
             }
+        }
+        fetchLastExecTimes()
+    }
+
+    private suspend fun fetchLastExecTimes() {
+        val lastExecTimes = coroutineScope {
+            _uiState.value.emailTemplateTypeList.map { state ->
+                async { state.type::class to mailboxExtractionRepository.getLastExecMillis(state.type) }
+            }.awaitAll().toMap()
+        }
+        _uiState.update { state ->
+            state.copy(
+                emailTemplateTypeList = state.emailTemplateTypeList.map {
+                    it.copy(lastExecMillis = lastExecTimes[it.type::class])
+                }
+            )
         }
     }
 

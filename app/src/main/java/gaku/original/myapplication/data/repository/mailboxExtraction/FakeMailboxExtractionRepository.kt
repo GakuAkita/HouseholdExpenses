@@ -41,4 +41,8 @@ class FakeMailboxExtractionRepository : MailboxExtractionRepository {
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
         delay(5000)
     }
+
+    override suspend fun getLastExecMillis(type: EmailTemplateType): Long? {
+        return if (type.enabled) System.currentTimeMillis() - 5 * 60 * 1000 else null
+    }
 }

@@ -35,6 +35,8 @@ class RealtimeDbUserReference(
 
     val gmailTokensReference = mailboxExtractionReference.child("gmail_tokens")
 
+    val mailboxExtractionLastExecReference = mailboxExtractionReference.child("last_exec")
+
     val amazonSubscribeMonitorReference =
         mailboxExtractionReference.child("amazon_subscribe_monitor")
 

@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -84,6 +85,23 @@ class MailboxExtractionRepositoryRealtimeDbTest {
             .setValue(mapOf("enabled" to true)).await()
 
         assertEquals(listOf(rakutenPay), repository.getAllMailTypeSetting())
+    }
+
+    @Test
+    fun getLastExecMillis_returnsNullBeforeFirstRun() = runBlocking<Unit> {
+        defaultTypes.forEach { type ->
+            assertNull(repository.getLastExecMillis(type))
+        }
+    }
+
+    @Test
+    fun getLastExecMillis_returnsTimestampWrittenByFunctions() = runBlocking<Unit> {
+        /* Same shape as LastMailboxExtractionExec in functions/src/type/Mailbox.ts */
+        reference.mailboxExtractionLastExecReference.child("rakuten_pay")
+            .setValue(mapOf("timestamp" to 1_760_000_000_000L, "lastMsgId" to "msg1")).await()
+
+        assertEquals(1_760_000_000_000L, repository.getLastExecMillis(EmailTemplateType.RakutenPay()))
+        assertNull(repository.getLastExecMillis(EmailTemplateType.AmazonItem()))
     }
 
     companion object {

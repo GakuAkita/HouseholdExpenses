@@ -8,4 +8,7 @@ interface MailboxExtractionRepository {
     suspend fun getMailTypeSetting(type: EmailTemplateType): EmailTemplateType
 
     suspend fun saveMailTypeSetting(type: EmailTemplateType)
+
+    /** When the mail type was last extracted, in Unix milliseconds. Null before the first run. */
+    suspend fun getLastExecMillis(type: EmailTemplateType): Long?
 }
