@@ -58,6 +58,9 @@ import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.Udemy
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 val EmailTemplateType.displayName: String
     get() = when (this) {
@@ -69,6 +72,13 @@ val EmailTemplateType.displayName: String
         is Udemy -> "Udemy"
         is RakutenCardETC -> "Rakuten Card ETC"
     }
+
+private val lastExecFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+
+private fun formatLastExec(lastExecMillis: Long?): String {
+    if (lastExecMillis == null) return "Not yet"
+    return Instant.ofEpochMilli(lastExecMillis).atZone(ZoneId.systemDefault()).format(lastExecFormatter)
+}
 
 @Composable
 fun MailboxExtractionScreenRoot(
@@ -198,11 +208,17 @@ fun MailboxExtractionScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = typeUiState.type.displayName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = typeUiState.type.displayName,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = "Last run: ${formatLastExec(typeUiState.lastExecMillis)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 if (typeUiState.isLoading) {
                                     CircularProgressIndicator(
                                         modifier = Modifier
@@ -321,7 +337,8 @@ fun MailboxExtractionScreenPreview() {
                 type = RakutenPay(
                     enabled = true
                 ),
-                isLoading = true
+                isLoading = true,
+                lastExecMillis = 1_760_000_000_000
             ),
             EmailTemplateUiState(
                 type = AmazonKindle(

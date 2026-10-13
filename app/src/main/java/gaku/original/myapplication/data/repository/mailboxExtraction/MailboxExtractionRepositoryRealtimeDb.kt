@@ -11,6 +11,7 @@ class MailboxExtractionRepositoryRealtimeDb(
     private val realtimeDbReference: RealtimeDbUserReference
 ) : MailboxExtractionRepository {
     private val reference = realtimeDbReference.emailTemplateSettingsReference
+    private val lastExecReference = realtimeDbReference.mailboxExtractionLastExecReference
 
     override suspend fun getAllMailTypeSetting(): List<EmailTemplateType> {
         return reference.get().await().children.mapNotNull { it.toMailTypeSetting() }
@@ -86,7 +87,19 @@ class MailboxExtractionRepositoryRealtimeDb(
     }
 
     override suspend fun saveMailTypeSetting(type: EmailTemplateType) {
-        val dto: EmailTemplateTypeDto = when (type) {
+        val dto = toDto(type)
+        val node = reference.child(dto.nodeName)
+        node.setValue(dto).await()
+    }
+
+    /* Written by Cloud Functions as Unix milliseconds. Its node name is the same as the setting's. */
+    override suspend fun getLastExecMillis(type: EmailTemplateType): Long? {
+        return lastExecReference.child(toDto(type).nodeName).child("timestamp").get().await()
+            .getValue(Long::class.java)
+    }
+
+    private fun toDto(type: EmailTemplateType): EmailTemplateTypeDto {
+        return when (type) {
             is EmailTemplateType.AmazonItem -> {
                 EmailTemplateTypeDto.AmazonItem(
                     enabled = type.enabled, emailProvider = type.emailProvider.name
@@ -137,8 +150,6 @@ class MailboxExtractionRepositoryRealtimeDb(
                 )
             }
         }
-        val node = reference.child(dto.nodeName)
-        node.setValue(dto).await()
     }
 }
 
