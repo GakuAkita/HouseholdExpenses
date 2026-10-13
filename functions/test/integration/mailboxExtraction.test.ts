@@ -200,6 +200,21 @@ describe("mailbox extraction", () => {
     expect(await expenses()).toEqual([]);
   });
 
+  it("moves a disabled mail type's last_exec to now, so mails from while it was off aren't read later", async () => {
+    await connectGmail();
+    const disabled = createRakutenPaySettingInstance({ enabled: false, emailProvider: EmailProvider.GMAIL });
+    await services.mailboxExtractionService.setMailTypeSetting(userId, disabled);
+    await services.mailboxExtractionService.setLastExec(userId, disabled, {
+      timestamp: mailDate.getTime() - 1000,
+      lastMsgId: "older-msg",
+    });
+
+    await processor.processAllMailTypeList([disabled]);
+
+    const lastExec = (await admin.database().ref(`users/${userId}/mailbox_extraction/last_exec`).get()).val();
+    expect(lastExec.rakuten_pay).toEqual({ timestamp: now.getTime(), lastMsgId: "older-msg" });
+  });
+
   it("continues when Gmail fails for one mail type, and doesn't advance that type's last_exec", async () => {
     await connectGmail();
     const failingGmail = createFakeGmail(mails, { failingSenders: ["no-reply@pay.rakuten.co.jp"] });
