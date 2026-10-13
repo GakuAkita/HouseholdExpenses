@@ -61,7 +61,13 @@ export class MailboxExtractionProcessor {
       return;
     }
     if (setting.enabled == false) {
-      logger.debug(`Skip ${type.nodeName} Not Enabled.`);
+      /* Keep last_exec moving, so mails that arrive while it's off aren't read after it's turned on again. */
+      const lastExec = await this.mailboxExtractionService.getLastExec(this.userId, type);
+      await this.mailboxExtractionService.setLastExec(this.userId, type, {
+        ...lastExec,
+        timestamp: this.runtime.clock.now().getTime(),
+      });
+      logger.debug(`Skip ${type.nodeName} Not Enabled. Updated last exec.`);
       return;
     }
 
