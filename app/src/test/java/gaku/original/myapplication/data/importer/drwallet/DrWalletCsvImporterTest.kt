@@ -87,6 +87,79 @@ class DrWalletCsvImporterTest {
         )
     }
 
+    @Test
+    fun parse_readsDrWalletExport() {
+        val csv = """
+            取引日,時分,取引金額,内容,ショップ名,電話番号,住所,カテゴリー,口座,ID,集計対象外
+            20261011,0000,-60000,"","","","",食費,現金,id1,""
+            20261012,0830,-600,"パン","ベーカリー","","",外食費,現金,id2,""
+            20261013,0000,250000,"","","","",給与,銀行,id3,""
+            20261014,0000,-3000,"","","","",その他,現金,id4,"1"
+        """.trimIndent()
+
+        val result = parse(csv)
+
+        assertEquals(
+            listOf(
+                ImportRecord(
+                    rowNumber = 2,
+                    datetime = LocalDateTime.of(2026, 10, 11, 12, 0),
+                    amount = 60000,
+                    categoryName = "食費",
+                    storeName = null,
+                    itemName = null,
+                    note = null,
+                    sourceId = "id1",
+                ),
+                ImportRecord(
+                    rowNumber = 3,
+                    datetime = LocalDateTime.of(2026, 10, 12, 8, 30),
+                    amount = 600,
+                    categoryName = "外食費",
+                    storeName = "ベーカリー",
+                    itemName = "パン",
+                    note = null,
+                    sourceId = "id2",
+                ),
+            ),
+            result.records
+        )
+        assertEquals(
+            listOf(SkippedRow(4, "Income"), SkippedRow(5, "Excluded from totals")),
+            result.skipped
+        )
+    }
+
+    @Test
+    fun parse_keepsPositiveAmountsWhenNoneAreNegative() {
+        val csv = "日付,金額\n2026/09/15,500\n"
+
+        assertEquals(listOf(500L), parse(csv).records.map { it.amount })
+    }
+
+    @Test
+    fun parse_negativeRefundDoesNotTurnSpendingIntoIncome() {
+        val csv = "日付,金額\n2026/09/15,500\n2026/09/16,-200\n2026/09/17,800\n"
+
+        val result = parse(csv)
+
+        assertEquals(listOf(500L, 200L, 800L), result.records.map { it.amount })
+        assertEquals(emptyList<SkippedRow>(), result.skipped)
+    }
+
+    @Test
+    fun parse_readsSignAfterCurrencyMarks() {
+        val csv = "取引日,取引金額\n20261011,\"¥-1,200\"\n20261012,abc\n20261013,\"1,000円\"\n"
+
+        val result = parse(csv)
+
+        assertEquals(listOf(1200L), result.records.map { it.amount })
+        assertEquals(
+            listOf(SkippedRow(3, "Unreadable amount: abc"), SkippedRow(4, "Income")),
+            result.skipped
+        )
+    }
+
     @Test(expected = ImportFileException::class)
     fun parse_throwsWithoutHeader() {
         parse("a,b\n1,2\n")
@@ -97,6 +170,8 @@ class DrWalletCsvImporterTest {
         assertEquals(LocalDateTime.of(2026, 9, 5, 12, 0), importer.parseDateTime("2026/9/5", null))
         assertEquals(LocalDateTime.of(2026, 9, 5, 12, 0), importer.parseDateTime("2026年9月5日", null))
         assertEquals(LocalDateTime.of(2026, 9, 5, 7, 5, 9), importer.parseDateTime("2026-09-05 07:05:09", null))
+        assertEquals(LocalDateTime.of(2026, 10, 11, 12, 0), importer.parseDateTime("20261011", "0000"))
+        assertEquals(LocalDateTime.of(2026, 10, 11, 21, 5), importer.parseDateTime("20261011", "2105"))
         assertNull(importer.parseDateTime("2026/02/30", null))
     }
 
