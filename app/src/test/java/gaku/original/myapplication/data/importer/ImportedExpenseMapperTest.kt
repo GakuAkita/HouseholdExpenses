@@ -68,6 +68,26 @@ class ImportedExpenseMapperTest {
     }
 
     @Test
+    fun toExpenses_sourceIdKeepsIdWhenContentsChange() {
+        val before = record(2).copy(sourceId = "abc")
+        val after = before.copy(datetime = LocalDateTime.of(2026, 9, 15, 8, 30), storeName = "ベーカリー")
+
+        assertEquals(
+            mapper.toExpenses(listOf(before), "drwallet", tokyo, listOf(food), 1).single().id,
+            mapper.toExpenses(listOf(after), "drwallet", tokyo, listOf(food), 1).single().id
+        )
+    }
+
+    @Test
+    fun toExpenses_differentSourceIdsGetDifferentIds() {
+        val ids = mapper.toExpenses(
+            listOf(record(2).copy(sourceId = "a"), record(3).copy(sourceId = "b")), "drwallet", tokyo, listOf(food), 1
+        ).map { it.id }
+
+        assertNotEquals(ids[0], ids[1])
+    }
+
+    @Test
     fun toExpenses_unknownCategoryIsNull() {
         assertNull(mapper.toExpenses(listOf(record(2, category = "カフェ")), "drwallet", tokyo, listOf(food), 1)[0].category)
     }

@@ -11,7 +11,10 @@ interface ExpenseImporter {
     fun parse(bytes: ByteArray): ImportParseResult
 }
 
-/** One expense read from an export file. [rowNumber] is the row in the file, counted from 1, header included. */
+/**
+ * One expense read from an export file. [rowNumber] is the row in the file, counted from 1, header included.
+ * [sourceId] is the other app's own id for the entry, when the file has one.
+ */
 data class ImportRecord(
     val rowNumber: Int,
     val datetime: LocalDateTime,
@@ -20,6 +23,7 @@ data class ImportRecord(
     val storeName: String?,
     val itemName: String?,
     val note: String?,
+    val sourceId: String? = null,
 )
 
 data class SkippedRow(
