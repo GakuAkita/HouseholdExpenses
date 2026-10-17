@@ -10,7 +10,6 @@ import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import kotlin.math.abs
 
 /**
  * Reads a CSV exported from Dr.Wallet.
@@ -23,12 +22,12 @@ import kotlin.math.abs
  * 20261011,0000,-60000,"","","","",食費,現金,aa7cb4e6...,""
  * ```
  * - 取引日 is yyyyMMdd and 時分 is HHmm, with 0000 when no time was entered.
- * - 取引金額 is signed: spending is negative, income is positive.
+ * - 取引金額 is signed: spending is negative, income is positive. Only negative rows are imported,
+ *   since this app only keeps expenses.
  * - ID is Dr.Wallet's own id for the entry, used to keep re-imports on the same documents.
- * - 集計対象外 is set on entries left out of Dr.Wallet's totals.
- * - 電話番号, 住所 and 口座 are not used.
+ * - 電話番号, 住所, 口座 and 集計対象外 are not used.
  *
- * Other header names (日付, 金額, 収支, ...) are accepted too, so a hand-made or older CSV can be read.
+ * Other header names (日付, 金額, ...) are accepted too, but the amount must follow the same sign rule.
  */
 class DrWalletCsvImporter(
     private val csvReader: CsvReader
@@ -57,24 +56,12 @@ class DrWalletCsvImporter(
         val storeColumn = header.findColumn(STORE_HEADERS)
         val itemColumn = header.findColumn(ITEM_HEADERS)
         val noteColumn = header.findColumn(NOTE_HEADERS)
-        val typeColumn = header.findColumn(TYPE_HEADERS)
-        val excludedColumn = header.findColumn(EXCLUDED_HEADERS)
         val idColumn = header.findColumn(ID_HEADERS)
-
-        /*
-         * Dr.Wallet's own export has no type column and writes spending as a negative 取引金額,
-         * so there a positive amount is income. Other files keep the sign-dropping rule,
-         * so a refund written as a negative number does not turn their spending into income.
-         */
-        val positiveIsIncome = typeColumn == null && header.findColumn(SIGNED_AMOUNT_HEADERS) == amountColumn
 
         val records = mutableListOf<ImportRecord>()
         val skipped = mutableListOf<SkippedRow>()
 
-        /*
-         * Each row either becomes a record or is skipped with a reason that the import screen shows.
-         * The checks go from "not spending at all" (excluded, income, transfer) to "can't be read".
-         */
+        /* Each row either becomes a record or is skipped with a reason that the import screen shows. */
         for (index in headerIndex + 1 until rows.size) {
             val row = rows[index]
             /* Counted from 1 like a spreadsheet, so the user can find the row in the file. */
@@ -84,23 +71,6 @@ class DrWalletCsvImporter(
             fun cell(column: Int?): String? =
                 column?.let { row.getOrNull(it) }?.trim()?.ifEmpty { null }
 
-            /* Dr.Wallet's 集計対象外 is blank for normal entries; "0" is treated as not set too. */
-            if (cell(excludedColumn).let { it != null && it != "0" }) {
-                skipped.add(SkippedRow(rowNumber, "Excluded from totals"))
-                continue
-            }
-
-            /* Only files with a type column (収支 etc.) mark income and transfers this way. */
-            val type = cell(typeColumn)
-            if (type != null && type.contains("収入")) {
-                skipped.add(SkippedRow(rowNumber, "Income"))
-                continue
-            }
-            if (type != null && (type.contains("振替") || type.contains("移動"))) {
-                skipped.add(SkippedRow(rowNumber, "Transfer"))
-                continue
-            }
-
             val rawDate = cell(dateColumn)
             val datetime = rawDate?.let { parseDateTime(it, cell(timeColumn)) }
             if (datetime == null) {
@@ -108,7 +78,11 @@ class DrWalletCsvImporter(
                 continue
             }
 
-            /* The sign is read after ¥, 円 and commas are removed, so "¥-1,200" counts as negative. */
+            /*
+             * Dr.Wallet writes spending as a negative amount and income as a positive one.
+             * This app only keeps expenses, so only negative amounts are imported.
+             * The sign is read after ¥, 円 and commas are removed, so "¥-1,200" counts as negative.
+             */
             val rawAmount = cell(amountColumn)
             val signedAmount = rawAmount?.let { parseSignedAmount(it) }
             if (signedAmount == null) {
@@ -119,12 +93,12 @@ class DrWalletCsvImporter(
                 skipped.add(SkippedRow(rowNumber, "Amount is 0"))
                 continue
             }
-            if (positiveIsIncome && signedAmount > 0) {
+            if (signedAmount > 0) {
                 skipped.add(SkippedRow(rowNumber, "Income"))
                 continue
             }
             /* Expenses are stored as positive amounts. */
-            val amount = abs(signedAmount)
+            val amount = -signedAmount
 
             records.add(
                 ImportRecord(
@@ -190,13 +164,10 @@ class DrWalletCsvImporter(
     }
 
     /**
-     * Accepts "1,200", "¥1,200", "1200円" and "-1200".
-     * Some exports write spending as a negative number, so the sign is dropped; income is told apart
-     * by the type column, or by a positive sign in Dr.Wallet's 取引金額.
+     * Reads an amount cell as a signed number: "-1,200", "¥-1,200" and "-1200円" are all -1200.
+     * This only reads the number. [parse] then imports negative amounts and skips positive ones
+     * like "1200" as income. Decimals like "12.5" can't be read and give null.
      */
-    internal fun parseAmount(raw: String): Long? = parseSignedAmount(raw)?.let { abs(it) }
-
-    /** Like [parseAmount] but keeps the sign, so "¥-1,200" is -1200. Decimals like "12.5" are not accepted. */
     internal fun parseSignedAmount(raw: String): Long? =
         raw.replace(Regex("""[,，¥￥円\s]"""), "").toLongOrNull()
 
@@ -217,12 +188,7 @@ class DrWalletCsvImporter(
         private val STORE_HEADERS = listOf("店名", "店舗名", "店舗", "お店", "store", "ショップ名")
         private val ITEM_HEADERS = listOf("品目", "商品名", "品名", "内容", "item")
         private val NOTE_HEADERS = listOf("メモ", "備考", "note", "memo")
-        private val TYPE_HEADERS = listOf("収支", "収支区分", "種別", "区分", "type")
-        private val EXCLUDED_HEADERS = listOf("集計対象外")
         private val ID_HEADERS = listOf("id")
-
-        /* Amount columns that are signed: spending negative, income positive. */
-        private val SIGNED_AMOUNT_HEADERS = listOf("取引金額")
 
         /* The header might come after a title line or two. */
         private const val HEADER_SEARCH_ROWS = 10

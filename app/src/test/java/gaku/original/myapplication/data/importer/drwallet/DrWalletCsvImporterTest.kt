@@ -20,7 +20,7 @@ class DrWalletCsvImporterTest {
     fun parse_readsColumnsByHeaderName() {
         val csv = """
             日付,カテゴリ,サブカテゴリ,店名,品目,金額,メモ
-            2026/09/15,食費,野菜,スーパー,キャベツ,"1,200",特売
+            2026/09/15,食費,野菜,スーパー,キャベツ,"-1,200",特売
         """.trimIndent()
 
         val result = parse(csv)
@@ -44,7 +44,7 @@ class DrWalletCsvImporterTest {
 
     @Test
     fun parse_findsHeaderAfterTitleLine() {
-        val csv = "Dr.Wallet export\n金額,日付\n500,2026-09-15\n"
+        val csv = "Dr.Wallet export\n金額,日付\n-500,2026-09-15\n"
 
         val result = parse(csv)
 
@@ -55,21 +55,20 @@ class DrWalletCsvImporterTest {
 
     @Test
     fun parse_usesTimeColumn() {
-        val csv = "日付,時刻,金額\n2026/09/15,08:30,300\n"
+        val csv = "日付,時刻,金額\n2026/09/15,08:30,-300\n"
 
         assertEquals(LocalDateTime.of(2026, 9, 15, 8, 30), parse(csv).records[0].datetime)
     }
 
     @Test
-    fun parse_skipsIncomeTransferAndBadRows() {
+    fun parse_skipsIncomeAndBadRows() {
         val csv = """
-            日付,収支,金額
-            2026/09/15,支出,100
-            2026/09/15,収入,200000
-            2026/09/15,振替,3000
-            not a date,支出,100
-            2026/09/16,支出,abc
-            2026/09/17,支出,0
+            日付,金額
+            2026/09/15,-100
+            2026/09/15,200000
+            not a date,-100
+            2026/09/16,abc
+            2026/09/17,0
         """.trimIndent()
 
         val result = parse(csv)
@@ -78,10 +77,9 @@ class DrWalletCsvImporterTest {
         assertEquals(
             listOf(
                 SkippedRow(3, "Income"),
-                SkippedRow(4, "Transfer"),
-                SkippedRow(5, "Unreadable date: not a date"),
-                SkippedRow(6, "Unreadable amount: abc"),
-                SkippedRow(7, "Amount is 0"),
+                SkippedRow(4, "Unreadable date: not a date"),
+                SkippedRow(5, "Unreadable amount: abc"),
+                SkippedRow(6, "Amount is 0"),
             ),
             result.skipped
         )
@@ -96,6 +94,7 @@ class DrWalletCsvImporterTest {
             20261013,0000,250000,"","","","",給与,銀行,id3,""
             20261014,0000,-3000,"","","","",その他,現金,id4,"1"
         """.trimIndent()
+        /* 集計対象外 is ignored, so the last row is imported like any other. */
 
         val result = parse(csv)
 
@@ -121,30 +120,20 @@ class DrWalletCsvImporterTest {
                     note = null,
                     sourceId = "id2",
                 ),
+                ImportRecord(
+                    rowNumber = 5,
+                    datetime = LocalDateTime.of(2026, 10, 14, 12, 0),
+                    amount = 3000,
+                    categoryName = "その他",
+                    storeName = null,
+                    itemName = null,
+                    note = null,
+                    sourceId = "id4",
+                ),
             ),
             result.records
         )
-        assertEquals(
-            listOf(SkippedRow(4, "Income"), SkippedRow(5, "Excluded from totals")),
-            result.skipped
-        )
-    }
-
-    @Test
-    fun parse_keepsPositiveAmountsWhenNoneAreNegative() {
-        val csv = "日付,金額\n2026/09/15,500\n"
-
-        assertEquals(listOf(500L), parse(csv).records.map { it.amount })
-    }
-
-    @Test
-    fun parse_negativeRefundDoesNotTurnSpendingIntoIncome() {
-        val csv = "日付,金額\n2026/09/15,500\n2026/09/16,-200\n2026/09/17,800\n"
-
-        val result = parse(csv)
-
-        assertEquals(listOf(500L, 200L, 800L), result.records.map { it.amount })
-        assertEquals(emptyList<SkippedRow>(), result.skipped)
+        assertEquals(listOf(SkippedRow(4, "Income")), result.skipped)
     }
 
     @Test
@@ -176,10 +165,17 @@ class DrWalletCsvImporterTest {
     }
 
     @Test
-    fun parseAmount_formats() {
-        assertEquals(1200L, importer.parseAmount("¥1,200"))
-        assertEquals(1200L, importer.parseAmount("1200円"))
-        assertEquals(1200L, importer.parseAmount("-1200"))
-        assertNull(importer.parseAmount("12.5"))
+    fun parseSignedAmount_formats() {
+        assertEquals(-1200L, importer.parseSignedAmount("¥-1,200"))
+        assertEquals(-1200L, importer.parseSignedAmount("-1200円"))
+        assertNull(importer.parseSignedAmount("12.5"))
+    }
+
+    @Test
+    fun parse_positiveAmountIsNotImported() {
+        val result = parse("取引日,取引金額\n20261011,1200\n20261012,\"1,200円\"\n")
+
+        assertEquals(emptyList<ImportRecord>(), result.records)
+        assertEquals(listOf(SkippedRow(2, "Income"), SkippedRow(3, "Income")), result.skipped)
     }
 }
