@@ -72,6 +72,12 @@ data class MailboxExtractionUiState(
             isLoading = false
         ),
         EmailTemplateUiState(
+            type = EmailTemplateType.RakutenCardAll(
+                enabled = false
+            ),
+            isLoading = false
+        ),
+        EmailTemplateUiState(
             type = EmailTemplateType.RakutenCardETC(
                 enabled = false
             ),
@@ -166,6 +172,13 @@ sealed interface EmailTemplateType {
         override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
         override fun updateCategoryId(newCategoryId: String?): Udemy =
             copy(categoryId = newCategoryId)
+    }
+
+    data class RakutenCardAll(
+        override val enabled: Boolean = false,
+        override val emailProvider: EmailProvider = EmailProvider.GMAIL
+    ) : EmailTemplateType {
+        override fun updateEnabled(enabled: Boolean): EmailTemplateType = copy(enabled = enabled)
     }
 
     data class RakutenCardETC(
@@ -305,6 +318,17 @@ class MailboxExtractionViewModel(
     fun onSwitchClick(typeState: EmailTemplateUiState<EmailTemplateType>) {
         viewModelScope.launch {
             try {
+                /* Not enabled now means the user is turning it on. */
+                if (!typeState.type.enabled) {
+                    val blockMessage = rakutenCardAllConflictMessage(typeState.type)
+                    if (blockMessage != null) {
+                        _uiState.update {
+                            it.copy(message = blockMessage)
+                        }
+                        return@launch
+                    }
+                }
+
                 val loadingState = typeState.copy(
                     isLoading = true
                 )
@@ -335,6 +359,42 @@ class MailboxExtractionViewModel(
                     )
                 }
             }
+        }
+    }
+
+    /* Rakuten Card All already covers these payments, so running both would import them twice. */
+    private fun EmailTemplateType.overlapsRakutenCardAll(): Boolean = when (this) {
+        is EmailTemplateType.AmazonItem,
+        is EmailTemplateType.AmazonKindle,
+        is EmailTemplateType.AmazonSubscribe,
+        is EmailTemplateType.Udemy,
+        is EmailTemplateType.RakutenCardETC -> true
+
+        else -> false
+    }
+
+    /* Returns the reason the type can't be turned on, or null if it can. */
+    // In the future, I want to intentionally remove Aamzon or Udemy if they are found in RakutencardAll Email.
+    // By doing so, we can turn on both Amazon and Rakuten card ETC.
+    private fun rakutenCardAllConflictMessage(typeToEnable: EmailTemplateType): String? {
+        val enabledTypes =
+            _uiState.value.emailTemplateTypeList.map { it.type }.filter { it.enabled }
+        return if (typeToEnable is EmailTemplateType.RakutenCardAll) {
+            val overlapping = enabledTypes.filter { it.overlapsRakutenCardAll() }
+            if (overlapping.isEmpty()) {
+                null
+            } else {
+                "Turn off ${overlapping.joinToString { it.displayName }} first to enable ${typeToEnable.displayName}."
+            }
+        } else if (typeToEnable.overlapsRakutenCardAll()) {
+            val rakutenCardAll = enabledTypes.firstOrNull { it is EmailTemplateType.RakutenCardAll }
+            if (rakutenCardAll == null) {
+                null
+            } else {
+                "Turn off ${rakutenCardAll.displayName} first to enable ${typeToEnable.displayName}."
+            }
+        } else {
+            null
         }
     }
 
