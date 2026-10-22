@@ -9,6 +9,7 @@ import {
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
   createAmazonSubscribeSettingInstance,
+  createRakutenCardAllSettingInstance,
   createRakutenPaySettingInstance,
   EmailProvider,
 } from "../../src/type/Mailbox";
@@ -81,7 +82,7 @@ describe("mailbox extraction", () => {
       .ref(`users/${userId}/category_assignment_data`)
       .set({
         storeName: {
-          a: { name: "ローソン 高松店", categoryId: "food", condition: AssignmentCondition.EXACT_MATCH, regex: false },
+          a: { name: "ローソン 駅前店", categoryId: "food", condition: AssignmentCondition.EXACT_MATCH, regex: false },
         },
         productName: {
           b: { name: "水筒", categoryId: "daily", condition: AssignmentCondition.CONTAINS, regex: false },
@@ -133,7 +134,7 @@ describe("mailbox extraction", () => {
         ...common,
         datetime: "2026-09-15T03:34:00.000Z",
         amount: 1000,
-        storeName: "ローソン 高松店",
+        storeName: "ローソン 駅前店",
         category: food,
         generatedType: "mailbox_extraction___rakuten_pay",
       },
@@ -240,6 +241,45 @@ describe("mailbox extraction", () => {
     /* Not advanced, so the next run searches the same time range again. */
     expect(lastExec.rakuten_pay).toBeUndefined();
     expect(lastExec.amazon_kindle).toEqual({ timestamp: now.getTime(), lastMsgId: "kindle-1" });
+  });
+
+  it("reads the HTML of an HTML-only mail only for a source that allows it", async () => {
+    await connectGmail();
+    const rakutenCardAll = createRakutenCardAllSettingInstance({ enabled: true, emailProvider: EmailProvider.GMAIL });
+    await services.mailboxExtractionService.setMailTypeSetting(userId, rakutenCardAll);
+    const htmlOnlyGmail = createFakeGmail([
+      {
+        id: "card-1",
+        from: "info@mail.rakuten-card.co.jp",
+        internalDate: mailDate,
+        html:
+          "<table><tr><td>2026/09/14</td><td>ﾄﾞﾗﾂｸﾞｽﾄｱ</td><td>640 円</td></tr>" +
+          "<tr><td>合計 640 円</td></tr></table>",
+      },
+      { id: "rakuten-1", from: "no-reply@pay.rakuten.co.jp", internalDate: mailDate, html: "<p>楽天ペイ</p>" },
+    ]);
+    const htmlServices = createTestServices({ clock: fixedClock(now), createGmailClient: htmlOnlyGmail.factory });
+    const htmlProcessor = new MailboxExtractionProcessor(
+      userId,
+      htmlServices.mailboxExtractionService,
+      htmlServices.expenseService,
+      htmlServices.categoryService,
+      htmlServices.categoryAssignmentService,
+      htmlServices.runtime
+    );
+
+    await htmlProcessor.processAllMailTypeList([rakutenCardAll, gmailSettings[0]]);
+
+    expect((await expenses()).map(({ id: _, ...rest }) => rest)).toEqual([
+      {
+        datetime: "2026-09-14T00:00:00.000Z",
+        amount: 640,
+        storeName: "ﾄﾞﾗﾂｸﾞｽﾄｱ",
+        category: null,
+        generatedType: "mailbox_extraction___rakuten_all",
+        timestamp: now.getTime(),
+      },
+    ]);
   });
 
   it("does nothing until the user connects Gmail", async () => {

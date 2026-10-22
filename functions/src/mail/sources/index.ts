@@ -3,6 +3,7 @@ import { MailSource } from "../mailSource";
 import { amazonItemSource } from "./amazonItem";
 import { amazonKindleSource } from "./amazonKindle";
 import { amazonSubscribeSource } from "./amazonSubscribe";
+import { rakutenCardAllSource } from "./rakutenCardAll";
 import { rakutenCardEtcSource } from "./rakutenCardEtc";
 import { rakutenPaySource } from "./rakutenPay";
 import { shikokuElectricPowerSource } from "./shikokuElectricPower";
@@ -24,6 +25,7 @@ const mailSources: SourcesByNodeName = {
   amazon_subscribe: amazonSubscribeSource,
   udemy: udemySource,
   rakuten_card_etc: rakutenCardEtcSource,
+  rakuten_all: rakutenCardAllSource,
 };
 
 /** The source for the setting's mail type, or undefined for a node name the code doesn't know. */

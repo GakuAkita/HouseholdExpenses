@@ -24,16 +24,16 @@ describe("findCategoryFromAssignmentData", () => {
   it("prefers an exact match over a contains match", () => {
     const assignments = {
       a: assignment("ローソン", "daily", AssignmentCondition.CONTAINS),
-      b: assignment("ローソン 高松店", "food", AssignmentCondition.EXACT_MATCH),
+      b: assignment("ローソン 駅前店", "food", AssignmentCondition.EXACT_MATCH),
     };
-    expect(findCategoryFromAssignmentData("ローソン 高松店", assignments, categories)).toEqual(
+    expect(findCategoryFromAssignmentData("ローソン 駅前店", assignments, categories)).toEqual(
       categories.food
     );
   });
 
   it("falls back to a contains match", () => {
     const assignments = { a: assignment("ローソン", "daily", AssignmentCondition.CONTAINS) };
-    expect(findCategoryFromAssignmentData("ローソン 高松店", assignments, categories)).toEqual(
+    expect(findCategoryFromAssignmentData("ローソン 駅前店", assignments, categories)).toEqual(
       categories.daily
     );
   });

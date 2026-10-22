@@ -6,6 +6,7 @@ import { AmazonItemMailParser } from "../../src/mail/parsers/AmazonItemMailParse
 import { AmazonKindleMailParser } from "../../src/mail/parsers/AmazonKindleMailParser";
 import { AmazonSubscribeNextShipmentMailParser } from "../../src/mail/parsers/AmazonSubscribeNextShipmentMailParser";
 import { stripHtmlTags } from "../../src/infra/gmail/extractHtmlBody";
+import { RakutenCardAllParser } from "../../src/mail/parsers/RakutenCardAllParser";
 import { RakutenCardETCParser } from "../../src/mail/parsers/RakutenCardETCParser";
 import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParser";
 import { ShikokuElectricPowerMailParser } from "../../src/mail/parsers/ShikokuElectricPowerMailParser";
@@ -22,7 +23,7 @@ const internalDateIso = "2026-09-15T03:00:00.000Z";
 
 describe("RakutenPayMailParser", () => {
   it("extracts the JST time, the store and the amount minus used points", () => {
-    expect(new RakutenPayMailParser(fixture("rakuten_pay")).toExpense()).toMatchObject({ datetime: "2026-09-15T03:34:00.000Z", amount: 1000, storeName: "ローソン 高松店" });
+    expect(new RakutenPayMailParser(fixture("rakuten_pay")).toExpense()).toMatchObject({ datetime: "2026-09-15T03:34:00.000Z", amount: 1000, storeName: "ローソン 駅前店" });
   });
 
   it("fails when points exceed the amount", () => {
@@ -31,7 +32,7 @@ describe("RakutenPayMailParser", () => {
   });
 
   it("fails without the store", () => {
-    const text = fixture("rakuten_pay").replace("▼ご利用店舗 ローソン 高松店\n", "");
+    const text = fixture("rakuten_pay").replace("▼ご利用店舗 ローソン 駅前店\n", "");
     expect(() => new RakutenPayMailParser(text).toExpense()).toThrow(MailParseError);
   });
 });
@@ -138,6 +139,56 @@ describe("RakutenCardETCParser", () => {
 
   it("fails without ETC blocks", () => {
     expect(() => new RakutenCardETCParser("楽天カードご利用のお知らせ").toExpenses()).toThrow(MailParseError);
+  });
+});
+
+describe("RakutenCardAllParser", () => {
+  it("extracts every charge with its store, ETC included", () => {
+    expect(new RakutenCardAllParser(fixture("rakuten_card_all")).toExpenses()).toEqual([
+      { datetime: "2026-03-10T00:00:00.000Z", amount: 1230, storeName: "ローソン 駅前店" },
+      { datetime: "2026-03-12T00:00:00.000Z", amount: 2000, storeName: "ＥＴＣカード売上" },
+    ]);
+  });
+
+  it("reads the HTML layout as Gmail renders it, without 合計 rows", () => {
+    expect(new RakutenCardAllParser(fixture("rakuten_card_all_html")).toExpenses()).toEqual([
+      { datetime: "2026-03-05T00:00:00.000Z", amount: 1100, storeName: "ｺﾝﾋﾞﾆ ｴｷﾏｴﾃﾝ" },
+      { datetime: "2026-03-06T00:00:00.000Z", amount: 860, storeName: "ｽ-ﾊﾟ-" },
+      { datetime: "2026-03-11T00:00:00.000Z", amount: 2500, storeName: "ｹｲﾀｲﾂｳｼﾝﾘﾖｳ" },
+    ]);
+  });
+
+  it("reads the HTML layout with the tags removed", () => {
+    /* Read as is: this fixture keeps CRLF, like stripped HTML from a real mail. */
+    const text = readFileSync(join(__dirname, "../fixtures/mail/rakuten_card_all_html_stripped.txt"), "utf8");
+    expect(new RakutenCardAllParser(text).toExpenses()).toEqual([
+      { datetime: "2026-03-08T00:00:00.000Z", amount: 640, storeName: "ﾄﾞﾗﾂｸﾞｽﾄｱ" },
+      { datetime: "2026-03-11T00:00:00.000Z", amount: 2500, storeName: "ｹｲﾀｲﾂｳｼﾝﾘﾖｳ" },
+    ]);
+  });
+
+  it("skips 楽天ペイ残高 チャージ", () => {
+    const charge = (storeName: string) =>
+      fixture("rakuten_card_all").replace("ローソン 駅前店", storeName);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高　チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高 チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+  });
+
+  it("returns nothing for a mail with only a 楽天ペイ残高 チャージ", () => {
+    const text = fixture("rakuten_card_all")
+      .replace("ローソン 駅前店", "楽天ペイ残高　チャージ")
+      .replace("ＥＴＣカード売上", "楽天ペイ残高　チャージ");
+    expect(new RakutenCardAllParser(text).toExpenses()).toEqual([]);
+  });
+
+  it("fails when a charge has no amount", () => {
+    const text = fixture("rakuten_card_all").replace("■利用金額: 2,000 円", "");
+    expect(() => new RakutenCardAllParser(text).toExpenses()).toThrow(MailParseError);
+  });
+
+  it("fails without charges", () => {
+    expect(() => new RakutenCardAllParser("楽天カードご利用のお知らせ").toExpenses()).toThrow(MailParseError);
   });
 });
 

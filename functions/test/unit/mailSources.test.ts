@@ -13,6 +13,7 @@ import {
   createAmazonItemSettingInstance,
   createAmazonKindleSettingInstance,
   createAmazonSubscribeSettingInstance,
+  createRakutenCardAllSettingInstance,
   createRakutenCardETCSettingInstance,
   createRakutenPaySettingInstance,
   createShikokuElectricPowerSettingInstance,
@@ -35,7 +36,7 @@ const context = (subscribeItems?: Record<string, AmazonSubscribeItem>): Extracti
   categories: { food, daily, bills },
   categoryAssignmentData: {
     storeName: {
-      a: { name: "ローソン 高松店", categoryId: "food", condition: AssignmentCondition.EXACT_MATCH, regex: false, generatedTyep: null },
+      a: { name: "ローソン 駅前店", categoryId: "food", condition: AssignmentCondition.EXACT_MATCH, regex: false, generatedTyep: null },
     },
     productName: {
       b: { name: "水", categoryId: "daily", condition: AssignmentCondition.CONTAINS, regex: false, generatedTyep: null },
@@ -74,6 +75,7 @@ describe("mail source registry", () => {
       amazon_subscribe: "shipment-tracking@amazon.co.jp",
       udemy: "hello@alerts.udemy.com",
       rakuten_card_etc: "info@mail.rakuten-card.co.jp",
+      rakuten_all: "info@mail.rakuten-card.co.jp",
     };
     for (const schedule of mailboxExtractionSchedules) {
       for (const type of schedule.mailTypes) {
@@ -90,7 +92,7 @@ describe("mail sources", () => {
     const setting = createRakutenPaySettingInstance(gmail);
     const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_pay") }, setting, context());
     expect(result).toEqual([
-      { datetime: "2026-09-15T03:34:00.000Z", amount: 1000, storeName: "ローソン 高松店", category: food },
+      { datetime: "2026-09-15T03:34:00.000Z", amount: 1000, storeName: "ローソン 駅前店", category: food },
     ]);
   });
 
@@ -165,6 +167,15 @@ describe("mail sources", () => {
     expect(charges.map((e) => [e.amount, e.category?.id])).toEqual([
       [1230, "bills"],
       [2000, "bills"],
+    ]);
+  });
+
+  it("rakuten_all assigns the category of each charge by store name", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_card_all") }, setting, context());
+    expect(result.map((e) => [e.amount, e.storeName, e.category?.id])).toEqual([
+      [1230, "ローソン 駅前店", "food"],
+      [2000, "ＥＴＣカード売上", undefined],
     ]);
   });
 
