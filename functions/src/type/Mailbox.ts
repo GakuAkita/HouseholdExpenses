@@ -122,9 +122,10 @@ export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
   {
     id: "shortPeriod",
     cron: "*/5 * * * *",
-    description: "5分周期:楽天Pay、Amazon",
+    description: "5分周期:楽天Pay、楽天カード、Amazon",
     mailTypes: [
       createRakutenPaySettingInstance(),
+      createRakutenCardAllSettingInstance(),
       createAmazonItemSettingInstance(),
       createAmazonKindleSettingInstance(),
     ],
@@ -137,7 +138,6 @@ export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
       createShikokuElectricPowerSettingInstance(),
       createUdemySettingInstance(),
       createRakutenCardETCSettingInstance(),
-      createRakutenCardAllSettingInstance(),
       createAmazonSubscribeSettingInstance(),
     ],
   },
