@@ -118,6 +118,8 @@ export async function getRakutenCardAllMailIds(
   const query =
     `from:${mailFrom} ` +
     `subject:"カード利用のお知らせ" ` +
+    /* 速報版 is followed by the 確定版 mail with the same charges, so only the latter is read. */
+    `-subject:速報版 ` +
     `after:${startTime} ` +
     `before:${endTime + 1}`;
   return gmailClient.queryMessages(query);

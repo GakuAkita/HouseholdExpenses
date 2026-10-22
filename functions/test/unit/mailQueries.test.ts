@@ -43,7 +43,7 @@ describe("mail queries", () => {
       "from:info@mail.rakuten-card.co.jp ETCカード売上 after:100 before:201"
     );
     expect((await queryOf((c) => getRakutenCardAllMailIds(c, 100, 200))).query).toBe(
-      'from:info@mail.rakuten-card.co.jp subject:"カード利用のお知らせ" after:100 before:201'
+      'from:info@mail.rakuten-card.co.jp subject:"カード利用のお知らせ" -subject:速報版 after:100 before:201'
     );
   });
 
