@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { GmailApiClient } from "../../src/infra/gmail/GmailApiClient";
+import { RakutenCardAllParser } from "../../src/mail/parsers/RakutenCardAllParser";
 import { RakutenPayMailParser } from "../../src/mail/parsers/RakutenPayMailParser";
 import { decryptWithKey } from "../../src/shared/encryption";
-import { extractTextBody } from "../../src/infra/gmail/extractHtmlBody";
-import { getRakutenPayMailIds } from "../../src/infra/gmail/mailQueries";
+import { extractHtmlBody, extractTextBody } from "../../src/infra/gmail/extractHtmlBody";
+import { getRakutenCardAllMailIds, getRakutenPayMailIds } from "../../src/infra/gmail/mailQueries";
 import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";
 
 /*
@@ -40,5 +41,19 @@ describe.skipIf(!secretsJson || !encryptedRefreshToken)("Gmail (live)", () => {
     expect(text).toBeTruthy();
     /* Checks the real mail format still matches the parser (throws otherwise), without printing the mail. */
     expect(new RakutenPayMailParser(text!).toExpense().amount).toBeTypeOf("number");
+  });
+
+  it("finds Rakuten Card mails and parses the latest one", async () => {
+    const client = createClient();
+    const oneYearAgo = Math.floor(Date.now() / 1000) - 365 * 24 * 60 * 60;
+    const ids = await getRakutenCardAllMailIds(client, oneYearAgo, Math.floor(Date.now() / 1000));
+    if (ids.length === 0) return;
+
+    const detail = await client.getMessageDetail(ids[0]);
+    /* Same as the job: an HTML-only mail is read as HTML with the tags removed. */
+    const text = extractTextBody(detail.payload) ?? extractHtmlBody(detail.payload, true);
+    expect(text).toBeTruthy();
+    /* Throws when the real format no longer matches. A mail with only 楽天ペイ charges returns []. */
+    expect(Array.isArray(new RakutenCardAllParser(text!).toExpenses())).toBe(true);
   });
 });

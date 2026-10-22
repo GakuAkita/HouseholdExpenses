@@ -8,7 +8,8 @@ export interface FakeMail {
   /** Matched against the "from:" part of the Gmail query. */
   from: string;
   internalDate: Date;
-  text: string;
+  /** When unset, the mail has only a text/html part. */
+  text?: string;
   subject?: string;
   /** When set, the mail also has a text/html part. */
   html?: string;
@@ -48,7 +49,7 @@ export const createFakeGmail = (mails: FakeMail[], options: { failingSenders?: s
           mimeType: "multipart/alternative",
           headers: mail.subject ? [{ name: "Subject", value: mail.subject }] : [],
           parts: [
-            { mimeType: "text/plain", body: { data: base64url(mail.text) } },
+            ...(mail.text !== undefined ? [{ mimeType: "text/plain", body: { data: base64url(mail.text) } }] : []),
             ...(mail.html ? [{ mimeType: "text/html", body: { data: base64url(mail.html) } }] : []),
           ],
         },

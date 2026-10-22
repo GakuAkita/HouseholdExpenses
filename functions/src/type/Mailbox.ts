@@ -83,6 +83,18 @@ export type RakutenCardETCSetting = {
   readonly categoryAssignFlag: CategoryAssignFlags.NONE;
 };
 
+/**
+ * 楽天カードの全利用分（ETC含む）。
+ * The app turns it on only when Amazon, Udemy and 楽天ETC are off, so a charge isn't saved twice.
+ */
+export type RakutenCardAllSetting = {
+  enabled: boolean;
+  emailProvider: string;
+  readonly nodeName: "rakuten_all";
+  readonly menuName: "楽天カード";
+  readonly categoryAssignFlag: CategoryAssignFlags.STORE_NAME;
+};
+
 /* ここに全ての型を含めておく */
 export type AllMailType =
   | RakutenPaySetting
@@ -91,7 +103,8 @@ export type AllMailType =
   | ShikokuElectricPowerSetting
   | AmazonItemSetting
   | UdemySetting
-  | RakutenCardETCSetting;
+  | RakutenCardETCSetting
+  | RakutenCardAllSetting;
 
 /**
  * クロン表現
@@ -124,6 +137,7 @@ export const mailboxExtractionSchedules: MailExtractionSchedule[] = [
       createShikokuElectricPowerSettingInstance(),
       createUdemySettingInstance(),
       createRakutenCardETCSettingInstance(),
+      createRakutenCardAllSettingInstance(),
       createAmazonSubscribeSettingInstance(),
     ],
   },
@@ -260,6 +274,23 @@ export function createRakutenCardETCSettingInstance(
     nodeName: "rakuten_card_etc",
     menuName: "楽天ETC",
     categoryAssignFlag: CategoryAssignFlags.NONE,
+    ...params,
+  };
+}
+
+/**
+ * 楽天カード（全利用分）の設定を生成する
+ */
+export function createRakutenCardAllSettingInstance(
+  params: {
+    enabled: boolean;
+    emailProvider: EmailProvider;
+  } = { enabled: true, emailProvider: EmailProvider.GMAIL }
+): RakutenCardAllSetting {
+  return {
+    nodeName: "rakuten_all",
+    menuName: "楽天カード",
+    categoryAssignFlag: CategoryAssignFlags.STORE_NAME,
     ...params,
   };
 }

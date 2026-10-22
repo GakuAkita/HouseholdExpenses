@@ -26,6 +26,12 @@ export interface ExtractionContext {
 export interface MailSource<S extends AllMailType = AllMailType> {
   readonly nodeName: S["nodeName"];
 
+  /**
+   * True when the sender may send a mail with only an HTML part. Such a mail is then read
+   * as HTML with the tags removed. Otherwise a mail without a text part is skipped.
+   */
+  readonly readsHtmlWithoutText?: boolean;
+
   /** Gmail ids of the candidate mails between after and before (UNIX seconds). */
   findMailIds(gmail: GmailClient, after: number, before: number): Promise<string[]>;
 

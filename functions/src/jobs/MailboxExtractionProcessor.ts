@@ -3,7 +3,7 @@ import { GeneratedType } from "../constants/GeneratedType";
 import { CategoryService } from "../infra/firestore/CategoryService";
 import { ExpenseService } from "../infra/firestore/ExpenseService";
 import { createUserGmailClient } from "../infra/gmail/createUserGmailClient";
-import { extractTextBody } from "../infra/gmail/extractHtmlBody";
+import { extractHtmlBody, extractTextBody } from "../infra/gmail/extractHtmlBody";
 import { filterMessages } from "../infra/gmail/filterMessages";
 import { getMessageDetailsSortedList } from "../infra/gmail/getMessageDetailsMap";
 import { CategoryAssignmentService } from "../infra/rtdb/CategoryAssignmentService";
@@ -110,7 +110,9 @@ export class MailboxExtractionProcessor {
 
     /* 失敗しようが何しようが次のメールに行く */
     for (const [id, message] of Object.entries(filteredMessages)) {
-      const rawText = extractTextBody(message.payload);
+      const rawText =
+        extractTextBody(message.payload) ??
+        (source.readsHtmlWithoutText ? extractHtmlBody(message.payload, true) : null);
       if (!rawText) {
         logger.error(`Failed to extract Text Body. id=${id}`);
         continue;

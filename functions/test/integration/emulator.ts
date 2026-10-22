@@ -8,7 +8,8 @@ import { GoogleOAuthSecrets } from "../../src/type/GoogleOAuthSecrets";
 /*
  * Helpers for tests against the Firebase emulators (see vitest.integration.config.ts).
  * Each test uses its own user id and deletes it afterwards, so tests don't see each other's data
- * or data you created in the emulator by hand.
+ * or data you created in the emulator by hand. globalSetup.ts also sweeps users that onUserCreate
+ * writes after a test has already cleaned up.
  */
 
 const projectId = process.env.GCLOUD_PROJECT as string;

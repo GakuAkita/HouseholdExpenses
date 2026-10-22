@@ -52,6 +52,7 @@ import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonItem
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonKindle
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.AmazonSubscribe
+import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.RakutenCardAll
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.RakutenCardETC
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.RakutenPay
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType.ShikokuElectricPower
@@ -71,13 +72,15 @@ val EmailTemplateType.displayName: String
         is ShikokuElectricPower -> "Shikoku Electric Power"
         is Udemy -> "Udemy"
         is RakutenCardETC -> "Rakuten Card ETC"
+        is RakutenCardAll -> "Rakuten Card All"
     }
 
 private val lastExecFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
 
 private fun formatLastExec(lastExecMillis: Long?): String {
     if (lastExecMillis == null) return "Not yet"
-    return Instant.ofEpochMilli(lastExecMillis).atZone(ZoneId.systemDefault()).format(lastExecFormatter)
+    return Instant.ofEpochMilli(lastExecMillis).atZone(ZoneId.systemDefault())
+        .format(lastExecFormatter)
 }
 
 @Composable

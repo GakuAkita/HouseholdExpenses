@@ -68,6 +68,13 @@ class MailboxExtractionRepositoryRealtimeDb(
                 )
             }
 
+            is EmailTemplateType.RakutenCardAll -> {
+                getSetting(
+                    EmailTemplateTypeDto.RakutenCardAll(),
+                    EmailTemplateTypeDto.RakutenCardAll::class.java
+                )
+            }
+
             is EmailTemplateType.ShikokuElectricPower -> {
                 getSetting(
                     EmailTemplateTypeDto.ShikokuElectricPower(),
@@ -142,6 +149,13 @@ class MailboxExtractionRepositoryRealtimeDb(
                 )
             }
 
+            is EmailTemplateType.RakutenCardAll -> {
+                EmailTemplateTypeDto.RakutenCardAll(
+                    enabled = type.enabled,
+                    emailProvider = type.emailProvider.name
+                )
+            }
+
             is EmailTemplateType.RakutenCardETC -> {
                 EmailTemplateTypeDto.RakutenCardETC(
                     enabled = type.enabled,
@@ -161,6 +175,8 @@ private fun DataSnapshot.toMailTypeSetting(): EmailTemplateType? {
         EmailTemplateTypeDto.AmazonItem().nodeName -> getValue(EmailTemplateTypeDto.AmazonItem::class.java)?.toDomain()
 
         EmailTemplateTypeDto.RakutenPay().nodeName -> getValue(EmailTemplateTypeDto.RakutenPay::class.java)?.toDomain()
+
+        EmailTemplateTypeDto.RakutenCardAll().nodeName -> getValue(EmailTemplateTypeDto.RakutenCardAll::class.java)?.toDomain()
 
         EmailTemplateTypeDto.RakutenCardETC().nodeName -> getValue(EmailTemplateTypeDto.RakutenCardETC::class.java)?.toDomain()
 
@@ -318,6 +334,28 @@ sealed interface EmailTemplateTypeDto {
         override fun toDomain(): EmailTemplateType {
             val _emailProvider = EmailTemplateType.Udemy(
                 enabled = enabled ?: false, categoryId = categoryId
+            )
+            val provider = emailProviderToDomain()
+            if (provider == null) {
+                return _emailProvider
+            } else {
+                return _emailProvider.copy(
+                    emailProvider = provider
+                )
+            }
+        }
+    }
+
+    data class RakutenCardAll(
+        override val enabled: Boolean? = null,
+        override val emailProvider: String? = null,
+    ) : EmailTemplateTypeDto {
+        override val nodeName: String
+            get() = "rakuten_all"
+
+        override fun toDomain(): EmailTemplateType {
+            val _emailProvider = EmailTemplateType.RakutenCardAll(
+                enabled = enabled ?: false
             )
             val provider = emailProviderToDomain()
             if (provider == null) {

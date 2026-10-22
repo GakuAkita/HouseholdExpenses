@@ -158,6 +158,7 @@ class RealtimeDbConversionTest {
                 emailProvider = EmailProvider.OUTLOOK,
                 categoryId = "category4"
             ),
+            EmailTemplateType.RakutenCardAll(enabled = true, emailProvider = EmailProvider.OUTLOOK),
         )
     }
 }

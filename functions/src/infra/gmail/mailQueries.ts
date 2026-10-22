@@ -107,3 +107,18 @@ export async function getRakutenCardETCMailIds(
   const query = `from:${mailFrom} ETCカード売上 after:${startTime} before:${endTime + 1}`;
   return gmailClient.queryMessages(query);
 }
+
+/** 楽天カードの利用のお知らせ (every charge, ETC included). */
+export async function getRakutenCardAllMailIds(
+  gmailClient: GmailClient,
+  startTime: number,
+  endTime: number
+): Promise<string[]> {
+  const mailFrom = "info@mail.rakuten-card.co.jp";
+  const query =
+    `from:${mailFrom} ` +
+    `subject:"カード利用のお知らせ" ` +
+    `after:${startTime} ` +
+    `before:${endTime + 1}`;
+  return gmailClient.queryMessages(query);
+}

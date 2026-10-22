@@ -5,6 +5,7 @@ import {
   getAmazonItemMailIds,
   getAmazonKindleMailIds,
   getAmazonSubscribeNextShipNotifyAndCancelMailIds,
+  getRakutenCardAllMailIds,
   getRakutenCardETCMailIds,
   getRakutenPayMailIds,
   getShikokuElectricMailIds,
@@ -40,6 +41,9 @@ describe("mail queries", () => {
     );
     expect((await queryOf((c) => getRakutenCardETCMailIds(c, 100, 200))).query).toBe(
       "from:info@mail.rakuten-card.co.jp ETCカード売上 after:100 before:201"
+    );
+    expect((await queryOf((c) => getRakutenCardAllMailIds(c, 100, 200))).query).toBe(
+      'from:info@mail.rakuten-card.co.jp subject:"カード利用のお知らせ" after:100 before:201'
     );
   });
 

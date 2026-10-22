@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     ...sharedTestOptions,
     include: ["test/integration/**/*.test.ts"],
+    globalSetup: ["test/integration/globalSetup.ts"],
     env: {
       ...sharedTestOptions.env,
       GCLOUD_PROJECT: process.env.GCLOUD_PROJECT ?? "householdexpenses2",
