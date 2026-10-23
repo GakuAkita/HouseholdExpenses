@@ -13,7 +13,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -39,7 +39,7 @@ jobs:
 
       - name: Upload Test Reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: unit-test-reports
           path: app/build/reports/tests/
@@ -148,7 +148,7 @@ jobs:
           echo "APK_FILE=$SIGNED_APK" >> $GITHUB_ENV
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app-release
           path: ${{ env.APK_FILE }}
