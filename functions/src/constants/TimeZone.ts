@@ -4,6 +4,7 @@ export enum TimeZone {
   TAIPEI = "Asia/Taipei",
   AMERICAN_EAST = "America/New_York",
   AMERICAN_WEST = "America/Los_Angeles",
+  AMERICAN_MOUNTAIN = "America/Denver",
   PARIS = "Europe/Paris",
 }
 

@@ -11,6 +11,7 @@ enum class TimeZone(val id: String, val label: String) {
     TAIWAN("Asia/Taipei", "Taiwan"),
     EUROPE("Europe/Paris", "Europe"),
     USA("America/New_York", "America East"),
+    USA_MOUNTAIN("America/Denver", "America Mountain"),
     UTC("UTC", "UTC");
 
     val zoneId: ZoneId
