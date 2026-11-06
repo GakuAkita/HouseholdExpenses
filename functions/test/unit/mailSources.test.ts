@@ -20,6 +20,7 @@ import {
   createUdemySettingInstance,
   EmailProvider,
   mailboxExtractionSchedules,
+  RakutenCardExcludeItem,
 } from "../../src/type/Mailbox";
 
 const fixture = (name: string) =>
@@ -189,6 +190,23 @@ describe("mail sources", () => {
       }),
     });
     expect(result.map((e) => e.storeName)).toEqual(["ローソン 駅前店"]);
+  });
+
+  it("rakuten_all leaves out 楽天ペイ残高 チャージ only when the user excludes it", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const mail = { rawText: fixture("rakuten_card_all").replace("ローソン 駅前店", "楽天ペイ残高　チャージ") };
+    const stores = async (excludeItems: Record<string, RakutenCardExcludeItem>) =>
+      (
+        await sourceOf(setting).toExpenses(mail, setting, {
+          ...context(),
+          loadRakutenCardExcludeItems: async () => excludeItems,
+        })
+      ).map((e) => e.storeName);
+
+    expect(await stores({})).toEqual(["楽天ペイ残高　チャージ", "ＥＴＣカード売上"]);
+    expect(await stores({ a: { name: "楽天ペイ残高", condition: AssignmentCondition.CONTAINS } })).toEqual([
+      "ＥＴＣカード売上",
+    ]);
   });
 
   it("rakuten_all returns nothing when every charge is at an excluded store", async () => {
