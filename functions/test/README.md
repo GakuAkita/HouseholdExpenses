@@ -3,7 +3,7 @@
 | Command | What it runs | Needs |
 |---|---|---|
 | `npm test` | `test/unit`: pure logic with fakes | nothing |
-| `npm run test:integration` | `test/integration`: jobs and services against the Firebase emulators, with a fake Gmail and fake secrets | `firebase emulators:start` (Firestore 5002, Realtime Database 9000, Auth 9099) |
+| `npm run test:integration` | `test/integration`: jobs and services against the Firebase emulators, with a fake Gmail and fake secrets, and `database.rules.json` (loaded into its own namespace) | `firebase emulators:start` (Firestore 5002, Realtime Database 9000, Auth 9099) |
 | `npm run test:live` | `test/live`: the real Gmail API with your refresh token (read-only) | `GOOGLE_OAUTH_SECRETS` and `ENCRYPTED_REFRESH_TOKEN` in `../.env.local`; skipped without them |
 
 All tests run with `TZ=UTC`, like Cloud Functions.

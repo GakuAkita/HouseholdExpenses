@@ -35,6 +35,9 @@ class RealtimeDbUserReference(
 
     val gmailTokensReference = mailboxExtractionReference.child("gmail_tokens")
 
+    /* Written before opening Google's consent page. The OAuth callback reads and removes it. */
+    val gmailOAuthRequestReference = mailboxExtractionReference.child("gmail_oauth_request")
+
     val mailboxExtractionLastExecReference = mailboxExtractionReference.child("last_exec")
 
     val amazonSubscribeMonitorReference =

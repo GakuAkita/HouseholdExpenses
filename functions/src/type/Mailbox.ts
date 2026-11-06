@@ -1,3 +1,14 @@
+/**
+ * Written by the app to users/{uid}/mailbox_extraction/gmail_oauth_request before it opens
+ * Google's consent page. The OAuth state is "<uid>.<nonce>", and codeVerifier is the PKCE secret.
+ */
+export interface GmailOAuthRequest {
+  nonce: string;
+  codeVerifier: string;
+  /** Server time in milliseconds (ServerValue.TIMESTAMP). */
+  createdAt: number;
+}
+
 export interface MailboxGmailTokenType {
   refreshToken: string /* 暗号化されている */;
   timestamp?: string /* ISO 8601形式のタイムスタンプ */;

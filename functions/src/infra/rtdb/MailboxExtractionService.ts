@@ -1,11 +1,13 @@
+import { timingSafeEqual } from "crypto";
 import { Auth } from "firebase-admin/auth";
 import { Database, Reference } from "firebase-admin/database";
 import { Clock } from "../../shared/clock";
-import { decryptWithKey, encryptWithKey } from "../../shared/encryption";
+import { decryptWithKey, encryptWithKey, isLegacyCiphertext } from "../../shared/encryption";
 import { RuntimeConfig } from "../../shared/runtimeConfig";
 import {
   AllMailType,
   AmazonSubscribeItem,
+  GmailOAuthRequest,
   LastMailboxExtractionExec,
   MailboxGmailTokenType,
   RakutenCardExcludeItem,
@@ -34,6 +36,11 @@ export class MailboxExtractionService {
   private gmailTokenRef(userId: string, gmail: string): Reference {
     /* gmailには.や@が入っているので別文字の置き換える */
     return this.mailboxExtractionRef(userId).child("gmail_tokens").child(sanitizeEmail(gmail));
+  }
+
+  /** Written by the app when it opens Google's consent page. See takeGmailOAuthRequest. */
+  private gmailOAuthRequestRef(userId: string): Reference {
+    return this.mailboxExtractionRef(userId).child("gmail_oauth_request");
   }
 
   private lastExecRef(userId: string, type: AllMailType): Reference {
@@ -92,7 +99,40 @@ export class MailboxExtractionService {
     if (!token || !token.refreshToken) {
       throw new Error(`data type doesn't match with expected type. user:${userId}`);
     }
-    return { ...token, refreshToken: decryptWithKey(token.refreshToken, encryptionKey) };
+    const refreshToken = decryptWithKey(token.refreshToken, encryptionKey);
+
+    /* Tokens saved in the old AES-CBC format are saved again in the current format. */
+    if (isLegacyCiphertext(token.refreshToken)) {
+      await snapshot.ref.child("refreshToken").set(encryptWithKey(refreshToken, encryptionKey));
+    }
+    return { ...token, refreshToken };
+  }
+
+  /* ****************************** Gmail OAuth request ****************************** */
+
+  /**
+   * Removes and returns the user's pending OAuth request when its nonce matches.
+   * Returns null when there is no request or the nonce is different; a wrong nonce leaves the request.
+   * A request can be taken only once, even by concurrent calls.
+   */
+  async takeGmailOAuthRequest(userId: string, nonce: string): Promise<GmailOAuthRequest | null> {
+    let taken: GmailOAuthRequest | null = null;
+    const result = await this.gmailOAuthRequestRef(userId).transaction((current: GmailOAuthRequest | null) => {
+      taken = null;
+      /*
+       * The first call can get null before the server's value is known. Writing null then is
+       * harmless: if the server has a value, the transaction runs again with it.
+       */
+      if (current === null) {
+        return null;
+      }
+      if (typeof current.nonce !== "string" || !sameString(current.nonce, nonce)) {
+        return undefined; /* abort: leave the request */
+      }
+      taken = current;
+      return null;
+    });
+    return result.committed ? taken : null;
   }
 
   /* ****************************** Mail type settings ****************************** */
@@ -168,3 +208,10 @@ export class MailboxExtractionService {
     return (await this.mailboxExtractionRef(userId).child("rakuten_card_exclude_items").get()).val() ?? {};
   }
 }
+
+/** Compares in constant time, so the comparison doesn't reveal how much of the nonce matched. */
+const sameString = (a: string, b: string): boolean => {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+};

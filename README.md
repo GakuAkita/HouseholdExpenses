@@ -78,7 +78,7 @@ Categories are assigned automatically by rules you configure.
 **Backend** (`functions/`)
 
 - TypeScript on Node.js 22, Firebase Cloud Functions
-- Gmail API with per-user Google OAuth; secrets stored in Secret Manager
+- Gmail API with per-user Google OAuth (one-time state + PKCE); secrets stored in Secret Manager, refresh tokens encrypted with AES-256-GCM
 - Vitest for unit, integration (Firebase emulators) and live Gmail tests
 
 See [`functions/README.md`](functions/README.md) for the backend layout and how to add support for a
@@ -96,11 +96,11 @@ new email type.
 
 These files contain project-specific settings and are not committed:
 
-| File                       | Purpose                                                                                            |
-|----------------------------|----------------------------------------------------------------------------------------------------|
-| `app/google-services.json` | Firebase config for the Android app (download from the Firebase console)                           |
-| `firebase.json`            | Firebase CLI config (emulators, functions, rules)                                                  |
-| `.env.local`               | Optional. Credentials for the live Gmail tests (`GOOGLE_OAUTH_SECRETS`, `ENCRYPTED_REFRESH_TOKEN`) |
+| File                       | Purpose                                                                                                                              |
+|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `app/google-services.json` | Firebase config for the Android app (download from the Firebase console)                                                             |
+| `firebase.json`            | Firebase CLI config (emulators, functions, rules). Point it at the committed rules: `"database": { "rules": "database.rules.json" }` |
+| `.env.local`               | Optional. Credentials for the live Gmail tests (`GOOGLE_OAUTH_SECRETS`, `ENCRYPTED_REFRESH_TOKEN`)                                   |
 
 ### Build the app
 
@@ -141,6 +141,8 @@ Both GitHub Actions workflows are run manually (`workflow_dispatch`):
 - **Build apk** (`build_apk.yml`): tags the next version, builds and signs a release APK, and
   uploads it as a workflow artifact.
 - **Deploy functions** (`deploy_functions.yml`): deploys Cloud Functions to Firebase.
+
+The Realtime Database rules are in [`database.rules.json`](database.rules.json) and are deployed separately with `npx firebase-tools deploy --only database`. Edit them there, not in the Firebase console: a deploy replaces the rules in the console.
 
 ## License
 

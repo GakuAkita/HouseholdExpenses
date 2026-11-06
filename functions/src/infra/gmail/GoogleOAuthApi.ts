@@ -9,16 +9,20 @@ export interface GoogleTokens {
 
 /** The Google OAuth calls made when the user allows Gmail access. Tests pass a fake. */
 export interface GoogleOAuthApi {
-  /** Exchanges the authorization code for an access token and a refresh token. */
-  exchangeCode(code: string, secrets: GoogleOAuthSecrets): Promise<GoogleTokens>;
+  /**
+   * Exchanges the authorization code for an access token and a refresh token.
+   * codeVerifier is the PKCE secret whose hash the app sent as code_challenge.
+   */
+  exchangeCode(code: string, codeVerifier: string, secrets: GoogleOAuthSecrets): Promise<GoogleTokens>;
   /** The email address of the Google account the access token belongs to. */
   fetchEmail(accessToken: string): Promise<string | undefined>;
 }
 
 export const googleOAuthApi: GoogleOAuthApi = {
-  async exchangeCode(code, secrets) {
+  async exchangeCode(code, codeVerifier, secrets) {
     const postData = qs.stringify({
       code,
+      code_verifier: codeVerifier,
       client_id: secrets.clientId,
       client_secret: secrets.clientSecret,
       redirect_uri: secrets.redirectUri, //uriが正しいらしい。でもsecretのほうにはurlで保存してしまった。
