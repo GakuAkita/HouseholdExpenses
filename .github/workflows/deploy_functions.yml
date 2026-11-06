@@ -3,6 +3,11 @@ name: Deploy Firebase Functions
 on:
   workflow_dispatch:
 
+# Deploys running at the same time fail when they update the same function.
+concurrency:
+  group: deploy-functions
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
