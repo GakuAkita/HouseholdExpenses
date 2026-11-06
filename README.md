@@ -20,16 +20,16 @@ parsers are maintained as formats change.
 
 Cloud Functions check each user's Gmail on a schedule and extract expenses from these emails:
 
-| Source                     | What is recorded                                              |
-|----------------------------|---------------------------------------------------------------|
-| Amazon orders              | Items and amounts from order confirmations                    |
-| Amazon Subscribe & Save    | Deliveries from shipping notifications                        |
-| Kindle                     | eBook purchases                                               |
-| Rakuten Pay                | Store name and amount from payment confirmations              |
-| Rakuten Card ETC           | Highway toll charges                                          |
-| Rakuten Card (all charges) | Every card charge, except at the stores you choose to exclude |
-| Udemy                      | Course purchases                                              |
-| Shikoku Electric Power     | Monthly electricity bills                                     |
+| Source                     | What is recorded                                                                  |
+|----------------------------|-----------------------------------------------------------------------------------|
+| Amazon orders              | Items and amounts from order confirmations                                        |
+| Amazon Subscribe & Save    | Deliveries from shipping notifications                                            |
+| Kindle                     | eBook purchases                                                                   |
+| Rakuten Pay                | Store name and amount from payment confirmations                                  |
+| Rakuten Card ETC           | Highway toll charges                                                              |
+| Rakuten Card (all charges) | Every card charge, except Rakuten Pay top-ups and the stores you choose to exclude |
+| Udemy                      | Course purchases                                                                  |
+| Shikoku Electric Power     | Monthly electricity bills                                                         |
 
 Categories are assigned automatically by rules you configure.
 

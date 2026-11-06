@@ -2,6 +2,8 @@ import { MailParseError } from "./MailParserBase";
 import { Expense } from "../../type/Expense";
 import { convertyyyymmddToUTCIsoString } from "../../shared/dateConverter";
 
+type Charge = Expense & { storeName: string };
+
 /**
  * 楽天カード「カード利用のお知らせ」: one expense per charge, ETC included.
  * Rakuten sends two layouts, depending on the user's mail setting:
@@ -12,6 +14,9 @@ import { convertyyyymmddToUTCIsoString } from "../../shared/dateConverter";
 export class RakutenCardAllParser {
   constructor(private rawText: string) {}
 
+  /* Topping up 楽天ペイ moves money, it isn't spending. The space between the words varies. */
+  private static isNotExpense = (storeName: string) => /^楽天ペイ残高\s*チャージ/.test(storeName);
+
   private text(): string {
     return this.rawText
       .replace(/\r\n?/g, "\n")
@@ -21,7 +26,7 @@ export class RakutenCardAllParser {
   }
 
   /** The text layout. The text of each charge, from one "■利用日" to the next. */
-  private fromTextLayout(text: string): Expense[] {
+  private fromTextLayout(text: string): Charge[] {
     /* The part before the first "■利用日" is the greeting. */
     const blocks = text.split(/(?=■利用日)/).filter((block) => block.startsWith("■利用日"));
     return blocks.map((block) => {
@@ -33,12 +38,12 @@ export class RakutenCardAllParser {
   }
 
   /** The HTML layout. A row starts with the date, so 合計 rows don't match. */
-  private fromHtmlLayout(text: string): Expense[] {
+  private fromHtmlLayout(text: string): Charge[] {
     const rowRegex = /^(\d{4}\/\d{1,2}\/\d{1,2})\s+([^\n]+?)\s+([\d,]+)[ \t　]*円$/gm;
     return Array.from(text.matchAll(rowRegex), (m) => this.toExpense(m[1], m[2].trim(), m[3]));
   }
 
-  private toExpense(date?: string, storeName?: string, amount?: string): Expense {
+  private toExpense(date?: string, storeName?: string, amount?: string): Charge {
     /* A charge without one of them is not saved, so the whole mail fails instead of saving part of it. */
     if (!date || !storeName || !amount) {
       throw new MailParseError(
@@ -52,13 +57,13 @@ export class RakutenCardAllParser {
     };
   }
 
-  /** Every charge in the mail. */
+  /** The charges to save. Empty when every charge in the mail is one that isn't saved. */
   toExpenses(): Expense[] {
     const text = this.text();
     const expenses = text.includes("■利用日") ? this.fromTextLayout(text) : this.fromHtmlLayout(text);
     if (expenses.length === 0) {
       throw new MailParseError("No charge was found in the Rakuten Card mail");
     }
-    return expenses;
+    return expenses.filter((expense) => !RakutenCardAllParser.isNotExpense(expense.storeName));
   }
 }

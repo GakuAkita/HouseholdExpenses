@@ -152,7 +152,6 @@ describe("RakutenCardAllParser", () => {
 
   it("reads the HTML layout as Gmail renders it, without 合計 rows", () => {
     expect(new RakutenCardAllParser(fixture("rakuten_card_all_html")).toExpenses()).toEqual([
-      { datetime: "2026-03-03T00:00:00.000Z", amount: 3000, storeName: "楽天ペイ残高 チャージ" },
       { datetime: "2026-03-05T00:00:00.000Z", amount: 1100, storeName: "ｺﾝﾋﾞﾆ ｴｷﾏｴﾃﾝ" },
       { datetime: "2026-03-06T00:00:00.000Z", amount: 860, storeName: "ｽ-ﾊﾟ-" },
       { datetime: "2026-03-11T00:00:00.000Z", amount: 2500, storeName: "ｹｲﾀｲﾂｳｼﾝﾘﾖｳ" },
@@ -168,12 +167,19 @@ describe("RakutenCardAllParser", () => {
     ]);
   });
 
-  it("reads 楽天ペイ残高 チャージ like any other charge", () => {
-    const text = fixture("rakuten_card_all").replace("ローソン 駅前店", "楽天ペイ残高　チャージ");
-    expect(new RakutenCardAllParser(text).toExpenses().map((e) => [e.amount, e.storeName])).toEqual([
-      [1230, "楽天ペイ残高　チャージ"],
-      [2000, "ＥＴＣカード売上"],
-    ]);
+  it("skips 楽天ペイ残高 チャージ", () => {
+    const charge = (storeName: string) =>
+      fixture("rakuten_card_all").replace("ローソン 駅前店", storeName);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高　チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高 チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+    expect(new RakutenCardAllParser(charge("楽天ペイ残高チャージ")).toExpenses().map((e) => e.amount)).toEqual([2000]);
+  });
+
+  it("returns nothing for a mail with only a 楽天ペイ残高 チャージ", () => {
+    const text = fixture("rakuten_card_all")
+      .replace("ローソン 駅前店", "楽天ペイ残高　チャージ")
+      .replace("ＥＴＣカード売上", "楽天ペイ残高　チャージ");
+    expect(new RakutenCardAllParser(text).toExpenses()).toEqual([]);
   });
 
   it("fails when a charge has no amount", () => {
