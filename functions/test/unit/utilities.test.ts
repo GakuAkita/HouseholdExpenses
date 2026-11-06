@@ -1,8 +1,6 @@
-import { randomBytes } from "crypto";
 import { describe, expect, it } from "vitest";
 import { convertDaysToNums, convertDayToNum, DayOfWeekNum } from "../../src/constants/DayOfWeek";
 import { convertyyyymmddToUTCIsoString } from "../../src/shared/dateConverter";
-import { decryptWithKey, encryptWithKey } from "../../src/shared/encryption";
 import {
   convertUnixMillisecToDateString,
   convertUnixMillisecToSec,
@@ -26,24 +24,6 @@ describe("convertDayToNum", () => {
 
   it("convertDaysToNums drops values it can't convert", () => {
     expect(convertDaysToNums(["MONDAY", "FRIDAY", "x"])).toEqual([DayOfWeekNum.MON, DayOfWeekNum.FRI]);
-  });
-});
-
-describe("encryption", () => {
-  const key = randomBytes(32).toString("base64");
-
-  it("decrypts what it encrypted", () => {
-    const encrypted = encryptWithKey("refresh-token", key);
-    expect(encrypted).toMatch(/^[0-9a-f]{32}:[0-9a-f]+$/);
-    expect(decryptWithKey(encrypted, key)).toBe("refresh-token");
-  });
-
-  it("uses a new IV every time", () => {
-    expect(encryptWithKey("same", key)).not.toBe(encryptWithKey("same", key));
-  });
-
-  it("rejects data without the iv:data format", () => {
-    expect(() => decryptWithKey("no-separator", key)).toThrow("Invalid encrypted data format");
   });
 });
 

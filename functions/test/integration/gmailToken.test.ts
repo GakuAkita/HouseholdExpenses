@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import * as admin from "firebase-admin";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { sanitizeEmail } from "../../src/infra/rtdb/emailEncode";
 import { createTestServices, deleteTestUser, newTestUserId, testGmailOf, testSecrets } from "./emulator";
 
 describe("Gmail refresh token", () => {
@@ -22,13 +24,35 @@ describe("Gmail refresh token", () => {
     const [storedToken] = Object.values(stored) as { refreshToken: string; gmail: string; timestamp: string }[];
     expect(storedToken.gmail).toBe(gmail);
     expect(storedToken.refreshToken).not.toContain("raw-refresh-token");
-    expect(storedToken.refreshToken).toMatch(/^[0-9a-f]{32}:[0-9a-f]+$/);
+    expect(storedToken.refreshToken).toMatch(/^v2:[0-9a-f]{24}:[0-9a-f]{32}:[0-9a-f]+$/);
 
     const read = await services.mailboxExtractionService.getGmailToken(
       userId,
       testSecrets.encryptionKey
     );
     expect(read).toMatchObject({ refreshToken: "raw-refresh-token", gmail });
+  });
+
+  it("reads a token saved in the old AES-CBC format and saves it again in the current format", async () => {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(testSecrets.encryptionKey, "base64"), iv);
+    const legacy = `${iv.toString("hex")}:${Buffer.concat([cipher.update("old-refresh-token"), cipher.final()]).toString("hex")}`;
+    const tokensRef = admin.database().ref(`users/${userId}/mailbox_extraction/gmail_tokens`);
+    await tokensRef.child(sanitizeEmail(gmail)).set({
+      refreshToken: legacy,
+      gmail,
+      timestamp: "2025-01-01T00:00:00.000Z",
+    });
+
+    const read = await services.mailboxExtractionService.getGmailToken(userId, testSecrets.encryptionKey);
+
+    expect(read).toMatchObject({ refreshToken: "old-refresh-token", gmail });
+    const [stored] = Object.values((await tokensRef.get()).val()) as { refreshToken: string; timestamp: string }[];
+    expect(stored.refreshToken).toMatch(/^v2:/);
+    expect(stored.timestamp).toBe("2025-01-01T00:00:00.000Z");
+    expect(
+      await services.mailboxExtractionService.getGmailToken(userId, testSecrets.encryptionKey)
+    ).toMatchObject({ refreshToken: "old-refresh-token" });
   });
 
   it("returns null when the user hasn't connected Gmail", async () => {

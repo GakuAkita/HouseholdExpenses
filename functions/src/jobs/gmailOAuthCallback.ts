@@ -5,10 +5,13 @@ import { MailboxExtractionService } from "../infra/rtdb/MailboxExtractionService
 import { Runtime } from "../shared/runtime";
 import { MailboxGmailTokenType } from "../type/Mailbox";
 
+/** How long the app's OAuth request stays usable after it was written. */
+export const GMAIL_OAUTH_REQUEST_TTL_MS = 10 * 60 * 1000;
+
 export interface GmailOAuthCallbackDeps {
-  auth: Pick<Auth, "verifyIdToken" | "getUser">;
-  runtime: Pick<Runtime, "secrets" | "googleOAuthApi">;
-  mailboxExtractionService: Pick<MailboxExtractionService, "saveGmailToken">;
+  auth: Pick<Auth, "getUser">;
+  runtime: Pick<Runtime, "secrets" | "googleOAuthApi" | "clock">;
+  mailboxExtractionService: Pick<MailboxExtractionService, "saveGmailToken" | "takeGmailOAuthRequest">;
 }
 
 export type GmailOAuthCallbackResult =
@@ -19,9 +22,25 @@ export type GmailOAuthCallbackResult =
   | "failed";
 
 /**
+ * Splits the OAuth state "<uid>.<nonce>". The nonce is base64url, so it has no ".".
+ * Returns null when the state isn't in that form.
+ */
+export const parseGmailOAuthState = (state: string): { uid: string; nonce: string } | null => {
+  const dot = state.lastIndexOf(".");
+  if (dot <= 0 || dot === state.length - 1) {
+    return null;
+  }
+  return { uid: state.slice(0, dot), nonce: state.slice(dot + 1) };
+};
+
+/**
  * Gmailアクセスの許可を取得したときの処理
  *
- * state is the user's Firebase ID token and code is Google's authorization code.
+ * Before opening Google's consent page, the app writes a random nonce and a PKCE code verifier
+ * to users/{uid}/mailbox_extraction/gmail_oauth_request, and sends "<uid>.<nonce>" as state.
+ * Only the user can write there (database.rules.json), so a matching nonce shows that this
+ * callback finishes a request the user's own app started. The request is used once.
+ *
  * Saves the encrypted refresh token when the Gmail address is the user's sign-in address.
  */
 export const handleGmailOAuthCallback = async (
@@ -40,21 +59,31 @@ export const handleGmailOAuthCallback = async (
   }
 
   try {
-    /**
-     * stateにFirebaseのIDトークンが入っている。
-     * これをデコードして、uidを取得する。
-     */
-    const decodedToken = await deps.auth.verifyIdToken(state);
-    if (!decodedToken || !decodedToken.uid) {
-      throw new Error("Invalid state parameter: Unable to decode Firebase ID token.");
+    const parsed = parseGmailOAuthState(state);
+    if (!parsed) {
+      throw new Error("Invalid state parameter.");
     }
-    const uid = decodedToken.uid;
+    const { uid, nonce } = parsed;
+
+    /* The request is removed here, so the same state can't be used again. */
+    const request = await deps.mailboxExtractionService.takeGmailOAuthRequest(uid, nonce);
+    if (!request) {
+      throw new Error(`No OAuth request matches the state for user ${uid}.`);
+    }
+    const age = deps.runtime.clock.now().getTime() - request.createdAt;
+    if (!(age >= 0 && age <= GMAIL_OAUTH_REQUEST_TTL_MS)) {
+      throw new Error(`The OAuth request for user ${uid} has expired.`);
+    }
 
     const secrets = await deps.runtime.secrets.load();
 
     /* アクセストークンとリフレッシュトークンを取得 */
     logger.log(`Start getting access token and refresh token...`);
-    const { accessToken, refreshToken } = await deps.runtime.googleOAuthApi.exchangeCode(code, secrets);
+    const { accessToken, refreshToken } = await deps.runtime.googleOAuthApi.exchangeCode(
+      code,
+      request.codeVerifier,
+      secrets
+    );
     if (!accessToken || !refreshToken) {
       throw new Error("Unable to get access token or refresh token.");
     }

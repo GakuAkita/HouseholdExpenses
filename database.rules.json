@@ -1,0 +1,53 @@
+{
+  // Realtime Database rules. Deploy: npx firebase-tools deploy --only database
+  //
+  // A permission granted on a parent can't be taken away by a child rule, so ".write" is
+  // granted only on the paths the app writes. Everything else is read-only for the app.
+  // Cloud Functions use the Admin SDK, which ignores these rules.
+  "rules": {
+    "users": {
+      "$userId": {
+        // Each user reads only their own data. No ".write" here on purpose.
+        ".read": "auth != null && auth.uid === $userId",
+
+        "mailbox_extraction": {
+          // gmail_tokens, last_exec and amazon_subscribe_monitor/last_exec have no write rule:
+          // only Cloud Functions write them.
+
+          "email_template_settings": {
+            ".write": "auth != null && auth.uid === $userId"
+          },
+
+          "amazon_subscribe_monitor": {
+            "subscribe_items": {
+              ".write": "auth != null && auth.uid === $userId"
+            }
+          },
+
+          // Written by the app before it opens Google's consent page, and removed by the
+          // OAuth callback. See functions/src/jobs/gmailOAuthCallback.ts.
+          "gmail_oauth_request": {
+            ".write": "auth != null && auth.uid === $userId",
+            ".validate": "newData.hasChildren(['nonce', 'codeVerifier', 'createdAt'])",
+            "nonce": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{43}$/)"
+            },
+            "codeVerifier": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{43,128}$/)"
+            },
+            "createdAt": {
+              ".validate": "newData.val() === now"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+
+        "category_assignment_data": {
+          ".write": "auth != null && auth.uid === $userId"
+        }
+      }
+    }
+  }
+}
