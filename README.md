@@ -54,7 +54,7 @@ Categories are assigned automatically by rules you configure.
 
 ```
 ┌───────────────────────┐        ┌──────────────────────────────┐
-│  Android app          │        │  Cloud Functions (Node 20)   │
+│  Android app          │        │  Cloud Functions (Node 22)   │
 │  Kotlin + Compose     │◀──────▶│  Scheduled jobs:             │
 │  Room (offline cache) │Firebase│   - Mailbox extraction ◀─────┼── Gmail API
 │  Receipt OCR (ML Kit) │        │   - Monthly Repeat Add       │
@@ -77,7 +77,7 @@ Categories are assigned automatically by rules you configure.
 
 **Backend** (`functions/`)
 
-- TypeScript on Node.js 20, Firebase Cloud Functions
+- TypeScript on Node.js 22, Firebase Cloud Functions
 - Gmail API with per-user Google OAuth; secrets stored in Secret Manager
 - Vitest for unit, integration (Firebase emulators) and live Gmail tests
 
@@ -89,7 +89,7 @@ new email type.
 ### Prerequisites
 
 - Android Studio (recent stable) and JDK 17+
-- Node.js 20 and the [Firebase CLI](https://firebase.google.com/docs/cli)
+- Node.js 22 and the [Firebase CLI](https://firebase.google.com/docs/cli)
 - A Firebase project with Authentication, Firestore and Realtime Database enabled
 
 ### Configuration
