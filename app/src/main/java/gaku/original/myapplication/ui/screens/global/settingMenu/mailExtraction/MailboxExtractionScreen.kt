@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -145,6 +146,9 @@ fun MailboxExtractionScreenRoot(
         },
         onCategorySelect = { state, categoryId ->
             viewModel.onCategorySelect(state, categoryId)
+        },
+        onRakutenCardAllExcludeClick = {
+            navHostController.navigate(MainGraph.Global.RakutenCardAllExclude)
         }
     )
 }
@@ -157,7 +161,8 @@ fun MailboxExtractionScreen(
     onGmailConnectClick: () -> Unit,
     onSwitchClick: (EmailTemplateUiState<EmailTemplateType>) -> Unit,
     onCategoryAssignmentClick: () -> Unit,
-    onCategorySelect: (EmailTemplateUiState<EmailTemplateType>, String?) -> Unit
+    onCategorySelect: (EmailTemplateUiState<EmailTemplateType>, String?) -> Unit,
+    onRakutenCardAllExcludeClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -256,20 +261,43 @@ fun MailboxExtractionScreen(
                                         .padding(top = 4.dp, bottom = 8.dp)
                                 )
                             } else {
-                                TextButton(
-                                    modifier = Modifier.align(Alignment.End),
-                                    onClick = {
-                                        onCategoryAssignmentClick()
-                                    }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Category Assignment")
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Default.OpenInNew,
-                                        contentDescription = "Go to Category Assignment",
-                                        modifier = Modifier
-                                            .padding(start = 4.dp)
-                                            .size(18.dp)
-                                    )
+                                    if (typeUiState.type is RakutenCardAll) {
+                                        TextButton(
+                                            onClick = {
+                                                onRakutenCardAllExcludeClick()
+                                            }
+                                        ) {
+                                            Text("Excluded")
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                                                contentDescription = "Excluded",
+                                                modifier = Modifier
+                                                    .padding(start = 4.dp)
+                                                    .size(18.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.weight(1f))
+
+                                    TextButton(
+                                        onClick = {
+                                            onCategoryAssignmentClick()
+                                        }
+                                    ) {
+                                        Text("Category Assignment")
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                                            contentDescription = "Go to Category Assignment",
+                                            modifier = Modifier
+                                                .padding(start = 4.dp)
+                                                .size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -372,6 +400,7 @@ fun MailboxExtractionScreenPreview() {
         onGmailConnectClick = {},
         onSwitchClick = {},
         onCategoryAssignmentClick = {},
-        onCategorySelect = { _, _ -> }
+        onCategorySelect = { _, _ -> },
+        onRakutenCardAllExcludeClick = {}
     )
 }

@@ -8,6 +8,7 @@ import {
   AmazonSubscribeItem,
   LastMailboxExtractionExec,
   MailboxGmailTokenType,
+  RakutenCardExcludeItem,
 } from "../../type/Mailbox";
 import { sanitizeEmail } from "./emailEncode";
 
@@ -158,5 +159,12 @@ export class MailboxExtractionService {
       throw new Error(`removeAmazonSubscribeItem: There is no id in subscribeItem`);
     }
     await this.amazonSubscribeItemsRef(userId).child(item.id).remove();
+  }
+
+  /* ****************************** Rakuten Card exclude items ****************************** */
+
+  /** The stores the user excluded, by id. Empty when the user has none. */
+  async getRakutenCardExcludeItems(userId: string): Promise<Record<string, RakutenCardExcludeItem>> {
+    return (await this.mailboxExtractionRef(userId).child("rakuten_card_exclude_items").get()).val() ?? {};
   }
 }

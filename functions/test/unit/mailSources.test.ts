@@ -20,6 +20,7 @@ import {
   createUdemySettingInstance,
   EmailProvider,
   mailboxExtractionSchedules,
+  RakutenCardExcludeItem,
 } from "../../src/type/Mailbox";
 
 const fixture = (name: string) =>
@@ -43,6 +44,7 @@ const context = (subscribeItems?: Record<string, AmazonSubscribeItem>): Extracti
     },
   },
   loadEnabledAmazonSubscribeItems: async () => subscribeItems ?? {},
+  loadRakutenCardExcludeItems: async () => ({}),
 });
 
 const gmail = { enabled: true, emailProvider: EmailProvider.GMAIL };
@@ -177,6 +179,46 @@ describe("mail sources", () => {
       [1230, "ローソン 駅前店", "food"],
       [2000, "ＥＴＣカード売上", undefined],
     ]);
+  });
+
+  it("rakuten_all leaves out the charges at excluded stores", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_card_all") }, setting, {
+      ...context(),
+      loadRakutenCardExcludeItems: async () => ({
+        a: { name: "ＥＴＣ", condition: AssignmentCondition.CONTAINS },
+      }),
+    });
+    expect(result.map((e) => e.storeName)).toEqual(["ローソン 駅前店"]);
+  });
+
+  it("rakuten_all leaves out 楽天ペイ残高 チャージ only when the user excludes it", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const mail = { rawText: fixture("rakuten_card_all").replace("ローソン 駅前店", "楽天ペイ残高　チャージ") };
+    const stores = async (excludeItems: Record<string, RakutenCardExcludeItem>) =>
+      (
+        await sourceOf(setting).toExpenses(mail, setting, {
+          ...context(),
+          loadRakutenCardExcludeItems: async () => excludeItems,
+        })
+      ).map((e) => e.storeName);
+
+    expect(await stores({})).toEqual(["楽天ペイ残高　チャージ", "ＥＴＣカード売上"]);
+    expect(await stores({ a: { name: "楽天ペイ残高", condition: AssignmentCondition.CONTAINS } })).toEqual([
+      "ＥＴＣカード売上",
+    ]);
+  });
+
+  it("rakuten_all returns nothing when every charge is at an excluded store", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_card_all") }, setting, {
+      ...context(),
+      loadRakutenCardExcludeItems: async () => ({
+        a: { name: "ローソン 駅前店", condition: AssignmentCondition.EXACT_MATCH },
+        b: { name: "ＥＴＣカード売上", condition: AssignmentCondition.EXACT_MATCH },
+      }),
+    });
+    expect(result).toEqual([]);
   });
 
   it("passes on the parser's error", async () => {

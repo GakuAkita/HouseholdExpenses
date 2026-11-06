@@ -4,11 +4,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import gaku.original.myapplication.data.dataClass.AmazonSubscribeItem
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
 import gaku.original.myapplication.data.dataClass.MatchCondition
+import gaku.original.myapplication.data.dataClass.RakutenCardExcludeItem
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.FirebaseTestEnvironment
 import gaku.original.myapplication.data.repository.categoryAssignment.toDto
 import gaku.original.myapplication.data.repository.deleteAll
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepositoryRealtimeDb
+import gaku.original.myapplication.data.repository.rakutenCardExclude.RakutenCardExcludeItemDto
+import gaku.original.myapplication.data.repository.rakutenCardExclude.toDto
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailProvider
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.EmailTemplateType
 import kotlinx.coroutines.runBlocking
@@ -33,7 +36,8 @@ class RealtimeDbConversionTest {
 
     @Before
     fun setUp() {
-        reference = FirebaseTestEnvironment.realtimeDbReference(FirebaseTestEnvironment.newTestUser())
+        reference =
+            FirebaseTestEnvironment.realtimeDbReference(FirebaseTestEnvironment.newTestUser())
     }
 
     @After
@@ -83,6 +87,25 @@ class RealtimeDbConversionTest {
         }
     }
 
+    /* ---------- RakutenCardExcludeItem ---------- */
+
+    @Test
+    fun rakutenCardExcludeItem_sampleIsFullyPopulated() {
+        assertFullyPopulated(sampleRakutenCardExcludeItem)
+    }
+
+    @Test
+    fun rakutenCardExcludeItem_roundTrip() = runBlocking<Unit> {
+        val node =
+            reference.rakutenCardExcludeItemReference.child(sampleRakutenCardExcludeItem.id!!)
+        node.setValue(sampleRakutenCardExcludeItem.toDto()).await()
+
+        val actual = node.get().await().getValue(RakutenCardExcludeItemDto::class.java)!!.toDomain()
+
+        assertSameProperties(sampleRakutenCardExcludeItem, actual)
+        assertEquals(sampleRakutenCardExcludeItem, actual)
+    }
+
     /* ---------- EmailTemplateType ---------- */
 
     @Test
@@ -116,6 +139,12 @@ class RealtimeDbConversionTest {
             enabled = false
         )
 
+        private val sampleRakutenCardExcludeItem = RakutenCardExcludeItem(
+            id = "exclude1",
+            name = "テスト店",
+            condition = MatchCondition.CONTAINS
+        )
+
         private val categoryAssignmentSamples = listOf(
             CategoryAssignment.Product(
                 id = "product1",
@@ -137,7 +166,10 @@ class RealtimeDbConversionTest {
         private val emailTemplateTypeSamples = listOf(
             EmailTemplateType.AmazonItem(enabled = true, emailProvider = EmailProvider.OUTLOOK),
             EmailTemplateType.RakutenPay(enabled = true, emailProvider = EmailProvider.OUTLOOK),
-            EmailTemplateType.AmazonSubscribe(enabled = true, emailProvider = EmailProvider.OUTLOOK),
+            EmailTemplateType.AmazonSubscribe(
+                enabled = true,
+                emailProvider = EmailProvider.OUTLOOK
+            ),
             EmailTemplateType.AmazonKindle(
                 enabled = true,
                 emailProvider = EmailProvider.OUTLOOK,

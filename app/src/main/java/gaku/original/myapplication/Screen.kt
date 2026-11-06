@@ -1,8 +1,8 @@
 package gaku.original.myapplication
 
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.data.dataClass.RepeatAdd
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -112,6 +112,9 @@ data object MainGraph {
                 }
             }
         }
+
+        @Serializable
+        data object RakutenCardAllExclude : Global
     }
 }
 
