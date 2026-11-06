@@ -11,7 +11,6 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import gaku.original.myapplication.MainGraph
 import gaku.original.myapplication.data.dataClass.CategoryAssignment
-import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.data.dataClass.RepeatAdd
 import gaku.original.myapplication.ui.screens.bottom.MainFrame
 import gaku.original.myapplication.ui.screens.bottom.statistics.StatisticsCategoryDialogRoot
@@ -20,8 +19,10 @@ import gaku.original.myapplication.ui.screens.global.categoryAssignment.Category
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditDialogRoot
 import gaku.original.myapplication.ui.screens.global.categoryAssignment.editDialog.CategoryAssignmentEditViewModel
 import gaku.original.myapplication.ui.screens.global.categoryEdit.CategoryEditScreenRoot
+import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditMode
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditScreenRoot
 import gaku.original.myapplication.ui.screens.global.expenseAddEdit.ExpenseAddEditViewModel
+import gaku.original.myapplication.ui.screens.global.rakutenCardExclude.RakutenCardAllExcludeScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.amazonSubscribe.AmazonSubscribeScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.drWalletImport.DrWalletImportScreenRoot
 import gaku.original.myapplication.ui.screens.global.settingMenu.mailExtraction.MailboxExtractionScreenRoot
@@ -89,12 +90,17 @@ fun NavGraphBuilder.mainGraph(
         }
 
         dialog<MainGraph.Global.StatisticsCategoryDialog> { backStackEntry ->
-            val categoryId = backStackEntry.toRoute<MainGraph.Global.StatisticsCategoryDialog>().categoryId
+            val categoryId =
+                backStackEntry.toRoute<MainGraph.Global.StatisticsCategoryDialog>().categoryId
             /* The same StatisticsViewModel as the Statistics screen, which is kept in the MainGraph entry. */
-            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(MainGraph) }
+            val parentEntry =
+                remember(backStackEntry) { navController.getBackStackEntry(MainGraph) }
             StatisticsCategoryDialogRoot(
                 categoryId = categoryId,
-                viewModel = viewModel(viewModelStoreOwner = parentEntry, factory = StatisticsViewModel.Factory),
+                viewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = StatisticsViewModel.Factory
+                ),
                 navHostController = navController
             )
         }
@@ -156,6 +162,12 @@ fun NavGraphBuilder.mainGraph(
 
         composable<MainGraph.SettingMenu.MailboxExtraction> {
             MailboxExtractionScreenRoot(
+                navHostController = navController
+            )
+        }
+
+        composable<MainGraph.Global.RakutenCardAllExclude> {
+            RakutenCardAllExcludeScreenRoot(
                 navHostController = navController
             )
         }

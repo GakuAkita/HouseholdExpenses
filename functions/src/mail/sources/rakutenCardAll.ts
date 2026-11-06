@@ -1,3 +1,4 @@
+import { isExcludedStore } from "../../domain/rakutenCardExclude";
 import { getRakutenCardAllMailIds } from "../../infra/gmail/mailQueries";
 import { RakutenCardAllSetting } from "../../type/Mailbox";
 import { MailSource } from "../mailSource";
@@ -14,8 +15,10 @@ export const rakutenCardAllSource: MailSource<RakutenCardAllSetting> = {
   findMailIds: getRakutenCardAllMailIds,
 
   async toExpenses(mail, _setting, context) {
-    return new RakutenCardAllParser(mail.rawText)
-      .toExpenses()
+    const expenses = new RakutenCardAllParser(mail.rawText).toExpenses();
+    const excludeItems = await context.loadRakutenCardExcludeItems();
+    return expenses
+      .filter((expense) => !expense.storeName || !isExcludedStore(expense.storeName, excludeItems))
       .map((expense) => assignByStoreName(expense, context));
   },
 };

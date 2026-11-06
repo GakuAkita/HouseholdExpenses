@@ -2,7 +2,7 @@ import { GmailClient } from "../infra/gmail/GmailApiClient";
 import { Category } from "../type/Category";
 import { CategoryAssignmentData } from "../type/CategoryAssignment";
 import { Expense } from "../type/Expense";
-import { AllMailType, AmazonSubscribeItem } from "../type/Mailbox";
+import { AllMailType, AmazonSubscribeItem, RakutenCardExcludeItem } from "../type/Mailbox";
 
 /** One mail, as the parsers need it. */
 export interface Mail {
@@ -17,6 +17,8 @@ export interface ExtractionContext {
   categoryAssignmentData: CategoryAssignmentData;
   /** Enabled Amazon subscribe items. Loaded only when a source asks for them. */
   loadEnabledAmazonSubscribeItems(): Promise<Record<string, AmazonSubscribeItem>>;
+  /** The stores the user excluded from 楽天カード (all charges). Loaded only when a source asks for them. */
+  loadRakutenCardExcludeItems(): Promise<Record<string, RakutenCardExcludeItem>>;
 }
 
 /**

@@ -10,11 +10,11 @@ import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
 import gaku.original.myapplication.data.extractor.Extractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptExtractor
 import gaku.original.myapplication.data.extractor.paypayReceipt.PayPayReceiptValidator
+import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
+import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.importer.CsvReader
 import gaku.original.myapplication.data.importer.ExpenseImporter
 import gaku.original.myapplication.data.importer.drwallet.DrWalletCsvImporter
-import gaku.original.myapplication.data.firebaseReference.FirestoreUserReference
-import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepository
 import gaku.original.myapplication.data.repository.amazonSubscribeItem.AmazonSubscribeItemRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.appTimeZone.AppTimeZoneRepository
@@ -31,6 +31,8 @@ import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtr
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptRepositorySharedPreferences
+import gaku.original.myapplication.data.repository.rakutenCardExclude.RakutenCardExcludeRepository
+import gaku.original.myapplication.data.repository.rakutenCardExclude.RakutenCardExcludeRepositoryRealtimeDb
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepositoryFirestore
 import gaku.original.myapplication.domain.AppUser
@@ -119,6 +121,10 @@ class FirebaseSessionContainer(
         )
     override val categoryAssignmentRepository: CategoryAssignmentRepository =
         CategoryAssignmentRepositoryRealtimeDb(
+            realtimeDbReference = realtimeDbReference
+        )
+    override val rakutenCardExcludeRepository: RakutenCardExcludeRepository =
+        RakutenCardExcludeRepositoryRealtimeDb(
             realtimeDbReference = realtimeDbReference
         )
 }

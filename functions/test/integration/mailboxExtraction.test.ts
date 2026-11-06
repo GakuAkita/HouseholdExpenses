@@ -282,6 +282,39 @@ describe("mailbox extraction", () => {
     ]);
   });
 
+  it("doesn't save the Rakuten Card charges at the stores the user excluded", async () => {
+    await connectGmail();
+    const rakutenCardAll = createRakutenCardAllSettingInstance({ enabled: true, emailProvider: EmailProvider.GMAIL });
+    await services.mailboxExtractionService.setMailTypeSetting(userId, rakutenCardAll);
+    /* Written at the path the app uses, in the app's format. */
+    await admin.database().ref(`users/${userId}/mailbox_extraction/rakuten_card_exclude_items/item1`).set({
+      id: "item1",
+      name: "ローソン",
+      condition: AssignmentCondition.CONTAINS,
+    });
+    const cardGmail = createFakeGmail([
+      {
+        id: "card-1",
+        from: "info@mail.rakuten-card.co.jp",
+        internalDate: mailDate,
+        text: mailFixture("rakuten_card_all"),
+      },
+    ]);
+    const cardServices = createTestServices({ clock: fixedClock(now), createGmailClient: cardGmail.factory });
+    const cardProcessor = new MailboxExtractionProcessor(
+      userId,
+      cardServices.mailboxExtractionService,
+      cardServices.expenseService,
+      cardServices.categoryService,
+      cardServices.categoryAssignmentService,
+      cardServices.runtime
+    );
+
+    await cardProcessor.processAllMailTypeList([rakutenCardAll]);
+
+    expect((await expenses()).map((expense) => expense.storeName)).toEqual(["ＥＴＣカード売上"]);
+  });
+
   it("does nothing until the user connects Gmail", async () => {
     await admin.auth().createUser({ uid: userId, email: gmail });
 

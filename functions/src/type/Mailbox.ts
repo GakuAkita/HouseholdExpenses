@@ -311,3 +311,10 @@ export interface AmazonSubscribeItem {
   timestamp?: number;
   enabled?: boolean;  // デフォルトは有効
 }
+
+/** A store whose 楽天カード charges the user doesn't want saved. Written by the app. */
+export interface RakutenCardExcludeItem {
+  id?: string;
+  name?: string;
+  condition?: string; /* AssignmentCondition */
+}

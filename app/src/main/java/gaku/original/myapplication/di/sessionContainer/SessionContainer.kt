@@ -11,6 +11,7 @@ import gaku.original.myapplication.data.repository.emailConnect.EmailConnectionR
 import gaku.original.myapplication.data.repository.expense.ExpenseRepository
 import gaku.original.myapplication.data.repository.mailboxExtraction.MailboxExtractionRepository
 import gaku.original.myapplication.data.repository.paypayReceipt.PayPayReceiptConfigRepository
+import gaku.original.myapplication.data.repository.rakutenCardExclude.RakutenCardExcludeRepository
 import gaku.original.myapplication.data.repository.repeatAdd.RepeatAddRepository
 import gaku.original.myapplication.domain.AppUser
 
@@ -34,6 +35,8 @@ interface SessionContainer {
     val payPayReceiptConfigRepository: PayPayReceiptConfigRepository
 
     val categoryAssignmentRepository: CategoryAssignmentRepository
+
+    val rakutenCardExcludeRepository: RakutenCardExcludeRepository
 
     val payPayReceiptExtractor: Extractor
 

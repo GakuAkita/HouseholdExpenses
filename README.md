@@ -1,12 +1,18 @@
 # Household Expenses for Engineers
 
-An Android expense tracker that records your spending for you. It reads purchase and billing emails from Gmail, picks up payment notifications on your phone, and turns them into expense entries. You don't have to type them in yourself.
+An Android expense tracker that records your spending for you. It reads purchase and billing emails
+from Gmail, picks up payment notifications on your phone, and turns them into expense entries. You
+don't have to type them in yourself.
 
 ## Why I built it
 
-With an off-the-shelf expense app, you can't add the features you need or remove the ones you don't. I buy a lot of Kindle books, and every purchase sends a confirmation email. I kept wishing those emails would go into my expense log automatically, so I built an app that does it.
+With an off-the-shelf expense app, you can't add the features you need or remove the ones you don't.
+I buy a lot of Kindle books, and every purchase sends a confirmation email. I kept wishing those
+emails would go into my expense log automatically, so I built an app that does it.
 
-Any service that sends an email can be supported, so the app also handles electricity bills, Rakuten Pay receipts and more. When a service changes its email format, its parser needs updating too, so parsers are maintained as formats change.
+Any service that sends an email can be supported, so the app also handles electricity bills, Rakuten
+Pay receipts and more. When a service changes its email format, its parser needs updating too, so
+parsers are maintained as formats change.
 
 ## Features
 
@@ -14,23 +20,27 @@ Any service that sends an email can be supported, so the app also handles electr
 
 Cloud Functions check each user's Gmail on a schedule and extract expenses from these emails:
 
-| Source | What is recorded |
-|---|---|
-| Amazon orders | Items and amounts from order confirmations |
-| Amazon Subscribe & Save | Deliveries from shipping notifications |
-| Kindle | eBook purchases |
-| Rakuten Pay | Store name and amount from payment confirmations |
-| Rakuten Card ETC | Highway toll charges |
-| Udemy | Course purchases |
-| Shikoku Electric Power | Monthly electricity bills |
+| Source                     | What is recorded                                              |
+|----------------------------|---------------------------------------------------------------|
+| Amazon orders              | Items and amounts from order confirmations                    |
+| Amazon Subscribe & Save    | Deliveries from shipping notifications                        |
+| Kindle                     | eBook purchases                                               |
+| Rakuten Pay                | Store name and amount from payment confirmations              |
+| Rakuten Card ETC           | Highway toll charges                                          |
+| Rakuten Card (all charges) | Every card charge, except at the stores you choose to exclude |
+| Udemy                      | Course purchases                                              |
+| Shikoku Electric Power     | Monthly electricity bills                                     |
 
 Categories are assigned automatically by rules you configure.
 
 ### On-device capture
 
-- **PayPay receipt reader**: share a PayPay receipt screenshot with the app and on-device OCR (ML Kit) reads it.
-- **Dr.Wallet import** *(beta, still being tested)*: import expense history from a Dr.Wallet CSV export.
-- **Notification listener** *(in development, not working yet)*: will capture payment notifications from PayPay and Osaifu-Keitai (FeliCa).
+- **PayPay receipt reader**: share a PayPay receipt screenshot with the app and on-device OCR (ML
+  Kit) reads it.
+- **Dr.Wallet import** *(beta, still being tested)*: import expense history from a Dr.Wallet CSV
+  export.
+- **Notification listener** *(in development, not working yet)*: will capture payment notifications
+  from PayPay and Osaifu-Keitai (FeliCa).
 
 ### Managing expenses
 
@@ -57,6 +67,7 @@ Categories are assigned automatically by rules you configure.
 ## Tech stack
 
 **Android app** (`app/`)
+
 - Kotlin, Jetpack Compose, Material 3
 - Room (local storage and offline cache)
 - Firebase Authentication, Firestore, Realtime Database
@@ -65,11 +76,13 @@ Categories are assigned automatically by rules you configure.
 - minSdk 31
 
 **Backend** (`functions/`)
+
 - TypeScript on Node.js 20, Firebase Cloud Functions
 - Gmail API with per-user Google OAuth; secrets stored in Secret Manager
 - Vitest for unit, integration (Firebase emulators) and live Gmail tests
 
-See [`functions/README.md`](functions/README.md) for the backend layout and how to add support for a new email type.
+See [`functions/README.md`](functions/README.md) for the backend layout and how to add support for a
+new email type.
 
 ## Getting started
 
@@ -83,11 +96,11 @@ See [`functions/README.md`](functions/README.md) for the backend layout and how 
 
 These files contain project-specific settings and are not committed:
 
-| File | Purpose |
-|---|---|
-| `app/google-services.json` | Firebase config for the Android app (download from the Firebase console) |
-| `firebase.json` | Firebase CLI config (emulators, functions, rules) |
-| `.env.local` | Optional. Credentials for the live Gmail tests (`GOOGLE_OAUTH_SECRETS`, `ENCRYPTED_REFRESH_TOKEN`) |
+| File                       | Purpose                                                                                            |
+|----------------------------|----------------------------------------------------------------------------------------------------|
+| `app/google-services.json` | Firebase config for the Android app (download from the Firebase console)                           |
+| `firebase.json`            | Firebase CLI config (emulators, functions, rules)                                                  |
+| `.env.local`               | Optional. Credentials for the live Gmail tests (`GOOGLE_OAUTH_SECRETS`, `ENCRYPTED_REFRESH_TOKEN`) |
 
 ### Build the app
 
@@ -125,7 +138,8 @@ See [`functions/test/README.md`](functions/test/README.md) for details.
 
 Both GitHub Actions workflows are run manually (`workflow_dispatch`):
 
-- **Build apk** (`build_apk.yml`): tags the next version, builds and signs a release APK, and uploads it as a workflow artifact.
+- **Build apk** (`build_apk.yml`): tags the next version, builds and signs a release APK, and
+  uploads it as a workflow artifact.
 - **Deploy functions** (`deploy_functions.yml`): deploys Cloud Functions to Firebase.
 
 ## License

@@ -43,6 +43,7 @@ const context = (subscribeItems?: Record<string, AmazonSubscribeItem>): Extracti
     },
   },
   loadEnabledAmazonSubscribeItems: async () => subscribeItems ?? {},
+  loadRakutenCardExcludeItems: async () => ({}),
 });
 
 const gmail = { enabled: true, emailProvider: EmailProvider.GMAIL };
@@ -177,6 +178,29 @@ describe("mail sources", () => {
       [1230, "ローソン 駅前店", "food"],
       [2000, "ＥＴＣカード売上", undefined],
     ]);
+  });
+
+  it("rakuten_all leaves out the charges at excluded stores", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_card_all") }, setting, {
+      ...context(),
+      loadRakutenCardExcludeItems: async () => ({
+        a: { name: "ＥＴＣ", condition: AssignmentCondition.CONTAINS },
+      }),
+    });
+    expect(result.map((e) => e.storeName)).toEqual(["ローソン 駅前店"]);
+  });
+
+  it("rakuten_all returns nothing when every charge is at an excluded store", async () => {
+    const setting = createRakutenCardAllSettingInstance(gmail);
+    const result = await sourceOf(setting).toExpenses({ rawText: fixture("rakuten_card_all") }, setting, {
+      ...context(),
+      loadRakutenCardExcludeItems: async () => ({
+        a: { name: "ローソン 駅前店", condition: AssignmentCondition.EXACT_MATCH },
+        b: { name: "ＥＴＣカード売上", condition: AssignmentCondition.EXACT_MATCH },
+      }),
+    });
+    expect(result).toEqual([]);
   });
 
   it("passes on the parser's error", async () => {

@@ -43,5 +43,8 @@ class RealtimeDbUserReference(
     val amazonSubscribeItemReference = amazonSubscribeMonitorReference.child("subscribe_items")
     val amazonSubscribeLastExecReference = amazonSubscribeMonitorReference.child("last_exec")
 
+    val rakutenCardExcludeItemReference =
+        mailboxExtractionReference.child("rakuten_card_exclude_items")
+
     val categoryAssignmentReference = realtimeDbUser.child("category_assignment_data")
 }

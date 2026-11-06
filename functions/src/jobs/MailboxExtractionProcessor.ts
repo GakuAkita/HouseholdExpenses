@@ -15,7 +15,7 @@ import { Runtime } from "../shared/runtime";
 import { convertUnixMillisecToSec } from "../shared/unixTime";
 import { Category } from "../type/Category";
 import { CategoryAssignmentData } from "../type/CategoryAssignment";
-import { AllMailType, AmazonSubscribeItem } from "../type/Mailbox";
+import { AllMailType, AmazonSubscribeItem, RakutenCardExcludeItem } from "../type/Mailbox";
 
 /** How far back the first run for a mail type searches. */
 const FIRST_RUN_LOOKBACK_MILLIS = 5 * 60 * 1000;
@@ -28,6 +28,7 @@ export class MailboxExtractionProcessor {
   private categories: Record<string, Category> | null = null;
   private categoryAssignmentData: CategoryAssignmentData | null = null;
   private amazonSubscribeItems: Record<string, AmazonSubscribeItem> | null = null;
+  private rakutenCardExcludeItems: Record<string, RakutenCardExcludeItem> | null = null;
 
   constructor(
     private userId: string,
@@ -195,7 +196,24 @@ export class MailboxExtractionProcessor {
       categories: this.categories ?? {},
       categoryAssignmentData: this.categoryAssignmentData ?? { storeName: {}, productName: {} },
       loadEnabledAmazonSubscribeItems: () => this.loadEnabledAmazonSubscribeItems(),
+      loadRakutenCardExcludeItems: () => this.loadRakutenCardExcludeItems(),
     };
+  }
+
+  /**
+   * 読み込みに失敗した場合はログ表示だけにして、空のまま続ける。
+   * A mail that fails is never read again, so throwing would lose its charges for good,
+   * while an expense that should have been excluded can still be deleted by the user.
+   */
+  private async loadRakutenCardExcludeItems(): Promise<Record<string, RakutenCardExcludeItem>> {
+    if (this.rakutenCardExcludeItems === null) {
+      try {
+        this.rakutenCardExcludeItems = await this.mailboxExtractionService.getRakutenCardExcludeItems(this.userId);
+      } catch (error) {
+        logger.error(`Failed to load Rakuten Card exclude items: ${messageOf(error)}`);
+      }
+    }
+    return this.rakutenCardExcludeItems ?? {};
   }
 
   /** enabled=falseのAmazon定期便アイテムを除外する（enabledがnullの場合はtrueとして扱う） */
