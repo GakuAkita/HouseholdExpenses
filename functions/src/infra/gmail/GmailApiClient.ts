@@ -1,6 +1,7 @@
 import axios from "axios";
 import { logger } from "firebase-functions";
 import { gmail_v1 } from "googleapis";
+import * as qs from "querystring";
 import { BaseGoogleOAuthConfig } from "../../type/GoogleOAuthSecrets";
 
 /** Calls the Gmail REST API with an access token from the refresh token. Methods throw on failure. */
@@ -14,12 +15,16 @@ export class GmailApiClient {
       return this.accessToken;
     }
     try {
-      const response = await axios.post("https://oauth2.googleapis.com/token", null, {
-        params: {
-          client_id: this.baseConfig.clientId,
-          client_secret: this.baseConfig.clientSecret,
-          refreshToken: this.baseConfig.refreshToken,
-          grant_type: "refresh_token",
+      /* These values are secrets, so they go in the request body and not in the URL. */
+      const postData = qs.stringify({
+        client_id: this.baseConfig.clientId,
+        client_secret: this.baseConfig.clientSecret,
+        refresh_token: this.baseConfig.refreshToken,
+        grant_type: "refresh_token",
+      });
+      const response = await axios.post("https://oauth2.googleapis.com/token", postData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       });
       const token = response.data?.access_token;
