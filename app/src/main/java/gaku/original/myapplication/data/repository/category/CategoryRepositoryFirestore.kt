@@ -1,5 +1,6 @@
 package gaku.original.myapplication.data.repository.category
 
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.QuerySnapshot
 import gaku.original.myapplication.data.dataClass.Category
 import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
@@ -48,7 +49,12 @@ class CategoryRepositoryFirestore(
     }
 
     private val listenerRegistration =
-        categoryCollection.addSnapshotListener { snapshots, exception ->
+        /*
+         * MetadataChanges.INCLUDE: a write made before the first server sync arrives from the cache,
+         * and when the server confirms it only the metadata changes. Without INCLUDE that second
+         * snapshot never comes, and the backup isn't saved.
+         */
+        categoryCollection.addSnapshotListener(MetadataChanges.INCLUDE) { snapshots, exception ->
             if (exception != null) {
                 // 後述
                 return@addSnapshotListener
