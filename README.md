@@ -34,8 +34,9 @@ Cloud Functions check each user's Gmail on a schedule and extract expenses from 
 Categories are assigned automatically by rules you configure.
 
 You can disconnect Gmail in the app at any time. This revokes the app's access at Google and deletes
-the stored token. When a user account is deleted, the same happens and all of that user's stored
-data is removed.
+the stored token. If you connect again, mail received before the last scheduled check is skipped.
+When a user account is deleted, access is revoked the same way and all of that user's stored data is
+removed.
 
 ### On-device capture
 

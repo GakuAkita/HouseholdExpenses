@@ -315,6 +315,36 @@ describe("mailbox extraction", () => {
     expect((await expenses()).map((expense) => expense.storeName)).toEqual(["ＥＴＣカード売上"]);
   });
 
+  it("moves last_exec while disconnected, so a reconnected user's search starts from it", async () => {
+    const rakutenPay = gmailSettings[0];
+    await connectGmail();
+    await services.mailboxExtractionService.setLastExec(userId, rakutenPay, {
+      timestamp: now.getTime() - 30 * 24 * 60 * 60 * 1000,
+      lastMsgId: "older-msg",
+    });
+    await services.mailboxExtractionService.removeGmailTokens(userId);
+    const queriesBefore = fakeGmail.queries.length;
+
+    await processor.processAllMailTypeList([rakutenPay]);
+
+    /* No mail is read while disconnected. */
+    expect(fakeGmail.queries).toHaveLength(queriesBefore);
+    expect(await services.mailboxExtractionService.getLastExec(userId, rakutenPay)).toEqual({
+      timestamp: now.getTime(),
+      lastMsgId: "older-msg",
+    });
+
+    await services.mailboxExtractionService.saveGmailToken(
+      userId,
+      { refreshToken: "new-refresh-token", gmail },
+      testSecrets.encryptionKey
+    );
+    await processor.processAllMailTypeList([rakutenPay]);
+
+    const query = fakeGmail.queries[fakeGmail.queries.length - 1];
+    expect(Number(/after:(\d+)/.exec(query)?.[1])).toBe(Math.floor(now.getTime() / 1000));
+  });
+
   it("does nothing until the user connects Gmail", async () => {
     await admin.auth().createUser({ uid: userId, email: gmail });
 

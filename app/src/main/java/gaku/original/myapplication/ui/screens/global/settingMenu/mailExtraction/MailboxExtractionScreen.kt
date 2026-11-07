@@ -384,7 +384,7 @@ private fun GmailConnectionCard(
             onDismissRequest = { showDisconnectDialog = false },
             title = { Text("Disconnect Gmail?") },
             text = {
-                Text("The app will lose access to your Gmail and stop adding expenses from your mail. Expenses already added stay. You can connect again at any time.")
+                Text("The app will lose access to your Gmail and stop adding expenses from your mail. Expenses already added stay. You can connect again at any time, but mail received while disconnected may be skipped.")
             },
             confirmButton = {
                 TextButton(
