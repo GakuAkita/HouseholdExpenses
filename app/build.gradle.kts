@@ -93,7 +93,6 @@ android {
         buildConfigField("String", "WEB_CLIENT_ID", "\"${localProperties["WEB_CLIENT_ID"]}\"")
         buildConfigField("String", "REDIRECT_URI", "\"${localProperties["REDIRECT_URI"]}\"")
         // Firebase Emulator設定
-        // USE_FIREBASE_EMULATOR=true のときはエミュレータを使用、false または未設定のときは本番環境を使用
         val useEmulator = (localProperties["USE_FIREBASE_EMULATOR"] as String?)?.toBoolean() ?: true
         buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", useEmulator.toString())
 
