@@ -147,7 +147,7 @@ fun HomeScreen(
 
     val initialMonth = remember { uiState.selectedMonth }
 
-    val currentMonth = remember { YearMonth.now() }
+    val currentMonth = remember { YearMonth.now(uiState.zoneId) }
     val startMonth = remember { currentMonth.minusMonths(50) } // Adjust as needed
     val endMonth = remember { currentMonth.plusMonths(50) } // Adjust as needed
     val firstDayOfWeek = remember { firstDayOfWeekFromLocale() } // Available from the library
@@ -322,7 +322,7 @@ fun HomeHorizontalCalendar(
                         modifier = Modifier.height(dayHeight),
                         day = it,
                         price = uiState.dailyAmounts[it.date] ?: 0L,
-                        isToday = it.date == LocalDate.now(),
+                        isToday = it.date == LocalDate.now(uiState.zoneId),
                         onDayClick = {
                             onDayClick(it.date)
                         }
