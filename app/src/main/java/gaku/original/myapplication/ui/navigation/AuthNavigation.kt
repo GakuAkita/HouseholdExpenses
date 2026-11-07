@@ -27,7 +27,7 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable<AuthGraph.SignIn> {
             SignInScreenRoot(
                 isSignIn = true,
-                isGoogleOnly = false,
+                isGoogleOnly = !BuildConfig.DEBUG,
                 onBackNavClick = {
                     navController.popBackStack()
                 }
