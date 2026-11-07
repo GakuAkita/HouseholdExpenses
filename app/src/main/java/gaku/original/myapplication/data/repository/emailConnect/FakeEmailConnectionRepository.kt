@@ -12,4 +12,8 @@ class FakeEmailConnectionRepository : EmailConnectionRepository {
         delay(2000)
         return EmailConnectionAction.Connected
     }
+
+    override suspend fun disconnect(provider: EmailProvider) {
+        delay(2000)
+    }
 }

@@ -2,6 +2,8 @@ import { logger } from "firebase-functions";
 import { onSchedule } from "firebase-functions/scheduler";
 import * as functions from "firebase-functions/v1";
 import { TriggerTimeZone } from "./constants/TimeZone";
+import { deleteUserData } from "./jobs/deleteUserData";
+import { handleDisconnectGmailCall } from "./jobs/gmailDisconnect";
 import { handleGmailOAuthCallback } from "./jobs/gmailOAuthCallback";
 import {
   runAmazonSubscribeMonitorJob,
@@ -52,6 +54,25 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     /* Awaited, so the function doesn't end before the settings are written. */
     await getServices().userSettingsProcessor.setInitialUserSettings(uid, email);
   }
+});
+
+/**
+ * Removes a deleted user's data. Retried when it fails, so a short Google or database
+ * outage doesn't leave a valid Gmail token behind.
+ */
+exports.onUserDelete = functions
+  .runWith({ failurePolicy: true })
+  .auth.user()
+  .onDelete(async (user) => {
+    logger.log(`User deleted. id:${user.uid}`);
+    await deleteUserData(getServices(), user.uid);
+  });
+
+/**
+ * The app calls this when the user disconnects Gmail.
+ */
+exports.disconnectGmail = functions.https.onCall(async (_data, context) => {
+  await handleDisconnectGmailCall(getServices(), context.auth?.uid);
 });
 
 /**

@@ -35,7 +35,11 @@ export class MailboxExtractionService {
    */
   private gmailTokenRef(userId: string, gmail: string): Reference {
     /* gmailには.や@が入っているので別文字の置き換える */
-    return this.mailboxExtractionRef(userId).child("gmail_tokens").child(sanitizeEmail(gmail));
+    return this.gmailTokensRef(userId).child(sanitizeEmail(gmail));
+  }
+
+  private gmailTokensRef(userId: string): Reference {
+    return this.mailboxExtractionRef(userId).child("gmail_tokens");
   }
 
   /** Written by the app when it opens Google's consent page. See takeGmailOAuthRequest. */
@@ -106,6 +110,19 @@ export class MailboxExtractionService {
       await snapshot.ref.child("refreshToken").set(encryptWithKey(refreshToken, encryptionKey));
     }
     return { ...token, refreshToken };
+  }
+
+  /**
+   * Every refresh token stored for the user, still encrypted. Empty when the user hasn't connected Gmail.
+   * Doesn't look up the user's email, so it also works after the Auth user is deleted.
+   */
+  async getEncryptedGmailRefreshTokens(userId: string): Promise<string[]> {
+    const tokens: Record<string, Partial<MailboxGmailTokenType>> | null = (await this.gmailTokensRef(userId).get()).val();
+    return Object.values(tokens ?? {}).flatMap((token) => (token.refreshToken ? [token.refreshToken] : []));
+  }
+
+  async removeGmailTokens(userId: string): Promise<void> {
+    await this.gmailTokensRef(userId).remove();
   }
 
   /* ****************************** Gmail OAuth request ****************************** */

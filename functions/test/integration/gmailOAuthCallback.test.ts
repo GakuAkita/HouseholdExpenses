@@ -17,6 +17,7 @@ describe("Gmail OAuth callback", () => {
       return { accessToken: `access-for-${code}`, refreshToken: "raw-refresh-token" };
     },
     fetchEmail: async () => gmail,
+    revokeToken: async () => "revoked",
   };
   const services = createTestServices({ googleOAuthApi: fakeGoogle });
 

@@ -7,6 +7,9 @@ interface EmailConnectionRepository {
     suspend fun isConnected(provider: EmailProvider): Boolean
 
     suspend fun connect(provider: EmailProvider): EmailConnectionAction
+
+    /* Ends the app's access to the mailbox. Throws when it fails, and the mailbox stays connected. */
+    suspend fun disconnect(provider: EmailProvider)
 }
 
 

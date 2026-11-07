@@ -8,7 +8,8 @@ src/
                   (a renamed export is deployed as a new function and the old one is deleted).
   app/            services.ts: creates every service. Called on the first trigger, not at import.
   jobs/           What the triggers do: RepeatAdd, mailbox extraction, Amazon subscribe monitor,
-                  new-user settings, Gmail OAuth callback. forEachUser runs a job for every user.
+                  new-user settings, Gmail OAuth callback, Gmail disconnect, deleted-user cleanup.
+                  forEachUser runs a job for every user.
   mail/           Mail extraction.
     mailSource.ts   The MailSource interface: find a mail type's mails and turn one into expenses.
     sources/        One MailSource per mail type, and the registry (index.ts).

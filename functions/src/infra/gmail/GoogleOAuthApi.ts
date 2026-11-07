@@ -16,7 +16,14 @@ export interface GoogleOAuthApi {
   exchangeCode(code: string, codeVerifier: string, secrets: GoogleOAuthSecrets): Promise<GoogleTokens>;
   /** The email address of the Google account the access token belongs to. */
   fetchEmail(accessToken: string): Promise<string | undefined>;
+  /**
+   * Invalidates the token at Google, which ends the app's access to the Google account.
+   * Returns "already_invalid" when Google no longer accepts the token. Throws on any other failure.
+   */
+  revokeToken(token: string): Promise<RevokeTokenResult>;
 }
+
+export type RevokeTokenResult = "revoked" | "already_invalid";
 
 export const googleOAuthApi: GoogleOAuthApi = {
   async exchangeCode(code, codeVerifier, secrets) {
@@ -44,5 +51,25 @@ export const googleOAuthApi: GoogleOAuthApi = {
       },
     });
     return response.data.email;
+  },
+
+  async revokeToken(token) {
+    try {
+      await axios.post("https://oauth2.googleapis.com/revoke", qs.stringify({ token }), {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
+      return "revoked";
+    } catch (err) {
+      /* An AxiosError carries the request body, which has the token, so it must not be logged or rethrown. */
+      if (!axios.isAxiosError(err)) {
+        throw new Error("Failed to revoke the token.");
+      }
+      if (err.response?.status === 400 && err.response.data?.error === "invalid_token") {
+        return "already_invalid";
+      }
+      throw new Error(`Failed to revoke the token: ${err.response?.status ?? err.code ?? "no response"}`);
+    }
   },
 };
