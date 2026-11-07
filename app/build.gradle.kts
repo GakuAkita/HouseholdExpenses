@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream
 import java.util.Properties
 
 // Gitタグからバージョンを取得する関数
@@ -61,6 +62,24 @@ tasks.register("selectAppContainer") {
             writeText(value!!)
         }
     }
+}
+
+// The Realtime Database emulator tells the SDK in its handshake to reconnect to 127.0.0.1:9000.
+// On a device that is the device itself, so after the first disconnect (e.g. the SDK's 60 second
+// idle timeout) every reconnect fails and reads and writes time out until the app restarts.
+// Forwarding the device's port 9000 to this PC makes 127.0.0.1:9000 reach the emulator.
+// Runs before every debug build. Without a connected device it does nothing.
+val adbReverseRealtimeDbEmulator = tasks.register<Exec>("adbReverseRealtimeDbEmulator") {
+    executable = androidComponents.sdkComponents.adb.get().asFile.absolutePath
+    args("reverse", "tcp:9000", "tcp:9000")
+    isIgnoreExitValue = true
+    /* "no devices/emulators found" is expected when nothing is connected. */
+    errorOutput = ByteArrayOutputStream()
+    standardOutput = ByteArrayOutputStream()
+    outputs.upToDateWhen { false }
+}
+tasks.matching { it.name == "preDebugBuild" }.configureEach {
+    dependsOn(adbReverseRealtimeDbEmulator)
 }
 
 android {

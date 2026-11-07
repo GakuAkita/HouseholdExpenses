@@ -128,6 +128,10 @@ firebase emulators:start --import=./emu_data --export-on-exit
 
 On Windows, `start_emulator.bat` does the same.
 
+The app on an Android emulator or a USB-connected phone needs `adb reverse tcp:9000 tcp:9000`,
+or the Realtime Database stops working after its first reconnect. Debug builds run it for you;
+run it by hand if you start the device after building.
+
 ### Tests
 
 ```bash

@@ -59,8 +59,12 @@ class FirebaseEmulatorAppContainer(
             }
 
         /* .info/connected is booked reference */
-        /* I have no idea what's happening. Even if this app is connected to Realtime Database Emulator, the connection is lost in several seconds....*/
-        /* In the production environment, this doesn't happen. */
+        /*
+         * The Realtime Database emulator tells the SDK to reconnect to 127.0.0.1:9000, which on a device
+         * is the device itself. app/build.gradle.kts runs `adb reverse tcp:9000 tcp:9000` before debug
+         * builds so reconnects reach the PC. Without it, reads and writes time out after the first
+         * disconnect until the app restarts.
+         */
         firebaseRealtimeDb.getReference(".info/connected").addValueEventListener(
             object : ValueEventListener {
                 override fun onDataChange(p0: DataSnapshot) {
