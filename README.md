@@ -104,7 +104,7 @@ These files contain project-specific settings and are not committed:
 | File                       | Purpose                                                                                                                              |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | `app/google-services.json` | Firebase config for the Android app (download from the Firebase console)                                                             |
-| `firebase.json`            | Firebase CLI config (emulators, functions, rules). Point it at the committed rules: `"database": { "rules": "database.rules.json" }` |
+| `firebase.json`            | Firebase CLI config (emulators, functions, rules). Point it at the committed rules: `"database": { "rules": "database.rules.json" }`, `"firestore": { "rules": "firestore.rules" }` |
 | `.env.local`               | Optional. Credentials for the live Gmail tests (`GOOGLE_OAUTH_SECRETS`, `ENCRYPTED_REFRESH_TOKEN`)                                   |
 
 ### Build the app
