@@ -64,11 +64,30 @@ tasks.register("selectAppContainer") {
     }
 }
 
+// WORKAROUND for a Firebase bug: Realtime Database emulator stops working after a reconnect.
+//
 // The Realtime Database emulator tells the SDK in its handshake to reconnect to 127.0.0.1:9000.
 // On a device that is the device itself, so after the first disconnect (e.g. the SDK's 60 second
 // idle timeout) every reconnect fails and reads and writes time out until the app restarts.
 // Forwarding the device's port 9000 to this PC makes 127.0.0.1:9000 reach the emulator.
 // Runs before every debug build. Without a connected device it does nothing.
+// Debug builds only: production talks to the real server, whose address is reachable.
+//
+// Reported upstream: https://github.com/firebase/firebase-android-sdk/issues/5870
+// Firebase closed it in March 2026 as "can't reproduce", but it still happened on 2026-11-08 with
+//   - firebase-database 21.0.0 (BoM 33.6.0) and 22.0.2 (BoM 34.19.0),
+//   - firebase-database 23.0.0 (BoM 35.1.0): WebsocketConnection.createConnection still prefers
+//     the host from the handshake over the useEmulator() host,
+//   - firebase-tools 15.2.1 and 15.35.0 (both use firebase-database-emulator v4.11.2).
+// A fix in either the SDK or the emulator would make this task unnecessary.
+//
+// How to check whether it's still needed:
+//   1. Remove this task and run `adb reverse --remove-all`.
+//   2. In an instrumented test, write to the Realtime Database, call goOffline(), wait a second,
+//      call goOnline(), then write again with a timeout.
+//   3. If the second write succeeds, the bug is fixed: delete this task, the note in
+//      FirebaseEmulatorAppContainer and the adb reverse note in README.md.
+//      If it times out, the bug is still there: keep this task.
 val adbReverseRealtimeDbEmulator = tasks.register<Exec>("adbReverseRealtimeDbEmulator") {
     executable = androidComponents.sdkComponents.adb.get().asFile.absolutePath
     args("reverse", "tcp:9000", "tcp:9000")

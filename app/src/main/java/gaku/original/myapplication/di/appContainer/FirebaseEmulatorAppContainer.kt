@@ -64,6 +64,8 @@ class FirebaseEmulatorAppContainer(
          * is the device itself. app/build.gradle.kts runs `adb reverse tcp:9000 tcp:9000` before debug
          * builds so reconnects reach the PC. Without it, reads and writes time out after the first
          * disconnect until the app restarts.
+         * This is a workaround for a Firebase bug that may be fixed in a later version. See the
+         * adbReverseRealtimeDbEmulator task in app/build.gradle.kts for the details and how to check.
          */
         firebaseRealtimeDb.getReference(".info/connected").addValueEventListener(
             object : ValueEventListener {
