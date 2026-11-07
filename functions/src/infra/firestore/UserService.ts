@@ -18,4 +18,9 @@ export class UserService {
     logger.log("snapshot size:", snapshot.size);
     return snapshot.docs.map((doc) => doc.id);
   }
+
+  /** Deletes users/{userId} and all its subcollections (expenses, categories, settings, repeat_add). */
+  async deleteUser(userId: string): Promise<void> {
+    await this.db.recursiveDelete(this.getUsersColRef().doc(userId));
+  }
 }

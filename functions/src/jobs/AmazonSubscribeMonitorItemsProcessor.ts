@@ -48,7 +48,12 @@ export class AmazonSubscribeMonitorItemsProcessor {
 
     const gmailClient = await createUserGmailClient(this.userId, this.mailboxExtractionService, this.runtime);
     if (!gmailClient) {
-      logger.info(`Gmail Token is not set by the user`);
+      /* Keep last_exec moving, so mails that arrive while disconnected aren't read after reconnecting. */
+      await this.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(this.userId, {
+        ...lastExec,
+        timestamp: endTime,
+      });
+      logger.info(`Gmail Token is not set by the user. Updated last exec.`);
       return;
     }
 

@@ -3,6 +3,7 @@ package gaku.original.myapplication.data.repository.emailConnect
 import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ServerValue
+import com.google.firebase.functions.FirebaseFunctions
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
@@ -20,6 +21,7 @@ import kotlin.time.Duration.Companion.milliseconds
 open class EmailConnectionRepositoryFirebase(
     private val appUser: AppUser,
     private val firebaseAuth: FirebaseAuth,
+    private val firebaseFunctions: FirebaseFunctions,
     private val realtimeDbReference: RealtimeDbUserReference
 ) : EmailConnectionRepository {
     private val convertedEmail = appUser.email!!.replace(".", "__dot__").replace("@", "__at__")
@@ -109,6 +111,19 @@ open class EmailConnectionRepositoryFirebase(
             }
         }
     }
+
+    override suspend fun disconnect(provider: EmailProvider) {
+        when (provider) {
+            EmailProvider.GMAIL -> {
+                /* Done by Cloud Functions: only they can decrypt the token and remove it. */
+                firebaseFunctions.getHttpsCallable("disconnectGmail").call().await()
+            }
+
+            else -> {
+                throw Exception("Unknown provider: $provider")
+            }
+        }
+    }
 }
 
 /** 32 random bytes as base64url without padding (43 characters). */
@@ -126,10 +141,12 @@ private fun codeChallengeOf(codeVerifier: String): String {
 class FakeEmailConnectionRepositoryFirebase(
     private val appUser: AppUser,
     private val firebaseAuth: FirebaseAuth,
+    private val firebaseFunctions: FirebaseFunctions,
     private val realtimeDbReference: RealtimeDbUserReference
 ) : EmailConnectionRepositoryFirebase(
     appUser = appUser,
     firebaseAuth = firebaseAuth,
+    firebaseFunctions = firebaseFunctions,
     realtimeDbReference = realtimeDbReference
 ) {
     override suspend fun isConnected(provider: EmailProvider): Boolean {

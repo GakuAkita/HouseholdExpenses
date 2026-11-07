@@ -479,6 +479,33 @@ class MailboxExtractionViewModel(
         }
     }
 
+    fun onGmailDisconnectClick() {
+        viewModelScope.launch {
+            try {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true
+                    )
+                }
+                emailConnectionRepository.disconnect(EmailProvider.GMAIL)
+                _uiState.update {
+                    it.copy(
+                        message = "Gmail disconnected.",
+                        isGmailConnected = false,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        message = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
     /* When launches oauth url and goes back to this app, this app needs to check if token is saved.*/
     fun onResume() {
         Timber.d("Triggered OnResume. ${_uiState.value.isWaitingForAuth}")

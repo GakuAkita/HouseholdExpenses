@@ -8,4 +8,9 @@ export class UserRTDbService {
   async setUserData(userId: string, userData: UserData): Promise<void> {
     await this.db.ref("users").child(userId).update(userData);
   }
+
+  /** Removes users/{userId} and everything under it. */
+  async deleteUser(userId: string): Promise<void> {
+    await this.db.ref("users").child(userId).remove();
+  }
 }

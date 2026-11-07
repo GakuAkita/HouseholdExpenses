@@ -98,6 +98,20 @@ describe("Amazon subscribe monitor", () => {
     ]);
   });
 
+  it("moves last_exec without reading mail while disconnected", async () => {
+    await services.mailboxExtractionService.setAmazonSubscribeMonitorLastExec(userId, {
+      timestamp: now.getTime() - 30 * 24 * 60 * 60 * 1000,
+      lastMsgId: "older-msg",
+    });
+    await services.mailboxExtractionService.removeGmailTokens(userId);
+    const queriesBefore = fakeGmail.queries.length;
+
+    await processor.handleAmazonSubscribeItems();
+
+    expect(fakeGmail.queries).toHaveLength(queriesBefore);
+    expect((await monitor()).last_exec).toEqual({ timestamp: now.getTime(), lastMsgId: "older-msg" });
+  });
+
   it("does nothing when the user hasn't enabled the monitor", async () => {
     await admin.database().ref(`users/${userId}/mailbox_extraction/email_template_settings`).remove();
     const queriesBefore = fakeGmail.queries.length;

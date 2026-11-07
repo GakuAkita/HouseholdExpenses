@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.database
+import com.google.firebase.functions.FirebaseFunctions
 import gaku.original.myapplication.data.firebaseReference.RealtimeDbUserReference
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
@@ -33,6 +34,7 @@ class FirebaseAuthTestAppContainer(
             emailConnectionRepository = FakeEmailConnectionRepositoryFirebase(
                 authRepository.user!!,
                 firebaseAuth = firebaseAuth,
+                firebaseFunctions = FirebaseFunctions.getInstance(),
                 realtimeDbReference = RealtimeDbUserReference(
                     authRepository.user!!,
                     firebaseRealtimeDb

@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import gaku.original.myapplication.common.CodingErrorException
 import gaku.original.myapplication.data.datasource.SharedPreferencesDataSource
 import gaku.original.myapplication.data.datasource.room.dao.CategoryDao
@@ -43,6 +44,7 @@ class FirebaseSessionContainer(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val firebaseRealtimeDb: FirebaseDatabase,
+    private val firebaseFunctions: FirebaseFunctions,
     private val ocrService: OcrService,
     private val categoryDao: CategoryDao,
     private val context: Context
@@ -112,6 +114,7 @@ class FirebaseSessionContainer(
         EmailConnectionRepositoryFirebase(
             appUser = appUser,
             firebaseAuth = firebaseAuth,
+            firebaseFunctions = firebaseFunctions,
             realtimeDbReference = realtimeDbReference
         )
 

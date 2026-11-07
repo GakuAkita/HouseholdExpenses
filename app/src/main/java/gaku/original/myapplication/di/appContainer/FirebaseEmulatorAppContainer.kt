@@ -7,6 +7,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import gaku.original.myapplication.BuildConfig
 import gaku.original.myapplication.data.repository.auth.AuthRepository
 import gaku.original.myapplication.data.repository.auth.FirebaseAuthRepository
@@ -32,6 +33,8 @@ class FirebaseEmulatorAppContainer(
     val firebaseRealtimeDb: FirebaseDatabase =
         FirebaseDatabase.getInstance(REALTIME_DATABASE_URL)
 
+    val firebaseFunctions: FirebaseFunctions = FirebaseFunctions.getInstance()
+
     init {
         /* Android emulator: 10.0.2.2, real device: the PC's IP address. Set in emulator_host.txt */
         val host = BuildConfig.FIREBASE_EMULATOR_HOST
@@ -39,6 +42,7 @@ class FirebaseEmulatorAppContainer(
         firebaseAuth.useEmulator(host, 9099)
         firestore.useEmulator(host, 5002)
         firebaseRealtimeDb.useEmulator(host, 9000)
+        firebaseFunctions.useEmulator(host, 5001)
 
         firestore.collection("_connection_test").document("status")
             .addSnapshotListener { snapshot, exception ->
@@ -85,6 +89,7 @@ class FirebaseEmulatorAppContainer(
             firebaseAuth = firebaseAuth,
             firestore = firestore,
             firebaseRealtimeDb = firebaseRealtimeDb,
+            firebaseFunctions = firebaseFunctions,
             ocrService = ocrService,
             categoryDao = appDatabase.categoryDao(),
             context = context

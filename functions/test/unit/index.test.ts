@@ -11,11 +11,13 @@ describe("index", () => {
     /* Renaming an export makes a deploy create a new function and delete the old one. */
     /* "default" is added by the CommonJS interop of the test runner. */
     expect(Object.keys(index).filter((key) => key !== "default").sort()).toEqual([
+      "disconnectGmail",
       "handleOAuthCallback",
       "mailboxExtractionJob_daily",
       "mailboxExtractionJob_shortPeriod",
       "monthly_repeatAddJob",
       "onUserCreate",
+      "onUserDelete",
     ]);
   });
 });

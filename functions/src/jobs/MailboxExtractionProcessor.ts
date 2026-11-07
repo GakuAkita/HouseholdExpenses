@@ -84,7 +84,9 @@ export class MailboxExtractionProcessor {
 
     const gmailClient = await createUserGmailClient(this.userId, this.mailboxExtractionService, this.runtime);
     if (!gmailClient) {
-      logger.info(`Gmail Token is not set by the user`);
+      /* Keep last_exec moving, so mails that arrive while disconnected aren't read after reconnecting. */
+      await this.mailboxExtractionService.setLastExec(this.userId, type, { ...lastExec, timestamp: endTime });
+      logger.info(`Gmail Token is not set by the user. Updated last exec.`);
       return;
     }
 

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -32,6 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -138,6 +142,9 @@ fun MailboxExtractionScreenRoot(
         onGmailConnectClick = {
             viewModel.onGmailConnectClick()
         },
+        onGmailDisconnectClick = {
+            viewModel.onGmailDisconnectClick()
+        },
         onSwitchClick = {
             viewModel.onSwitchClick(it)
         },
@@ -159,6 +166,7 @@ fun MailboxExtractionScreen(
     snackbarHostState: SnackbarHostState,
     onBackNavClick: () -> Unit,
     onGmailConnectClick: () -> Unit,
+    onGmailDisconnectClick: () -> Unit,
     onSwitchClick: (EmailTemplateUiState<EmailTemplateType>) -> Unit,
     onCategoryAssignmentClick: () -> Unit,
     onCategorySelect: (EmailTemplateUiState<EmailTemplateType>, String?) -> Unit,
@@ -193,7 +201,8 @@ fun MailboxExtractionScreen(
         ) {
             GmailConnectionCard(
                 isConnected = uiState.isGmailConnected,
-                onConnectClick = onGmailConnectClick
+                onConnectClick = onGmailConnectClick,
+                onDisconnectClick = onGmailDisconnectClick
             )
 
             if (uiState.isGmailConnected) {
@@ -311,50 +320,88 @@ fun MailboxExtractionScreen(
 @Composable
 private fun GmailConnectionCard(
     isConnected: Boolean,
-    onConnectClick: () -> Unit
+    onConnectClick: () -> Unit,
+    onDisconnectClick: () -> Unit
 ) {
+    var showDisconnectDialog by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = if (isConnected) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = if (isConnected) Icons.Outlined.CheckCircle else Icons.Outlined.Email,
-                contentDescription = null,
-                tint = if (isConnected) MaterialTheme.colorScheme.onPrimaryContainer
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Gmail",
-                    style = MaterialTheme.typography.titleMedium
+                Icon(
+                    imageVector = if (isConnected) Icons.Outlined.CheckCircle else Icons.Outlined.Email,
+                    contentDescription = null,
+                    tint = if (isConnected) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(32.dp)
                 )
-                Text(
-                    text = if (isConnected) "Connected" else "Not connected",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (isConnected) {
-                OutlinedButton(onClick = onConnectClick) {
-                    Text("Reconnect")
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        text = "Gmail",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = if (isConnected) "Connected" else "Not connected",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            } else {
-                Button(onClick = onConnectClick) {
-                    Text("Connect")
+                if (isConnected) {
+                    OutlinedButton(onClick = onConnectClick) {
+                        Text("Reconnect")
+                    }
+                } else {
+                    Button(onClick = onConnectClick) {
+                        Text("Connect")
+                    }
+                }
+            }
+
+            if (isConnected) {
+                TextButton(
+                    modifier = Modifier.align(Alignment.End),
+                    onClick = { showDisconnectDialog = true }
+                ) {
+                    Text("Disconnect")
                 }
             }
         }
+    }
+
+    if (showDisconnectDialog) {
+        AlertDialog(
+            onDismissRequest = { showDisconnectDialog = false },
+            title = { Text("Disconnect Gmail?") },
+            text = {
+                Text("The app will lose access to your Gmail and stop adding expenses from your mail. Expenses already added stay. You can connect again at any time, but mail received while disconnected may be skipped.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDisconnectDialog = false
+                        onDisconnectClick()
+                    }
+                ) {
+                    Text("Disconnect")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDisconnectDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -398,6 +445,7 @@ fun MailboxExtractionScreenPreview() {
         snackbarHostState = SnackbarHostState(),
         onBackNavClick = {},
         onGmailConnectClick = {},
+        onGmailDisconnectClick = {},
         onSwitchClick = {},
         onCategoryAssignmentClick = {},
         onCategorySelect = { _, _ -> },
