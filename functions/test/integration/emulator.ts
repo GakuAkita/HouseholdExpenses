@@ -50,6 +50,20 @@ export const createTestServices = (options: ServiceOptions = {}) =>
 
 export const newTestUserId = () => `integration-${randomUUID()}`;
 
+/** Signs in to the Auth emulator and returns the user's Firebase ID token, like the app. */
+export const idTokenOf = async (userId: string): Promise<string> => {
+  const customToken = await admin.auth().createCustomToken(userId);
+  const response = await fetch(
+    `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=fake-api-key`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+    }
+  );
+  return ((await response.json()) as { idToken: string }).idToken;
+};
+
 /** A Gmail address for the user. Auth rejects the same email for two users, so it is unique per user. */
 export const testGmailOf = (userId: string) => `${userId}@gmail.com`;
 

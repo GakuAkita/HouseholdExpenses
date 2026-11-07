@@ -37,4 +37,4 @@ runs:
     - name: Deploy to Firebase
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: npx firebase-tools deploy --only database,functions --token ${{ inputs.firebase_token }} --project default
+      run: npx firebase-tools deploy --only database,firestore:rules,functions --token ${{ inputs.firebase_token }} --project default

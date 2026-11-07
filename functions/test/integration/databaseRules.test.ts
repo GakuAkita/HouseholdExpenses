@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import * as admin from "firebase-admin";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestServices, newTestUserId } from "./emulator";
+import { createTestServices, idTokenOf, newTestUserId } from "./emulator";
 
 /*
  * Checks database.rules.json in the Realtime Database emulator. The rules are loaded into their own
@@ -19,20 +19,6 @@ const url = (path: string, auth?: string) =>
 
 /** The emulator accepts "owner" as an admin token, which ignores the rules. */
 const asOwner = { Authorization: "Bearer owner" };
-
-/** Signs in to the Auth emulator and returns the user's Firebase ID token, like the app. */
-const idTokenOf = async (userId: string): Promise<string> => {
-  const customToken = await admin.auth().createCustomToken(userId);
-  const response = await fetch(
-    `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=fake-api-key`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: customToken, returnSecureToken: true }),
-    }
-  );
-  return ((await response.json()) as { idToken: string }).idToken;
-};
 
 type Result = "allowed" | "denied";
 const resultOf = async (response: Response): Promise<Result> => {
