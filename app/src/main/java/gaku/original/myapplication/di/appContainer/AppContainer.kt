@@ -31,15 +31,31 @@ abstract class AppContainer(
     // because it is protected, not private
     private var _sessionContainer: SessionContainer? = null
 
+    /*
+     * Created on first access while a user is signed in.
+     * After the process is killed in the background, Android restores the screens (e.g. Home) and
+     * their ViewModels read this before RootNavigation's LaunchedEffect runs, so it must not
+     * depend on createSession() having been called.
+     */
     val sessionContainer: SessionContainer?
-        get() = _sessionContainer
+        @Synchronized get() {
+            if (_sessionContainer == null && authRepository.user != null) {
+                _sessionContainer = createSessionContainer()
+            }
+            return _sessionContainer
+        }
 
     protected abstract fun createSessionContainer(): SessionContainer
 
+    /* Does nothing if a session already exists, so the listeners of the old one don't leak. */
+    @Synchronized
     fun createSession() {
-        _sessionContainer = createSessionContainer()
+        if (_sessionContainer == null) {
+            _sessionContainer = createSessionContainer()
+        }
     }
 
+    @Synchronized
     fun clearSession() {
         /* Close all ClosableRepositories */
         _sessionContainer?.categoryRepository?.close()
