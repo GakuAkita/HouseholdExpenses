@@ -4,16 +4,11 @@
    for details.
 -->
 <data-extraction-rules>
+    <!-- Debug logs may contain personal data; keep them on this device only. -->
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="file" path="logs/" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="file" path="logs/" />
     </device-transfer>
-    -->
 </data-extraction-rules>
