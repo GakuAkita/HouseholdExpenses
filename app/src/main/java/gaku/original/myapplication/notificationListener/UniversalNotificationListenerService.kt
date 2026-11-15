@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.util.Log
 import gaku.original.myapplication.MainActivity
 import gaku.original.myapplication.R
 import gaku.original.myapplication.data.Constants.AppPackageNames
@@ -14,11 +13,16 @@ import gaku.original.myapplication.data.Constants.IntentKey
 import gaku.original.myapplication.data.Constants.IntentSourceKeys
 import gaku.original.myapplication.data.Constants.NotificationChannels
 import gaku.original.myapplication.data.dataClass.NotificationData
-import gaku.original.myapplication.utility.LogAkitaDebug
 import gaku.original.myapplication.utility.sendNotification
+import timber.log.Timber
 
 class UniversalNotificationListenerService : NotificationListenerService() {
     private val TAG = "UniversalNLS"/* ログに使うだけ */
+
+    override fun onListenerConnected() {
+        /* Confirms in the file log that the listener is actually bound */
+        Timber.tag(TAG).i("Notification listener connected")
+    }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn?.let {
@@ -36,11 +40,19 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 //            if (title == null || text == null) {
 //                return
 //            }
-            val titleE = extras.getString(Notification.EXTRA_TITLE)
-            val textE = extras.getString(Notification.EXTRA_TEXT)
-            Log.d("PayPay", "title=$titleE, text=$textE")
+            Timber.tag(TAG).d("pkg:$pkgName title:$title text:$text timestamp:$timestamp")
 
-            Log.d("UniversalNLS", "title:$title text:$text timestamp:${timestamp}")
+            if (pkgName == AppPackageNames.PAYPAY) {
+                /* INFO so it is kept in the shareable file log while investigating PayPay detection */
+                Timber.tag(TAG).i(
+                    "PayPay notification: channel=${notification.channelId} " +
+                            "title=${extras.getCharSequence(Notification.EXTRA_TITLE)} " +
+                            "text=${extras.getCharSequence(Notification.EXTRA_TEXT)} " +
+                            "bigText=${extras.getCharSequence(Notification.EXTRA_BIG_TEXT)} " +
+                            "lines=${extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)?.joinToString(" | ")} " +
+                            "keys=${extras.keySet()}"
+                )
+            }
 
             if (pkgName == AppPackageNames.THIS_APP ||
                 pkgName == AppPackageNames.FELICA_NETWORKS
@@ -65,9 +77,9 @@ class UniversalNotificationListenerService : NotificationListenerService() {
 
                     /* 条件を満たしていない場合は弾く */
                     if (isCreateNotification) {
-                        LogAkitaDebug("This is paypay payment notification")
+                        Timber.tag(TAG).d("This is paypay payment notification")
                     } else {
-                        LogAkitaDebug("This is NOT paypay payment notification")
+                        Timber.tag(TAG).d("This is NOT paypay payment notification")
                         return
                     }
 
@@ -126,7 +138,7 @@ fun sendNotificationFromNLSForPayPay(
 }
 
 fun checkPayPayNotification(title: String, text: CharSequence): Boolean {
-    //LogAkitaDebug("title:${title} text:${text}")
+    //Timber.d("title:${title} text:${text}")
 //    if (title != "PayPay") return false
 //
     if (!text.startsWith("取引が完了しました")) {

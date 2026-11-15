@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -34,9 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,7 +47,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import gaku.original.myapplication.LocalSnackBarHostState
 import gaku.original.myapplication.MainGraph
+import gaku.original.myapplication.MyApplication
+import gaku.original.myapplication.logging.createLogShareIntent
 import gaku.original.myapplication.ui.common.SectionHeader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @Composable
 fun SettingScreenRoot(
@@ -58,6 +67,8 @@ fun SettingScreenRoot(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val snackBarHostState = LocalSnackBarHostState.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -71,6 +82,21 @@ fun SettingScreenRoot(
         onMenuClick = {
             navigateToSettingMenu(it)
         },
+        onShareLogClick = {
+            scope.launch {
+                val tree = (context.applicationContext as MyApplication).fileLoggingTree
+                val intent = withContext(Dispatchers.IO) {
+                    runCatching { createLogShareIntent(context, tree) }
+                        .onFailure { Timber.e(it, "Failed to prepare log for sharing") }
+                        .getOrNull()
+                }
+                if (intent == null) {
+                    snackBarHostState.showSnackbar("No log to share yet")
+                } else {
+                    context.startActivity(intent)
+                }
+            }
+        },
         onSignOutClick = {
             viewModel.onSignOutClick()
         }
@@ -81,6 +107,7 @@ fun SettingScreenRoot(
 fun SettingScreen(
     uiState: SettingUiState,
     onMenuClick: (MainGraph.SettingMenu) -> Unit,
+    onShareLogClick: () -> Unit,
     onSignOutClick: () -> Unit
 ) {
     Column(
@@ -164,6 +191,21 @@ fun SettingScreen(
                 route = MainGraph.SettingMenu.AppVersion,
                 onMenuClick = onMenuClick
             )
+
+            SettingRow(onClick = onShareLogClick) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Share Debug Log",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp)
+                )
+            }
         }
 
         OutlinedButton(
@@ -277,6 +319,7 @@ fun SettingScreenPreview() {
     SettingScreen(
         uiState,
         onMenuClick = {},
+        onShareLogClick = {},
         onSignOutClick = {}
     )
 }

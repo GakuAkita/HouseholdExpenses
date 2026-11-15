@@ -79,7 +79,7 @@ import gaku.original.myapplication.ui.common.ConfirmAlertDialog
 import gaku.original.myapplication.ui.common.TopBarView
 import gaku.original.myapplication.ui.common.enabledTextFiledColorSet
 import gaku.original.myapplication.ui.common.toYen
-import gaku.original.myapplication.utility.LogAkitaDebug
+import timber.log.Timber
 import gaku.original.myapplication.utility.evalExpression
 import java.time.LocalDate
 import java.time.LocalTime
@@ -852,7 +852,7 @@ fun CalculatorUI(
                     /* onEqualはCalculatorUIにわたす必要はない。 */
                     /* 決定ボタンがないから決定ボタン代わり */
                     input = it
-                    LogAkitaDebug("input計算されてるか？${input}")
+                    Timber.d("input計算されてるか？${input}")
                     onDecide(it/* =input */)
                 },
                 modifier = Modifier

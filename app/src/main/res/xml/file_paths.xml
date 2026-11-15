@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Combined log file built by LogSharer for the "Share Debug Log" setting -->
+    <cache-path
+        name="shared_logs"
+        path="shared_logs/" />
+</paths>
